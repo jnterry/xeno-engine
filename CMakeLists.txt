@@ -8,6 +8,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/bin")
 
 option(STRICT_COMPILE "Enables extra compiler warnings and errors" ON)
 
+set(PP_SFML_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/extlibs/sfml2.4.2/include/")
+
 if(STRICT_COMPILE)
   #setup warnings + errors
   if(MSVC)
@@ -38,4 +40,5 @@ if(STRICT_COMPILE)
   endif()
 endif()
 
+add_subdirectory(extlibs)
 add_subdirectory(source)

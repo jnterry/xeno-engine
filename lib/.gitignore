@@ -1,0 +1,4 @@
+# ignore compiler output
+*.so*
+*.o
+*.dll
