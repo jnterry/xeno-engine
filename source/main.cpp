@@ -1,12 +1,29 @@
 #include <stdio.h>
 
-#include <SFML/System/Clock.hpp>
+#include <SFML/Window/Window.hpp>
+#include <SFML/Window/Event.hpp>
 
 int main(int argc, char** argv){
-	printf("Hello World\n");
-	sf::Clock clock;
-	while(clock.getElapsedTime().asSeconds() < 5){
-		printf("Elapsed: %f\n", clock.getElapsedTime().asSeconds());
+
+	sf::Window app(sf::VideoMode(640, 400, 32), "Window Title");
+
+	printf("Entering main loop\n");
+	while(app.isOpen()){
+		sf::Event event;
+		while(app.pollEvent(event)){
+			switch(event.type){
+			case sf::Event::Closed:
+				app.close();
+				break;
+			default: break;
+			}
+		}
+
+		app.display();
 	}
+	printf("Exiting main loop");
+
+
+
 	return 0;
 }

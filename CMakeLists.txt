@@ -28,7 +28,7 @@ if(STRICT_COMPILE)
 	 #enable some warnings that are disabled by default, even at /W4
 	 #/Wall has too many, so just enable ones that make sence
 	 #see https://msdn.microsoft.com/en-us/library/23k5d385.aspx
-	 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w44061 /w44062") # missing case in enum switch
+	 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w44061 /w44062") # missing case in enum switch
 	 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w44365 /w44388") # implicit conversion between unsigned and signed
 	 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w34738")         # ran out of float registers, putting in memory
 	 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w14311")         # pointer truncation (assigned pointer to int type thats too small)
