@@ -1,0 +1,13 @@
+#ignore compiler output
+*.exe
+*.dll
+*.lib
+*.o
+*.ilk
+*.pdb
+*.a
+*.so
+*.exp
+*.pc
+*.obj
+ProcedualPlanet
