@@ -9,6 +9,7 @@
 #include "xen/core/intrinsics.hpp"
 #include "xen/core/memory.hpp"
 #include "xen/graphics/Shader.hpp"
+#include "xen/math/Vector.hpp"
 
 int main(int argc, char** argv){
 
