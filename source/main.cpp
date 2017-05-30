@@ -5,7 +5,12 @@
 
 #include <GL/gl.h>
 
+#include "core/intrinsics.hpp"
+#include "core/memory.hpp"
+
 int main(int argc, char** argv){
+
+	xen::AllocatorCounter<xen::AllocatorMalloc> alloc;
 
 	sf::Window app(sf::VideoMode(800, 600, 32), "Window Title");
 
@@ -32,7 +37,7 @@ int main(int argc, char** argv){
 
 		app.display();
 	}
-	printf("Exiting main loop");
+	printf("Exiting main loop\n");
 
 	return 0;
 }
