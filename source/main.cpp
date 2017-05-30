@@ -3,10 +3,12 @@
 #include <SFML/Window/Window.hpp>
 #include <SFML/Window/Event.hpp>
 
+#include <GL/glew.h>
 #include <GL/gl.h>
 
 #include "xen/core/intrinsics.hpp"
 #include "xen/core/memory.hpp"
+#include "xen/graphics/Shader.hpp"
 
 int main(int argc, char** argv){
 
@@ -14,7 +16,17 @@ int main(int argc, char** argv){
 
 	sf::Window app(sf::VideoMode(800, 600, 32), "Window Title");
 
-	XenTempArena(temp_space, 1024);
+	XenTempArena(arena, 4096);
+
+	app.setActive(true);
+	glewInit();
+
+	xen::ShaderProgram* prog = xen::createShaderProgram(arena, "fdsfsd", "fdsfsd");
+	if(!xen::isOkay(prog)){
+		xen::MemoryTransaction transaction(arena);
+		const char* errors = xen::getErrors(prog, arena);
+		printf("Shader Errors:\n%s\n", errors);
+	}
 
 	printf("Entering main loop\n");
 	while(app.isOpen()){

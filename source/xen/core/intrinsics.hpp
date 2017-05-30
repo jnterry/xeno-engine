@@ -17,6 +17,9 @@
 
 #define XenArrayLength(array) (sizeof(array) / sizeof((array)[0]))
 
+#define XenMin(A, B) ((A < B) ? (A) : (B))
+#define XenMax(A, B) ((A < B) ? (B) : (A))
+
 /// \brief Triggers break in debugger (or crash if no debugger)
 /// \todo :TODO: something better?
 #define XenBreak(...) (*(char*)nullptr) = 'a';

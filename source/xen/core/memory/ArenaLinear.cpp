@@ -44,13 +44,15 @@ namespace xen{
 	}
 
 	char* pushStringNoTerminate(ArenaLinear& arena, const char* str){
-		char* dest = (char*)arena.next_byte;
-		while(str && dest < arena.end){
+		char* result = (char*)arena.next_byte;
+		char* dest   = result;
+		while(*str && (dest < arena.end)){
 			*dest = *str;
 			++dest;
 			++str;
 		}
-		return dest;
+		arena.next_byte = dest;
+		return result;
 	}
 }
 

@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.1.3)
 project(ProcedualPlaent)
 set(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# :TODO: have some way of configuring this
+set(CMAKE_BUILD_TYPE Debug)
+
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/lib")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/lib")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/bin")
