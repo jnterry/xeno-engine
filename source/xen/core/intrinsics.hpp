@@ -37,6 +37,7 @@ typedef uint32_t u32;
 typedef uint64_t u64;
 typedef int8_t   b8;
 typedef int32_t  b32;
+typedef unsigned int uint;
 
 #ifdef XEN_USE_DOUBLE_PRECISION
 	typedef double real;
