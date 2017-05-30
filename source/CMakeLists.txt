@@ -1,6 +1,9 @@
-add_executable            (ProcedualPlanet ${CMAKE_CURRENT_LIST_DIR}/main.cpp ${CMAKE_CURRENT_LIST_DIR}/core/memory/Allocator.cpp)
+include(xen_sources.cmake)
 
-MESSAGE( STATUS "SFML include dir is: ${PP_SFML_INCLUDE_DIR}")
+message(STATUS "core sources are: ${XEN_CORE_SOURCES}")
+add_executable(ProcedualPlanet ${CMAKE_CURRENT_LIST_DIR}/main.cpp ${XEN_CORE_SOURCES})
+
 target_include_directories(ProcedualPlanet PRIVATE ${PP_SFML_INCLUDE_DIR})
+target_include_directories(ProcedualPlanet PRIVATE ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries(ProcedualPlanet sfml-system)
 target_link_libraries(ProcedualPlanet sfml-window)

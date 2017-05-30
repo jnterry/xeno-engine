@@ -5,8 +5,8 @@
 
 #include <GL/gl.h>
 
-#include "core/intrinsics.hpp"
-#include "core/memory.hpp"
+#include "xen/core/intrinsics.hpp"
+#include "xen/core/memory.hpp"
 
 int main(int argc, char** argv){
 
