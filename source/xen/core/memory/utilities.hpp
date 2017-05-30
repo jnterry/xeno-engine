@@ -54,27 +54,24 @@ namespace xen{
 		return delta;
 	}
 
-	/// \brief Increases the value of a pointer by some number of bytes, useful to
-	/// ensure it is moved by the number of bytes rather than by a multiple of the
-	/// size of the pointed at object
-	inline void* ptrAdvance(void* ptr, size_t bytes){
-		return (void*)(((uint8_t*)ptr) + bytes);
-	}
-	/// \overload
-	inline const void* ptrAdvance(const void* ptr, size_t bytes){
-		return (const void*)(((const uint8_t*)ptr) + bytes);
-	}
+	/// \brief Moves pointer forward some number of bytes
+	/// \warn Modifies the paremeter ptr, IE, behaves as +=
+	inline void*       ptrAdvance(      void** ptr, size_t bytes){ return (*ptr = (      void*)(((      u8*)*ptr) + bytes)); }
+	inline const void* ptrAdvance(const void** ptr, size_t bytes){ return (*ptr = (const void*)(((const u8*)*ptr) + bytes)); }
 
-	/// \brief Decreases the value of a pointer by some number of bytes, useful to
-	/// ensure it is moved by the number of bytes rather than by a multiple of the
-	/// size of the pointed at object
-	inline void* ptrRetreat(void* ptr, size_t bytes){
-		return (void*)(((uint8_t*)ptr) - bytes);
-	}
-	/// \overload
-	inline const void* ptrRetreat(const void* ptr, size_t bytes){
-		return (const void*)(((const uint8_t*)ptr) - bytes);
-	}
+	/// \brief Moves pointer forward some number of bytes
+	inline       void* ptrGetAdvanced(      void* ptr, u32 bytes){ return (      void*)(((      u8*)ptr) + bytes); }
+	inline const void* ptrGetAdvanced(const void* ptr, u32 bytes){ return (const void*)(((const u8*)ptr) + bytes); }
+
+	/// \brief Moves pointer backwards some number of bytes
+	/// \warn Modifies the paremeter ptr, IE, behaves as -=
+	inline void*       ptrRetreat(      void** ptr, size_t bytes){ return (*ptr = (      void*)(((      u8*)*ptr) - bytes)); }
+	inline const void* ptrRetreat(const void** ptr, size_t bytes){ return (*ptr = (const void*)(((const u8*)*ptr) - bytes)); }
+
+	/// \brief Moves pointer backwards some number of bytes
+	inline       void* ptrGetRetreated(      void* ptr, u32 bytes){ return (      void*)(((      u8*)ptr) - bytes); }
+	inline const void* ptrGetRetreated(const void* ptr, u32 bytes){ return (const void*)(((const u8*)ptr) - bytes); }
+
 
 	/// \brief Returns the distance in bytes between two pointers
 	/// \return The number of bytes that ptrA needs to be advanced by in order for

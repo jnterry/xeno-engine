@@ -14,6 +14,8 @@ int main(int argc, char** argv){
 
 	sf::Window app(sf::VideoMode(800, 600, 32), "Window Title");
 
+	XenTempArena(temp_space, 1024);
+
 	printf("Entering main loop\n");
 	while(app.isOpen()){
 		sf::Event event;

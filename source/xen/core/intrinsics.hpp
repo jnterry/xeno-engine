@@ -21,7 +21,7 @@
 /// \todo :TODO: something better?
 #define XenBreak(...) (*(char*)nullptr) = 'a';
 
-#define XenAssert(cond, ...) { if(!cond){ XenBreak(__VAR_ARGS__); } }
+#define XenAssert(cond, ...) { if(!(cond)){ XenBreak(__VAR_ARGS__); } }
 
 typedef float    r32;
 typedef double   r64;
