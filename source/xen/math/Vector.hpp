@@ -16,7 +16,7 @@
 #include <xen/core/intrinsics.hpp>
 
 // gcc doesn't like the anonomous structures inside unions,
-// disable to warning in this file
+// disable the warning in this file
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 

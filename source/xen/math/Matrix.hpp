@@ -16,10 +16,9 @@
 #include <xen/math/Vector.hpp>
 
 // gcc doesn't like the anonomous structures inside unions,
-// disable to warning in this file
+// disable the warning in this file
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
-
 
 namespace xen{
 	template<u32 T_Rows, u32 T_Cols, typename T>
@@ -29,13 +28,24 @@ namespace xen{
 			Vec<T_Cols, T> rows[T_Rows]; //:TODO: not sure if in row major or column major format yet...
 		};
 	};
-
-	template<u32 T_DIM, typename T>
-	using SqMatrix = Matrix<T_DIM, T_DIM, T>;
 }
 
+#pragma GCC diagnostic pop // re-enable -Wpedantic
 
-#pragma GCC diagnostic pop
+template<typename T> using Mat3 = xen::Matrix<3,3, T>;
+template<typename T> using Mat4 = xen::Matrix<4,4, T>;
+
+typedef Mat3<r32>  Mat3f;
+typedef Mat3<r64>  Mat3d;
+typedef Mat3<real> Mat3r;
+typedef Mat3<u32>  Mat3u;
+typedef Mat3<s32>  Mat3s;
+
+typedef Mat4<r32>  Mat4f;
+typedef Mat4<r64>  Mat4d;
+typedef Mat4<real> Mat4r;
+typedef Mat4<u32>  Mat4u;
+typedef Mat4<s32>  Mat4s;
 
 template<u32 T_Rows, u32 T_Cols, typename T>
 bool operator==(xen::Matrix<T_Rows, T_Cols, T>& lhs, xen::Matrix<T_Rows, T_Cols, T>& rhs){
