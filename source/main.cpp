@@ -10,6 +10,7 @@
 #include "xen/core/memory.hpp"
 #include "xen/graphics/Shader.hpp"
 #include "xen/math/Vector.hpp"
+#include "xen/math/Matrix.hpp"
 
 int main(int argc, char** argv){
 
