@@ -14,6 +14,7 @@
 #define XEN_CORE_INTRINSICS_HPP
 
 #include <stdint.h>
+#include <cmath>
 
 #define XenArrayLength(array) (sizeof(array) / sizeof((array)[0]))
 
@@ -56,6 +57,10 @@ namespace xen{
 		NonCopyable(const NonCopyable& other)            = delete;
 		NonCopyable& operator=(const NonCopyable& other) = delete;
 	};
+
+	static const constexpr real PI = (real)M_PI;
 }
+
+inline constexpr real operator"" _r(long double val){ return (real)val; }
 
 #endif
