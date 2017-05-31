@@ -88,13 +88,14 @@ int main(int argc, char** argv){
 			}
 		}
 
+		float time = timer.getElapsedTime().asSeconds();
 		app.setActive(true);
 		xen::useShader(prog);
 		model_mat  = Mat4r::Identity;
-		model_mat *= xen::Rotation3dx<real>(xen::Degrees(timer.getElapsedTime().asSeconds() * 20.0f));
-		model_mat *= xen::Rotation3dz<real>(xen::Degrees(timer.getElapsedTime().asSeconds() * 30.0f));
-		model_mat *= xen::Translation3d<real>(0.0, 0, -5);
-		//model_mat *= xen::Scale3d<real>(0.1, 0.1, 0.1);
+		model_mat *= xen::Rotation3dx<real>(xen::Degrees(time * 20.0f));
+		model_mat *= xen::Rotation3dz<real>(xen::Degrees(time * 30.0f));
+		model_mat *= xen::Scale3d<real>(1 + sin(time*10)*0.1, 1 + sin(time*10 + 0.25*xen::PI)*0.1, 1 + sin(time*10 + 0.5*xen::PI)*0.1);
+		model_mat *= xen::Translation3d<real>(0.0, 0.0, -5);
 		xen::setUniform(mvpMatLoc, model_mat * view_mat);
 		glClearColor(1,1,0,1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -149,21 +150,21 @@ static const GLfloat cube_buffer_data[] = {
      1.0f,-1.0f, 1.0f,
 
     // color
-    1.0f, 0.0f, 0.0f, // triangle 1 : begin
-    1.0f, 0.0f, 0.0f,
-    1.0f, 0.0f, 0.0f, // triangle 1 : end
+    1.0f, 1.0f, 1.0f, // triangle 1 : begin
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f, // triangle 1 : end
     1.0f, 1.0f, 1.0f, // triangle 2 : begin
     1.0f, 1.0f, 1.0f,
     1.0f, 1.0f, 1.0f, // triangle 2 : end
-    1.0f, 0.0f, 1.0f,
-    1.0f, 0.0f, 1.0f,
-    1.0f, 0.0f, 1.0f,
     1.0f, 1.0f, 1.0f,
     1.0f, 1.0f, 1.0f,
     1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 0.0f,
-    1.0f, 1.0f, 0.0f,
-    1.0f, 1.0f, 0.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f,
     1.0f, 1.0f, 1.0f,
     1.0f, 1.0f, 1.0f,
     1.0f, 1.0f, 1.0f,
@@ -211,7 +212,7 @@ void renderCube(){
 	                      GL_FLOAT, // type
 	                      GL_FALSE, // normalized
 	                      0,        // stride
-	                      (void*)0//(sizeof(float)*3*12)  // start offset
+	                      (void*)0  // start offset
 	                      );
 	glDrawArrays(GL_TRIANGLES, 0, 12*3);
 }
