@@ -13,6 +13,9 @@
 #define XEN_GRAPHICS_SHADER_GL_CPP
 
 #include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/math/Vector.hpp>
+#include <xen/math/Matrix.hpp>
+#include <xen/graphics/Shader.hpp>
 
 #include "gl_header.hxx"
 
@@ -93,6 +96,47 @@ namespace xen{
 		} else {
 			glUseProgram(shader->program);
 		}
+	}
+
+	int getUniformLocation(ShaderProgram* shader, const char* name){
+		return glGetUniformLocation(shader->program, name);
+	}
+
+	void setUniform(int location, Vec3f data){
+		glUniform3f(location, data.x, data.y, data.z);
+	}
+	void setUniform(int location, Vec3d data){
+		glUniform3d(location, data.x, data.y, data.z);
+	}
+	void setUniform(int location, Vec3u data){
+		glUniform3ui(location, data.x, data.y, data.z);
+	}
+	void setUniform(int location, Vec3s data){
+		glUniform3i(location, data.x, data.y, data.z);
+	}
+	void setUniform(int location, Vec4f data){
+		glUniform4f(location, data.x, data.y, data.z, data.w);
+	}
+	void setUniform(int location, Vec4d data){
+		glUniform4d(location, data.x, data.y, data.z, data.w);
+	}
+	void setUniform(int location, Vec4u data){
+		glUniform4ui(location, data.x, data.y, data.z, data.w);
+	}
+	void setUniform(int location, Vec4s data){
+		glUniform4i(location, data.x, data.y, data.z, data.w);
+	}
+	void setUniform(int location, Mat3f data){
+		glUniformMatrix3fv(location, 1, GL_FALSE, data.elements);
+	}
+	void setUniform(int location, Mat3d data){
+		glUniformMatrix3dv(location, 1, GL_FALSE, data.elements);
+	}
+	void setUniform(int location, Mat4f data){
+		glUniformMatrix4fv(location, 1, GL_FALSE, data.elements);
+	}
+	void setUniform(int location, Mat4d data){
+		glUniformMatrix4dv(location, 1, GL_FALSE, data.elements);
 	}
 }
 

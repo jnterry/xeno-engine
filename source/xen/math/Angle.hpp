@@ -60,4 +60,6 @@ inline constexpr xen::Angle operator"" _deg(long double val){ return xen::Degree
 inline constexpr xen::Angle operator"" _rad(long double val){ return xen::Radians    ((real)val); }
 inline constexpr xen::Angle operator"" _rev(long double val){ return xen::Revolutions((real)val); }
 
+inline xen::Angle operator-(xen::Angle& a) { return { -a.radians }; }
+
 #endif
