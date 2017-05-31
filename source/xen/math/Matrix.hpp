@@ -88,7 +88,7 @@ namespace xen{
 		T c = xen::cos(a);
 		return {c,-s,0,  s,c,0,  0,0,1};
 	}
-	template<typename T> Mat3<T> Translation2d(T x, T y ){ return { 1,0,x,  0,1,y,  0,0,1 };     }
+	template<typename T> Mat3<T> Translation2d(T x, T y ){ return { 1,0,0,  0,1,0,  x,y,1 };     }
 	template<typename T> Mat3<T> Translation2d(Vec2<T> v){ return Translation2d(v.x, v.y);       }
 	template<typename T> Mat3<T> Scale2d(T x, T y)       { return {x,0,0,   0,y,0,   0,0,1};     }
 	template<typename T> Mat3<T> Scale2d(Vec2<T> factors){ return Scale2d(factors.x, factors.y); }
@@ -109,7 +109,7 @@ namespace xen{
 		real s = xen::sin(-a);
 		return { c,-s,0,0,  s,c,0,0,  0,0,1,0,  0,0,0,1 };
 	}
-	template<typename T> Mat4<T> Translation3d(T x, T y, T z){ return { 1,0,0,x,  0,1,0,y,  0,0,1,z,  0,0,0,1}; }
+	template<typename T> Mat4<T> Translation3d(T x, T y, T z){ return { 1,0,0,0,  0,1,0,0,  0,0,1,0,  x,y,z,1}; }
 	template<typename T> Mat4<T> Translation3d(Vec3<T> v    ){ return Translation3d(v.x, v.y, v.z);             }
 	template<typename T> Mat4<T> Scale3d      (T x, T y, T z){ return { x,0,0,0,  0,y,0,0,  0,0,z,0,  0,0,0,1}; }
 	template<typename T> Mat4<T> Scale3d      (Vec3<T> v    ){ return Scale3d(v.x, v.y, v.z);                   }

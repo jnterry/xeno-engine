@@ -90,12 +90,12 @@ int main(int argc, char** argv){
 
 		app.setActive(true);
 		xen::useShader(prog);
-		//model_mat  = Mat4r::Identity;
-		model_mat  = xen::Rotation3dx<real>(xen::Degrees(timer.getElapsedTime().asSeconds() * 20.0f));
+		model_mat  = Mat4r::Identity;
+		model_mat *= xen::Rotation3dx<real>(xen::Degrees(timer.getElapsedTime().asSeconds() * 20.0f));
 		model_mat *= xen::Rotation3dz<real>(xen::Degrees(timer.getElapsedTime().asSeconds() * 30.0f));
-		model_mat *= xen::Scale3d<real>(0.1, 0.1, 0.1);
-		//model_mat  *= xen::Translation3d<real>(0.5, 0, -3);
-		xen::setUniform(mvpMatLoc, model_mat /** view_mat*/);
+		model_mat *= xen::Translation3d<real>(0.0, 0, -5);
+		//model_mat *= xen::Scale3d<real>(0.1, 0.1, 0.1);
+		xen::setUniform(mvpMatLoc, model_mat * view_mat);
 		glClearColor(1,1,0,1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -199,16 +199,14 @@ void renderCube(){
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, cube_vert_buffer);
-	glVertexAttribPointer(
-	                      0,        // attrib layout
+	glVertexAttribPointer(0,        // attrib layout
 	                      3,        // components
 	                      GL_FLOAT, // type
 	                      GL_FALSE, // normalized
 	                      0,        // stride
 	                      (void*)0  // start offset
 	                      );
-	glVertexAttribPointer(
-	                      1,        // attrib layout
+	glVertexAttribPointer(1,        // attrib layout
 	                      3,        // components
 	                      GL_FLOAT, // type
 	                      GL_FALSE, // normalized
