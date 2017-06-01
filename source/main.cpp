@@ -129,13 +129,14 @@ int main(int argc, char** argv){
 		model_mat *= xen::Rotation3dx(time * 41_deg);
 		model_mat *= xen::Rotation3dy(time * 67_deg);
 		model_mat *= xen::Rotation3dz(time * 83_deg);
-		model_mat *= xen::Scale3d(1 + sin(time*15)*0.1, 1 + sin(time*15 + 0.25*xen::PI)*0.1, 1 + sin(time*15 + 0.5*xen::PI)*0.1);
+		model_mat *= xen::Scale3d(0.3 + sin(time*15)*0.03, 0.3 + sin(time*15 + 0.25*xen::PI)*0.03, 0.3 + sin(time*15 + 0.5*xen::PI)*0.03);
+		model_mat *= xen::Translation3d(sin(time) * 4, 1, cos(time) * 4);
 		xen::setUniform(mvpMatLoc, model_mat * view_mat);
 		renderCube();
 
 		model_mat = Mat4r::Identity;
-		model_mat *= xen::Scale3d(10);
-		model_mat *= xen::Translation3d(-2, 0, 0);
+		model_mat *= xen::Scale3d(30);
+		model_mat *= xen::Translation3d(0, 0, 0);
 		xen::setUniform(mvpMatLoc, model_mat * view_mat);
 		renderMesh(mesh_bunny);
 
