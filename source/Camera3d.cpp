@@ -11,7 +11,7 @@
 
 #include "Camera3d.hpp"
 
-Mat4r getViewMatrix(Camera3d& camera, Vec2r viewport_size){
+Mat4r getViewMatrix(const Camera3d& camera, Vec2r viewport_size){
 
 	// :TODO: assert angle is 0
 	//printf("Angle between camera up/look dir: %f\n", xen::minAngleBetween(camera.look_dir, camera.up_dir));
@@ -37,6 +37,23 @@ Mat4r getViewMatrix(Camera3d& camera, Vec2r viewport_size){
 
 	// Do perspective projection
 	result *= xen::createPerspectiveProjection(camera.fov_y, viewport_size.x, viewport_size.y, camera.z_near, camera.z_far);
+
+	return result;
+}
+
+Camera3d generateCamera3d(const Camera3dOrbit& cam){
+	Camera3d result;
+
+	result.fov_y  = cam.fov_y;
+	result.z_near = cam.z_near;
+	result.z_far  = cam.z_far;
+
+	result.position  = cam.target;
+	result.position += Vec3r{cam.radius * xen::cos(cam.angle), cam.height, cam.radius * xen::sin(cam.angle)};
+
+	result.look_dir = xen::normalized(cam.target - result.position);
+	auto pitch = xen::atan(cam.height / cam.radius);
+	result.up_dir   = Vec3r{ 0, xen::cos(pitch), xen::sin(pitch) };
 
 	return result;
 }

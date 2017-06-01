@@ -19,11 +19,8 @@
 void initCube();
 void renderCube();
 
-Camera3d camera;
+Camera3dOrbit camera = {0};
 real camera_speed = 10;
-xen::Angle camera_angle = 0_deg;
-real camera_radius = 10;
-real camera_height = 0;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
 
@@ -33,10 +30,10 @@ int main(int argc, char** argv){
 
 	xen::AllocatorCounter<xen::AllocatorMalloc> alloc;
 
-	camera.look_dir = Vec3r::UnitZ;
 	camera.z_near   = 0.001;
 	camera.z_far    = 10000;
 	camera.fov_y    = 80_deg;
+	camera.radius   = 10;
 
 	sf::ContextSettings context_settings;
 	context_settings.depthBits = 24;
@@ -90,29 +87,23 @@ int main(int argc, char** argv){
 		}
 
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
-			camera_radius -= camera_speed * dt;
+			camera.radius -= camera_speed * dt;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down)){
-			camera_radius += camera_speed * dt;
+			camera.radius += camera_speed * dt;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
-			camera_angle -= camera_rotate_speed * dt;
+			camera.angle -= camera_rotate_speed * dt;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
-			camera_angle += camera_rotate_speed * dt;
+			camera.angle += camera_rotate_speed * dt;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
-			camera_height += camera_speed * dt;
+			camera.height += camera_speed * dt;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Z)){
-			camera_height -= camera_speed * dt;
+			camera.height -= camera_speed * dt;
 		}
-
-		camera_pitch = xen::atan(camera_height / camera_radius);
-		camera.position = {camera_radius * xen::cos(camera_angle), camera_height, camera_radius * xen::sin(camera_angle)};
-		camera.look_dir = xen::normalized(-camera.position);
-		camera.up_dir   = { 0, xen::cos(camera_pitch), xen::sin(camera_pitch) };
-		printf("Pitch: %f, Up dir: (%f, %f, %f)\n", xen::asDegrees(camera_pitch), camera.up_dir.x, camera.up_dir.y, camera.up_dir.z);
 
 		view_mat = getViewMatrix(camera, window_size);
 

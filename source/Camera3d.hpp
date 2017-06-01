@@ -14,15 +14,40 @@
 
 /// \brief Holds data representing a camera in 3d space
 struct Camera3d{
+    xen::Angle fov_y;      /// \brief Field of view in y direction
+	real       z_near;     /// \brief Minumum distance to geometry from camera such that it is rendered
+	real       z_far;      /// \brief Maximum distance to geometry from camera such that it is rendered
+
 	Vec3r      position;   /// \brief Camera's position in 3d space
 	Vec3r      look_dir;   /// \brief Direction in which camera is looking
 	Vec3r      up_dir;     /// \brief Direction considered to be "up" to the camera
+};
+
+/// \brief Represents a camera which orbits around some central target
+/// Camera can rotate around the target in the xz plane, and additionall rise up and below
+/// this plane (this is the camera's height)
+struct Camera3dOrbit{
 	xen::Angle fov_y;      /// \brief Field of view in y direction
 	real       z_near;     /// \brief Minumum distance to geometry from camera such that it is rendered
 	real       z_far;      /// \brief Maximum distance to geometry from camera such that it is rendered
+
+	Vec3r      target; /// \brief Center point that the camera is focusing on
+	xen::Angle angle;  /// \brief Angle the camera with z axis in xy plane
+	real       radius; /// \brief Distance between camera and target in xz plane
+	real       height; /// \brief Height above/below the xz plane
 };
 
+/// \brief Generates a Camera3d corresponding to some Camera3dOrbit
+Camera3d generateCamera3d(const Camera3dOrbit&);
+
+/// \brief Helper function which generates a standard Camera3d from some other, then
+/// calls getViewMatrix
+template <typename T_CAM>
+Mat4r getViewMatrix(const T_CAM& camera, Vec2r viewport_size){
+	return getViewMatrix(generateCamera3d(camera), viewport_size);
+}
+
 /// \brief Gets matrix that transforms points in world space into camera relative space post projection
-Mat4r getViewMatrix(Camera3d& camera, Vec2r viewport_size);
+Mat4r getViewMatrix(const Camera3d& camera, Vec2r viewport_size);
 
 #endif
