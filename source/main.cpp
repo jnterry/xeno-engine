@@ -102,20 +102,21 @@ int main(int argc, char** argv){
 		view_mat = getViewMatrix(camera, window_size);
 
 		app.setActive(true);
-		glClearColor(1,1,0,1);
+		glClearColor(0.3,0.3,0.3,1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		xen::useShader(prog);
 
 		model_mat  = Mat4r::Identity;
-		model_mat *= xen::Rotation3dx(xen::Degrees(time * 20.0f));
-		model_mat *= xen::Rotation3dz(xen::Degrees(time * 30.0f));
+		model_mat *= xen::Rotation3dx(xen::Degrees(time * 41.0f));
+		model_mat *= xen::Rotation3dy(xen::Degrees(time * 67.0f));
+		model_mat *= xen::Rotation3dz(xen::Degrees(time * 83.0f));
 		model_mat *= xen::Scale3d(1 + sin(time*10)*0.1, 1 + sin(time*10 + 0.25*xen::PI)*0.1, 1 + sin(time*10 + 0.5*xen::PI)*0.1);
 		xen::setUniform(mvpMatLoc, model_mat * view_mat);
 		renderCube();
 
 		model_mat = Mat4r::Identity;
-		model_mat *= xen::Scale3d(3, 0.05, 3);
+		model_mat *= xen::Scale3d(5, 0.05, 5);
 		model_mat *= xen::Translation3d(0, -3, 0);
 		xen::setUniform(mvpMatLoc, model_mat * view_mat);
 		renderCube();
@@ -167,43 +168,45 @@ static const GLfloat cube_buffer_data[] = {
     -1.0f, 1.0f, 1.0f,
      1.0f,-1.0f, 1.0f,
 
+
+
     // color
-    1.0f, 1.0f, 1.0f, // triangle 1 : begin
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f, // triangle 1 : end
-    1.0f, 1.0f, 1.0f, // triangle 2 : begin
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f, // triangle 2 : end
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
+    0.0f, 0.0f, 0.0f, // Face A
+    0.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 1.0f, // Face B
+    1.0f, 0.0f, 1.0f,
+    1.0f, 0.0f, 1.0f,
+    1.0f, 0.0f, 0.0f, // Face C
+    1.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 1.0f, // Face B
+    1.0f, 0.0f, 1.0f,
+    1.0f, 0.0f, 1.0f,
+    0.0f, 0.0f, 0.0f, // Face A
+    0.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f, // Face C
+    1.0f, 0.0f, 0.0f,
+    1.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, // Face E
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, // Face D
+    0.0f, 0.0f, 1.0f,
+    0.0f, 0.0f, 1.0f,
+    0.0f, 0.0f, 1.0f, // Face D
+    0.0f, 0.0f, 1.0f,
+    0.0f, 0.0f, 1.0f,
+    1.0f, 1.0f, 1.0f, // Face F
     1.0f, 1.0f, 1.0f,
     1.0f, 1.0f, 1.0f,
+    1.0f, 1.0f, 1.0f, // Face F
     1.0f, 1.0f, 1.0f,
     1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f
+    0.0f, 1.0f, 0.0f, // Face E
+    0.0f, 1.0f, 0.0f,
+    0.0f, 1.0f, 0.0f
 };
 
 void initCube(){
@@ -228,9 +231,9 @@ void renderCube(){
 	glVertexAttribPointer(1,        // attrib layout
 	                      3,        // components
 	                      GL_FLOAT, // type
-	                      GL_FALSE, // normalized
+	                      GL_TRUE,  // normalized
 	                      0,        // stride
-	                      (void*)0  // start offset
+	                      (void*)(sizeof(float)*3*12*3)  // start offset
 	                      );
 	glDrawArrays(GL_TRIANGLES, 0, 12*3);
 }
