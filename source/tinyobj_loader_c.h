@@ -266,6 +266,7 @@ static int parseInt(const char **token) {
  */
 static int tryParseDouble(const char *s, const char *s_end, double *result) {
 	*result = atof(s);
+	return 1;
 }
 
 static float parseFloat(const char **token) {
@@ -380,7 +381,7 @@ static unsigned long hash_djb2(const unsigned char* str)
   unsigned long hash = 5381;
   int c;
 
-  while (c = *str++)
+  while ((c = *str++))
     hash = ((hash << 5) + hash) + c;
 
   return hash;
@@ -476,7 +477,7 @@ static void hash_table_maybe_grow(size_t new_n, hash_table_t* hash_table)
   new_hash_table.n = hash_table->n;
 
   // Rehash
-  for (int i = 0; i < hash_table->capacity; i++)
+  for (unsigned int i = 0; i < hash_table->capacity; i++)
   {
     hash_table_entry_t* entry = hash_table_find(hash_table->hashes[i], hash_table);
     hash_table_insert_value(hash_table->hashes[i], entry->value, &new_hash_table);
@@ -516,27 +517,6 @@ static long hash_table_get(const char* name, hash_table_t* hash_table)
 {
 	hash_table_entry_t* ret = hash_table_find(hash_djb2((const unsigned char*)name), hash_table);
   return ret->value;
-}
-
-static void hash_table_erase(const char* name, hash_table_t* hash_table)
-{
-  // Find the entry associated with this name
-	hash_table_entry_t* entry = hash_table_find(hash_djb2((const unsigned char*)name), hash_table);
-  if (!entry)
-    return;
-
-  // Mark the entry as empty
-  entry->filled = 0;
-
-  // Remove it from the linked list if it's on one
-  if (entry->prev)
-    entry->prev->next = entry->next;
-  if (entry->next)
-    entry->next->prev = entry->prev;
-
-  // Delete the associated hash from the array by replacing it with the last hash on the table
-  hash_table->n--;
-  hash_table->hashes[entry - hash_table->entries] = hash_table->hashes[hash_table->n];
 }
 
 static tinyobj_material_t *tinyobj_material_add(tinyobj_material_t *prev,
