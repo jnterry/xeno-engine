@@ -72,17 +72,6 @@ typedef Mat4<u32>  Mat4u;
 typedef Mat4<s32>  Mat4s;
 
 namespace xen{
-	inline Mat4r createPerspectiveProjection(Angle fov_y, real width, real height, real z_near, real  z_far){
-		real aspectRatio = width/height;
-		real f = 1/xen::tan(fov_y / 2.0_r);
-
-		return {  f/aspectRatio,  0,  0,                                  0,
-			                  0,  f,  0,                                  0,
-			                  0,  0,    (z_far+z_near) / (z_near-z_far), -1,
-			                  0,  0,  (2*z_far*z_near) / (z_near-z_far),  0
-			   };
-	}
-
 	template<typename T> Mat3<T> Rotation2d(Angle a){
 		T s = xen::sin(a);
 		T c = xen::cos(a);
@@ -114,6 +103,24 @@ namespace xen{
 	template<typename T> Mat4<T> Scale3d      (T x, T y, T z){ return { x,0,0,0,  0,y,0,0,  0,0,z,0,  0,0,0,1}; }
 	template<typename T> Mat4<T> Scale3d      (Vec3<T> v    ){ return Scale3d(v.x, v.y, v.z);                   }
 	template<typename T> Mat4<T> Scale3d      (T factors    ){ return Scale3d(factors, factors, factors);       }
+
+	inline Mat4r createPerspectiveProjection(Angle fov_y, real width, real height, real z_near, real  z_far){
+		real aspectRatio = width/height;
+		real f = 1/xen::tan(fov_y / 2.0_r);
+
+		return {  f/aspectRatio,  0,  0,                                  0,
+			                  0,  f,  0,                                  0,
+			                  0,  0,    (z_far+z_near) / (z_near-z_far), -1,
+			                  0,  0,  (2*z_far*z_near) / (z_near-z_far),  0
+			   };
+	}
+
+	inline Mat4r createOrthograhpicProjection(real left, real right, real bottom, real top, real zNear, real zFar){
+		return {                 2/(right-left),                            0,                          0,  0,
+		                                      0,               2/(top-bottom),                          0,  0,
+		                                      0,                            0,            -2/(zFar-zNear),  0,
+                   -((right+left)/(right-left)), -((top+bottom)/(top-bottom)),-((zFar+zNear)/(zFar-zNear)), 1};
+	}
 }
 
 template<u32 T_Rows, u32 T_Cols, typename T>

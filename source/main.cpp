@@ -13,6 +13,8 @@
 #include "xen/math/Matrix.hpp"
 #include "xen/math/Angle.hpp"
 
+#include "Camera3d.hpp"
+
 static const char* vertex_shader_src =
                                    "#version 330\n"
                                    "layout(location = 0) in vec3 pos;\n"
@@ -36,18 +38,29 @@ static const char* fragment_shader_src =
 void initCube();
 void renderCube();
 
+Camera3d camera;
+
 int main(int argc, char** argv){
 
 	xen::AllocatorCounter<xen::AllocatorMalloc> alloc;
 
+	camera.up_dir   = Vec3r::UnitY;
+	camera.look_dir = Vec3r::UnitZ;
+	camera.position = {0,0, 10};
+	camera.z_near   = 0.001;
+	camera.z_far    = 10000;
+	camera.fov_y    = xen::Degrees(80);
 
 	sf::ContextSettings context_settings;
 	context_settings.depthBits = 24;
 	context_settings.stencilBits = 8;
 	context_settings.antialiasingLevel = 4;
-	context_settings.majorVersion = 4;
+	context_settings.majorVersion = 3;
 	context_settings.minorVersion = 0;
-	sf::Window app(sf::VideoMode(800, 600, 32), "Window Title", sf::Style::Default, context_settings);
+
+	Vec2r window_size = {800, 600};
+
+	sf::Window app(sf::VideoMode(window_size.x, window_size.y, 32), "Window Title", sf::Style::Default, context_settings);
 
 	context_settings = app.getSettings();
 	printf("Initialized window, GL version: %i.%i\n", context_settings.majorVersion, context_settings.minorVersion);
@@ -61,7 +74,7 @@ int main(int argc, char** argv){
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	auto view_mat = xen::createPerspectiveProjection(xen::Degrees(80), 800, 600, 0.001, 10000);
+	Mat4r view_mat;
 
 	xen::ShaderProgram* prog = xen::createShaderProgram(arena, vertex_shader_src, fragment_shader_src);
 	if(!xen::isOkay(prog)){
@@ -85,11 +98,13 @@ int main(int argc, char** argv){
 				break;
 			case sf::Event::Resized:
 				glViewport(0,0,event.size.width, event.size.height);
-				view_mat = xen::createPerspectiveProjection(xen::Degrees(80), 800, 600, 0.001, 10000);
+				window_size = {(real)event.size.width, (real)event.size.height};
 				break;
 			default: break;
 			}
 		}
+
+		view_mat = getViewMatrix(camera, window_size);
 
 		float time = timer.getElapsedTime().asSeconds();
 		app.setActive(true);

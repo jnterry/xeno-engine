@@ -29,7 +29,6 @@ namespace xen{
 
 	template<typename T>
 	struct Vec<2,T>{
-		Vec(T nx, T ny) : x(nx), y(ny) {}
 		union{
 		    T elements[2];
 			struct{ T x, y; };
@@ -37,13 +36,12 @@ namespace xen{
 		};
 		static const Vec<2, T> UnitX, UnitY, Origin;
 	};
-	template<typename T> const Vec<2, T> Vec<2, T>::UnitX (1,0);
-	template<typename T> const Vec<2, T> Vec<2, T>::UnitY (0,1);
-	template<typename T> const Vec<2, T> Vec<2, T>::Origin(0,0);
+	template<typename T> const Vec<2, T> Vec<2, T>::UnitX  = {1,0};
+	template<typename T> const Vec<2, T> Vec<2, T>::UnitY  = {0,1};
+	template<typename T> const Vec<2, T> Vec<2, T>::Origin = {0,0};
 
 	template<typename T>
 	struct Vec<3,T>{
-		Vec(T nx, T ny, T nz) : x(nx), y(ny), z(nz) {}
 		union{
 			T elements[3];
 			struct{ T x, y, z;                     };
@@ -54,14 +52,13 @@ namespace xen{
 		};
 		static const Vec<3, T> UnitX, UnitY, UnitZ, Origin;
 	};
-	template<typename T> const Vec<3, T> Vec<3, T>::UnitX (1,0,0);
-	template<typename T> const Vec<3, T> Vec<3, T>::UnitY (0,1,0);
-	template<typename T> const Vec<3, T> Vec<3, T>::UnitZ (0,0,1);
-	template<typename T> const Vec<3, T> Vec<3, T>::Origin(0,0,0);
+	template<typename T> const Vec<3, T> Vec<3, T>::UnitX  = {1,0,0};
+	template<typename T> const Vec<3, T> Vec<3, T>::UnitY  = {0,1,0};
+	template<typename T> const Vec<3, T> Vec<3, T>::UnitZ  = {0,0,1};
+	template<typename T> const Vec<3, T> Vec<3, T>::Origin = {0,0,0};
 
 	template<typename T>
 	struct Vec<4,T>{
-		Vec(T nx, T ny, T nz, T nw) : x(nx), y(ny), z(nz), w(nw) {}
 		union{
 		    T elements[4];
 			struct{ T x, y, z, w;                   };
@@ -74,11 +71,11 @@ namespace xen{
 		};
 		static const Vec<4, T> UnitX, UnitY, UnitZ, UnitW, Origin;
 	};
-	template<typename T> const Vec<4, T> Vec<4, T>::UnitX (1,0,0,0);
-	template<typename T> const Vec<4, T> Vec<4, T>::UnitY (0,1,0,0);
-	template<typename T> const Vec<4, T> Vec<4, T>::UnitZ (0,0,1,0);
-	template<typename T> const Vec<4, T> Vec<4, T>::UnitW (0,0,0,1);
-	template<typename T> const Vec<4, T> Vec<4, T>::Origin(0,0,0,0);
+	template<typename T> const Vec<4, T> Vec<4, T>::UnitX  = {1,0,0,0};
+	template<typename T> const Vec<4, T> Vec<4, T>::UnitY  = {0,1,0,0};
+	template<typename T> const Vec<4, T> Vec<4, T>::UnitZ  = {0,0,1,0};
+	template<typename T> const Vec<4, T> Vec<4, T>::UnitW  = {0,0,0,1};
+	template<typename T> const Vec<4, T> Vec<4, T>::Origin = {0,0,0,0};
 }
 
 #pragma GCC diagnostic pop // re-enable -Wpedantic
@@ -291,6 +288,16 @@ xen::Vec<T_DIM, T> operator/(xen::Vec<T_DIM,T>& lhs, T rhs){
 	xen::Vec<T_DIM, T> result = lhs;
 	result /= rhs;
 	return result;
+}
+
+template<typename T>
+xen::Vec<3, T> operator-(xen::Vec<3,T>& vec){
+	return {-vec.x, -vec.y, -vec.z};
+}
+
+template<typename T>
+xen::Vec<4, T> operator-(xen::Vec<4,T>& vec){
+	return {-vec.x, -vec.y, -vec.z, -vec.w};
 }
 
 #endif

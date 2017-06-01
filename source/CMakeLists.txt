@@ -1,7 +1,11 @@
 include(xen_sources.cmake)
 
 message(STATUS "core sources are: ${XEN_CORE_SOURCES}")
-add_executable(ProcedualPlanet ${CMAKE_CURRENT_LIST_DIR}/main.cpp ${XEN_SOURCES})
+add_executable(ProcedualPlanet
+  ${XEN_SOURCES}
+  ${CMAKE_CURRENT_LIST_DIR}/main.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/Camera3d.cpp
+)
 
 target_include_directories(ProcedualPlanet PRIVATE ${PP_SFML_INCLUDE_DIR})
 target_include_directories(ProcedualPlanet PRIVATE ${CMAKE_CURRENT_LIST_DIR})
