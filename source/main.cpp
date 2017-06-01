@@ -79,6 +79,12 @@ int main(int argc, char** argv){
 
 	sf::Clock timer;
 	real last_time = 0;
+
+	Quat quat_test = xen::fromAxisAngle(Vec3r::UnitZ, 30_deg);
+	printf("Quat test: (%f, %f, %f, %f)\n", quat_test.x, quat_test.y, quat_test.z, quat_test.w);
+	auto aa = xen::toAxisAngle(quat_test);
+	printf("Angle axis: (%f, %f, %f), %f\n", aa.axis.x, aa.axis.y, aa.axis.z, xen::asDegrees(aa.angle));
+
 	printf("Entering main loop\n");
 	while(app.isOpen()){
 		float time = timer.getElapsedTime().asSeconds();
@@ -131,7 +137,7 @@ int main(int argc, char** argv){
 		model_mat *= xen::Rotation3dy(time * 67_deg);
 		model_mat *= xen::Rotation3dz(time * 83_deg);
 		model_mat *= xen::Scale3d(0.3 + sin(time*15)*0.03, 0.3 + sin(time*15 + 0.25*xen::PI)*0.03, 0.3 + sin(time*15 + 0.5*xen::PI)*0.03);
-		model_mat *= xen::Translation3d(sin(time) * 4, 1, cos(time) * 4);
+		model_mat *= xen::Translation3d(xen::rotated(Vec3r{10, 1, 0}, Vec3r::UnitY, xen::Degrees(time)));
 		xen::setUniform(mvpMatLoc, model_mat * view_mat);
 		renderCube();
 
@@ -436,7 +442,6 @@ Mesh loadMesh(const char* path){
 			}
 
 			for (k = 0; k < 3; k++) {
-				printf("Loaded vertex: (%f, %f, %f)\n", v[k][0], v[k][1], v[k][2]);
 				vb[(3 * i + k) * stride + 0] = v[k][0];
 				vb[(3 * i + k) * stride + 1] = v[k][1];
 				vb[(3 * i + k) * stride + 2] = v[k][2];

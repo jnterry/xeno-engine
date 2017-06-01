@@ -38,20 +38,34 @@ namespace xen{
 
 typedef xen::Quaternion Quat;
 
+/// \brief Multiplies this Quaternion by the specifed vector and returns the result
+/// as a new quaternion, does not modify either operand quaternion
+xen::Quaternion operator*(xen::Quaternion q, const Vec3r& vec){
+	return {  (q.w * vec.x) + (q.y * vec.z) - (q.z * vec.y)
+		   ,  (q.w * vec.y) + (q.z * vec.x) - (q.x * vec.z)
+		   ,  (q.w * vec.z) + (q.x * vec.y) - (q.y * vec.x)
+		   , -(q.x * vec.x) - (q.y * vec.y) - (q.z * vec.z) };
+}
+
+xen::Quaternion operator*(xen::Quaternion lhs, xen::Quaternion rhs){
+	return { (lhs.x * rhs.w) + (lhs.w * rhs.x) + (lhs.y * rhs.z) - (lhs.z * rhs.y)
+		   , (lhs.y * rhs.w) + (lhs.w * rhs.y) + (lhs.z * rhs.x) - (lhs.x * rhs.z)
+		   , (lhs.z * rhs.w) + (lhs.w * rhs.z) + (lhs.x * rhs.y) - (lhs.y * rhs.x)
+		   , (lhs.w * rhs.w) - (lhs.x * rhs.x) - (lhs.y * rhs.y) - (lhs.z * rhs.z) };
+}
+
 namespace xen{
 	/// \brief Constructs AxisAngle representation of rotation from a Quaterion
 	inline AxisAngle toAxisAngle(Quaternion q){
-		real vec_len = length(q.xyz);
-		return { q.xyz / vec_len, atan2(vec_len, q.w) * 2 };
+		real mag = length(q.xyz);
+		return { q.xyz / mag, xen::atan2(mag, q.w) * 2 };
 	}
 
 	/// \brief Constructs a quaterion from an axis about which to rotate, and an angle
 	inline Quaternion fromAxisAngle(Vec3r axis, Angle a){
-		a *= 0.5;
-		real s = sin(a);
-		real c = cos(a);
-		axis *= s;
-		return { axis.x, axis.y, axis.z, c };
+		a    *= 0.5;
+		axis  = normalized(axis) * xen::sin(a);
+		return { axis.x, axis.y, axis.z, xen::cos(a) };
 	}
 	inline Quaternion fromAxisAngle(AxisAngle aa){ return fromAxisAngle(aa.axis, aa.angle); }
 
@@ -88,17 +102,13 @@ namespace xen{
 	}
 	inline Mat4r Rotation3d(AxisAngle aa           ){ return Rotation3d(fromAxisAngle(aa         )); }
 	inline Mat4r Rotation3d(Vec3r axis, Angle angle){ return Rotation3d(fromAxisAngle(axis, angle)); }
+
+	inline Vec3r rotated(Vec3r v, Quaternion q){
+		Quaternion r = q * v * conjugate(q);
+		return { r.x, r.y, r.z };
+	}
+	inline Vec3r rotated(Vec3r v, AxisAngle aa       ){ return rotated(v, fromAxisAngle(aa     )); }
+	inline Vec3r rotated(Vec3r v, Vec3r axis, Angle a){ return rotated(v, fromAxisAngle(axis, a)); }
 }
-
-
-/// \brief Multiplies this Quaternion by the specifed vector and returns the result
-/// as a new quaternion, does not modify either operand quaternion
-xen::Quaternion operator*(xen::Quaternion q, const Vec3r& vec){
-	return {  (q.w * vec.x) + (q.y * vec.z) - (q.z * vec.y)
-		   ,  (q.w * vec.y) + (q.z * vec.x) - (q.x * vec.z)
-		   ,  (q.w * vec.z) + (q.x * vec.y) - (q.y * vec.x)
-		   , -(q.x * vec.x) - (q.y * vec.y) - (q.z * vec.z) };
-}
-
 
 #endif
