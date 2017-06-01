@@ -15,6 +15,7 @@ FileData loadFileAndNullTerminate(xen::ArenaLinear& arena, const char* path){
 	FILE* file = fopen(path, "rb");
 	if(!file){
 		// :TODO: log -> failed to open file
+		printf("FILE: failed to open: %s\n", path);
 		return {0};
 	}
 
@@ -24,12 +25,14 @@ FileData loadFileAndNullTerminate(xen::ArenaLinear& arena, const char* path){
 	s64 file_size = ftell(file);
 	if(file_size < 0){
 		// :TODO: log -> failed to determine file size
+				printf("FILE: failed to determine size of: %s\n", path);
 		return {0};
 	}
 	fseek(file, 0, SEEK_SET);
 
 	if(arena_space < (u64)file_size + 1){ //safe cast since already checked if file_size < 0
 		// :TODO: -> log, not enough space
+		printf("FILE: failed allocate space for: %s\n", path);
 		return {0};
 	}
 
