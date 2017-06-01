@@ -23,6 +23,7 @@ Camera3d camera;
 real camera_speed = 10;
 xen::Angle camera_angle = 0_deg;
 real camera_radius = 10;
+real camera_height = 0;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
 
@@ -101,13 +102,14 @@ int main(int argc, char** argv){
 			camera_angle += camera_rotate_speed * dt;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
-			camera_pitch -= camera_rotate_speed * dt;
+			camera_height += camera_speed * dt;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Z)){
-			camera_pitch += camera_rotate_speed * dt;
+			camera_height -= camera_speed * dt;
 		}
 
-		camera.position = {camera_radius * xen::cos(camera_angle), 0, camera_radius * xen::sin(camera_angle)};
+		camera_pitch = xen::atan(camera_height / camera_radius);
+		camera.position = {camera_radius * xen::cos(camera_angle), camera_height, camera_radius * xen::sin(camera_angle)};
 		camera.look_dir = xen::normalized(-camera.position);
 		camera.up_dir   = { 0, xen::cos(camera_pitch), xen::sin(camera_pitch) };
 		printf("Pitch: %f, Up dir: (%f, %f, %f)\n", xen::asDegrees(camera_pitch), camera.up_dir.x, camera.up_dir.y, camera.up_dir.z);

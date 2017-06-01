@@ -12,10 +12,19 @@
 #include "Camera3d.hpp"
 
 Mat4r getViewMatrix(Camera3d& camera, Vec2r viewport_size){
+
+	// :TODO: assert angle is 0
+	//printf("Angle between camera up/look dir: %f\n", xen::minAngleBetween(camera.look_dir, camera.up_dir));
+
 	Mat4r result = Mat4r::Identity;
 
 	// move world by negative of camera position
 	result *= xen::Translation3d(-camera.position);
+
+	// :TODO: look_dir and up_dir work independently, but not together
+	// IE: look_dir works assuming up_dir   is UnitY
+	//     up_dir   works assuming look_dir is UnitZ
+	// but produce weird results otherwise
 
 	// Line up z axis with look_dir
 	xen::Angle about_y = xen::clockwiseAngleBetween(Vec3r::UnitZ, camera.look_dir);
@@ -24,7 +33,6 @@ Mat4r getViewMatrix(Camera3d& camera, Vec2r viewport_size){
 
 	// Tilt camera up or down based on up direction
 	xen::Angle about_x = xen::clockwiseAngleBetween(Vec3r::UnitY, -camera.up_dir) * xen::sign(camera.up_dir.z);
-	printf("About_x: %f\n", asDegrees(about_x));
 	result *= xen::Rotation3dx(about_x);
 
 	// Do perspective projection
