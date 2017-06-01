@@ -72,37 +72,37 @@ typedef Mat4<u32>  Mat4u;
 typedef Mat4<s32>  Mat4s;
 
 namespace xen{
-	template<typename T> Mat3<T> Rotation2d(Angle a){
-		T s = xen::sin(a);
-		T c = xen::cos(a);
+    inline Mat3r Rotation2d(Angle a){
+		real s = xen::sin(a);
+		real c = xen::cos(a);
 		return {c,-s,0,  s,c,0,  0,0,1};
 	}
-	template<typename T> Mat3<T> Translation2d(T x, T y ){ return { 1,0,0,  0,1,0,  x,y,1 };     }
-	template<typename T> Mat3<T> Translation2d(Vec2<T> v){ return Translation2d(v.x, v.y);       }
-	template<typename T> Mat3<T> Scale2d(T x, T y)       { return {x,0,0,   0,y,0,   0,0,1};     }
-	template<typename T> Mat3<T> Scale2d(Vec2<T> factors){ return Scale2d(factors.x, factors.y); }
-	template<typename T> Mat3<T> Scale2d(real factor)    { return Scale2d(factor,    factor   ); }
+	inline Mat3r Translation2d(real x, real y){ return { 1,0,0,  0,1,0,  x,y,1 };     }
+	inline Mat3r Translation2d(Vec2r v       ){ return Translation2d(v.x, v.y);       }
+	inline Mat3r Scale2d      (real x, real y){ return {x,0,0,   0,y,0,   0,0,1};     }
+	inline Mat3r Scale2d      (Vec2r factors ){ return Scale2d(factors.x, factors.y); }
+	inline Mat3r Scale2d      (real factor   ){ return Scale2d(factor,    factor   ); }
 
-	template<typename T> Mat4<T> Rotation3dx(Angle a){
+	inline Mat4r Rotation3dx(Angle a){
 		real c = xen::cos(-a);
 		real s = xen::sin(-a);
 		return { 1,0,0,0,  0,c,-s,0,  0,s,c,0,  0,0,0,1 };
 	}
-	template<typename T> Mat4<T> Rotation3dy(Angle a){
+	inline Mat4r Rotation3dy(Angle a){
 		real c = xen::cos(-a);
 		real s = xen::sin(-a);
 		return { c,0,s,0,  0,1,0,0,  -s,0,c,0,  0,0,0,1 };
 	}
-	template<typename T> Mat4<T> Rotation3dz(Angle a){
+	inline Mat4r Rotation3dz(Angle a){
 		real c = xen::cos(-a);
 		real s = xen::sin(-a);
 		return { c,-s,0,0,  s,c,0,0,  0,0,1,0,  0,0,0,1 };
 	}
-	template<typename T> Mat4<T> Translation3d(T x, T y, T z){ return { 1,0,0,0,  0,1,0,0,  0,0,1,0,  x,y,z,1}; }
-	template<typename T> Mat4<T> Translation3d(Vec3<T> v    ){ return Translation3d(v.x, v.y, v.z);             }
-	template<typename T> Mat4<T> Scale3d      (T x, T y, T z){ return { x,0,0,0,  0,y,0,0,  0,0,z,0,  0,0,0,1}; }
-	template<typename T> Mat4<T> Scale3d      (Vec3<T> v    ){ return Scale3d(v.x, v.y, v.z);                   }
-	template<typename T> Mat4<T> Scale3d      (T factors    ){ return Scale3d(factors, factors, factors);       }
+	inline Mat4r Translation3d(real x, real y, real z){ return { 1,0,0,0,  0,1,0,0,  0,0,1,0,  x,y,z,1}; }
+	inline Mat4r Translation3d(Vec3r v               ){ return Translation3d(v.x, v.y, v.z);             }
+	inline Mat4r Scale3d      (real x, real y, real z){ return { x,0,0,0,  0,y,0,0,  0,0,z,0,  0,0,0,1}; }
+	inline Mat4r Scale3d      (Vec3r factors         ){ return Scale3d(factors.x, factors.y, factors.z); }
+	inline Mat4r Scale3d      (real  factors         ){ return Scale3d(factors, factors, factors);       }
 
 	inline Mat4r createPerspectiveProjection(Angle fov_y, real width, real height, real z_near, real  z_far){
 		real aspectRatio = width/height;

@@ -39,6 +39,7 @@ void initCube();
 void renderCube();
 
 Camera3d camera;
+real camera_speed = 10;
 
 int main(int argc, char** argv){
 
@@ -88,8 +89,13 @@ int main(int argc, char** argv){
 	Mat4r model_mat;
 
 	sf::Clock timer;
+	real last_time = 0;
 	printf("Entering main loop\n");
 	while(app.isOpen()){
+		float time = timer.getElapsedTime().asSeconds();
+		real dt = time - last_time;
+		last_time = time;
+
 		sf::Event event;
 		while(app.pollEvent(event)){
 			switch(event.type){
@@ -104,20 +110,39 @@ int main(int argc, char** argv){
 			}
 		}
 
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
+			camera.position.z -= camera_speed * dt;
+		}
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down)){
+			camera.position.z += camera_speed * dt;
+		}
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
+			camera.position.x -= camera_speed * dt;
+		}
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
+			camera.position.x += camera_speed * dt;
+		}
+		camera.look_dir = xen::normalized(camera.position);
+
 		view_mat = getViewMatrix(camera, window_size);
 
-		float time = timer.getElapsedTime().asSeconds();
 		app.setActive(true);
-		xen::useShader(prog);
-		model_mat  = Mat4r::Identity;
-		model_mat *= xen::Rotation3dx<real>(xen::Degrees(time * 20.0f));
-		model_mat *= xen::Rotation3dz<real>(xen::Degrees(time * 30.0f));
-		model_mat *= xen::Scale3d<real>(1 + sin(time*10)*0.1, 1 + sin(time*10 + 0.25*xen::PI)*0.1, 1 + sin(time*10 + 0.5*xen::PI)*0.1);
-		model_mat *= xen::Translation3d<real>(0.0, 0.0, -5);
-		xen::setUniform(mvpMatLoc, model_mat * view_mat);
 		glClearColor(1,1,0,1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		xen::useShader(prog);
+
+		model_mat  = Mat4r::Identity;
+		model_mat *= xen::Rotation3dx(xen::Degrees(time * 20.0f));
+		model_mat *= xen::Rotation3dz(xen::Degrees(time * 30.0f));
+		model_mat *= xen::Scale3d(1 + sin(time*10)*0.1, 1 + sin(time*10 + 0.25*xen::PI)*0.1, 1 + sin(time*10 + 0.5*xen::PI)*0.1);
+		xen::setUniform(mvpMatLoc, model_mat * view_mat);
+		renderCube();
+
+		model_mat = Mat4r::Identity;
+		model_mat *= xen::Scale3d(3, 0.05, 3);
+		model_mat *= xen::Translation3d(0, -3, 0);
+		xen::setUniform(mvpMatLoc, model_mat * view_mat);
 		renderCube();
 
 		app.display();

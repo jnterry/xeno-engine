@@ -31,14 +31,23 @@ namespace xen{
 	inline real asRevolution(Angle a){ return a.radians / 2.0_r * xen::PI;     }
 
 	#if XEN_USE_DOUBLE_PRECISION
-	inline double sin(Angle a){ return sin(a.radians); }
-	inline double cos(Angle a){ return cos(a.radians); }
-	inline double tan(Angle a){ return tan(a.radians); }
+	inline double sin (Angle a ){ return sin(a.radians); }
+	inline double cos (Angle a ){ return cos(a.radians); }
+	inline double tan (Angle a ){ return tan(a.radians); }
+
+	inline Angle  asin(double a){ return { asin(a) };    }
+	inline Angle  acos(double a){ return { acos(a) };    }
+	inline Angle  atan(double a){ return { atan(a) };    }
 	#else
-	inline float  sin(Angle a){ return sinf(a.radians); }
-	inline float  cos(Angle a){ return cosf(a.radians); }
-	inline float  tan(Angle a){ return tanf(a.radians); }
+	inline float  sin (Angle a){ return sinf(a.radians); }
+	inline float  cos (Angle a){ return cosf(a.radians); }
+	inline float  tan (Angle a){ return tanf(a.radians); }
+
+	inline Angle  asin(float a){ return { asinf(a) };    }
+	inline Angle  acos(float a){ return { acosf(a) };    }
+	inline Angle  atan(float a){ return { atanf(a) };    }
 	#endif
+
 
 	/// \brief Clamps an angle to being between 0 and 1 full revolution
 	inline Angle clamp(Angle a){
@@ -46,10 +55,10 @@ namespace xen{
 	}
 }
 
-inline xen::Angle operator+=(xen::Angle& lhs,  xen::Angle& rhs){ lhs.radians += rhs.radians; return lhs; }
-inline xen::Angle operator-=(xen::Angle& lhs,  xen::Angle& rhs){ lhs.radians -= rhs.radians; return lhs; }
-inline xen::Angle operator*=(xen::Angle& lhs,  real        rhs){ lhs.radians *= rhs;         return lhs; }
-inline xen::Angle operator/=(xen::Angle& lhs,  real        rhs){ lhs.radians /= rhs;         return lhs; }
+inline xen::Angle operator+=(xen::Angle& lhs,  const xen::Angle& rhs){ lhs.radians += rhs.radians; return lhs; }
+inline xen::Angle operator-=(xen::Angle& lhs,  const xen::Angle& rhs){ lhs.radians -= rhs.radians; return lhs; }
+inline xen::Angle operator*=(xen::Angle& lhs,  real              rhs){ lhs.radians *= rhs;         return lhs; }
+inline xen::Angle operator/=(xen::Angle& lhs,  real              rhs){ lhs.radians /= rhs;         return lhs; }
 
 inline xen::Angle operator*(xen::Angle& lhs, real        rhs){ return {lhs.radians * rhs}; }
 inline xen::Angle operator*(real        lhs, xen::Angle& rhs){ return {rhs * rhs.radians}; }
