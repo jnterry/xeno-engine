@@ -16,8 +16,7 @@
 #include <xen/core/intrinsics.hpp>
 #include "Angle.hpp"
 
-// gcc doesn't like the anonomous structures inside unions,
-// disable the warning in this file
+// gcc doesn't like the anonomous structures inside unions, disable the warning temporarily...
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 
@@ -60,10 +59,6 @@ namespace xen{
 
 	template<typename T>
 	struct Vec<4,T>{
-		Vec(){}
-		Vec(T nx, T ny, T nz, T nw) : x(nx ), y(ny ), z(nz ), w(nw) {}
-		Vec(Vec<3,T> v,       T nw) : x(v.x), y(v.y), z(v.z), w(nw) {}
-
 		union{
 		    T elements[4];
 			struct{ T x, y, z, w;                   };

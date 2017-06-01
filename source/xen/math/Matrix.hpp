@@ -16,8 +16,7 @@
 #include <xen/math/Vector.hpp>
 #include <xen/math/Angle.hpp>
 
-// gcc doesn't like the anonomous structures inside unions,
-// disable the warning in this file
+// gcc doesn't like the anonomous structures inside unions, disable the warning temporarily...
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 

@@ -12,6 +12,7 @@
 #include "xen/math/Vector.hpp"
 #include "xen/math/Matrix.hpp"
 #include "xen/math/Angle.hpp"
+#include "xen/math/Quaternion.hpp"
 
 #include "utilities.hpp"
 #include "Camera3d.hpp"
