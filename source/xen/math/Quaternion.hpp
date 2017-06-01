@@ -91,4 +91,14 @@ namespace xen{
 }
 
 
+/// \brief Multiplies this Quaternion by the specifed vector and returns the result
+/// as a new quaternion, does not modify either operand quaternion
+xen::Quaternion operator*(xen::Quaternion q, const Vec3r& vec){
+	return {  (q.w * vec.x) + (q.y * vec.z) - (q.z * vec.y)
+		   ,  (q.w * vec.y) + (q.z * vec.x) - (q.x * vec.z)
+		   ,  (q.w * vec.z) + (q.x * vec.y) - (q.y * vec.x)
+		   , -(q.x * vec.x) - (q.y * vec.y) - (q.z * vec.z) };
+}
+
+
 #endif
