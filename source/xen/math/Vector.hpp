@@ -15,6 +15,7 @@
 
 #include <xen/core/intrinsics.hpp>
 #include "Angle.hpp"
+#include <cstdio>
 
 // gcc doesn't like the anonomous structures inside unions,
 // disable the warning in this file
@@ -350,15 +351,27 @@ namespace xen{
 		return a.x*b.x + a.y*b.y + a.z*b.z;
 	}
 
-	/// \brief Computes angle between two vectors
+	/// \brief Computes minimum angle between two vectors - direction of angle could be
+	/// either clockwise or anti-clockwise
 	template<u32 T_Dims, typename T>
-	inline Angle angleBetween(const Vec<T_Dims, T>& a, const Vec<T_Dims, T>& b){
-		T d = dot(a,b);
-		Angle result =  xen::acos(d / mag(a) * mag(b));
-		if(d < 0){
-			return result;
+	inline Angle minAngleBetween(const Vec<T_Dims, T>& a, const Vec<T_Dims, T>& b){
+	    return xen::acos(dot(a,b) / mag(a) * mag(b));
+	}
+
+	/// \brief Computes the clockwise angle between two vectors
+	/// \todo :TODO: test -> this might be counterclockwise...
+	template<typename T>
+	inline Angle clockwiseAngleBetween(const Vec<3, T>& a, const Vec<3,T>& b){
+		Angle min = minAngleBetween(a,b);
+
+		Angle dir = atan2(a.x*b.y - a.y*b.x, a.x*b.x+a.y*b.y);
+
+		if(dir > 0_deg){
+			printf("+ve Dir:%f\n", asDegrees(dir));
+			return 180_deg - min;
 		} else {
-			return 180_deg - result;
+			printf("-ve Dir:%f\n", asDegrees(dir));
+			return 180_deg + min;
 		}
 	}
 

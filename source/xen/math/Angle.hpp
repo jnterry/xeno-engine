@@ -38,6 +38,8 @@ namespace xen{
 	inline Angle  asin(double a){ return { asin(a) };    }
 	inline Angle  acos(double a){ return { acos(a) };    }
 	inline Angle  atan(double a){ return { atan(a) };    }
+
+	inline Angle  atan2(double a, double b){ return { atan2(a,b) }; }
 	#else
 	inline float  sin (Angle a){ return sinf(a.radians); }
 	inline float  cos (Angle a){ return cosf(a.radians); }
@@ -46,6 +48,8 @@ namespace xen{
 	inline Angle  asin(float a){ return { asinf(a) };    }
 	inline Angle  acos(float a){ return { acosf(a) };    }
 	inline Angle  atan(float a){ return { atanf(a) };    }
+
+	inline Angle  atan2(float a, float b){ return { atan2f(a,b) }; }
 	#endif
 
 
@@ -68,6 +72,13 @@ inline xen::Angle operator+(const xen::Angle& lhs, const xen::Angle& rhs){ retur
 inline xen::Angle operator-(const xen::Angle& lhs, const xen::Angle& rhs){ return {lhs.radians - rhs.radians}; }
 
 inline xen::Angle operator-(const xen::Angle& a) { return { -a.radians }; }
+
+inline bool operator==(const xen::Angle& a, const xen::Angle& b){ return a.radians == b.radians; }
+inline bool operator!=(const xen::Angle& a, const xen::Angle& b){ return a.radians != b.radians; }
+inline bool operator<=(const xen::Angle& a, const xen::Angle& b){ return a.radians <= b.radians; }
+inline bool operator>=(const xen::Angle& a, const xen::Angle& b){ return a.radians >= b.radians; }
+inline bool operator< (const xen::Angle& a, const xen::Angle& b){ return a.radians <  b.radians; }
+inline bool operator> (const xen::Angle& a, const xen::Angle& b){ return a.radians >  b.radians; }
 
 inline constexpr xen::Angle operator"" _deg(long double            val){ return xen::Degrees    ((real)val); }
 inline constexpr xen::Angle operator"" _deg(unsigned long long int val){ return xen::Degrees    ((real)val); }

@@ -24,9 +24,10 @@ Mat4r getViewMatrix(Camera3d& camera, Vec2r viewport_size){
 	// move world by negative of camera position
 	result *= xen::Translation3d(-camera.position);
 
-	xen::Angle about_y = xen::angleBetween(Vec3r::UnitZ, cam_z);
-	printf("Pos: (%f, %f), about y: %f\n", camera.position.x, camera.position.z, xen::asDegrees(about_y));
-	result *= xen::Rotation3dy(about_y);
+	xen::Angle about_y  = xen::clockwiseAngleBetween(Vec3r::UnitZ, cam_z);
+	xen::Angle about_y2 = xen::minAngleBetween(Vec3r::UnitZ, cam_z);
+	printf("Pos: (%f, %f), clock y: %f, min y: %f\n", camera.position.x, camera.position.z, xen::asDegrees(about_y), xen::asDegrees(about_y2));
+	result *= xen::Rotation3dy(-about_y);
 
 
 	result *= xen::createPerspectiveProjection(camera.fov_y, viewport_size.x, viewport_size.y, camera.z_near, camera.z_far);
