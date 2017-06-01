@@ -15,7 +15,6 @@
 
 #include <xen/core/intrinsics.hpp>
 #include "Angle.hpp"
-#include <cstdio>
 
 // gcc doesn't like the anonomous structures inside unions,
 // disable the warning in this file
@@ -61,6 +60,10 @@ namespace xen{
 
 	template<typename T>
 	struct Vec<4,T>{
+		Vec(){}
+		Vec(T nx, T ny, T nz, T nw) : x(nx ), y(ny ), z(nz ), w(nw) {}
+		Vec(Vec<3,T> v,       T nw) : x(v.x), y(v.y), z(v.z), w(nw) {}
+
 		union{
 		    T elements[4];
 			struct{ T x, y, z, w;                   };
@@ -367,10 +370,8 @@ namespace xen{
 		Angle dir = atan2(a.x*b.y - a.y*b.x, a.x*b.x+a.y*b.y);
 
 		if(dir > 0_deg){
-			printf("+ve Dir:%f\n", asDegrees(dir));
 			return 180_deg - min;
 		} else {
-			printf("-ve Dir:%f\n", asDegrees(dir));
 			return 180_deg + min;
 		}
 	}

@@ -65,6 +65,9 @@ namespace xen{
 	#else
 	inline float  sqrt(float  val) { return sqrtf(val); }
 	#endif
+
+	template<typename T>
+	T sign(T a){ return (a < 0) ? -1 : 1; }
 }
 
 inline constexpr real operator"" _r(long double            val){ return (real)val; }

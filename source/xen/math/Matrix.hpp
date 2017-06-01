@@ -353,6 +353,16 @@ xen::Matrix<4,4, T> operator*(const xen::Matrix<4,4,T>& lhs, const xen::Matrix<4
 	};
 }
 
+template<typename T>
+xen::Vec<4,T> operator*(const xen::Vec<4,T>& lhs, const xen::Matrix<4,4,T>& rhs){
+	const T* e = rhs.elements;
+	return { lhs.x*e[ 0] + lhs.y*e[ 4] + lhs.z*e[ 8] + lhs.w*e[12]
+		   , lhs.x*e[ 1] + lhs.y*e[ 5] + lhs.z*e[ 9] + lhs.w*e[13]
+		   , lhs.x*e[ 2] + lhs.y*e[ 6] + lhs.z*e[10] + lhs.w*e[14]
+		   , lhs.x*e[ 3] + lhs.y*e[ 7] + lhs.z*e[11] + lhs.w*e[15]
+		   };
+}
+
 template<u32 T_Rows, u32 T_Cols, typename T>
 xen::Matrix<T_Rows, T_Cols, T>& operator*=(xen::Matrix<T_Rows, T_Cols, T>& lhs, const xen::Matrix<T_Rows, T_Cols, T>& rhs){
 	xen::Matrix<T_Rows, T_Cols, T> temp = lhs * rhs;

@@ -24,6 +24,7 @@ real camera_speed = 10;
 xen::Angle camera_angle = 0_deg;
 real camera_radius = 10;
 xen::Angle camera_rotate_speed = 120_deg;
+xen::Angle camera_pitch = 0_deg;
 
 xen::ShaderProgram* loadShader(xen::ArenaLinear&);
 
@@ -31,7 +32,6 @@ int main(int argc, char** argv){
 
 	xen::AllocatorCounter<xen::AllocatorMalloc> alloc;
 
-	camera.up_dir   = Vec3r::UnitY;
 	camera.look_dir = Vec3r::UnitZ;
 	camera.z_near   = 0.001;
 	camera.z_far    = 10000;
@@ -100,9 +100,17 @@ int main(int argc, char** argv){
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
 			camera_angle += camera_rotate_speed * dt;
 		}
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
+			camera_pitch -= camera_rotate_speed * dt;
+		}
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Z)){
+			camera_pitch += camera_rotate_speed * dt;
+		}
 
 		camera.position = {camera_radius * xen::cos(camera_angle), 0, camera_radius * xen::sin(camera_angle)};
 		camera.look_dir = xen::normalized(-camera.position);
+		camera.up_dir   = { 0, xen::cos(camera_pitch), xen::sin(camera_pitch) };
+		printf("Pitch: %f, Up dir: (%f, %f, %f)\n", xen::asDegrees(camera_pitch), camera.up_dir.x, camera.up_dir.y, camera.up_dir.z);
 
 		view_mat = getViewMatrix(camera, window_size);
 

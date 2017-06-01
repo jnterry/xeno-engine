@@ -12,24 +12,22 @@
 #include "Camera3d.hpp"
 
 Mat4r getViewMatrix(Camera3d& camera, Vec2r viewport_size){
-
-	Vec3r cam_z = camera.look_dir;
-	Vec3r cam_y = camera.up_dir;
-	//Vec3r cam_x = xen::cross(cam_y, cam_z);
-
-	Vec3r neg_pos = camera.position;
-
 	Mat4r result = Mat4r::Identity;
 
 	// move world by negative of camera position
 	result *= xen::Translation3d(-camera.position);
 
-	xen::Angle about_y  = xen::clockwiseAngleBetween(Vec3r::UnitZ, cam_z);
-	xen::Angle about_y2 = xen::minAngleBetween(Vec3r::UnitZ, cam_z);
-	printf("Pos: (%f, %f), clock y: %f, min y: %f\n", camera.position.x, camera.position.z, xen::asDegrees(about_y), xen::asDegrees(about_y2));
-	result *= xen::Rotation3dy(-about_y);
+	// Line up z axis with look_dir
+	xen::Angle about_y = xen::clockwiseAngleBetween(Vec3r::UnitZ, camera.look_dir);
+	Mat4r rot_y = xen::Rotation3dy(-about_y);
+	result *= rot_y;
 
+	// Tilt camera up or down based on up direction
+	xen::Angle about_x = xen::clockwiseAngleBetween(Vec3r::UnitY, -camera.up_dir) * xen::sign(camera.up_dir.z);
+	printf("About_x: %f\n", asDegrees(about_x));
+	result *= xen::Rotation3dx(about_x);
 
+	// Do perspective projection
 	result *= xen::createPerspectiveProjection(camera.fov_y, viewport_size.x, viewport_size.y, camera.z_near, camera.z_far);
 
 	return result;
