@@ -45,9 +45,12 @@ int main(int argc, char** argv){
 	context_settings.depthBits = 24;
 	context_settings.stencilBits = 8;
 	context_settings.antialiasingLevel = 4;
-	context_settings.majorVersion = 3;
+	context_settings.majorVersion = 4;
 	context_settings.minorVersion = 0;
 	sf::Window app(sf::VideoMode(800, 600, 32), "Window Title", sf::Style::Default, context_settings);
+
+	context_settings = app.getSettings();
+	printf("Initialized window, GL version: %i.%i\n", context_settings.majorVersion, context_settings.minorVersion);
 
 	XenTempArena(arena, 4096);
 
