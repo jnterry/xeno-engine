@@ -22,6 +22,10 @@ namespace xen{
 		return ArenaLinear(block, size);
 	}
 
+	void resetArena(ArenaLinear& arena){
+		arena.next_byte = arena.start;
+	}
+
 	ptrdiff_t bytesRemaining(const ArenaLinear& arena){
 		return ptrDiff(arena.next_byte, arena.end);
 	}

@@ -13,33 +13,15 @@
 #include "xen/math/Matrix.hpp"
 #include "xen/math/Angle.hpp"
 
+#include "utilities.hpp"
 #include "Camera3d.hpp"
-
-static const char* vertex_shader_src =
-                                   "#version 330\n"
-                                   "layout(location = 0) in vec3 pos;\n"
-                                   "layout(location = 1) in vec3 vert_color;\n"
-                                   "varying vec3 color;"
-                                   "uniform mat4 mvpMatrix;\n"
-                                   "void main(){\n"
-                                   "  color = vert_color;\n"
-                                   "  gl_Position = mvpMatrix * vec4(pos,1);\n"
-                                   "}";
-
-static const char* fragment_shader_src =
-                                   "#version 330\n"
-                                   "out vec4 out_color;\n"
-                                   "varying vec3 color;\n"
-                                   "void main(){\n"
-                                   "  out_color = vec4(color,1);\n"
-                                   "}";
-
 
 void initCube();
 void renderCube();
 
 Camera3d camera;
 real camera_speed = 10;
+xen::ShaderProgram* loadShader(xen::ArenaLinear&);
 
 int main(int argc, char** argv){
 
@@ -77,14 +59,7 @@ int main(int argc, char** argv){
 
 	Mat4r view_mat;
 
-	xen::ShaderProgram* prog = xen::createShaderProgram(arena, vertex_shader_src, fragment_shader_src);
-	if(!xen::isOkay(prog)){
-		xen::MemoryTransaction transaction(arena);
-		const char* errors = xen::getErrors(prog, arena);
-		printf("Shader Errors:\n%s\n", errors);
-	} else {
-		printf("Shader compiled successfully\n");
-	}
+	xen::ShaderProgram* prog = loadShader(arena);
 	int mvpMatLoc = xen::getUniformLocation(prog, "mvpMatrix");
 	Mat4r model_mat;
 
@@ -258,4 +233,23 @@ void renderCube(){
 	                      (void*)0  // start offset
 	                      );
 	glDrawArrays(GL_TRIANGLES, 0, 12*3);
+}
+
+xen::ShaderProgram* loadShader(xen::ArenaLinear& arena){
+	XenTempArena(scratch, 8196);
+
+	FileData vertex_src = loadFileAndNullTerminate(scratch, "vertex.glsl");
+	FileData pixel_src  = loadFileAndNullTerminate(scratch, "pixel.glsl");
+
+	auto result = xen::createShaderProgram(arena, (char*)vertex_src.data, (char*)pixel_src.data);
+
+	if(!xen::isOkay(result)){
+		xen::resetArena(scratch);
+		const char* errors = xen::getErrors(result, scratch);
+		printf("Shader Errors:\n%s\n", errors);
+	} else {
+		printf("Shader compiled successfully\n");
+	}
+
+	return result;
 }

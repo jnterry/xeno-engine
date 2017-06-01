@@ -17,7 +17,7 @@ Mat4r getViewMatrix(Camera3d& camera, Vec2r viewport_size){
 
 
 	xen::Angle about_y = xen::atan(camera.look_dir.z / camera.look_dir.x);
-	printf("About y: %f\n", xen::asDegrees(about_y));
+	//printf("About y: %f\n", xen::asDegrees(about_y));
 	result *= xen::Rotation3dy(xen::clamp(about_y));
 
 	// move world by negative of camera position

@@ -62,6 +62,10 @@ namespace xen{
 	/// \note returned arena.start must be deallocated at some point
 	ArenaLinear createArenaLinear(Allocator& alloc, uint size);
 
+	/// \brief Resets specified arena such that all space is usable again.
+	/// Existing allocations should no longer be used
+	void resetArena(ArenaLinear& arena);
+
 	/// \brief Determines how many bytes are unused in the specified arena
 	ptrdiff_t bytesRemaining(const ArenaLinear& arena);
 
