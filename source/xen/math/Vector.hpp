@@ -100,40 +100,40 @@ typedef Vec4<r64>  Vec4d;
 typedef Vec4<real> Vec4r;
 
 template<typename T>
-bool operator==(xen::Vec<2, T> lhs, xen::Vec<2, T> rhs){
+bool operator==(const xen::Vec<2, T>& lhs, const xen::Vec<2, T>& rhs){
 	return lhs.x == rhs.x && lhs.y == lhs.y;
 }
 template<typename T>
-bool operator==(xen::Vec<3, T> lhs, xen::Vec<3, T> rhs){
+bool operator==(const xen::Vec<3, T>& lhs, const xen::Vec<3, T>& rhs){
 	return lhs.x == rhs.x && lhs.y == lhs.y && lhs.z == rhs.z;
 }
 template<typename T>
-bool operator==(xen::Vec<4, T> lhs, xen::Vec<4, T> rhs){
+bool operator==(const  xen::Vec<4, T>& lhs, const xen::Vec<4, T>& rhs){
 	return lhs.x == rhs.x && lhs.y == lhs.y && lhs.z == rhs.z && lhs.z == rhs.z;
 }
 
 template<u32 T_DIM, typename T>
-bool operator!=(xen::Vec<T_DIM, T> lhs, xen::Vec<T_DIM, T> rhs){
+bool operator!=(const xen::Vec<T_DIM, T>& lhs, const xen::Vec<T_DIM, T>& rhs){
 	return !(lhs == rhs);
 }
 
 
 
 template<typename T>
-xen::Vec<2,T> operator+=(xen::Vec<2,T>& lhs, xen::Vec<2, T>& rhs){
+xen::Vec<2,T> operator+=(xen::Vec<2,T>& lhs, const xen::Vec<2, T>& rhs){
 	lhs.x += rhs.x;
 	lhs.y += rhs.y;
 	return lhs;
 }
 template<typename T>
-xen::Vec<3,T> operator+=(xen::Vec<3,T>& lhs, xen::Vec<3, T>& rhs){
+xen::Vec<3,T> operator+=(xen::Vec<3,T>& lhs, const xen::Vec<3, T>& rhs){
 	lhs.x += rhs.x;
 	lhs.y += rhs.y;
 	lhs.z += rhs.z;
 	return lhs;
 }
 template<typename T>
-xen::Vec<4,T> operator+=(xen::Vec<4,T>& lhs, xen::Vec<4, T>& rhs){
+xen::Vec<4,T> operator+=(xen::Vec<4,T>& lhs, const xen::Vec<4, T>& rhs){
 	lhs.x += rhs.x;
 	lhs.y += rhs.y;
 	lhs.z += rhs.z;
@@ -141,7 +141,7 @@ xen::Vec<4,T> operator+=(xen::Vec<4,T>& lhs, xen::Vec<4, T>& rhs){
 	return lhs;
 }
 template<u32 T_DIM, typename T>
-xen::Vec<T_DIM, T> operator+(xen::Vec<T_DIM,T>& lhs, xen::Vec<T_DIM,T>& rhs){
+xen::Vec<T_DIM, T> operator+(const xen::Vec<T_DIM,T>& lhs, const xen::Vec<T_DIM,T>& rhs){
 	xen::Vec<T_DIM, T> result = lhs;
 	result += rhs;
 	return result;
@@ -150,20 +150,20 @@ xen::Vec<T_DIM, T> operator+(xen::Vec<T_DIM,T>& lhs, xen::Vec<T_DIM,T>& rhs){
 
 
 template<typename T>
-xen::Vec<2,T> operator-=(xen::Vec<2,T>& lhs, xen::Vec<2, T>& rhs){
+xen::Vec<2,T> operator-=(xen::Vec<2,T>& lhs, const xen::Vec<2, T>& rhs){
 	lhs.x -= rhs.x;
 	lhs.y -= rhs.y;
 	return lhs;
 }
 template<typename T>
-xen::Vec<3,T> operator-=(xen::Vec<3,T>& lhs, xen::Vec<3, T>& rhs){
+xen::Vec<3,T> operator-=(xen::Vec<3,T>& lhs, const xen::Vec<3, T>& rhs){
 	lhs.x -= rhs.x;
 	lhs.y -= rhs.y;
 	lhs.z -= rhs.z;
 	return lhs;
 }
 template<typename T>
-xen::Vec<4,T> operator-=(xen::Vec<4,T>& lhs, xen::Vec<4, T>& rhs){
+xen::Vec<4,T> operator-=(xen::Vec<4,T>& lhs, const xen::Vec<4, T>& rhs){
 	lhs.x -= rhs.x;
 	lhs.y -= rhs.y;
 	lhs.z -= rhs.z;
@@ -171,7 +171,7 @@ xen::Vec<4,T> operator-=(xen::Vec<4,T>& lhs, xen::Vec<4, T>& rhs){
 	return lhs;
 }
 template<u32 T_DIM, typename T>
-xen::Vec<T_DIM, T> operator-(xen::Vec<T_DIM,T>& lhs, xen::Vec<T_DIM,T>& rhs){
+xen::Vec<T_DIM, T> operator-(const xen::Vec<T_DIM,T>& lhs, const xen::Vec<T_DIM,T>& rhs){
 	xen::Vec<T_DIM, T> result = lhs;
 	result -= rhs;
 	return result;
@@ -180,20 +180,20 @@ xen::Vec<T_DIM, T> operator-(xen::Vec<T_DIM,T>& lhs, xen::Vec<T_DIM,T>& rhs){
 
 
 template<typename T>
-xen::Vec<2,T> operator*=(xen::Vec<2,T>& lhs, xen::Vec<2, T>& rhs){
+xen::Vec<2,T> operator*=(xen::Vec<2,T>& lhs, const xen::Vec<2, T>& rhs){
 	lhs.x *= rhs.x;
 	lhs.y *= rhs.y;
 	return lhs;
 }
 template<typename T>
-xen::Vec<3,T> operator*=(xen::Vec<3,T>& lhs, xen::Vec<3, T>& rhs){
+xen::Vec<3,T> operator*=(xen::Vec<3,T>& lhs, const xen::Vec<3, T>& rhs){
 	lhs.x *= rhs.x;
 	lhs.y *= rhs.y;
 	lhs.z *= rhs.z;
 	return lhs;
 }
 template<typename T>
-xen::Vec<4,T> operator*=(xen::Vec<4,T>& lhs, xen::Vec<4, T>& rhs){
+xen::Vec<4,T> operator*=(xen::Vec<4,T>& lhs, const xen::Vec<4, T>& rhs){
 	lhs.x *= rhs.x;
 	lhs.y *= rhs.y;
 	lhs.z *= rhs.z;
@@ -222,13 +222,13 @@ xen::Vec<4,T> operator*=(xen::Vec<4,T>& lhs, T rhs){
 	return lhs;
 }
 template<u32 T_DIM, typename T>
-xen::Vec<T_DIM, T> operator*(xen::Vec<T_DIM,T>& lhs, xen::Vec<T_DIM,T>& rhs){
+xen::Vec<T_DIM, T> operator*(const xen::Vec<T_DIM,T>& lhs, const xen::Vec<T_DIM,T>& rhs){
 	xen::Vec<T_DIM, T> result = lhs;
 	result *= rhs;
 	return result;
 }
 template<u32 T_DIM, typename T>
-xen::Vec<T_DIM, T> operator*(xen::Vec<T_DIM,T>& lhs, T rhs){
+xen::Vec<T_DIM, T> operator*(const xen::Vec<T_DIM,T>& lhs, T rhs){
 	xen::Vec<T_DIM, T> result = lhs;
 	result *= rhs;
 	return result;
@@ -236,20 +236,20 @@ xen::Vec<T_DIM, T> operator*(xen::Vec<T_DIM,T>& lhs, T rhs){
 
 
 template<typename T>
-xen::Vec<2,T> operator/=(xen::Vec<2,T>& lhs, xen::Vec<2, T>& rhs){
+xen::Vec<2,T> operator/=(xen::Vec<2,T>& lhs, const xen::Vec<2, T>& rhs){
 	lhs.x /= rhs.x;
 	lhs.y /= rhs.y;
 	return lhs;
 }
 template<typename T>
-xen::Vec<3,T> operator/=(xen::Vec<3,T>& lhs, xen::Vec<3, T>& rhs){
+xen::Vec<3,T> operator/=(xen::Vec<3,T>& lhs, const xen::Vec<3, T>& rhs){
 	lhs.x /= rhs.x;
 	lhs.y /= rhs.y;
 	lhs.z /= rhs.z;
 	return lhs;
 }
 template<typename T>
-xen::Vec<4,T> operator/=(xen::Vec<4,T>& lhs, xen::Vec<4, T>& rhs){
+xen::Vec<4,T> operator/=(xen::Vec<4,T>& lhs, const xen::Vec<4, T>& rhs){
 	lhs.x /= rhs.x;
 	lhs.y /= rhs.y;
 	lhs.z /= rhs.z;
@@ -278,26 +278,55 @@ xen::Vec<4,T> operator/=(xen::Vec<4,T>& lhs, T rhs){
 	return lhs;
 }
 template<u32 T_DIM, typename T>
-xen::Vec<T_DIM, T> operator/(xen::Vec<T_DIM,T>& lhs, xen::Vec<T_DIM,T>& rhs){
+xen::Vec<T_DIM, T> operator/(const xen::Vec<T_DIM,T>& lhs, const xen::Vec<T_DIM,T>& rhs){
 	xen::Vec<T_DIM, T> result = lhs;
 	result /= rhs;
 	return result;
 }
 template<u32 T_DIM, typename T>
-xen::Vec<T_DIM, T> operator/(xen::Vec<T_DIM,T>& lhs, T rhs){
+xen::Vec<T_DIM, T> operator/(const xen::Vec<T_DIM,T>& lhs, T rhs){
 	xen::Vec<T_DIM, T> result = lhs;
 	result /= rhs;
 	return result;
 }
 
 template<typename T>
-xen::Vec<3, T> operator-(xen::Vec<3,T>& vec){
+xen::Vec<3, T> operator-(const xen::Vec<3,T>& vec){
 	return {-vec.x, -vec.y, -vec.z};
 }
 
 template<typename T>
-xen::Vec<4, T> operator-(xen::Vec<4,T>& vec){
+xen::Vec<4, T> operator-(const xen::Vec<4,T>& vec){
 	return {-vec.x, -vec.y, -vec.z, -vec.w};
+}
+
+namespace xen{
+	template<typename T>
+	real distanceBetween(const Vec2<T>& a, const Vec2<T>& b){
+		Vec2<T> d = a - b;
+		return xen::sqrt(d.x*d.x + d.y*d.y);
+	}
+
+	template<typename T>
+	real distanceBetween(const Vec3<T>& a, const Vec3<T>& b){
+		Vec3<T> d = a - b;
+		return xen::sqrt(d.x*d.x + d.y*d.y + d.z*d.z);
+	}
+
+	template<typename T>
+	real distanceBetween(const Vec4<T>& a, const Vec4<T>& b){
+		Vec4<T> d = a - b;
+		return xen::sqrt(d.x*d.x + d.y*d.y + d.z*d.z + d.w*d.w);
+	}
+
+	template<u32 T_Dims, typename T>
+	real length(const Vec<T_Dims, T>& v){
+		return distanceBetween(v, Vec<T_Dims, T>::Origin);
+	}
+
+	template<u32 T_Dims, typename T>
+	Vec<T_Dims, T> normalized(const Vec<T_Dims, T>& v){ return v / length(v); }
+
 }
 
 #endif

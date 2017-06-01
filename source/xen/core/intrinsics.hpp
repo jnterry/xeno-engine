@@ -59,6 +59,12 @@ namespace xen{
 	};
 
 	static const constexpr real PI = (real)M_PI;
+
+	#ifdef XEN_USE_DOUBLE_PRECISION
+	inline double sqrt(double val) { return sqrt(val);  }
+	#else
+	inline float  sqrt(float  val) { return sqrtf(val); }
+	#endif
 }
 
 inline constexpr real operator"" _r(long double val){ return (real)val; }
