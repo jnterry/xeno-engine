@@ -67,6 +67,7 @@ namespace xen{
 	#endif
 }
 
-inline constexpr real operator"" _r(long double val){ return (real)val; }
+inline constexpr real operator"" _r(long double            val){ return (real)val; }
+inline constexpr real operator"" _r(unsigned long long int val){ return (real)val; }
 
 #endif

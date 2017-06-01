@@ -60,15 +60,20 @@ inline xen::Angle operator-=(xen::Angle& lhs,  const xen::Angle& rhs){ lhs.radia
 inline xen::Angle operator*=(xen::Angle& lhs,  real              rhs){ lhs.radians *= rhs;         return lhs; }
 inline xen::Angle operator/=(xen::Angle& lhs,  real              rhs){ lhs.radians /= rhs;         return lhs; }
 
-inline xen::Angle operator*(xen::Angle& lhs, real        rhs){ return {lhs.radians * rhs}; }
-inline xen::Angle operator*(real        lhs, xen::Angle& rhs){ return {rhs * rhs.radians}; }
-inline xen::Angle operator/(xen::Angle& lhs, real        rhs){ return {lhs.radians / rhs}; }
-inline xen::Angle operator/(real        lhs, xen::Angle& rhs){ return {rhs / rhs.radians}; }
-
-inline constexpr xen::Angle operator"" _deg(long double val){ return xen::Degrees    ((real)val); }
-inline constexpr xen::Angle operator"" _rad(long double val){ return xen::Radians    ((real)val); }
-inline constexpr xen::Angle operator"" _rev(long double val){ return xen::Revolutions((real)val); }
+inline xen::Angle operator*(const xen::Angle& lhs, real              rhs){ return {lhs.radians * rhs}; }
+inline xen::Angle operator*(real              lhs, const xen::Angle& rhs){ return {lhs * rhs.radians}; }
+inline xen::Angle operator/(const xen::Angle& lhs, real              rhs){ return {lhs.radians / rhs}; }
 
 inline xen::Angle operator-(xen::Angle& a) { return { -a.radians }; }
+
+inline constexpr xen::Angle operator"" _deg(long double            val){ return xen::Degrees    ((real)val); }
+inline constexpr xen::Angle operator"" _deg(unsigned long long int val){ return xen::Degrees    ((real)val); }
+
+inline constexpr xen::Angle operator"" _rad(long double            val){ return xen::Radians    ((real)val); }
+inline constexpr xen::Angle operator"" _rad(unsigned long long int val){ return xen::Radians    ((real)val); }
+
+inline constexpr xen::Angle operator"" _rev(long double            val){ return xen::Revolutions((real)val); }
+inline constexpr xen::Angle operator"" _rev(unsigned long long int val){ return xen::Revolutions((real)val); }
+
 
 #endif

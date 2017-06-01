@@ -21,6 +21,8 @@ void renderCube();
 
 Camera3d camera;
 real camera_speed = 10;
+xen::Angle camera_rotate_speed = 10_deg;
+
 xen::ShaderProgram* loadShader(xen::ArenaLinear&);
 
 int main(int argc, char** argv){
@@ -32,7 +34,7 @@ int main(int argc, char** argv){
 	camera.position = {0,0, 10};
 	camera.z_near   = 0.001;
 	camera.z_far    = 10000;
-	camera.fov_y    = xen::Degrees(80);
+	camera.fov_y    = 80_deg;
 
 	sf::ContextSettings context_settings;
 	context_settings.depthBits = 24;
@@ -108,10 +110,10 @@ int main(int argc, char** argv){
 		xen::useShader(prog);
 
 		model_mat  = Mat4r::Identity;
-		model_mat *= xen::Rotation3dx(xen::Degrees(time * 41.0f));
-		model_mat *= xen::Rotation3dy(xen::Degrees(time * 67.0f));
-		model_mat *= xen::Rotation3dz(xen::Degrees(time * 83.0f));
-		model_mat *= xen::Scale3d(1 + sin(time*10)*0.1, 1 + sin(time*10 + 0.25*xen::PI)*0.1, 1 + sin(time*10 + 0.5*xen::PI)*0.1);
+		model_mat *= xen::Rotation3dx(time * 41_deg);
+		model_mat *= xen::Rotation3dy(time * 67_deg);
+		model_mat *= xen::Rotation3dz(time * 83_deg);
+		model_mat *= xen::Scale3d(1 + sin(time*15)*0.1, 1 + sin(time*15 + 0.25*xen::PI)*0.1, 1 + sin(time*15 + 0.5*xen::PI)*0.1);
 		xen::setUniform(mvpMatLoc, model_mat * view_mat);
 		renderCube();
 
