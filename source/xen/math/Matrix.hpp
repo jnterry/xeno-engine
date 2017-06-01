@@ -121,6 +121,16 @@ namespace xen{
 		                                      0,                            0,            -2/(zFar-zNear),  0,
                    -((right+left)/(right-left)), -((top+bottom)/(top-bottom)),-((zFar+zNear)/(zFar-zNear)), 1};
 	}
+
+	template<typename T>
+	inline Mat4<T> transposed(const Mat4<T>& mat){
+		const T* e = mat.elements;
+		return { e[ 0], e[ 4], e[ 8], e[12]
+			   , e[ 1], e[ 5], e[ 9], e[13]
+			   , e[ 2], e[ 6], e[10], e[14]
+			   , e[ 3], e[ 7], e[11], e[15]
+			   };
+	}
 }
 
 template<u32 T_Rows, u32 T_Cols, typename T>

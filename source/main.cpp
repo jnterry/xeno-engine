@@ -21,7 +21,9 @@ void renderCube();
 
 Camera3d camera;
 real camera_speed = 10;
-xen::Angle camera_rotate_speed = 10_deg;
+xen::Angle camera_angle = 0_deg;
+real camera_radius = 10;
+xen::Angle camera_rotate_speed = 120_deg;
 
 xen::ShaderProgram* loadShader(xen::ArenaLinear&);
 
@@ -31,7 +33,6 @@ int main(int argc, char** argv){
 
 	camera.up_dir   = Vec3r::UnitY;
 	camera.look_dir = Vec3r::UnitZ;
-	camera.position = {0,0, 10};
 	camera.z_near   = 0.001;
 	camera.z_far    = 10000;
 	camera.fov_y    = 80_deg;
@@ -88,18 +89,20 @@ int main(int argc, char** argv){
 		}
 
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
-			camera.position.z -= camera_speed * dt;
+			camera_radius -= camera_speed * dt;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down)){
-			camera.position.z += camera_speed * dt;
+			camera_radius += camera_speed * dt;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
-			camera.position.x -= camera_speed * dt;
+			camera_angle -= camera_rotate_speed * dt;
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
-			camera.position.x += camera_speed * dt;
+			camera_angle += camera_rotate_speed * dt;
 		}
-		camera.look_dir = xen::normalized(camera.position);
+
+		camera.position = {camera_radius * xen::cos(camera_angle), 0, camera_radius * xen::sin(camera_angle)};
+		camera.look_dir = xen::normalized(-camera.position);
 
 		view_mat = getViewMatrix(camera, window_size);
 

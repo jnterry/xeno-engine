@@ -14,6 +14,7 @@
 #define XEN_MATH_VECTOR_HPP
 
 #include <xen/core/intrinsics.hpp>
+#include "Angle.hpp"
 
 // gcc doesn't like the anonomous structures inside unions,
 // disable the warning in this file
@@ -227,10 +228,16 @@ xen::Vec<T_DIM, T> operator*(const xen::Vec<T_DIM,T>& lhs, const xen::Vec<T_DIM,
 	result *= rhs;
 	return result;
 }
-template<u32 T_DIM, typename T>
-xen::Vec<T_DIM, T> operator*(const xen::Vec<T_DIM,T>& lhs, T rhs){
+template<u32 T_DIM, typename T, typename T_SCALAR>
+xen::Vec<T_DIM, T> operator*(const xen::Vec<T_DIM,T>& lhs, T_SCALAR rhs){
 	xen::Vec<T_DIM, T> result = lhs;
-	result *= rhs;
+	result *= (T)rhs;
+	return result;
+}
+template<u32 T_DIM, typename T, typename T_SCALAR>
+xen::Vec<T_DIM, T> operator*(T_SCALAR lhs, const xen::Vec<T_DIM,T>& rhs){
+	xen::Vec<T_DIM, T> result = rhs;
+	result *= (T)lhs;
 	return result;
 }
 
@@ -324,8 +331,36 @@ namespace xen{
 		return distanceBetween(v, Vec<T_Dims, T>::Origin);
 	}
 
+	/// \brief Computes magnitude of vector
+	template<u32 T_Dims, typename T>
+	real mag(const Vec<T_Dims, T>& v){ return length(v); }
+
 	template<u32 T_Dims, typename T>
 	Vec<T_Dims, T> normalized(const Vec<T_Dims, T>& v){ return v / length(v); }
+
+	/// \brief Computes cross product of two vectors
+	template<typename T>
+	Vec3<T> cross(const Vec3<T>& a, const Vec3<T>& b){
+		return { a.y*b.z - a.z*b.y,  a.z*b.x - b.x*a.z, a.x*b.y - b.y*a.x};
+	}
+
+	/// \brief Computes dot product of two vectors
+	template<typename T>
+	T dot(const Vec3<T>& a, const Vec3<T>& b){
+		return a.x*b.x + a.y*b.y + a.z*b.z;
+	}
+
+	/// \brief Computes angle between two vectors
+	template<u32 T_Dims, typename T>
+	inline Angle angleBetween(const Vec<T_Dims, T>& a, const Vec<T_Dims, T>& b){
+		T d = dot(a,b);
+		Angle result =  xen::acos(d / mag(a) * mag(b));
+		if(d < 0){
+			return result;
+		} else {
+			return 180_deg - result;
+		}
+	}
 
 }
 
