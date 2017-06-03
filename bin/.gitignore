@@ -10,4 +10,5 @@
 *.exp
 *.pc
 *.obj
-ProcedualPlanet
+quicktest
+xen_unit_tests
