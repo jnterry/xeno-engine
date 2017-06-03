@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.1.3)
-project(ProcedualPlaent)
+project("Xeno Engine")
 set(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # :TODO: have some way of configuring this
@@ -12,6 +12,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/bin")
 option(STRICT_COMPILE "Enables extra compiler warnings and errors" ON)
 
 set(PP_SFML_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/extlibs/sfml2.4.2/include/")
+set(XEN_INCLUDE_DIR  "${CMAKE_CURRENT_LIST_DIR}/source/")
 
 if(STRICT_COMPILE)
   #setup warnings + errors
@@ -45,3 +46,4 @@ endif()
 
 add_subdirectory(extlibs)
 add_subdirectory(source)
+add_subdirectory(examples)

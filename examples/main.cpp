@@ -6,13 +6,13 @@
 #include <GL/glew.h>
 #include <GL/gl.h>
 
-#include "xen/core/intrinsics.hpp"
-#include "xen/core/memory.hpp"
-#include "xen/graphics/Shader.hpp"
-#include "xen/math/Vector.hpp"
-#include "xen/math/Matrix.hpp"
-#include "xen/math/Angle.hpp"
-#include "xen/math/Quaternion.hpp"
+#include <xen/core/intrinsics.hpp>
+#include <xen/core/memory.hpp>
+#include <xen/graphics/Shader.hpp>
+#include <xen/math/Vector.hpp>
+#include <xen/math/Matrix.hpp>
+#include <xen/math/Angle.hpp>
+#include <xen/math/Quaternion.hpp>
 
 #include "utilities.hpp"
 #include "Camera3d.hpp"

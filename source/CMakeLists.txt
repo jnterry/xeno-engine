@@ -1,17 +1,6 @@
+message(STATUS "Generation Xeno Engine Build System")
+
 include(xen_sources.cmake)
 
-message(STATUS "core sources are: ${XEN_CORE_SOURCES}")
-add_executable(ProcedualPlanet
-  ${XEN_SOURCES}
-  ${CMAKE_CURRENT_LIST_DIR}/main.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/Camera3d.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/utilities.cpp
-)
-
-target_include_directories(ProcedualPlanet PRIVATE ${PP_SFML_INCLUDE_DIR})
-target_include_directories(ProcedualPlanet PRIVATE ${CMAKE_CURRENT_LIST_DIR})
-target_link_libraries(ProcedualPlanet sfml-system)
-target_link_libraries(ProcedualPlanet sfml-window)
-
-find_package(GLEW REQUIRED)
-target_link_libraries(ProcedualPlanet GLEW)
+add_library(xen-all ${XEN_HEADERS_ALL} ${XEN_SOURCES_ALL})
+target_include_directories(xen-all PUBLIC ${CMAKE_CURRENT_LIST_DIR})
