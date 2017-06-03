@@ -46,4 +46,5 @@ endif()
 
 add_subdirectory(extlibs)
 add_subdirectory(source)
+add_subdirectory(tests)
 add_subdirectory(examples)
