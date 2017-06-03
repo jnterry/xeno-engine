@@ -53,6 +53,9 @@ TEST_CASE("Vec3r", "[math][Vector]"){
 		SECTION("Non-Normalized"){
 			REQUIRE((xen::angleBetween(Vec3r{ 1, 0, 0}, Vec3r{ 5, 0, 0})) ==   0_deg);
 			REQUIRE((xen::angleBetween(Vec3r{ 1, 0, 0}, Vec3r{-5, 0, 0})) == 180_deg);
+			REQUIRE((xen::angleBetween(Vec3r{ 1, 0, 0}, Vec3r{ 0, 1, 0})) ==  90_deg);
+			REQUIRE((xen::angleBetween(Vec3r{ 1, 0, 0}, Vec3r{ 0, 0, 1})) ==  90_deg);
+			REQUIRE((xen::angleBetween(Vec3r{ 1, 0, 0}, Vec3r{ 1, 0, 1})) ==  45_deg);
 		}
 	}
 

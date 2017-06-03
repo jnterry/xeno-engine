@@ -345,7 +345,7 @@ namespace xen{
 	/// either clockwise or anti-clockwise
 	template<u32 T_Dims, typename T>
 	inline Angle angleBetween(const Vec<T_Dims, T>& a, const Vec<T_Dims, T>& b){
-	    return xen::acos(dot(a,b) / mag(a) * mag(b));
+		return xen::acos(dot(a,b) / (mag(a) * mag(b)));
 	}
 }
 
