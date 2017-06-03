@@ -7,6 +7,7 @@
 
 #include <xen/math/Vector.hpp>
 #include <xen/math/Matrix.hpp>
+#include <xen/math/Quaternion.hpp>
 #include <cstdio>
 
 #include "Camera3d.hpp"
@@ -27,13 +28,15 @@ Mat4r getViewMatrix(const Camera3d& camera, Vec2r viewport_size){
 	// but produce weird results otherwise
 
 	// Line up z axis with look_dir
-	xen::Angle about_y = xen::clockwiseAngleBetween(Vec3r::UnitZ, camera.look_dir);
-	Mat4r rot_y = xen::Rotation3dy(-about_y);
-	result *= rot_y;
+	Quat rot  = xen::getRotation(camera.look_dir, Vec3r::UnitZ);
+	//Quat rot = xen::getRotation(camera.up_dir, Vec3r::UnitY);
+
+	//printf("Z rot: (%f,%f,%f,%f)\n", rot.x, rot.y, rot.z, rot.w);
+	result *= xen::Rotation3d(rot);
 
 	// Tilt camera up or down based on up direction
-	xen::Angle about_x = xen::clockwiseAngleBetween(Vec3r::UnitY, -camera.up_dir) * xen::sign(camera.up_dir.z);
-	result *= xen::Rotation3dx(about_x);
+	//xen::Angle about_x = xen::clockwiseAngleBetween(Vec3r::UnitY, -camera.up_dir) * xen::sign(camera.up_dir.z);
+	//result *= xen::Rotation3dx(about_x);
 
 	// Do perspective projection
 	result *= xen::createPerspectiveProjection(camera.fov_y, viewport_size.x, viewport_size.y, camera.z_near, camera.z_far);

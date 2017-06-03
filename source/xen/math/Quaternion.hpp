@@ -35,7 +35,6 @@ namespace xen{
 		/// \brief Quaternion which represents 0 rotation
 		static const Quaternion Identity;
 	};
-	const Quaternion Quaternion::Identity = {0,0,0,1};
 
 	/// \brief Represents a rotation as an axis about which to rotate, and an angle
 	struct AxisAngle{
@@ -48,22 +47,26 @@ namespace xen{
 
 typedef xen::Quaternion Quat;
 
-xen::Quaternion operator*(xen::Quaternion lhs, xen::Quaternion rhs){
+inline xen::Quaternion operator*(xen::Quaternion lhs, xen::Quaternion rhs){
 	return { (lhs.x * rhs.w) + (lhs.w * rhs.x) + (lhs.y * rhs.z) - (lhs.z * rhs.y)
 		   , (lhs.y * rhs.w) + (lhs.w * rhs.y) + (lhs.z * rhs.x) - (lhs.x * rhs.z)
 		   , (lhs.z * rhs.w) + (lhs.w * rhs.z) + (lhs.x * rhs.y) - (lhs.y * rhs.x)
 		   , (lhs.w * rhs.w) - (lhs.x * rhs.x) - (lhs.y * rhs.y) - (lhs.z * rhs.z) };
 }
 
-xen::Quaternion& operator*=(xen::Quaternion& lhs, const xen::Quaternion& rhs){
+inline xen::Quaternion& operator*=(xen::Quaternion& lhs, const xen::Quaternion& rhs){
 	lhs = (lhs * rhs);
 	return lhs;
 }
 
 /// \brief Multiplies this Quaternion by the specifed vector and returns the result
 /// as a new quaternion, does not modify either operand quaternion
-xen::Quaternion operator*(xen::Quaternion q, const Vec3r& vec){
+inline xen::Quaternion operator*(xen::Quaternion q, const Vec3r& vec){
 	return q * xen::Quaternion{vec.x, vec.y, vec.z, 1};
+}
+
+inline xen::Quaternion operator/(xen::Quaternion q, real s){
+	return { q.x * s, q.y * s, q.z * s, q.w * s };
 }
 
 namespace xen{
@@ -86,6 +89,12 @@ namespace xen{
 		return { -q.x, -q.y, -q.z, q.w };
 	}
 
+	inline real mag(const Quaternion& q){ return mag(q.xyzw); }
+
+	inline Quaternion normalized(const Quaternion& q){
+		return q / mag(q);
+	}
+
 	/// \brief Computes inverse of some quaterion
 	inline Quaternion inverse(Quaternion q){
 		real mag = length(q.xyzw);
@@ -93,7 +102,10 @@ namespace xen{
 	}
 
 
+
+
 	/// \brief Generates rotation matrix equivalent to some quaternion
+	/// \warn  Undefined if q is not normalized
 	inline Mat4r Rotation3d(Quaternion q){
 		return { 1.0_r - 2.0_r*(q.y*q.y - q.z*q.z)
 			   ,         2.0_r*(q.x*q.y - q.z*q.w)
@@ -121,6 +133,24 @@ namespace xen{
 	}
 	inline Vec3r rotated(Vec3r v, AxisAngle aa       ){ return rotated(v, fromAxisAngle(aa     )); }
 	inline Vec3r rotated(Vec3r v, Vec3r axis, Angle a){ return rotated(v, fromAxisAngle(axis, a)); }
+
+
+	inline Quaternion getRotation(const Vec3r& start, const Vec3r& dest){
+		Vec3r start_n = normalized(start);
+		Vec3r dest_n  = normalized(dest);
+
+		real d = dot(start_n, dest_n);
+
+		// If dot product is 1 then vecs have same direction
+		//if(d >= 1){ return Quaternion::Identity; }
+
+		//:TODO: if dot product is -1 then vecs are in oposite directions,
+		// rotate 180 deg around any axis... cross will fail in this case?
+
+		Vec3r axis = cross(start_n, dest_n);
+		return { axis.x, axis.y, axis.z, sqrt(1 + d) };
+
+	}
 }
 
 #endif

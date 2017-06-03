@@ -80,6 +80,9 @@ int main(int argc, char** argv){
 	sf::Clock timer;
 	real last_time = 0;
 
+	Vec3r ctest = xen::cross(Vec3r{1,2,4}, Vec3r{9,8,7});
+	printf("Cross: %f, %f, %f\n", ctest.x, ctest.y ,ctest.z);
+
 	printf("Entering main loop\n");
 	while(app.isOpen()){
 		float time = timer.getElapsedTime().asSeconds();

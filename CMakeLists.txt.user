@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 4.3.0, 2017-06-01T22:55:14. -->
+<!-- Written by QtCreator 4.3.0, 2017-06-03T11:33:03. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
-  <value type="QByteArray">{d5ebf629-bc9b-4205-8d23-7abf58f32c69}</value>
+  <value type="QByteArray">{3d75cbeb-30c8-47b8-aa29-bb864534b844}</value>
  </data>
  <data>
   <variable>ProjectExplorer.Project.ActiveTarget</variable>
@@ -61,7 +61,7 @@
   <valuemap type="QVariantMap">
    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Imported Kit</value>
    <value type="QString" key="ProjectExplorer.ProjectConfiguration.DisplayName">Imported Kit</value>
-   <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">{823d12af-188d-41dd-bc6e-6824e0b9d2f0}</value>
+   <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">{af3097fc-f2df-41e5-a925-980940fd41bf}</value>
    <value type="int" key="ProjectExplorer.Target.ActiveBuildConfiguration">0</value>
    <value type="int" key="ProjectExplorer.Target.ActiveDeployConfiguration">0</value>
    <value type="int" key="ProjectExplorer.Target.ActiveRunConfiguration">0</value>
