@@ -69,6 +69,15 @@ inline xen::Quaternion operator/(xen::Quaternion q, real s){
 	return { q.x * s, q.y * s, q.z * s, q.w * s };
 }
 
+inline bool operator==(xen::Quaternion l, xen::Quaternion r){ return l.xyzw == r.xyzw; }
+inline bool operator!=(xen::Quaternion l, xen::Quaternion r){ return l.xyzw != r.xyzw; }
+inline bool operator==(xen::AxisAngle  l, xen::AxisAngle  r){
+	return l.axis == r.axis && l.angle == r.angle;
+}
+inline bool operator!=(xen::AxisAngle  l, xen::AxisAngle  r){
+	return l.axis != r.axis || l.angle != r.angle;
+}
+
 namespace xen{
 	/// \brief Constructs AxisAngle representation of rotation from a Quaterion
 	inline AxisAngle toAxisAngle(Quaternion q){

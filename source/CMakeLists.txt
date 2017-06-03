@@ -4,3 +4,13 @@ include(xen_sources.cmake)
 
 add_library(xen-all ${XEN_HEADERS_ALL} ${XEN_SOURCES_ALL})
 target_include_directories(xen-all PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+
+
+add_library(xen-core ${XEN_HEADERS_CORE} ${XEN_SOURCES_CORE})
+target_include_directories(xen-core PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+
+add_library(xen-math ${XEN_HEADERS_MATH} ${XEN_SOURCES_MATH})
+target_include_directories(xen-math PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+
+add_library(xen-graphics ${XEN_HEADERS_GRAPHICS} ${XEN_SOURCES_GRAPHICS})
+target_include_directories(xen-graphics PUBLIC ${CMAKE_CURRENT_LIST_DIR})

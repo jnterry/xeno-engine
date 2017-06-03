@@ -133,7 +133,7 @@ namespace xen{
 }
 
 template<u32 T_Rows, u32 T_Cols, typename T>
-bool operator==(xen::Matrix<T_Rows, T_Cols, T>& lhs, xen::Matrix<T_Rows, T_Cols, T>& rhs){
+bool operator==(const xen::Matrix<T_Rows, T_Cols, T>& lhs, const xen::Matrix<T_Rows, T_Cols, T>& rhs){
 	bool equal = true;
 	for(int i = 0; i < T_Rows*T_Cols; ++i){
 		equal |= (lhs.elements[i] == rhs.elements[i]);
@@ -141,7 +141,7 @@ bool operator==(xen::Matrix<T_Rows, T_Cols, T>& lhs, xen::Matrix<T_Rows, T_Cols,
 	return equal;
 }
 template<typename T>
-bool operator==(xen::Matrix<3, 3, T>& lhs, xen::Matrix<3, 3, T>& rhs){
+bool operator==(const xen::Matrix<3, 3, T>& lhs, const xen::Matrix<3, 3, T>& rhs){
 	return lhs.elements[0] == rhs.elements[0] &&
 	       lhs.elements[1] == rhs.elements[1] &&
 	       lhs.elements[2] == rhs.elements[2] &&
@@ -154,7 +154,7 @@ bool operator==(xen::Matrix<3, 3, T>& lhs, xen::Matrix<3, 3, T>& rhs){
            lhs.elements[9] == rhs.elements[9];
 }
 template<typename T>
-bool operator==(xen::Matrix<4, 4, T>& lhs, xen::Matrix<4, 4, T>& rhs){
+bool operator==(const xen::Matrix<4, 4, T>& lhs, const xen::Matrix<4, 4, T>& rhs){
 	return lhs.elements[ 0] == rhs.elements[ 0] &&
 	       lhs.elements[ 1] == rhs.elements[ 1] &&
 	       lhs.elements[ 2] == rhs.elements[ 2] &&
@@ -359,6 +359,18 @@ xen::Vec<4,T> operator*(const xen::Vec<4,T>& lhs, const xen::Matrix<4,4,T>& rhs)
 		   , lhs.x*e[ 1] + lhs.y*e[ 5] + lhs.z*e[ 9] + lhs.w*e[13]
 		   , lhs.x*e[ 2] + lhs.y*e[ 6] + lhs.z*e[10] + lhs.w*e[14]
 		   , lhs.x*e[ 3] + lhs.y*e[ 7] + lhs.z*e[11] + lhs.w*e[15]
+		   };
+}
+
+template<typename T>
+xen::Vec<3,T> operator*(const xen::Vec<3,T>& lhs, const xen::Matrix<4,4,T>& rhs){
+	const T* e = rhs.elements;
+	//Assume w is 1, then renormalize w to 1 at the end
+	// :TODO: -> test if we need to calc w and then /w at end, maybe w always comes out as 1?
+	T w = lhs.x*e[ 3] + lhs.y*e[ 7] + lhs.z*e[11] + e[15];
+	return { (lhs.x*e[ 0] + lhs.y*e[ 4] + lhs.z*e[ 8] + e[12]) / w
+		   , (lhs.x*e[ 1] + lhs.y*e[ 5] + lhs.z*e[ 9] + e[13]) / w
+		   , (lhs.x*e[ 2] + lhs.y*e[ 6] + lhs.z*e[10] + e[14]) / w
 		   };
 }
 
