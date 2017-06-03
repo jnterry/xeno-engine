@@ -340,7 +340,9 @@ namespace xen{
 	/// \brief Computes cross product of two vectors
 	template<typename T>
 	Vec3<T> cross(const Vec3<T>& a, const Vec3<T>& b){
-		return { a.y*b.z - a.z*b.y,  a.z*b.x - b.x*a.z, a.x*b.y - b.y*a.x};
+		return { a.y*b.z - a.z*b.y
+			   , a.z*b.x - a.x*b.z
+			   , a.x*b.y - a.y*b.x };
 	}
 
 	/// \brief Computes dot product of two vectors
@@ -352,25 +354,9 @@ namespace xen{
 	/// \brief Computes minimum angle between two vectors - direction of angle could be
 	/// either clockwise or anti-clockwise
 	template<u32 T_Dims, typename T>
-	inline Angle minAngleBetween(const Vec<T_Dims, T>& a, const Vec<T_Dims, T>& b){
+	inline Angle angleBetween(const Vec<T_Dims, T>& a, const Vec<T_Dims, T>& b){
 	    return xen::acos(dot(a,b) / mag(a) * mag(b));
 	}
-
-	/// \brief Computes the clockwise angle between two vectors
-	/// \todo :TODO: test -> this might be counterclockwise...
-	template<typename T>
-	inline Angle clockwiseAngleBetween(const Vec<3, T>& a, const Vec<3,T>& b){
-		Angle min = minAngleBetween(a,b);
-
-		Angle dir = atan2(a.x*b.y - a.y*b.x, a.x*b.x+a.y*b.y);
-
-		if(dir > 0_deg){
-			return 180_deg - min;
-		} else {
-			return 180_deg + min;
-		}
-	}
-
 }
 
 #endif
