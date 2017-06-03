@@ -2,8 +2,8 @@
 #include <xen/math/Matrix.hpp>
 #include <xen/math/Quaternion.hpp>
 
-
 #include "ostream_operators.hpp"
+
 #include <catch.hpp>
 
 #define COS_45 0.70710678118

@@ -1,5 +1,6 @@
 add_executable(xen_unit_tests
   ${CMAKE_CURRENT_LIST_DIR}/main.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/math/Vector.cpp
   ${CMAKE_CURRENT_LIST_DIR}/math/Quaternion.cpp
 )
 

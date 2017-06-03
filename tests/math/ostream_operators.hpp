@@ -1,5 +1,9 @@
 #include <iostream>
 
+#include <xen/math/Vector.hpp>
+#include <xen/math/Matrix.hpp>
+#include <xen/math/Quaternion.hpp>
+
 namespace xen{
 	//:TODO:COMP: when do meta type system, have these be auto-generated
 	inline std::ostream& operator<< (std::ostream& os, xen::Angle const& a){
@@ -19,7 +23,7 @@ namespace xen{
 		return os;
 	}
 
-	std::ostream& operator<< (std::ostream& os, xen::AxisAngle const& q){
+	inline std::ostream& operator<< (std::ostream& os, xen::AxisAngle const& q){
 		os << "{" << q.axis << "," << q.angle << "}";
 		return os;
 	}

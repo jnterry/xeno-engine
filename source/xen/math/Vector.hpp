@@ -310,24 +310,24 @@ namespace xen{
 	}
 
 	template<u32 T_DIM, typename T>
-	real distanceBetweenSq(const Vec<T_DIM, T>& a, const Vec<T_DIM, T>& b){
+	real distanceSq(const Vec<T_DIM, T>& a, const Vec<T_DIM, T>& b){
 		Vec<T_DIM, T> d = a - b;
 		return dot(d, d);
 	}
 
 	template<u32 T_DIM, typename T>
-	real distanceBetween(const Vec<T_DIM, T>& a, const Vec<T_DIM, T>& b){
-		return xen::sqrt(distanceBetweenSq<T_DIM, T>(a,b));
+	real distance(const Vec<T_DIM, T>& a, const Vec<T_DIM, T>& b){
+		return xen::sqrt(distanceSq<T_DIM, T>(a,b));
 	}
 
 	template<u32 T_Dims, typename T>
 	real lengthSq(const Vec<T_Dims, T>& v){
-		return distanceBetweenSq<T_Dims, T>(v, Vec<T_Dims, T>::Origin);
+		return distanceSq<T_Dims, T>(v, Vec<T_Dims, T>::Origin);
 	}
 
 	template<u32 T_Dims, typename T>
 	real length(const Vec<T_Dims, T>& v){
-		return distanceBetween(v, Vec<T_Dims, T>::Origin);
+		return distance(v, Vec<T_Dims, T>::Origin);
 	}
 
 	/// \brief Computes magnitude of vector
