@@ -6,7 +6,6 @@ add_executable(ProcedualPlanet
 
 target_include_directories(ProcedualPlanet PRIVATE ${PP_SFML_INCLUDE_DIR})
 
-message(STATUS "Xen include dir: ${XEN_INCLUDE_DIR}")
 target_include_directories(ProcedualPlanet PRIVATE ${XEN_INCLUDE_DIR})
 target_link_libraries(ProcedualPlanet sfml-system)
 target_link_libraries(ProcedualPlanet sfml-window)
