@@ -80,11 +80,6 @@ int main(int argc, char** argv){
 	sf::Clock timer;
 	real last_time = 0;
 
-	Quat quat_test = xen::fromAxisAngle(Vec3r::UnitX, 90_deg);
-	printf("Quat test: (%f, %f, %f, %f)\n", quat_test.x, quat_test.y, quat_test.z, quat_test.w);
-	auto aa = xen::toAxisAngle(quat_test);
-	printf("Angle axis: (%f, %f, %f), %f\n", aa.axis.x, aa.axis.y, aa.axis.z, xen::asDegrees(aa.angle));
-
 	printf("Entering main loop\n");
 	while(app.isOpen()){
 		float time = timer.getElapsedTime().asSeconds();
@@ -138,10 +133,8 @@ int main(int argc, char** argv){
 		model_mat *= xen::Rotation3dz(time * 83_deg);
 		model_mat *= xen::Scale3d(0.3 + sin(time*15)*0.03, 0.3 + sin(time*15 + 0.25*xen::PI)*0.03, 0.3 + sin(time*15 + 0.5*xen::PI)*0.03);
 
-		Quat rot_quat = Quat::Identity;
-		rot_quat *= xen::fromAxisAngle(Vec3r::UnitY, xen::Degrees(time*90_r));
-		rot_quat *= xen::fromAxisAngle(Vec3r::UnitX, xen::Degrees(time*180_r));
-		model_mat *= xen::Translation3d(xen::rotated(Vec3r{7, 3, 0}, rot_quat));
+		model_mat *= xen::Translation3d(xen::rotated(Vec3r{7, 0, 0},
+		                                             Vec3r::UnitY, xen::Degrees(time*90_r)));
 		xen::setUniform(mvpMatLoc, model_mat * view_mat);
 		renderCube();
 
