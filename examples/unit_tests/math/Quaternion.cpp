@@ -1,44 +1,9 @@
 #include <xen/math/Vector.hpp>
 #include <xen/math/Matrix.hpp>
 #include <xen/math/Quaternion.hpp>
-#include <iostream>
 
-namespace xen{
-	//:TODO:COMP: when do meta type system, have these be auto-generated
-	std::ostream& operator<< (std::ostream& os, xen::Angle const& a){
-		os << xen::asDegrees(a) << "deg";
-		return os;
-	}
-	template<typename T>
-	std::ostream& operator<< (std::ostream& os, Vec3<T> const& v){
-		os << "(" << v.x << "," << v.y << "," << v.z << ")";
-		return os;
-	}
-	template<typename T>
-	std::ostream& operator<< (std::ostream& os, Vec4<T> const& v){
-		os << "(" << v.x << "," << v.y << "," << v.z << "," << v.w << ")";
-		return os;
-	}
-	std::ostream& operator<< (std::ostream& os, xen::AxisAngle const& q){
-		os << "{" << q.axis << "," << q.angle << "}";
-		return os;
-	}
 
-	template<u32 T_Row, u32 T_Col, typename T>
-	std::ostream& operator<< (std::ostream& os, xen::Matrix<T_Row, T_Col, T> const& m){
-		const T* e = m.elements;
-		for(u32 r = 0; r < T_Row; ++r){
-			os << "[" << e[T_Row * r + 0];
-			for(u32 c = 1; c < T_Col; ++c){
-				os << ", " << e[T_Row * r + c];
-			}
-			os << "]";
-			if(r != T_Row - 1){ os << "\n"; }
-		}
-		return os;
-	}
-}
-
+#include "ostream_operators.hpp"
 #include <catch.hpp>
 
 #define COS_45 0.70710678118
