@@ -77,8 +77,15 @@ TEST_CASE("AxisAngle -> Quaternion -> AxisAngle results in no change",
 	        (xen::AxisAngle{xen::normalized(Vec3r{0, 0.5, 1}), 45_deg}));
 }
 
-TEST_CASE("Rotation Matrix from Quaterion",
+TEST_CASE("Rotation Matrix from Quaterion (xen::Rotation3d())",
           "[math][Quaternion][AxisAngle]"){
+
+	SECTION("Overloads Equivalent"){
+		REQUIRE((xen::Rotation3d(               Vec3r{ 1,  2, 3},  25_deg)) ==
+		        (xen::Rotation3d(xen::AxisAngle{Vec3r{ 1,  2, 3},  25_deg})));
+		REQUIRE((xen::Rotation3d(               Vec3r{ 3,-10, 1}, -60_deg)) ==
+		        (xen::Rotation3d(xen::AxisAngle{Vec3r{ 3,-10, 1}, -60_deg})));
+	}
 
 	SECTION("Rot X"){
 		GIVEN("Quaternion Rotation works"){
@@ -124,7 +131,6 @@ TEST_CASE("Rotation Matrix from Quaterion",
 		}
 	}
 
-
 	SECTION("Rot Z"){
 		GIVEN("Quaternion Rotation works"){
 			REQUIRE(((Vec3r{0,  0,  0}) * xen::Rotation3d(Vec3r::UnitZ, 90_deg))  ==
@@ -147,5 +153,18 @@ TEST_CASE("Rotation Matrix from Quaterion",
 				REQUIRE((xen::Rotation3dz(270_deg)) == (xen::Rotation3d(Vec3r::UnitZ, 270_deg)));
 			}
 		}
+	}
+
+	// Expected results calculated with:
+	// http://www.nh.cas.cz/people/lazar/celler/online_tools.php
+	SECTION("Arbitary Rotations"){
+		REQUIRE((Vec3r{ 0, 0, 0 } * xen::Rotation3d({1,1,1}, 45_deg)) ==
+		        (Vec3r{ 0, 0, 0 }));
+		REQUIRE((Vec3r{ 1, 0, 0 } * xen::Rotation3d({1,1,1}, 45_deg)) ==
+		        (Vec3r{ 0.804738,0.505879,-0.310617 }));
+		REQUIRE((Vec3r{ 1,10, 0} * xen::Rotation3d({1,7,5}, 60_deg)) ==
+		        (Vec3r{-4.026667,8.813333,2.666667 }));
+		REQUIRE((Vec3r{ 6, 5, 4} * xen::Rotation3d({3,2,1}, 200_deg)) ==
+		        (Vec3r{ 7.388367,4.717156,0.400586 }));
 	}
 }
