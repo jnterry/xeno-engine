@@ -127,7 +127,7 @@ int main(int argc, char** argv){
 		view_mat = getViewMatrix(camera, window_size);
 
 		app.setActive(true);
-		glClearColor(0.3,0.3,0.3,1);
+		glClearColor(0.2,0.2,0.2, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		xen::useShader(prog);

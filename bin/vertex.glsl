@@ -1,7 +1,7 @@
-#version 330
+#version 130
 
-layout(location = 0) in vec3 pos;
-layout(location = 1) in vec3 vert_color;
+in vec3 pos;
+in vec3 vert_color;
 
 varying vec3 color;
 uniform mat4 mvpMatrix;
