@@ -19,15 +19,23 @@
 #include "Vector.hpp"
 #include "Matrix.hpp"
 
+// gcc doesn't like the anonomous structures inside unions, disable the warning temporarily...
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+
 namespace xen{
 	struct Quaternion{
 		union{
 			real elements[4];
-			real  x,y,z,w;
+			struct { real x,y,z,w; };
 			Vec3r xyz;
 			Vec4r xyzw;
 		};
+
+		/// \brief Quaternion which represents 0 rotation
+		static const Quaternion Identity;
 	};
+	const Quaternion Quaternion::Identity = {0,0,0,1};
 
 	/// \brief Represents a rotation as an axis about which to rotate, and an angle
 	struct AxisAngle{
@@ -36,22 +44,26 @@ namespace xen{
 	};
 }
 
-typedef xen::Quaternion Quat;
+#pragma GCC diagnostic pop // re-enable -Wpedantic
 
-/// \brief Multiplies this Quaternion by the specifed vector and returns the result
-/// as a new quaternion, does not modify either operand quaternion
-xen::Quaternion operator*(xen::Quaternion q, const Vec3r& vec){
-	return {  (q.w * vec.x) + (q.y * vec.z) - (q.z * vec.y)
-		   ,  (q.w * vec.y) + (q.z * vec.x) - (q.x * vec.z)
-		   ,  (q.w * vec.z) + (q.x * vec.y) - (q.y * vec.x)
-		   , -(q.x * vec.x) - (q.y * vec.y) - (q.z * vec.z) };
-}
+typedef xen::Quaternion Quat;
 
 xen::Quaternion operator*(xen::Quaternion lhs, xen::Quaternion rhs){
 	return { (lhs.x * rhs.w) + (lhs.w * rhs.x) + (lhs.y * rhs.z) - (lhs.z * rhs.y)
 		   , (lhs.y * rhs.w) + (lhs.w * rhs.y) + (lhs.z * rhs.x) - (lhs.x * rhs.z)
 		   , (lhs.z * rhs.w) + (lhs.w * rhs.z) + (lhs.x * rhs.y) - (lhs.y * rhs.x)
 		   , (lhs.w * rhs.w) - (lhs.x * rhs.x) - (lhs.y * rhs.y) - (lhs.z * rhs.z) };
+}
+
+xen::Quaternion& operator*=(xen::Quaternion& lhs, const xen::Quaternion& rhs){
+	lhs = (lhs * rhs);
+	return lhs;
+}
+
+/// \brief Multiplies this Quaternion by the specifed vector and returns the result
+/// as a new quaternion, does not modify either operand quaternion
+xen::Quaternion operator*(xen::Quaternion q, const Vec3r& vec){
+	return q * xen::Quaternion{vec.x, vec.y, vec.z, 1};
 }
 
 namespace xen{

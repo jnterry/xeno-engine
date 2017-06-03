@@ -80,7 +80,7 @@ int main(int argc, char** argv){
 	sf::Clock timer;
 	real last_time = 0;
 
-	Quat quat_test = xen::fromAxisAngle(Vec3r::UnitZ, 30_deg);
+	Quat quat_test = xen::fromAxisAngle(Vec3r::UnitX, 90_deg);
 	printf("Quat test: (%f, %f, %f, %f)\n", quat_test.x, quat_test.y, quat_test.z, quat_test.w);
 	auto aa = xen::toAxisAngle(quat_test);
 	printf("Angle axis: (%f, %f, %f), %f\n", aa.axis.x, aa.axis.y, aa.axis.z, xen::asDegrees(aa.angle));
@@ -137,7 +137,11 @@ int main(int argc, char** argv){
 		model_mat *= xen::Rotation3dy(time * 67_deg);
 		model_mat *= xen::Rotation3dz(time * 83_deg);
 		model_mat *= xen::Scale3d(0.3 + sin(time*15)*0.03, 0.3 + sin(time*15 + 0.25*xen::PI)*0.03, 0.3 + sin(time*15 + 0.5*xen::PI)*0.03);
-		model_mat *= xen::Translation3d(xen::rotated(Vec3r{10, 1, 0}, Vec3r::UnitY, xen::Degrees(time)));
+
+		Quat rot_quat = Quat::Identity;
+		rot_quat *= xen::fromAxisAngle(Vec3r::UnitY, xen::Degrees(time*90_r));
+		rot_quat *= xen::fromAxisAngle(Vec3r::UnitX, xen::Degrees(time*180_r));
+		model_mat *= xen::Translation3d(xen::rotated(Vec3r{7, 3, 0}, rot_quat));
 		xen::setUniform(mvpMatLoc, model_mat * view_mat);
 		renderCube();
 
@@ -251,7 +255,7 @@ void initCube(){
 
 void renderCube(){
 	glEnableVertexAttribArray(0);
-	  glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(1);
 	glBindBuffer(GL_ARRAY_BUFFER, cube_vert_buffer);
 	glVertexAttribPointer(0,        // attrib layout
 	                      3,        // components
