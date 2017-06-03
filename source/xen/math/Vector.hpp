@@ -100,26 +100,6 @@ typedef Vec4<r64>  Vec4d;
 typedef Vec4<real> Vec4r;
 
 template<typename T>
-bool operator==(const xen::Vec<2, T>& lhs, const xen::Vec<2, T>& rhs){
-	return lhs.x == rhs.x && lhs.y == lhs.y;
-}
-template<typename T>
-bool operator==(const xen::Vec<3, T>& lhs, const xen::Vec<3, T>& rhs){
-	return lhs.x == rhs.x && lhs.y == lhs.y && lhs.z == rhs.z;
-}
-template<typename T>
-bool operator==(const  xen::Vec<4, T>& lhs, const xen::Vec<4, T>& rhs){
-	return lhs.x == rhs.x && lhs.y == lhs.y && lhs.z == rhs.z && lhs.z == rhs.z;
-}
-
-template<u32 T_DIM, typename T>
-bool operator!=(const xen::Vec<T_DIM, T>& lhs, const xen::Vec<T_DIM, T>& rhs){
-	return !(lhs == rhs);
-}
-
-
-
-template<typename T>
 xen::Vec<2,T> operator+=(xen::Vec<2,T>& lhs, const xen::Vec<2, T>& rhs){
 	lhs.x += rhs.x;
 	lhs.y += rhs.y;
@@ -307,22 +287,42 @@ xen::Vec<4, T> operator-(const xen::Vec<4,T>& vec){
 }
 
 namespace xen{
+	/// \brief Computes dot product of two vectors
 	template<typename T>
-	real distanceBetween(const Vec2<T>& a, const Vec2<T>& b){
-		Vec2<T> d = a - b;
-		return xen::sqrt(d.x*d.x + d.y*d.y);
+	T dot(const Vec2<T>& a, const Vec2<T>& b){
+		return a.x*b.x + a.y*b.y;
+	}
+	template<typename T>
+	T dot(const Vec3<T>& a, const Vec3<T>& b){
+		return a.x*b.x + a.y*b.y + a.z*b.z;
+	}
+	template<typename T>
+	T dot(const Vec4<T>& a, const Vec4<T>& b){
+		return a.x*b.x + a.y*b.y + a.z*b.z + a.w*b.w;
 	}
 
+	/// \brief Computes cross product of two vectors
 	template<typename T>
-	real distanceBetween(const Vec3<T>& a, const Vec3<T>& b){
-		Vec3<T> d = a - b;
-		return xen::sqrt(d.x*d.x + d.y*d.y + d.z*d.z);
+	Vec3<T> cross(const Vec3<T>& a, const Vec3<T>& b){
+		return { a.y*b.z - a.z*b.y
+			   , a.z*b.x - a.x*b.z
+			   , a.x*b.y - a.y*b.x };
 	}
 
-	template<typename T>
-	real distanceBetween(const Vec4<T>& a, const Vec4<T>& b){
-		Vec4<T> d = a - b;
-		return xen::sqrt(d.x*d.x + d.y*d.y + d.z*d.z + d.w*d.w);
+	template<u32 T_DIM, typename T>
+	real distanceBetweenSq(const Vec<T_DIM, T>& a, const Vec<T_DIM, T>& b){
+		Vec<T_DIM, T> d = a - b;
+		return dot(d, d);
+	}
+
+	template<u32 T_DIM, typename T>
+	real distanceBetween(const Vec<T_DIM, T>& a, const Vec<T_DIM, T>& b){
+		return xen::sqrt(distanceBetweenSq<T_DIM, T>(a,b));
+	}
+
+	template<u32 T_Dims, typename T>
+	real lengthSq(const Vec<T_Dims, T>& v){
+		return distanceBetweenSq<T_Dims, T>(v, Vec<T_Dims, T>::Origin);
 	}
 
 	template<u32 T_Dims, typename T>
@@ -334,22 +334,12 @@ namespace xen{
 	template<u32 T_Dims, typename T>
 	real mag(const Vec<T_Dims, T>& v){ return length(v); }
 
+	/// \brief Computes magnitude of vector squared
+	template<u32 T_Dims, typename T>
+	real magSq(const Vec<T_Dims, T>& v){ return lengthSq(v); }
+
 	template<u32 T_Dims, typename T>
 	Vec<T_Dims, T> normalized(const Vec<T_Dims, T>& v){ return v / length(v); }
-
-	/// \brief Computes cross product of two vectors
-	template<typename T>
-	Vec3<T> cross(const Vec3<T>& a, const Vec3<T>& b){
-		return { a.y*b.z - a.z*b.y
-			   , a.z*b.x - a.x*b.z
-			   , a.x*b.y - a.y*b.x };
-	}
-
-	/// \brief Computes dot product of two vectors
-	template<typename T>
-	T dot(const Vec3<T>& a, const Vec3<T>& b){
-		return a.x*b.x + a.y*b.y + a.z*b.z;
-	}
 
 	/// \brief Computes minimum angle between two vectors - direction of angle could be
 	/// either clockwise or anti-clockwise
@@ -357,6 +347,16 @@ namespace xen{
 	inline Angle angleBetween(const Vec<T_Dims, T>& a, const Vec<T_Dims, T>& b){
 	    return xen::acos(dot(a,b) / mag(a) * mag(b));
 	}
+}
+
+template<u32 T_DIM, typename T>
+bool operator==(const xen::Vec<T_DIM, T>& lhs, const xen::Vec<T_DIM, T>& rhs){
+	// float comparisions are dodgy... check if magnitude of delta is < some value
+	return xen::magSq(lhs - rhs) <= 0.000000001_r;
+}
+template<u32 T_DIM, typename T>
+bool operator!=(const xen::Vec<T_DIM, T>& lhs, const xen::Vec<T_DIM, T>& rhs){
+	return !(lhs == rhs);
 }
 
 #endif
