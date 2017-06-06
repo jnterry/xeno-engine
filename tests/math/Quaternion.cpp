@@ -26,6 +26,13 @@ TEST_CASE("Making Quaternion from AxisAngle",
 	}
 }
 
+TEST_CASE("Quaterion * Quaterion", "[math][Quaternion][AxisAngle]"){
+	// expected results calculated with http://www.bluetulip.org/2014/programs/quaternions.html
+	REQUIRE(((Quat{ 1,-3,-6, 3  }) * (Quat{ 7, 9, 3, 2})) == (Quat{68  ,-24, 27  , 44}));
+	REQUIRE(((Quat{ 9, 8, 7, 0  }) * (Quat{ 2, 3, 4, 1})) == (Quat{20  ,-14, 18  ,-70}));
+	REQUIRE(((Quat{-1, 0, 0, 1.5}) * (Quat{ 3, 2,-7, 0})) == (Quat{ 4.5,- 4,-12.5,  3}));
+}
+
 
 TEST_CASE("AxisAngle -> Quaternion -> AxisAngle results in no change",
           "[math][Quaternion][AxisAngle]"){

@@ -28,6 +28,10 @@ namespace xen{
 		return os;
 	}
 
+	inline std::ostream& operator<< (std::ostream& os, xen::Quaternion const& q){
+		return os << "(" << q.i << "i, " << q.j << "j, " << q.k << "k, " << q.r << ")";
+	}
+
 	template<u32 T_Row, u32 T_Col, typename T>
 	inline std::ostream& operator<< (std::ostream& os, xen::Matrix<T_Row, T_Col, T> const& m){
 		const T* e = m.elements;

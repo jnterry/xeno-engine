@@ -24,10 +24,12 @@
 #pragma GCC diagnostic ignored "-Wpedantic"
 
 namespace xen{
+	/// \brief Represents a quaternion, coefficents stored in i,j,k, real order
 	struct Quaternion{
 		union{
 			real elements[4];
 			struct { real x,y,z,w; };
+			struct { real i,j,k,r; }; // i,j,k and real components
 			Vec3r xyz;
 			Vec4r xyzw;
 		};
