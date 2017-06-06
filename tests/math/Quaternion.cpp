@@ -119,7 +119,7 @@ TEST_CASE("Rotation Matrix from Quaterion (xen::Rotation3d())",
 			REQUIRE(((Vec3r{3,  0,  0}) * xen::Rotation3d(Vec3r::UnitZ, -90_deg))  ==
 			        ( Vec3r{0,  3,  0}));
 			REQUIRE(((Vec3r{1,  0,  0}) * xen::Rotation3d(Vec3r::UnitZ, 270_deg))  ==
-			        ( Vec3r{0, -1,  0}));
+			        ( Vec3r{0,  1,  0}));
 			REQUIRE(((Vec3r{0,  1,  0}) * xen::Rotation3d(Vec3r::UnitZ, 180_deg))  ==
 			        ( Vec3r{0, -1,  0}));
 

@@ -14,6 +14,13 @@ TEST_CASE("Mat4r - Transform Generations", "[Matrix][math]"){
 		TRANSLATION_TEST((Vec3r{ 1, 2, 3}), (Vec3r{ 0, 0, 1}));
 		TRANSLATION_TEST((Vec3r{ 0, 0, 0}), (Vec3r{ 1, 2, 3}));
 		TRANSLATION_TEST((Vec3r{ 5,10,-5}), (Vec3r{-6, 1, 6}));
+		for(float x = -10; x <= 10; x += 5){
+			for(float y = -10; y <= 10; y += 5){
+				for(float z = -10; z <= 10; z += 5){
+					TRANSLATION_TEST((Vec3r{ 1, 2, 3}), (Vec3r{ x, y, z}));
+				}
+			}
+		}
 		#undef TRANSLATION_TEST
 	}
 
@@ -49,7 +56,25 @@ TEST_CASE("Mat4r - Transform Generations", "[Matrix][math]"){
 		REQUIRE(((Vec3r{0,  1,  0}) * xen::Rotation3dz(  90_deg))  == ( Vec3r{1,  0,  0}));
 		REQUIRE(((Vec3r{1,  0,  0}) * xen::Rotation3dz(- 90_deg))  == ( Vec3r{0,  1,  0}));
 		REQUIRE(((Vec3r{3,  0,  0}) * xen::Rotation3dz(- 90_deg))  == ( Vec3r{0,  3,  0}));
-		REQUIRE(((Vec3r{1,  0,  0}) * xen::Rotation3dz( 270_deg))  == ( Vec3r{0, -1,  0}));
+		REQUIRE(((Vec3r{1,  0,  0}) * xen::Rotation3dz( 270_deg))  == ( Vec3r{0,  1,  0}));
 		REQUIRE(((Vec3r{0,  1,  0}) * xen::Rotation3dz( 180_deg))  == ( Vec3r{0, -1,  0}));
+	}
+
+	SECTION("Scale3d"){
+		#define SCALE_TEST(a, b) REQUIRE(((a) * xen::Scale3d(b)) == ((a) * (b)))
+		SCALE_TEST((Vec3r{ 1, 2, 3}), (Vec3r{ 0, 0, 0}));
+		SCALE_TEST((Vec3r{ 1, 2, 3}), (Vec3r{ 1, 0, 0}));
+		SCALE_TEST((Vec3r{ 1, 2, 3}), (Vec3r{ 0, 1, 0}));
+		SCALE_TEST((Vec3r{ 1, 2, 3}), (Vec3r{ 0, 0, 1}));
+		SCALE_TEST((Vec3r{ 0, 0, 0}), (Vec3r{ 1, 2, 3}));
+		SCALE_TEST((Vec3r{ 5,10,-5}), (Vec3r{-6, 1, 6}));
+		for(float x = -10; x <= 10; x += 5){
+			for(float y = -10; y <= 10; y += 5){
+				for(float z = -10; z <= 10; z += 5){
+					SCALE_TEST((Vec3r{ 1, 2, 3}), (Vec3r{ x, y, z}));
+				}
+			}
+		}
+		#undef TRANSLATION_TEST
 	}
 }
