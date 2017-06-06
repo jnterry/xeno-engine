@@ -66,7 +66,7 @@ TEST_CASE("Quaternion Normalized", "[math][Quaternion]"){
 		for(real y = -10; y <= 10; y += 10){
 			for(real z = -10; z <= 10; z += 10){
 				for(real w = -10; w <= 10; w += 3){
-					REQUIRE(abs(xen::mag(xen::normalized(Quat(x,y,z,w))) - 1_r) <= 0.000001_r);
+					REQUIRE(xen::mag(xen::normalized(Quat(x,y,z,w))) - 1_r <= 0.000001_r);
 				}
 			}
 		}
@@ -232,4 +232,18 @@ TEST_CASE("Rotation Matrix from Quaterion (xen::Rotation3d())",
 		REQUIRE((Vec3r{ 6, 5, 4} * xen::Rotation3d({3,2,1}, 200_deg)) ==
 		        (Vec3r{ 7.388367,4.717156,0.400586 }));
 	}
+}
+
+TEST_CASE("getRotation as Quaterion", "[math][Quaternion]"){
+	//:TODO: test getting rotation from one vector to another
+
+
+	Quat r = xen::getRotation(Vec3r(1,0,0), Vec3r(0,1,0));
+	REQUIRE(1 - mag(r) <= 0.00001_r);
+	REQUIRE(((r == Quat( Vec3r::UnitZ, - 90_deg)) ||
+	         (r == Quat( Vec3r::UnitZ,  270_deg)) ||
+	         (r == Quat(-Vec3r::UnitZ,   90_deg)) ||
+	         (r == Quat(-Vec3r::UnitZ, -270_deg))
+	         ) == true);
+
 }

@@ -42,6 +42,8 @@ namespace xen{
 
 	template<typename T>
 	struct Vec<3,T>{
+		Vec<3,T>(){}
+		Vec<3,T>(T nx, T ny, T nz) : x(nx), y(ny), z(nz) {}
 		union{
 			T elements[3];
 			struct{ T x, y, z;                     };
