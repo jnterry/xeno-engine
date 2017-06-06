@@ -83,18 +83,18 @@ namespace xen{
 	inline Mat3r Scale2d      (real factor   ){ return Scale2d(factor,    factor   ); }
 
 	inline Mat4r Rotation3dx(Angle a){
-		real c = xen::cos(-a);
-		real s = xen::sin(-a);
+		real c = xen::cos(a);
+		real s = xen::sin(a);
 		return { 1,0,0,0,  0,c,-s,0,  0,s,c,0,  0,0,0,1 };
 	}
 	inline Mat4r Rotation3dy(Angle a){
-		real c = xen::cos(-a);
-		real s = xen::sin(-a);
+		real c = xen::cos(a);
+		real s = xen::sin(a);
 		return { c,0,s,0,  0,1,0,0,  -s,0,c,0,  0,0,0,1 };
 	}
 	inline Mat4r Rotation3dz(Angle a){
-		real c = xen::cos(-a);
-		real s = xen::sin(-a);
+		real c = xen::cos(a);
+		real s = xen::sin(a);
 		return { c,-s,0,0,  s,c,0,0,  0,0,1,0,  0,0,0,1 };
 	}
 	inline Mat4r Translation3d(real x, real y, real z){ return { 1,0,0,0,  0,1,0,0,  0,0,1,0,  x,y,z,1}; }
