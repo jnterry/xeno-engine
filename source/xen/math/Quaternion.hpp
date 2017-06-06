@@ -81,7 +81,7 @@ inline xen::Quaternion operator*(xen::Quaternion q, const Vec3r& vec){
 }
 
 inline xen::Quaternion operator/(xen::Quaternion q, real s){
-	return { q.x * s, q.y * s, q.z * s, q.w * s };
+	return { q.x / s, q.y / s, q.z / s, q.w / s };
 }
 
 inline bool operator==(xen::Quaternion l, xen::Quaternion r){ return l.xyzw == r.xyzw; }

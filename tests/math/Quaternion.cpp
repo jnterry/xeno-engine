@@ -26,14 +26,6 @@ TEST_CASE("Making Quaternion from AxisAngle",
 	}
 }
 
-TEST_CASE("Quaterion * Quaterion", "[math][Quaternion][AxisAngle]"){
-	// expected results calculated with http://www.bluetulip.org/2014/programs/quaternions.html
-	REQUIRE(((Quat{ 1,-3,-6, 3  }) * (Quat{ 7, 9, 3, 2})) == (Quat{68  ,-24, 27  , 44}));
-	REQUIRE(((Quat{ 9, 8, 7, 0  }) * (Quat{ 2, 3, 4, 1})) == (Quat{20  ,-14, 18  ,-70}));
-	REQUIRE(((Quat{-1, 0, 0, 1.5}) * (Quat{ 3, 2,-7, 0})) == (Quat{ 4.5,- 4,-12.5,  3}));
-}
-
-
 TEST_CASE("AxisAngle -> Quaternion -> AxisAngle results in no change",
           "[math][Quaternion][AxisAngle]"){
 	REQUIRE((xen::AxisAngle(Quat(Vec3r::UnitX,  30_deg))) ==
@@ -47,6 +39,38 @@ TEST_CASE("AxisAngle -> Quaternion -> AxisAngle results in no change",
 
 	REQUIRE((xen::AxisAngle(Quat(Vec3r{0, 0.5, 1}, 45_deg))) ==
 	        (xen::AxisAngle{xen::normalized(Vec3r{0, 0.5, 1}), 45_deg}));
+}
+
+TEST_CASE("Quaterion * Quaterion", "[math][Quaternion][AxisAngle]"){
+	// expected results calculated with http://www.bluetulip.org/2014/programs/quaternions.html
+	REQUIRE(((Quat{ 1,-3,-6, 3  }) * (Quat{ 7, 9, 3, 2})) == (Quat{68  ,-24, 27  , 44}));
+	REQUIRE(((Quat{ 9, 8, 7, 0  }) * (Quat{ 2, 3, 4, 1})) == (Quat{20  ,-14, 18  ,-70}));
+	REQUIRE(((Quat{-1, 0, 0, 1.5}) * (Quat{ 3, 2,-7, 0})) == (Quat{ 4.5,- 4,-12.5,  3}));
+}
+
+TEST_CASE("Quaternion Magnitude", "[math][Quaternion]"){
+	REQUIRE(xen::mag(Quat( 0, 0, 0, 0)) == 0);
+	REQUIRE(xen::mag(Quat( 1, 1, 1, 1)) == 2);
+	REQUIRE(xen::mag(Quat( 8, 6, 1, 1)) == xen::sqrt(64 + 36 + 1 + 1));
+	REQUIRE(xen::mag(Quat( 4, 3, 2, 1)) == xen::sqrt(16 +  9 + 4 + 1));
+}
+
+TEST_CASE("Quaternion Normalized", "[math][Quaternion]"){
+	//REQUIRE(xen::normalized(Quat(0,0,0,0))   == Quat(0  , 0  , 0   , 0   ));
+	REQUIRE(xen::normalized(Quat(1,1,1,1))   == Quat(0.5, 0.5, 0.5 , 0.5 ));
+	REQUIRE(xen::normalized(Quat(10,6,-3,4)) == Quat( 0.78811040623,
+	                                                  0.47286624374,
+	                                                 -0.23643312187,
+	                                                  0.31524416249));
+	for(real x = -8; x <= 2; x += 4){
+		for(real y = -10; y <= 10; y += 10){
+			for(real z = -10; z <= 10; z += 10){
+				for(real w = -10; w <= 10; w += 3){
+					REQUIRE(abs(xen::mag(xen::normalized(Quat(x,y,z,w))) - 1_r) <= 0.000001_r);
+				}
+			}
+		}
+	}
 }
 
 TEST_CASE("Rotating point by quaternion", "[math][Quaternion][AxisAngle]"){
