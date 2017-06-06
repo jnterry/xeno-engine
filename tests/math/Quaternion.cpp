@@ -36,16 +36,16 @@ TEST_CASE("Quaterion * Quaterion", "[math][Quaternion][AxisAngle]"){
 
 TEST_CASE("AxisAngle -> Quaternion -> AxisAngle results in no change",
           "[math][Quaternion][AxisAngle]"){
-	REQUIRE((xen::toAxisAngle(Quat(Vec3r::UnitX,  30_deg))) ==
+	REQUIRE((xen::AxisAngle(Quat(Vec3r::UnitX,  30_deg))) ==
 	        (xen::AxisAngle{Vec3r::UnitX,  30_deg}));
 
-	REQUIRE((xen::toAxisAngle(Quat(Vec3r::UnitY, 120_deg))) ==
+	REQUIRE((xen::AxisAngle(Quat(Vec3r::UnitY, 120_deg))) ==
 	        (xen::AxisAngle{Vec3r::UnitY, 120_deg}));
 
-	REQUIRE((xen::toAxisAngle(Quat(Vec3r::UnitZ, 250_deg))) ==
+	REQUIRE((xen::AxisAngle(Quat(Vec3r::UnitZ, 250_deg))) ==
 	        (xen::AxisAngle{Vec3r::UnitZ, 250_deg}));
 
-	REQUIRE((xen::toAxisAngle(Quat(Vec3r{0, 0.5, 1}, 45_deg))) ==
+	REQUIRE((xen::AxisAngle(Quat(Vec3r{0, 0.5, 1}, 45_deg))) ==
 	        (xen::AxisAngle{xen::normalized(Vec3r{0, 0.5, 1}), 45_deg}));
 }
 

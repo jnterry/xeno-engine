@@ -24,8 +24,13 @@
 #pragma GCC diagnostic ignored "-Wpedantic"
 
 namespace xen{
+	struct Quaternion;
+
 	/// \brief Represents a rotation as an axis about which to rotate, and an angle
 	struct AxisAngle{
+		AxisAngle() {}
+		AxisAngle(Vec3r naxis, Angle nangle) : axis(naxis), angle(nangle) {}
+		AxisAngle(Quaternion q);
 		Vec3r axis;
 		Angle angle;
 	};
@@ -89,12 +94,6 @@ inline bool operator!=(xen::AxisAngle  l, xen::AxisAngle  r){
 }
 
 namespace xen{
-	/// \brief Constructs AxisAngle representation of rotation from a Quaterion
-	inline AxisAngle toAxisAngle(Quaternion q){
-		real mag = length(q.xyz);
-		return { q.xyz / mag, xen::atan2(mag, q.w) * 2 };
-	}
-
 	/// \brief Computes conjugate of some quaterion, IE: (-x, -y, -z, w)
 	inline Quaternion conjugate(Quaternion q){
 		return { -q.x, -q.y, -q.z, q.w };
