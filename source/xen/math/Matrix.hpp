@@ -142,16 +142,16 @@ bool operator==(const xen::Matrix<T_Rows, T_Cols, T>& lhs, const xen::Matrix<T_R
 }
 template<typename T>
 bool operator==(const xen::Matrix<3, 3, T>& lhs, const xen::Matrix<3, 3, T>& rhs){
-	return lhs.elements[0] == rhs.elements[0] &&
-	       lhs.elements[1] == rhs.elements[1] &&
-	       lhs.elements[2] == rhs.elements[2] &&
-	       lhs.elements[3] == rhs.elements[3] &&
-	       lhs.elements[4] == rhs.elements[4] &&
-           lhs.elements[5] == rhs.elements[5] &&
-	       lhs.elements[6] == rhs.elements[6] &&
-	       lhs.elements[7] == rhs.elements[7] &&
-	       lhs.elements[8] == rhs.elements[8] &&
-           lhs.elements[9] == rhs.elements[9];
+	return lhs.elements[0] - rhs.elements[0] &&
+	       lhs.elements[1] - rhs.elements[1] &&
+	       lhs.elements[2] - rhs.elements[2] &&
+	       lhs.elements[3] - rhs.elements[3] &&
+	       lhs.elements[4] - rhs.elements[4] &&
+           lhs.elements[5] - rhs.elements[5] &&
+	       lhs.elements[6] - rhs.elements[6] &&
+	       lhs.elements[7] - rhs.elements[7] &&
+	       lhs.elements[8] - rhs.elements[8] &&
+           lhs.elements[9] - rhs.elements[9];
 }
 template<typename T>
 bool operator==(const xen::Matrix<4, 4, T>& lhs, const xen::Matrix<4, 4, T>& rhs){

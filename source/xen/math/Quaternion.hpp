@@ -24,8 +24,22 @@
 #pragma GCC diagnostic ignored "-Wpedantic"
 
 namespace xen{
+	/// \brief Represents a rotation as an axis about which to rotate, and an angle
+	struct AxisAngle{
+		Vec3r axis;
+		Angle angle;
+	};
+
 	/// \brief Represents a quaternion, coefficents stored in i,j,k, real order
 	struct Quaternion{
+		Quaternion() {}
+		Quaternion(real nx, real ny, real nz, real nw) : x(nx), y(ny), z(nz), w(nw) {}
+		Quaternion(Vec3r axis, Angle a){
+			a *= 0.5;
+			this->xyz = normalized(axis) * xen::sin(a);
+			this->w   = xen::cos(a);
+		}
+		Quaternion(AxisAngle aa) : Quaternion(aa.axis, aa.angle) {}
 		union{
 			real elements[4];
 			struct { real x,y,z,w; };
@@ -36,12 +50,6 @@ namespace xen{
 
 		/// \brief Quaternion which represents 0 rotation
 		static const Quaternion Identity;
-	};
-
-	/// \brief Represents a rotation as an axis about which to rotate, and an angle
-	struct AxisAngle{
-		Vec3r axis;
-		Angle angle;
 	};
 }
 
@@ -89,9 +97,7 @@ namespace xen{
 
 	/// \brief Constructs a quaterion from an axis about which to rotate, and an angle
 	inline Quaternion fromAxisAngle(Vec3r axis, Angle a){
-		a    *= 0.5;
-		axis  = normalized(axis) * xen::sin(a);
-		return { axis.x, axis.y, axis.z, xen::cos(a) };
+		return Quaternion(axis, a);
 	}
 	inline Quaternion fromAxisAngle(AxisAngle aa){ return fromAxisAngle(aa.axis, aa.angle); }
 
