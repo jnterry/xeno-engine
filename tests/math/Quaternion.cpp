@@ -14,15 +14,15 @@ TEST_CASE("Making Quaternion from AxisAngle",
 	REQUIRE( Quat::Identity == (Quat{0,0,0,1}) );
 
 	SECTION("90 Deg rotation about each axis"){
-		REQUIRE(xen::fromAxisAngle(Vec3r::UnitX, 90_deg) == (Quat{COS_45, 0, 0, COS_45}));
-		REQUIRE(xen::fromAxisAngle(Vec3r::UnitY, 90_deg) == (Quat{0, COS_45, 0, COS_45}));
-		REQUIRE(xen::fromAxisAngle(Vec3r::UnitZ, 90_deg) == (Quat{0, 0, COS_45, COS_45}));
+		REQUIRE(Quat(Vec3r::UnitX, 90_deg) == (Quat{COS_45, 0, 0, COS_45}));
+		REQUIRE(Quat(Vec3r::UnitY, 90_deg) == (Quat{0, COS_45, 0, COS_45}));
+		REQUIRE(Quat(Vec3r::UnitZ, 90_deg) == (Quat{0, 0, COS_45, COS_45}));
 	}
 
 	SECTION("0 Deg rotation about each axis"){
-		REQUIRE(xen::fromAxisAngle(Vec3r::UnitX, 0_deg) == (Quat::Identity));
-		REQUIRE(xen::fromAxisAngle(Vec3r::UnitY, 0_deg) == (Quat::Identity));
-		REQUIRE(xen::fromAxisAngle(Vec3r::UnitZ, 0_deg) == (Quat::Identity));
+		REQUIRE(Quat(Vec3r::UnitX, 0_deg) == (Quat::Identity));
+		REQUIRE(Quat(Vec3r::UnitY, 0_deg) == (Quat::Identity));
+		REQUIRE(Quat(Vec3r::UnitZ, 0_deg) == (Quat::Identity));
 	}
 }
 
@@ -36,16 +36,16 @@ TEST_CASE("Quaterion * Quaterion", "[math][Quaternion][AxisAngle]"){
 
 TEST_CASE("AxisAngle -> Quaternion -> AxisAngle results in no change",
           "[math][Quaternion][AxisAngle]"){
-	REQUIRE((xen::toAxisAngle(xen::fromAxisAngle(Vec3r::UnitX,  30_deg))) ==
+	REQUIRE((xen::toAxisAngle(Quat(Vec3r::UnitX,  30_deg))) ==
 	        (xen::AxisAngle{Vec3r::UnitX,  30_deg}));
 
-	REQUIRE((xen::toAxisAngle(xen::fromAxisAngle(Vec3r::UnitY, 120_deg))) ==
+	REQUIRE((xen::toAxisAngle(Quat(Vec3r::UnitY, 120_deg))) ==
 	        (xen::AxisAngle{Vec3r::UnitY, 120_deg}));
 
-	REQUIRE((xen::toAxisAngle(xen::fromAxisAngle(Vec3r::UnitZ, 250_deg))) ==
+	REQUIRE((xen::toAxisAngle(Quat(Vec3r::UnitZ, 250_deg))) ==
 	        (xen::AxisAngle{Vec3r::UnitZ, 250_deg}));
 
-	REQUIRE((xen::toAxisAngle(xen::fromAxisAngle(Vec3r{0, 0.5, 1}, 45_deg))) ==
+	REQUIRE((xen::toAxisAngle(Quat(Vec3r{0, 0.5, 1}, 45_deg))) ==
 	        (xen::AxisAngle{xen::normalized(Vec3r{0, 0.5, 1}), 45_deg}));
 }
 

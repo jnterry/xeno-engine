@@ -95,12 +95,6 @@ namespace xen{
 		return { q.xyz / mag, xen::atan2(mag, q.w) * 2 };
 	}
 
-	/// \brief Constructs a quaterion from an axis about which to rotate, and an angle
-	inline Quaternion fromAxisAngle(Vec3r axis, Angle a){
-		return Quaternion(axis, a);
-	}
-	inline Quaternion fromAxisAngle(AxisAngle aa){ return fromAxisAngle(aa.axis, aa.angle); }
-
 	/// \brief Computes conjugate of some quaterion, IE: (-x, -y, -z, w)
 	inline Quaternion conjugate(Quaternion q){
 		return { -q.x, -q.y, -q.z, q.w };
@@ -141,15 +135,15 @@ namespace xen{
 
 			   , 0,0,0,1};
 	}
-	inline Mat4r Rotation3d(AxisAngle aa           ){ return Rotation3d(fromAxisAngle(aa         )); }
-	inline Mat4r Rotation3d(Vec3r axis, Angle angle){ return Rotation3d(fromAxisAngle(axis, angle)); }
+	inline Mat4r Rotation3d(AxisAngle aa           ){ return Rotation3d(Quat(aa         )); }
+	inline Mat4r Rotation3d(Vec3r axis, Angle angle){ return Rotation3d(Quat(axis, angle)); }
 
 	inline Vec3r rotated(Vec3r v, Quaternion q){
 		Quaternion r = q * v * conjugate(q);
 		return { r.x, r.y, r.z };
 	}
-	inline Vec3r rotated(Vec3r v, AxisAngle aa       ){ return rotated(v, fromAxisAngle(aa     )); }
-	inline Vec3r rotated(Vec3r v, Vec3r axis, Angle a){ return rotated(v, fromAxisAngle(axis, a)); }
+	inline Vec3r rotated(Vec3r v, AxisAngle aa       ){ return rotated(v, Quat(aa     )); }
+	inline Vec3r rotated(Vec3r v, Vec3r axis, Angle a){ return rotated(v, Quat(axis, a)); }
 
 
 	inline Quaternion getRotation(const Vec3r& start, const Vec3r& dest){
