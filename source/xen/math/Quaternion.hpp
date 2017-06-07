@@ -41,8 +41,8 @@ namespace xen{
 		Quaternion(real nx, real ny, real nz, real nw) : x(nx), y(ny), z(nz), w(nw) {}
 		Quaternion(Vec3r axis, Angle a){
 			a *= 0.5;
-			this->xyz = normalized(axis) * xen::sin(a);
-			this->w   = xen::cos(a);
+			this->xyz = normalized(axis) * xen::sin(-a);
+			this->w   = xen::cos(-a);
 		}
 		Quaternion(AxisAngle aa) : Quaternion(aa.axis, aa.angle) {}
 		union{
@@ -138,7 +138,7 @@ namespace xen{
 	inline Mat4r Rotation3d(Vec3r axis, Angle angle){ return Rotation3d(Quat(axis, angle)); }
 
 	inline Vec3r rotated(Vec3r v, Quaternion q){
-		Quaternion r = q * v * conjugate(q);
+		Quaternion r = (q * (Quat{v.x, v.y, v.z, 0})) * conjugate(q);
 		return { r.x, r.y, r.z };
 	}
 	inline Vec3r rotated(Vec3r v, AxisAngle aa       ){ return rotated(v, Quat(aa     )); }

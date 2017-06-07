@@ -133,6 +133,9 @@ TEST_CASE("Rotating point by quaternion", "[math][Quaternion][AxisAngle]"){
 TEST_CASE("Rotation Matrix from Quaterion (xen::Rotation3d())",
           "[math][Quaternion][AxisAngle]"){
 
+	// correct rotations calculated with:
+	// http://www.nh.cas.cz/people/lazar/celler/online_tools.php
+
 	SECTION("Overloads Equivalent"){
 		REQUIRE((xen::Rotation3d(               Vec3r{ 1,  2, 3},  25_deg)) ==
 		        (xen::Rotation3d(xen::AxisAngle{Vec3r{ 1,  2, 3},  25_deg})));
@@ -145,13 +148,19 @@ TEST_CASE("Rotation Matrix from Quaterion (xen::Rotation3d())",
 			REQUIRE(((Vec3r{0,  0,  0}) * xen::Rotation3d(Vec3r::UnitX, 90_deg))  ==
 			        ( Vec3r{0,  0,  0}));
 			REQUIRE(((Vec3r{0,  1,  0}) * xen::Rotation3d(Vec3r::UnitX, 90_deg))  ==
-			        ( Vec3r{0,  0, -1}));
+			        ( Vec3r{0,  0,  1}));
 			REQUIRE(((Vec3r{0,  1,  0}) * xen::Rotation3d(Vec3r::UnitX, -90_deg))  ==
-			        ( Vec3r{0,  0,  1}));
+			        ( Vec3r{0,  0, -1}));
 			REQUIRE(((Vec3r{0,  1,  0}) * xen::Rotation3d(Vec3r::UnitX, 270_deg))  ==
-			        ( Vec3r{0,  0,  1}));
+			        ( Vec3r{0,  0, -1}));
 			REQUIRE(((Vec3r{0,  1,  0}) * xen::Rotation3d(Vec3r::UnitX, 180_deg))  ==
 			        ( Vec3r{0, -1,  0}));
+			REQUIRE(((Vec3r{0,  3,  0}) * xen::Rotation3d(Vec3r::UnitX, 180_deg))  ==
+			        ( Vec3r{0, -3,  0}));
+			REQUIRE(((Vec3r{0,  0, -5}) * xen::Rotation3d(Vec3r::UnitX, 180_deg))  ==
+			        ( Vec3r{0,  0,  5}));
+			REQUIRE(((Vec3r{1,  2,  3}) * xen::Rotation3d(Vec3r::UnitX,  45_deg))  ==
+			        ( Vec3r{1, -0.707107,  3.535534}));
 
 			//THEN("Quaternion Matricies equivalent to Rotation Matricies"){
 			//	REQUIRE((xen::Rotation3dx(  0_deg)) == (xen::Rotation3d(Vec3r::UnitX,   0_deg)));
@@ -172,14 +181,18 @@ TEST_CASE("Rotation Matrix from Quaterion (xen::Rotation3d())",
 			        ( Vec3r{0,  1,  0}));
 			REQUIRE(((Vec3r{0,  1,  0}) * xen::Rotation3d(Vec3r::UnitY,  120_deg)) ==
 			        ( Vec3r{0,  1,  0}));
-			REQUIRE(((Vec3r{1,  0,  0}) * xen::Rotation3d(Vec3r::UnitY, - 90_deg)) ==
+			REQUIRE(((Vec3r{1,  0,  0}) * xen::Rotation3d(Vec3r::UnitY,   90_deg)) ==
 			        ( Vec3r{0,  0, -1}));
+			REQUIRE(((Vec3r{1,  0,  0}) * xen::Rotation3d(Vec3r::UnitY, - 90_deg)) ==
+			        ( Vec3r{0,  0,  1}));
 			REQUIRE(((Vec3r{5,  0,  0}) * xen::Rotation3d(Vec3r::UnitY, - 90_deg)) ==
-			        ( Vec3r{0,  0, -5}));
+			        ( Vec3r{0,  0,  5}));
 			REQUIRE(((Vec3r{1,  5,  0}) * xen::Rotation3d(Vec3r::UnitY,  270_deg)) ==
-			        ( Vec3r{0,  5, -1}));
+			        ( Vec3r{0,  5,  1}));
 			REQUIRE(((Vec3r{0,  0,  1}) * xen::Rotation3d(Vec3r::UnitY,  180_deg)) ==
 			        ( Vec3r{0,  0, -1}));
+			REQUIRE(((Vec3r{1,  5,  3}) * xen::Rotation3d(Vec3r::UnitY,   60_deg)) ==
+			        ( Vec3r{3.098076, 5, 0.633975}));
 
 			//THEN("Quaternion Matricies equivalent to Rotation Matricies"){
 			//	REQUIRE((xen::Rotation3dy(  0_deg)) == (xen::Rotation3d(Vec3r::UnitY,   0_deg)));
