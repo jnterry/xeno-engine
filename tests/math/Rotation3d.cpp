@@ -159,6 +159,51 @@ TEST_CASE("Rotating point around axis upon which it lies has no effect",
 	}
 }
 
+#define STRINGIFY(x) #x
+#define TO_STRING(x) STRINGIFY(x)
+
+TEST_CASE("Rotating about X Axis"){
+	// expected results calculated with:
+	// http://www.nh.cas.cz/people/lazar/celler/online_tools.php
+
+	REQUIRE(Vec3r::UnitX == Vec3r(1,0,0));
+
+#define GEN_NAME(px,py,pz, ex,ey,ez, a) TO_STRING(__LINE__) ": p = ("  TO_STRING(px) "," TO_STRING(py) "," TO_STRING(pz) "), angle = " TO_STRING(a)
+#define CHECK_ROTS_X_SINGLE(px,py,pz, ex,ey,ez, a)	  \
+	WHEN(GEN_NAME(px,py,pz, ex,ey,ez, a)){ \
+		Vec3r p(px, (py), (pz)); \
+		Vec3r e(ex, (ey), (ez)); \
+	    CHECK(xen::rotated(p,                 Vec3r::UnitX, a ) == e); \
+		CHECK(xen::rotated(p, xen::AxisAngle {Vec3r::UnitX, a}) == e); \
+		CHECK(xen::rotated(p, xen::Quaternion(Vec3r::UnitX, a)) == e); \
+		CHECK((p * xen::Rotation3dx(                              a)) == e); \
+		REQUIRE((p * xen::Rotation3d (                Vec3r::UnitX, a) ) == e); \
+		CHECK  ((p * xen::Rotation3d (xen::AxisAngle {Vec3r::UnitX, a})) == e); \
+		CHECK  ((p * xen::Rotation3d (xen::Quaternion(Vec3r::UnitX, a))) == e); \
+	}
+#define CHECK_ROTS_X(px,py,pz, ex,ey,ez, a)	  \
+	for(xen::Angle da = -1_rev; da <= 1_rev; da += 1_rev){ \
+		for(real f = -8; f <= 7; f += 3){ \
+			CHECK_ROTS_X_SINGLE((px),f*(py),f*(pz),    (ex),f*(ey),f*(ez),  (da + a)); \
+      } \
+	}
+
+	CHECK_ROTS_X(0, 1, 0,     0, 0, 1,      90_deg);
+	CHECK_ROTS_X(0, 1, 0,     0, 0,-1,    - 90_deg);
+	CHECK_ROTS_X(0, 1, 0,     0,-1, 0,     180_deg);
+	CHECK_ROTS_X(0, 1, 0,     0,-1, 0,    -180_deg);
+
+	CHECK_ROTS_X(0, 0, 1,     0,-1, 0,      90_deg);
+	CHECK_ROTS_X(0, 0, 1,     0, 1, 0,    - 90_deg);
+	CHECK_ROTS_X(0, 0, 1,     0, 0,-1,     180_deg);
+	CHECK_ROTS_X(0, 0, 1,     0, 0,-1,    -180_deg);
+
+	CHECK_ROTS_X(3, 6, 2,     3, 4.196152, 4.732051,      30_deg);
+	CHECK_ROTS_X(3, 6, 2,     3, 2.828427, 5.656854,      45_deg);
+	CHECK_ROTS_X(3, 6, 2,     3, 1.267949, 6.196152,      60_deg);
+	CHECK_ROTS_X(3, 6, 2,     3,-2       , 6,             90_deg);
+	CHECK_ROTS_X(3, 6, 2,     3,-1.267949,-6.196152,     240_deg);
+}
 /*
 TEST_CASE("Rotating point by quaternion", "[math][Quaternion][AxisAngle]"){
 	SECTION("Rot X"){
