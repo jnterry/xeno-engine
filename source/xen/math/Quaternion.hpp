@@ -117,19 +117,19 @@ namespace xen{
 	/// \brief Generates rotation matrix equivalent to some quaternion
 	/// \warn  Undefined if q is not normalized
 	inline Mat4r Rotation3d(Quaternion q){
-		return { 1.0_r - 2.0_r*(q.y*q.y - q.z*q.z)
+		return { 1.0_r - 2.0_r*(q.y*q.y + q.z*q.z)
 			   ,         2.0_r*(q.x*q.y - q.z*q.w)
 			   ,         2.0_r*(q.x*q.z + q.y*q.w)
 			   , 0
 
 			   ,         2.0_r*(q.x*q.y + q.z*q.w)
-			   , 1.0_r - 2.0_r*(q.x*q.x - q.z*q.z)
+			   , 1.0_r - 2.0_r*(q.x*q.x + q.z*q.z)
 			   ,         2.0_r*(q.y*q.z - q.x*q.w)
 			   , 0
 
 			   ,         2.0_r*(q.x*q.z - q.y*q.w)
 			   ,         2.0_r*(q.y*q.z + q.x*q.w)
-			   , 1.0_r - 2.0_r*(q.x*q.x - q.y*q.y)
+			   , 1.0_r - 2.0_r*(q.x*q.x + q.y*q.y)
 			   , 0
 
 			   , 0,0,0,1};
