@@ -47,3 +47,10 @@ TEST_CASE("Mat4r Determinant", "[math][Matrix]"){
 	CHECK((xen::determinant(Mat4r{ 6,2,4,9,  5,8,2,6,  10,3,11,34,  72,1,0,5    })) ==  20425);
 	CHECK((xen::determinant(Mat4r{ 9,11,7,1,  4,2,13,14,  5,6,3,15,  10,8,12,0  })) == - 4394);
 }
+
+// :TODO: add more here, and Vec3r tests
+TEST_CASE("Vec4r * Mat4r", "[math][Matrix]"){
+	// calced using http://matrix.reshish.com/multCalculation.php
+	CHECK((Vec4r(1_r,2_r,-3_r,-4_r) * Mat4r{1,13,7,4,  8,2,11,12,  5,15,9,6,  14,3,10,16}) ==
+	      Vec4r(-54_r,-40_r,-38_r,-54_r));
+}

@@ -68,6 +68,7 @@ namespace xen{
 
 	template<typename T>
 	struct Vec<4,T>{
+		Vec<4,T>(T nx, T ny, T nz, T nw) : x(nx), y(ny), z(nz), w(nw){}
 		union{
 		    T elements[4];
 			struct{ T x, y, z, w;                   };
