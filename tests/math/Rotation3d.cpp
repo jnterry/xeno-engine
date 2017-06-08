@@ -16,6 +16,26 @@
 
 #include <catch.hpp>
 
+// check matrix is valid rotation, IE, is of the form:
+// a b c 0
+// d e f 0
+// g h i 0
+// 0 0 0 1
+// and has determinant of 1, hence:
+//  - volume is preserved
+//  - no reflection has occured
+#define REQUIRE_IS_ROT_MAT(rot) \
+	REQUIRE(xen::determinant(rot) == Approx(1.0_r)); \
+	REQUIRE(rot.elements[ 3] == Approx(0)); \
+	REQUIRE(rot.elements[ 7] == Approx(0)); \
+	REQUIRE(rot.elements[11] == Approx(0)); \
+	REQUIRE(rot.elements[12] == Approx(0)); \
+	REQUIRE(rot.elements[13] == Approx(0)); \
+	REQUIRE(rot.elements[14] == Approx(0)); \
+	REQUIRE(rot.elements[15] == Approx(1));
+
+
+
 TEST_CASE("Rotating point by 0 degrees has no effect",
           "[math][Matrix][Vector][Quaternion][AxisAngle]"){
 
@@ -94,25 +114,25 @@ TEST_CASE("Rotating point around axis upon which it lies has no effect",
 						case 1: rot = xen::Rotation3dy(a); break;
 						case 2: rot = xen::Rotation3dz(a); break;
 						}
-						CHECK(xen::determinant(rot) == Approx(1.0_r));
+					    REQUIRE_IS_ROT_MAT(rot);
 						CHECK((p * rot) == p);
 					}
 
 					SECTION("Rotated Function"){
-						REQUIRE(xen::rotated(p, Vec3r::UnitAxes[axis], a  ) == p);
+						CHECK(xen::rotated(p, Vec3r::UnitAxes[axis], a) == p);
 					}
 
 					SECTION("From Axis Angle"){
 						Mat4r rotA = xen::Rotation3d(Vec3r::UnitAxes[axis], a );
 						Mat4r rotB = xen::Rotation3d(xen::AxisAngle(Vec3r::UnitAxes[axis], a));;
 						REQUIRE(rotA == rotB);
-						CHECK(xen::determinant(rotA) == Approx(1.0_r));
+						REQUIRE_IS_ROT_MAT(rotA);
 						CHECK((p * rotA) == p);
 					}
 
 					SECTION("From Quaternion"){
 						rot = xen::Rotation3d(Quat(Vec3r::UnitAxes[axis], a));
-						CHECK(xen::determinant(rot) == Approx(1.0_r));
+						REQUIRE_IS_ROT_MAT(rot);
 						CHECK((p * rot) == p);
 					}
 				}
@@ -125,14 +145,18 @@ TEST_CASE("Rotating point around axis upon which it lies has no effect",
 			for(real y = 0; y < 2; ++y){
 				for(real z = 0; z < 2; ++z){
 					if(x == 0 && y == 0 && z == 0){ continue; }
+
 					Vec3r axis = xen::normalized(Vec3r(x,y,z));
+					REQUIRE(xen::mag(axis) == Approx(1.0_r));
+
 					for(real factor = -10; factor <= 10; factor += 3){
 						Vec3r p = factor * Vec3r(x,y,z);
 						for(xen::Angle a = -300_deg; a <= 300_deg; a += 25_deg){
-							REQUIRE(xen::rotated(p, axis, a)       == p);
+							CHECK(xen::rotated(p, axis, a) == p);
+
 							Mat4r rot = xen::Rotation3d(axis, a);
-							REQUIRE(xen::determinant(rot) == Approx(1.0_r));
-							REQUIRE((p * rot) == p);
+							REQUIRE_IS_ROT_MAT(rot);
+							CHECK((p * rot) == p);
 						}
 					}
 				}
