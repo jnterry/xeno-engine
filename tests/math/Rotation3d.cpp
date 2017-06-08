@@ -25,14 +25,15 @@
 //  - volume is preserved
 //  - no reflection has occured
 #define REQUIRE_IS_ROT_MAT(rot) \
-	REQUIRE(xen::determinant(rot) == Approx(1.0_r)); \
 	REQUIRE(rot.elements[ 3] == Approx(0)); \
 	REQUIRE(rot.elements[ 7] == Approx(0)); \
 	REQUIRE(rot.elements[11] == Approx(0)); \
 	REQUIRE(rot.elements[12] == Approx(0)); \
 	REQUIRE(rot.elements[13] == Approx(0)); \
 	REQUIRE(rot.elements[14] == Approx(0)); \
-	REQUIRE(rot.elements[15] == Approx(1));
+	REQUIRE(rot.elements[15] == Approx(1)); \
+	REQUIRE(xen::determinant(rot) == Approx(1.0_r));
+
 
 
 
@@ -103,38 +104,31 @@ TEST_CASE("Rotating point around axis upon which it lies has no effect",
 
 	SECTION("Unit Axes"){
 		for(int axis = 0; axis < 3; ++axis){
-			for(real a_val = -100; a_val <= 100; a_val += 25){
+			for(real a_val = -100; a_val <= 100; a_val += 50){
 				Vec3r p(0, 0, 0);
 				p.elements[axis] = a_val;
 				Mat4r rot;
-				for(xen::Angle a = -300_deg; a <= 300_deg; a += 25_deg){
-					SECTION("Single Euler Angle"){
-						switch(axis){
-						case 0: rot = xen::Rotation3dx(a); break;
-						case 1: rot = xen::Rotation3dy(a); break;
-						case 2: rot = xen::Rotation3dz(a); break;
-						}
-					    REQUIRE_IS_ROT_MAT(rot);
-						CHECK((p * rot) == p);
+				for(xen::Angle a = -300_deg; a <= 300_deg; a += 50_deg){
+					switch(axis){
+					case 0: rot = xen::Rotation3dx(a); break;
+					case 1: rot = xen::Rotation3dy(a); break;
+					case 2: rot = xen::Rotation3dz(a); break;
 					}
+					REQUIRE_IS_ROT_MAT(rot);
+					CHECK((p * rot) == p);
 
-					SECTION("Rotated Function"){
-						CHECK(xen::rotated(p, Vec3r::UnitAxes[axis], a) == p);
-					}
+					CHECK(xen::rotated(p, Vec3r::UnitAxes[axis], a) == p);
 
-					SECTION("From Axis Angle"){
-						Mat4r rotA = xen::Rotation3d(Vec3r::UnitAxes[axis], a );
-						Mat4r rotB = xen::Rotation3d(xen::AxisAngle(Vec3r::UnitAxes[axis], a));;
-						REQUIRE(rotA == rotB);
-						REQUIRE_IS_ROT_MAT(rotA);
-						CHECK((p * rotA) == p);
-					}
-
-					SECTION("From Quaternion"){
-						rot = xen::Rotation3d(Quat(Vec3r::UnitAxes[axis], a));
-						REQUIRE_IS_ROT_MAT(rot);
-						CHECK((p * rot) == p);
-					}
+					Mat4r rotA = xen::Rotation3d(Vec3r::UnitAxes[axis], a );
+					Mat4r rotB = xen::Rotation3d(xen::AxisAngle(Vec3r::UnitAxes[axis], a));;
+					REQUIRE(rotA == rotB);
+					REQUIRE_IS_ROT_MAT(rotA);
+					CHECK((p * rotA) == p);
+					Quat q = Quat(Vec3r::UnitAxes[axis], a);
+					REQUIRE(xen::mag(q) == Approx(1.0_r));
+					rot = xen::Rotation3d(q);
+					REQUIRE_IS_ROT_MAT(rot);
+					REQUIRE((p * rot) == p);
 				}
 			}
 		}
@@ -151,7 +145,7 @@ TEST_CASE("Rotating point around axis upon which it lies has no effect",
 
 					for(real factor = -10; factor <= 10; factor += 3){
 						Vec3r p = factor * Vec3r(x,y,z);
-						for(xen::Angle a = -300_deg; a <= 300_deg; a += 25_deg){
+						for(xen::Angle a = -300_deg; a <= 300_deg; a += 50_deg){
 							CHECK(xen::rotated(p, axis, a) == p);
 
 							Mat4r rot = xen::Rotation3d(axis, a);
