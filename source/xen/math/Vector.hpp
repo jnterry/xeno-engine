@@ -35,10 +35,12 @@ namespace xen{
 			struct{ T u, v; };
 		};
 		static const Vec<2, T> UnitX, UnitY, Origin;
+		static const Vec<2, T> UnitAxes[2];
 	};
-	template<typename T> const Vec<2, T> Vec<2, T>::UnitX  = {1,0};
-	template<typename T> const Vec<2, T> Vec<2, T>::UnitY  = {0,1};
-	template<typename T> const Vec<2, T> Vec<2, T>::Origin = {0,0};
+	template<typename T> const Vec<2, T> Vec<2, T>::UnitX       = {1,0};
+	template<typename T> const Vec<2, T> Vec<2, T>::UnitY       = {0,1};
+	template<typename T> const Vec<2, T> Vec<2, T>::Origin      = {0,0};
+	template<typename T> const Vec<2, T> Vec<2, T>::UnitAxes[2] = {{1,0}, {0,1}};
 
 	template<typename T>
 	struct Vec<3,T>{
@@ -53,11 +55,16 @@ namespace xen{
 			struct{ T _unused1; Vec<2, T> yz; };
 		};
 		static const Vec<3, T> UnitX, UnitY, UnitZ, Origin;
+		static const Vec<3, T> UnitAxes[3];
 	};
-	template<typename T> const Vec<3, T> Vec<3, T>::UnitX  = {1,0,0};
-	template<typename T> const Vec<3, T> Vec<3, T>::UnitY  = {0,1,0};
-	template<typename T> const Vec<3, T> Vec<3, T>::UnitZ  = {0,0,1};
-	template<typename T> const Vec<3, T> Vec<3, T>::Origin = {0,0,0};
+	template<typename T> const Vec<3, T> Vec<3, T>::UnitX       = {1,0,0};
+	template<typename T> const Vec<3, T> Vec<3, T>::UnitY       = {0,1,0};
+	template<typename T> const Vec<3, T> Vec<3, T>::UnitZ       = {0,0,1};
+	template<typename T> const Vec<3, T> Vec<3, T>::Origin      = {0,0,0};
+	template<typename T> const Vec<3, T> Vec<3, T>::UnitAxes[3] = {{1,0,0}
+	                                                              ,{0,1,0}
+	                                                              ,{0,0,1}
+	                                                              };
 
 	template<typename T>
 	struct Vec<4,T>{
@@ -72,12 +79,18 @@ namespace xen{
 			struct{ T _unused2; Vec<2, T> yz;  };
 		};
 		static const Vec<4, T> UnitX, UnitY, UnitZ, UnitW, Origin;
+		static const Vec<4, T> UnitAxes[4];
 	};
-	template<typename T> const Vec<4, T> Vec<4, T>::UnitX  = {1,0,0,0};
-	template<typename T> const Vec<4, T> Vec<4, T>::UnitY  = {0,1,0,0};
-	template<typename T> const Vec<4, T> Vec<4, T>::UnitZ  = {0,0,1,0};
-	template<typename T> const Vec<4, T> Vec<4, T>::UnitW  = {0,0,0,1};
-	template<typename T> const Vec<4, T> Vec<4, T>::Origin = {0,0,0,0};
+	template<typename T> const Vec<4, T> Vec<4, T>::UnitX       = {1,0,0,0};
+	template<typename T> const Vec<4, T> Vec<4, T>::UnitY       = {0,1,0,0};
+	template<typename T> const Vec<4, T> Vec<4, T>::UnitZ       = {0,0,1,0};
+	template<typename T> const Vec<4, T> Vec<4, T>::UnitW       = {0,0,0,1};
+	template<typename T> const Vec<4, T> Vec<4, T>::Origin      = {0,0,0,0};
+	template<typename T> const Vec<4, T> Vec<4, T>::UnitAxes[4] = {{1,0,0,0}
+	                                                              ,{0,1,0,0}
+	                                                              ,{0,0,1,0}
+	                                                              ,{0,0,0,1}
+	                                                              };
 }
 
 #pragma GCC diagnostic pop // re-enable -Wpedantic

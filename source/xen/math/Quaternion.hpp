@@ -41,8 +41,8 @@ namespace xen{
 		Quaternion(real nx, real ny, real nz, real nw) : x(nx), y(ny), z(nz), w(nw) {}
 		Quaternion(Vec3r axis, Angle a){
 			a *= 0.5;
-			this->xyz = normalized(axis) * xen::sin(-a);
-			this->w   = xen::cos(-a);
+			this->xyz = normalized(axis) * xen::sin(a);
+			this->w   = xen::cos(a);
 		}
 		Quaternion(AxisAngle aa) : Quaternion(aa.axis, aa.angle) {}
 		union{
