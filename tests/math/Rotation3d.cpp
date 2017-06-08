@@ -16,38 +16,59 @@
 
 #include <catch.hpp>
 
-#define CMP_FLOATS(a, b) (abs((a) - (b))) <= 0.00001_r
-
 TEST_CASE("Rotating point by 0 degrees has no effect",
           "[math][Matrix][Vector][Quaternion][AxisAngle]"){
 
-	// Test around standard unit axes
-	for(real px = -1; px <= 1; ++px){
-		for(real py = -1; py <= 1; ++py){
-			for(real pz = -1; pz <= 1; ++pz){
-				Vec3r p(px, py, pz);
-				REQUIRE(p * xen::Rotation3dx(0_deg) == p);
-				REQUIRE(p * xen::Rotation3dy(0_deg) == p);
-				REQUIRE(p * xen::Rotation3dz(0_deg) == p);
-			}
-		}
+	SECTION("Standard Axes"){
+		CHECK_THAT(xen::Rotation3dx(0_deg), IsMat(Mat4r::Identity));
+		CHECK_THAT(xen::Rotation3dy(0_deg), IsMat(Mat4r::Identity));
+		CHECK_THAT(xen::Rotation3dz(0_deg), IsMat(Mat4r::Identity));
 	}
 
-	// Test around arbitary axes
-	for(real ax = -1; ax <= 1; ++ax){
-		for(real ay = -1; ay <= 1; ++ay){
-			for(real az = -1; az <= 1; ++az){
-				if(ax == 0 && ay == 0 && az == 0){ continue; }
-				Vec3r axis = xen::normalized(Vec3r(ax, ay, az));
-				for(real px = -1; px <= 1; ++px){
-					for(real py = -1; py <= 1; ++py){
-						for(real pz = -1; pz <= 1; ++pz){
-							Vec3r p(px, py, pz);
-							REQUIRE(xen::rotated(p,                     axis, 0_deg  ) == p);
-							REQUIRE((p * xen::Rotation3d(               axis, 0_deg )) == p);
-							REQUIRE((p * xen::Rotation3d(Quat(          axis, 0_deg))) == p);
-							REQUIRE((p * xen::Rotation3d(xen::AxisAngle(axis, 0_deg))) == p);
+	SECTION("Arbitary Axes"){
+		for(real ax = -1; ax <= 1; ++ax){
+			for(real ay = -1; ay <= 1; ++ay){
+				for(real az = -1; az <= 1; ++az){
+					if(ax == 0 && ay == 0 && az == 0){ continue; }
+					Vec3r axis = xen::normalized(Vec3r(ax, ay, az));
 
+					REQUIRE_THAT(xen::Rotation3d(                axis,     0_deg ),
+					             IsMat(Mat4r::Identity));
+					REQUIRE_THAT(xen::Rotation3d(xen::Quaternion(axis,     0_deg)),
+					             IsMat(Mat4r::Identity));
+					REQUIRE_THAT(xen::Rotation3d(xen::AxisAngle (axis,     0_deg)),
+					             IsMat(Mat4r::Identity));
+					REQUIRE_THAT(xen::Rotation3d(                axis,   360_deg ),
+					             IsMat(Mat4r::Identity));
+					REQUIRE_THAT(xen::Rotation3d(xen::Quaternion(axis,   360_deg)),
+					             IsMat(Mat4r::Identity));
+					REQUIRE_THAT(xen::Rotation3d(xen::AxisAngle (axis,   360_deg)),
+					             IsMat(Mat4r::Identity));
+					REQUIRE_THAT(xen::Rotation3d(                axis,  3600_deg ),
+					             IsMat(Mat4r::Identity));
+					REQUIRE_THAT(xen::Rotation3d(xen::Quaternion(axis,  3600_deg)),
+					             IsMat(Mat4r::Identity));
+					REQUIRE_THAT(xen::Rotation3d(xen::AxisAngle (axis,  3600_deg)),
+					             IsMat(Mat4r::Identity));
+					REQUIRE_THAT(xen::Rotation3d(                axis, - 360_deg ),
+					             IsMat(Mat4r::Identity));
+					REQUIRE_THAT(xen::Rotation3d(xen::Quaternion(axis, - 360_deg)),
+					             IsMat(Mat4r::Identity));
+					REQUIRE_THAT(xen::Rotation3d(xen::AxisAngle (axis, - 360_deg)),
+					             IsMat(Mat4r::Identity));
+					REQUIRE_THAT(xen::Rotation3d(                axis,    15_rev ),
+					             IsMat(Mat4r::Identity));
+					REQUIRE_THAT(xen::Rotation3d(xen::Quaternion(axis,    15_rev)),
+					             IsMat(Mat4r::Identity));
+					REQUIRE_THAT(xen::Rotation3d(xen::AxisAngle (axis,    15_rev)),
+					             IsMat(Mat4r::Identity));
+
+					for(real px = -1; px <= 1; ++px){
+						for(real py = -1; py <= 1; ++py){
+							for(real pz = -1; pz <= 1; ++pz){
+								Vec3r p(px, py, pz);
+								REQUIRE(xen::rotated(p, axis, 0_deg) == p);
+							}
 						}
 					}
 				}
@@ -59,53 +80,60 @@ TEST_CASE("Rotating point by 0 degrees has no effect",
 
 TEST_CASE("Rotating point around axis upon which it lies has no effect",
           "[math][Matrix][Vector][Quaternion][AxisAngle]"){
-	// Test each unit axis
-	for(int axis = 0; axis < 3; ++axis){
-		for(real a_val = -100; a_val <= 100; a_val += 25){
-			Vec3r p(0, 0, 0);
-			p.elements[axis] = a_val;
 
-			for(xen::Angle a = -300_deg; a <= 300_deg; a += 25_deg){
-				REQUIRE(xen::rotated(p,                     Vec3r::UnitAxes[axis], a  ) == p);
+	SECTION("Unit Axes"){
+		for(int axis = 0; axis < 3; ++axis){
+			for(real a_val = -100; a_val <= 100; a_val += 25){
+				Vec3r p(0, 0, 0);
+				p.elements[axis] = a_val;
+				Mat4r rot;
+				for(xen::Angle a = -300_deg; a <= 300_deg; a += 25_deg){
+					SECTION("Single Euler Angle"){
+						switch(axis){
+						case 0: rot = xen::Rotation3dx(a); break;
+						case 1: rot = xen::Rotation3dy(a); break;
+						case 2: rot = xen::Rotation3dz(a); break;
+						}
+						CHECK(xen::determinant(rot) == Approx(1.0_r));
+						CHECK((p * rot) == p);
+					}
 
-				Mat4r rot = xen::Rotation3d(Vec3r::UnitAxes[axis], a );
-				REQUIRE(CMP_FLOATS(xen::determinant(rot), 1.0_r));
-				REQUIRE((p * rot) == p);
+					SECTION("Rotated Function"){
+						REQUIRE(xen::rotated(p, Vec3r::UnitAxes[axis], a  ) == p);
+					}
 
-				rot = xen::Rotation3d(Quat(          Vec3r::UnitAxes[axis], a));
-				REQUIRE(CMP_FLOATS(xen::determinant(rot), 1.0_r));
-				REQUIRE((p * rot) == p);
+					SECTION("From Axis Angle"){
+						Mat4r rotA = xen::Rotation3d(Vec3r::UnitAxes[axis], a );
+						Mat4r rotB = xen::Rotation3d(xen::AxisAngle(Vec3r::UnitAxes[axis], a));;
+						REQUIRE(rotA == rotB);
+						CHECK(xen::determinant(rotA) == Approx(1.0_r));
+						CHECK((p * rotA) == p);
+					}
 
-				rot = xen::Rotation3d(xen::AxisAngle(Vec3r::UnitAxes[axis], a));;
-				REQUIRE(CMP_FLOATS(xen::determinant(rot), 1.0_r));
-				REQUIRE((p * rot) == p);
-
-				switch(axis){
-				case 0: rot = xen::Rotation3dx(a); break;
-				case 1: rot = xen::Rotation3dy(a); break;
-				case 2: rot = xen::Rotation3dz(a); break;
+					SECTION("From Quaternion"){
+						rot = xen::Rotation3d(Quat(Vec3r::UnitAxes[axis], a));
+						CHECK(xen::determinant(rot) == Approx(1.0_r));
+						CHECK((p * rot) == p);
+					}
 				}
-
-				REQUIRE(CMP_FLOATS(xen::determinant(rot), 1.0_r));
-				REQUIRE((p * rot) == p);
 			}
 		}
 	}
 
-	// Test arbitary axes
-	for(real x = 0; x < 2; ++x){
-		for(real y = 0; y < 2; ++y){
-			for(real z = 0; z < 2; ++z){
-				if(x == 0 && y == 0 && z == 0){ continue; }
-				Vec3r axis = xen::normalized(Vec3r(x,y,z));
-				for(real factor = -10; factor <= 10; factor += 3){
-					Vec3r p = factor * Vec3r(x,y,z);
-					for(xen::Angle a = -300_deg; a <= 300_deg; a += 25_deg){
-						REQUIRE(xen::rotated(p, axis, a)       == p);
-
-						Mat4r rot = xen::Rotation3d(axis, a);
-						REQUIRE(abs(xen::determinant(rot) - 1) <= 0.000001_r);
-                        REQUIRE((p * rot) == p);
+	SECTION("Arbitary Axes"){
+		for(real x = 0; x < 2; ++x){
+			for(real y = 0; y < 2; ++y){
+				for(real z = 0; z < 2; ++z){
+					if(x == 0 && y == 0 && z == 0){ continue; }
+					Vec3r axis = xen::normalized(Vec3r(x,y,z));
+					for(real factor = -10; factor <= 10; factor += 3){
+						Vec3r p = factor * Vec3r(x,y,z);
+						for(xen::Angle a = -300_deg; a <= 300_deg; a += 25_deg){
+							REQUIRE(xen::rotated(p, axis, a)       == p);
+							Mat4r rot = xen::Rotation3d(axis, a);
+							REQUIRE(xen::determinant(rot) == Approx(1.0_r));
+							REQUIRE((p * rot) == p);
+						}
 					}
 				}
 			}

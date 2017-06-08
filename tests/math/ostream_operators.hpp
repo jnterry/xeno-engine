@@ -4,6 +4,8 @@
 #include <xen/math/Matrix.hpp>
 #include <xen/math/Quaternion.hpp>
 
+#include <catch.hpp>
+
 namespace xen{
 	//:TODO:COMP: when do meta type system, have these be auto-generated
 	inline std::ostream& operator<< (std::ostream& os, xen::Angle const& a){
@@ -45,4 +47,30 @@ namespace xen{
 		}
 		return os;
 	}
+}
+
+template<u32 T_Row, u32 T_Col, typename T>
+class MatrixMatcher : public Catch::MatcherBase<xen::Matrix<T_Row, T_Col, T>>{
+	xen::Matrix<T_Row, T_Col, T> expected;
+ public:
+	MatrixMatcher(const xen::Matrix<T_Row, T_Col, T>& e) : expected(e) {}
+	virtual bool match(xen::Matrix<T_Row, T_Col, T> const& m) const override {
+		for(u32 i = 0; i < T_Row * T_Col; ++i){
+			if(abs(m.elements[i] - expected.elements[i]) > 0.00001_r){
+				return false;
+			}
+		}
+		return true;
+	}
+
+	virtual std::string describe() const override {
+		std::ostringstream ss;
+		ss << " =\n" << expected;
+		return ss.str();
+	}
+};
+
+template<u32 T_Row, u32 T_Col, typename T>
+inline MatrixMatcher<T_Row, T_Col, T> IsMat(const xen::Matrix<T_Row, T_Col, T>& expected){
+	return MatrixMatcher<T_Row, T_Col, T>(expected);
 }
