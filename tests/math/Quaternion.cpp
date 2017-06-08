@@ -11,18 +11,52 @@
 TEST_CASE("Making Quaternion from AxisAngle",
           "[math][Quaternion][AxisAngle]"){
 
+	// Calculated with:
+	// http://quat.zachbennett.com/
+	// http://www.energid.com/resources/orientation-calculator/
+
 	REQUIRE( Quat::Identity == (Quat{0,0,0,1}) );
 
 	SECTION("90 Deg rotation about each axis"){
-		REQUIRE(Quat(Vec3r::UnitX, 90_deg) == (Quat{COS_45, 0, 0, COS_45}));
-		REQUIRE(Quat(Vec3r::UnitY, 90_deg) == (Quat{0, COS_45, 0, COS_45}));
-		REQUIRE(Quat(Vec3r::UnitZ, 90_deg) == (Quat{0, 0, COS_45, COS_45}));
+		CHECK(Quat(Vec3r::UnitX, 90_deg) == (Quat{COS_45, 0, 0, COS_45}));
+		CHECK(Quat(Vec3r::UnitY, 90_deg) == (Quat{0, COS_45, 0, COS_45}));
+		CHECK(Quat(Vec3r::UnitZ, 90_deg) == (Quat{0, 0, COS_45, COS_45}));
+	}
+
+	SECTION("-90 Deg rotation about each axis"){
+		CHECK(Quat(Vec3r::UnitX, -90_deg) == (Quat{-COS_45,       0,       0, COS_45}));
+		CHECK(Quat(Vec3r::UnitY, -90_deg) == (Quat{      0, -COS_45,       0, COS_45}));
+		CHECK(Quat(Vec3r::UnitZ, -90_deg) == (Quat{      0,       0, -COS_45, COS_45}));
 	}
 
 	SECTION("0 Deg rotation about each axis"){
-		REQUIRE(Quat(Vec3r::UnitX, 0_deg) == (Quat::Identity));
-		REQUIRE(Quat(Vec3r::UnitY, 0_deg) == (Quat::Identity));
-		REQUIRE(Quat(Vec3r::UnitZ, 0_deg) == (Quat::Identity));
+		CHECK(Quat(Vec3r::UnitX, 0_deg) == (Quat::Identity));
+		CHECK(Quat(Vec3r::UnitY, 0_deg) == (Quat::Identity));
+		CHECK(Quat(Vec3r::UnitZ, 0_deg) == (Quat::Identity));
+	}
+
+	SECTION("Other Rotations"){
+		CHECK(Quat(Vec3r::UnitX,- 80_deg) == (Quat{-0.64279,0,0,0.76604}));
+		CHECK(Quat(Vec3r::UnitY,  30_deg) == (Quat{0,0.25882,0,0.96593}));
+		CHECK(Quat(Vec3r::UnitZ, 130_deg) == (Quat{0,0,0.90631,0.42262}));
+
+		CHECK(Quat(Vec3r(1,2,3), 40_deg) == (Quat{0.09140876583562257
+					                             ,0.18281753167124515
+					                             ,0.2742262975068677
+					                             ,0.9396925696192965}));
+
+
+		CHECK(Quat(Vec3r(5,4,1),-60_deg) == (Quat{-0.38575852483991335
+					                             ,-0.3086068198719307
+					                             ,-0.07715170496798268
+					                             , 0.8660252915835662}));
+
+
+		CHECK(Quat(Vec3r(-1,2,5), 90_deg) == (Quat{-0.12909948832877582
+					                              ,0.25819897665755165
+					                              ,0.6454974416438791
+					                              ,0.7071065431725605}));
+
 	}
 }
 
