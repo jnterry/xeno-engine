@@ -16,6 +16,8 @@
 
 #include <catch.hpp>
 
+#define CMP_FLOATS(a, b) (abs((a) - (b))) <= 0.00001_r
+
 TEST_CASE("Rotating point by 0 degrees has no effect",
           "[math][Matrix][Vector][Quaternion][AxisAngle]"){
 
@@ -54,6 +56,7 @@ TEST_CASE("Rotating point by 0 degrees has no effect",
 	}
 }
 
+
 TEST_CASE("Rotating point around axis upon which it lies has no effect",
           "[math][Matrix][Vector][Quaternion][AxisAngle]"){
 	// Test each unit axis
@@ -64,14 +67,27 @@ TEST_CASE("Rotating point around axis upon which it lies has no effect",
 
 			for(xen::Angle a = -300_deg; a <= 300_deg; a += 25_deg){
 				REQUIRE(xen::rotated(p,                     Vec3r::UnitAxes[axis], a  ) == p);
-				REQUIRE((p * xen::Rotation3d(               Vec3r::UnitAxes[axis], a )) == p);
-				REQUIRE((p * xen::Rotation3d(Quat(          Vec3r::UnitAxes[axis], a))) == p);
-				REQUIRE((p * xen::Rotation3d(xen::AxisAngle(Vec3r::UnitAxes[axis], a))) == p);
+
+				Mat4r rot = xen::Rotation3d(Vec3r::UnitAxes[axis], a );
+				REQUIRE(CMP_FLOATS(xen::determinant(rot), 1.0_r));
+				REQUIRE((p * rot) == p);
+
+				rot = xen::Rotation3d(Quat(          Vec3r::UnitAxes[axis], a));
+				REQUIRE(CMP_FLOATS(xen::determinant(rot), 1.0_r));
+				REQUIRE((p * rot) == p);
+
+				rot = xen::Rotation3d(xen::AxisAngle(Vec3r::UnitAxes[axis], a));;
+				REQUIRE(CMP_FLOATS(xen::determinant(rot), 1.0_r));
+				REQUIRE((p * rot) == p);
+
 				switch(axis){
-				case 0: REQUIRE((p * xen::Rotation3dx(a)) == p); break;
-				case 1: REQUIRE((p * xen::Rotation3dy(a)) == p); break;
-				case 2: REQUIRE((p * xen::Rotation3dz(a)) == p); break;
+				case 0: rot = xen::Rotation3dx(a); break;
+				case 1: rot = xen::Rotation3dy(a); break;
+				case 2: rot = xen::Rotation3dz(a); break;
 				}
+
+				REQUIRE(CMP_FLOATS(xen::determinant(rot), 1.0_r));
+				REQUIRE((p * rot) == p);
 			}
 		}
 	}
@@ -86,7 +102,10 @@ TEST_CASE("Rotating point around axis upon which it lies has no effect",
 					Vec3r p = factor * Vec3r(x,y,z);
 					for(xen::Angle a = -300_deg; a <= 300_deg; a += 25_deg){
 						REQUIRE(xen::rotated(p, axis, a)       == p);
-						REQUIRE((p * xen::Rotation3d(axis, a)) == p);
+
+						Mat4r rot = xen::Rotation3d(axis, a);
+						REQUIRE(abs(xen::determinant(rot) - 1) <= 0.000001_r);
+                        REQUIRE((p * rot) == p);
 					}
 				}
 			}

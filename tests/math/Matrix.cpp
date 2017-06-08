@@ -78,3 +78,12 @@ TEST_CASE("Mat4r - Transform Generations", "[Matrix][math]"){
 		#undef TRANSLATION_TEST
 	}
 }
+
+TEST_CASE("Mat4r Determinant", "[math][Matrix]"){
+	// results calculated with: http://matrix.reshish.com/detCalculation.php
+	REQUIRE((xen::determinant(Mat4r{ 1,2,3,4,  -1,-2,-3,-4,  9,8,7,6, -6,-7,-8,-9 })) ==      0);
+	REQUIRE((xen::determinant(Mat4r{ 2,2,4,2,  5,1,3,3,  4,0,5,7,  3,8,4,5        })) == -  414);
+	REQUIRE((xen::determinant(Mat4r{ 6,2,4,9,  5,8,2,6,  10,3,11,34,  72,1,0,5    })) ==  20425);
+	REQUIRE((xen::determinant(Mat4r{ 9,11,7,1,  4,2,13,14,  5,6,3,15,  10,8,12,0  })) == - 4394);
+
+}
