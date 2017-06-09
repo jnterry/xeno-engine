@@ -22,6 +22,7 @@ Mat4r getViewMatrix(const Camera3d& camera, Vec2r viewport_size){
 	// move world by negative of camera position
 	result *= xen::Translation3d(-camera.position);
 
+
 	// :TODO: look_dir and up_dir work independently, but not together
 	// IE: look_dir works assuming up_dir   is UnitY
 	//     up_dir   works assuming look_dir is UnitZ
@@ -29,10 +30,12 @@ Mat4r getViewMatrix(const Camera3d& camera, Vec2r viewport_size){
 
 	// Line up z axis with look_dir
 	Quat rot  = xen::getRotation(camera.look_dir, Vec3r::UnitZ);
-	//Quat rot = xen::getRotation(camera.up_dir, Vec3r::UnitY);
+	rot = xen::getRotation(camera.up_dir, Vec3r::UnitY);
 
 	//printf("Z rot: (%f,%f,%f,%f)\n", rot.x, rot.y, rot.z, rot.w);
 	result *= xen::Rotation3d(rot);
+
+
 
 	// Tilt camera up or down based on up direction
 	//xen::Angle about_x = xen::clockwiseAngleBetween(Vec3r::UnitY, -camera.up_dir) * xen::sign(camera.up_dir.z);

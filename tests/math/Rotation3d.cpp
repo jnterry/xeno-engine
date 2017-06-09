@@ -34,9 +34,6 @@
 	REQUIRE(rot.elements[15] == Approx(1)); \
 	REQUIRE(xen::determinant(rot) == Approx(1.0_r));
 
-
-
-
 TEST_CASE("Rotating point by 0 degrees has no effect",
           "[math][Matrix][Vector][Quaternion][AxisAngle]"){
 
@@ -98,7 +95,6 @@ TEST_CASE("Rotating point by 0 degrees has no effect",
 	}
 }
 
-
 TEST_CASE("Rotating point around axis upon which it lies has no effect",
           "[math][Matrix][Vector][Quaternion][AxisAngle]"){
 
@@ -115,15 +111,15 @@ TEST_CASE("Rotating point around axis upon which it lies has no effect",
 					case 2: rot = xen::Rotation3dz(a); break;
 					}
 					REQUIRE_IS_ROT_MAT(rot);
-					CHECK((p * rot) == p);
+					REQUIRE((p * rot) == p);
 
-					CHECK(xen::rotated(p, Vec3r::UnitAxes[axis], a) == p);
+					REQUIRE(xen::rotated(p, Vec3r::UnitAxes[axis], a) == p);
 
 					Mat4r rotA = xen::Rotation3d(Vec3r::UnitAxes[axis], a );
 					Mat4r rotB = xen::Rotation3d(xen::AxisAngle(Vec3r::UnitAxes[axis], a));;
 					REQUIRE(rotA == rotB);
 					REQUIRE_IS_ROT_MAT(rotA);
-					CHECK((p * rotA) == p);
+					REQUIRE((p * rotA) == p);
 					Quat q = Quat(Vec3r::UnitAxes[axis], a);
 					REQUIRE(xen::mag(q) == Approx(1.0_r));
 					rot = xen::Rotation3d(q);
@@ -161,6 +157,7 @@ TEST_CASE("Rotating point around axis upon which it lies has no effect",
 
 #define STRINGIFY(x) #x
 #define TO_STRING(x) STRINGIFY(x)
+#define GEN_NAME(px,py,pz, ex,ey,ez, a) TO_STRING(__LINE__) ": p = ("  TO_STRING(px) "," TO_STRING(py) "," TO_STRING(pz) "), angle = " TO_STRING(a)
 
 TEST_CASE("Rotating about X Axis"){
 	// expected results calculated with:
@@ -168,15 +165,14 @@ TEST_CASE("Rotating about X Axis"){
 
 	REQUIRE(Vec3r::UnitX == Vec3r(1,0,0));
 
-#define GEN_NAME(px,py,pz, ex,ey,ez, a) TO_STRING(__LINE__) ": p = ("  TO_STRING(px) "," TO_STRING(py) "," TO_STRING(pz) "), angle = " TO_STRING(a)
 #define CHECK_ROTS_X_SINGLE(px,py,pz, ex,ey,ez, a)	  \
 	WHEN(GEN_NAME(px,py,pz, ex,ey,ez, a)){ \
-		Vec3r p(px, (py), (pz)); \
-		Vec3r e(ex, (ey), (ez)); \
+		Vec3r p((px), (py), (pz)); \
+		Vec3r e((ex), (ey), (ez)); \
 	    CHECK(xen::rotated(p,                 Vec3r::UnitX, a ) == e); \
 		CHECK(xen::rotated(p, xen::AxisAngle {Vec3r::UnitX, a}) == e); \
 		CHECK(xen::rotated(p, xen::Quaternion(Vec3r::UnitX, a)) == e); \
-		CHECK((p * xen::Rotation3dx(                              a)) == e); \
+		CHECK  ((p * xen::Rotation3dx(                              a)) == e); \
 		REQUIRE((p * xen::Rotation3d (                Vec3r::UnitX, a) ) == e); \
 		CHECK  ((p * xen::Rotation3d (xen::AxisAngle {Vec3r::UnitX, a})) == e); \
 		CHECK  ((p * xen::Rotation3d (xen::Quaternion(Vec3r::UnitX, a))) == e); \
@@ -203,6 +199,90 @@ TEST_CASE("Rotating about X Axis"){
 	CHECK_ROTS_X(3, 6, 2,     3, 1.267949, 6.196152,      60_deg);
 	CHECK_ROTS_X(3, 6, 2,     3,-2       , 6,             90_deg);
 	CHECK_ROTS_X(3, 6, 2,     3,-1.267949,-6.196152,     240_deg);
+}
+
+TEST_CASE("Rotating about Y Axis"){
+	// expected results calculated with:
+	// http://www.nh.cas.cz/people/lazar/celler/online_tools.php
+
+	REQUIRE(Vec3r::UnitY == Vec3r(0,1,0));
+
+#define CHECK_ROTS_Y_SINGLE(px,py,pz, ex,ey,ez, a)	  \
+	WHEN(GEN_NAME(px,py,pz, ex,ey,ez, a)){ \
+		Vec3r p((px), (py), (pz)); \
+		Vec3r e((ex), (ey), (ez)); \
+	    CHECK(xen::rotated(p,                 Vec3r::UnitY, a ) == e); \
+		CHECK(xen::rotated(p, xen::AxisAngle {Vec3r::UnitY, a}) == e); \
+		CHECK(xen::rotated(p, xen::Quaternion(Vec3r::UnitY, a)) == e); \
+		CHECK  ((p * xen::Rotation3dy(                              a) ) == e); \
+		REQUIRE((p * xen::Rotation3d (                Vec3r::UnitY, a) ) == e); \
+		CHECK  ((p * xen::Rotation3d (xen::AxisAngle {Vec3r::UnitY, a})) == e); \
+		CHECK  ((p * xen::Rotation3d (xen::Quaternion(Vec3r::UnitY, a))) == e); \
+	}
+#define CHECK_ROTS_Y(px,py,pz, ex,ey,ez, a)	  \
+	for(xen::Angle da = -1_rev; da <= 1_rev; da += 1_rev){ \
+		for(real f = -8; f <= 7; f += 3){ \
+			CHECK_ROTS_Y_SINGLE(f*(px),(py),f*(pz),    f*(ex),(ey),f*(ez),  (da + a)); \
+      } \
+	}
+
+	CHECK_ROTS_Y(1, 0, 0,     0, 0, 1,      90_deg);
+	CHECK_ROTS_Y(1, 0, 0,     0, 0,-1,    - 90_deg);
+	CHECK_ROTS_Y(1, 0, 0,     0,-1, 0,     180_deg);
+	CHECK_ROTS_Y(1, 0, 0,     0,-1, 0,    -180_deg);
+
+	CHECK_ROTS_Y(0, 0, 1,    -1, 0, 0,      90_deg);
+	CHECK_ROTS_Y(0, 0, 1,     1, 0, 0,    - 90_deg);
+	CHECK_ROTS_Y(0, 0, 1,     0, 0,-1,     180_deg);
+	CHECK_ROTS_Y(0, 0, 1,     0, 0,-1,    -180_deg);
+
+	CHECK_ROTS_Y(3, 6, 2,     3.598076,6,  0.232051,      30_deg);
+	CHECK_ROTS_Y(3, 6, 2,     3.535534,6, -0.707107,      45_deg);
+	CHECK_ROTS_Y(3, 6, 2,     3.232051,6, -1.598076,      60_deg);
+	CHECK_ROTS_Y(3, 6, 2,     2       ,6, -3       ,      90_deg);
+	CHECK_ROTS_Y(3, 6, 2,    -3.232051,6,1.598076  ,     240_deg);
+}
+
+TEST_CASE("Rotating about Z Axis"){
+	// expected results calculated with:
+	// http://www.nh.cas.cz/people/lazar/celler/online_tools.php
+
+	REQUIRE(Vec3r::UnitZ == Vec3r(0,0,1));
+
+#define CHECK_ROTS_Z_SINGLE(px,py,pz, ex,ey,ez, a)	  \
+	WHEN(GEN_NAME(px,py,pz, ex,ey,ez, a)){ \
+		Vec3r p((px), (py), (pz)); \
+		Vec3r e((ex), (ey), (ez)); \
+	    CHECK(xen::rotated(p,                 Vec3r::UnitZ, a ) == e); \
+		CHECK(xen::rotated(p, xen::AxisAngle {Vec3r::UnitZ, a}) == e); \
+		CHECK(xen::rotated(p, xen::Quaternion(Vec3r::UnitZ, a)) == e); \
+		CHECK  ((p * xen::Rotation3dz(                              a) ) == e); \
+		REQUIRE((p * xen::Rotation3d (                Vec3r::UnitZ, a) ) == e); \
+		CHECK  ((p * xen::Rotation3d (xen::AxisAngle {Vec3r::UnitZ, a})) == e); \
+		CHECK  ((p * xen::Rotation3d (xen::Quaternion(Vec3r::UnitZ, a))) == e); \
+	}
+#define CHECK_ROTS_Z(px,py,pz, ex,ey,ez, a)	  \
+	for(xen::Angle da = -1_rev; da <= 1_rev; da += 1_rev){ \
+		for(real f = -8; f <= 7; f += 3){ \
+			CHECK_ROTS_Z_SINGLE(f*(px),f*(py),(pz),    f*(ex),f*(ey),(ez),  (da + a)); \
+      } \
+	}
+
+	CHECK_ROTS_Z(1, 0, 0,     0, 1, 0,      90_deg);
+	CHECK_ROTS_Z(1, 0, 0,     0,-1, 0,    - 90_deg);
+	CHECK_ROTS_Z(1, 0, 0,    -1, 0, 0,     180_deg);
+	CHECK_ROTS_Z(1, 0, 0,    -1, 0, 0,    -180_deg);
+
+	CHECK_ROTS_Z(0, 1, 0,    -1, 0, 0,      90_deg);
+	CHECK_ROTS_Z(0, 1, 0,     1, 0, 0,    - 90_deg);
+	CHECK_ROTS_Z(0, 1, 0,     0,-1, 0,     180_deg);
+	CHECK_ROTS_Z(0, 1, 0,     0,-1, 0,    -180_deg);
+
+	CHECK_ROTS_Z(3, 6, 2,    -0.401924, 6.696152,2,    30_deg);
+	CHECK_ROTS_Z(3, 6, 2,    -2.12132 , 6.363961,2,    45_deg);
+	CHECK_ROTS_Z(3, 6, 2,    -3.696152, 5.598076,2,    60_deg);
+	CHECK_ROTS_Z(3, 6, 2,    -6       , 3       ,2,    90_deg);
+    CHECK_ROTS_Z(3, 6, 2,     3.696152,-5.598076,2,   240_deg);
 }
 
 

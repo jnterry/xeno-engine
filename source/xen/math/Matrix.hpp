@@ -383,7 +383,7 @@ xen::Vec<3,T> operator*(const xen::Vec<3,T>& lhs, const xen::Matrix<4,4,T>& rhs)
 	const T* e = rhs.elements;
 	//Assume w is 1, then renormalize w to 1 at the end
 	// :TODO: -> test if we need to calc w and then /w at end, maybe w always comes out as 1?
-	T w = lhs.x*e[ 3] + lhs.y*e[ 7] + lhs.z*e[11] + e[15];
+	T w = 1;//lhs.x*e[ 3] + lhs.y*e[ 7] + lhs.z*e[11] + e[15];
 	return { (lhs.x*e[ 0] + lhs.y*e[ 4] + lhs.z*e[ 8] + e[12]) / w
 		   , (lhs.x*e[ 1] + lhs.y*e[ 5] + lhs.z*e[ 9] + e[13]) / w
 		   , (lhs.x*e[ 2] + lhs.y*e[ 6] + lhs.z*e[10] + e[14]) / w
