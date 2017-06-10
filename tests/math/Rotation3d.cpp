@@ -327,3 +327,35 @@ TEST_CASE("Quaternion to Matrix", "[math][Quaternion]"){
 	                 -0.16984159913046662, 0.8492079956523331 ,  0.49999961132480186
 	                 );
 }
+
+TEST_CASE("Quaternion and Matrix rotations equivalent"){
+	SECTION("X Axis"){
+		CHECK_THAT(xen::Rotation3dx(   0_deg), IsMat(xen::Rotation3d(Vec3r::UnitX,    0_deg)));
+		CHECK_THAT(xen::Rotation3dx(  30_deg), IsMat(xen::Rotation3d(Vec3r::UnitX,   30_deg)));
+		CHECK_THAT(xen::Rotation3dx(  45_deg), IsMat(xen::Rotation3d(Vec3r::UnitX,   45_deg)));
+		CHECK_THAT(xen::Rotation3dx(  60_deg), IsMat(xen::Rotation3d(Vec3r::UnitX,   60_deg)));
+		CHECK_THAT(xen::Rotation3dx(  90_deg), IsMat(xen::Rotation3d(Vec3r::UnitX,   90_deg)));
+		CHECK_THAT(xen::Rotation3dx( 120_deg), IsMat(xen::Rotation3d(Vec3r::UnitX,  120_deg)));
+		CHECK_THAT(xen::Rotation3dx(-100_deg), IsMat(xen::Rotation3d(Vec3r::UnitX, -100_deg)));
+	}
+
+	SECTION("Y Axis"){
+		CHECK_THAT(xen::Rotation3dy(   0_deg), IsMat(xen::Rotation3d(Vec3r::UnitY,    0_deg)));
+		CHECK_THAT(xen::Rotation3dy(  30_deg), IsMat(xen::Rotation3d(Vec3r::UnitY,   30_deg)));
+		CHECK_THAT(xen::Rotation3dy(  45_deg), IsMat(xen::Rotation3d(Vec3r::UnitY,   45_deg)));
+		CHECK_THAT(xen::Rotation3dy(  60_deg), IsMat(xen::Rotation3d(Vec3r::UnitY,   60_deg)));
+		CHECK_THAT(xen::Rotation3dy(  90_deg), IsMat(xen::Rotation3d(Vec3r::UnitY,   90_deg)));
+		CHECK_THAT(xen::Rotation3dy( 120_deg), IsMat(xen::Rotation3d(Vec3r::UnitY,  120_deg)));
+		CHECK_THAT(xen::Rotation3dy(-100_deg), IsMat(xen::Rotation3d(Vec3r::UnitY, -100_deg)));
+	}
+
+	SECTION("Y Axis"){
+		CHECK_THAT(xen::Rotation3dz(   0_deg), IsMat(xen::Rotation3d(Vec3r::UnitZ,    0_deg)));
+		CHECK_THAT(xen::Rotation3dz(  30_deg), IsMat(xen::Rotation3d(Vec3r::UnitZ,   30_deg)));
+		CHECK_THAT(xen::Rotation3dz(  45_deg), IsMat(xen::Rotation3d(Vec3r::UnitZ,   45_deg)));
+		CHECK_THAT(xen::Rotation3dz(  60_deg), IsMat(xen::Rotation3d(Vec3r::UnitZ,   60_deg)));
+		CHECK_THAT(xen::Rotation3dz(  90_deg), IsMat(xen::Rotation3d(Vec3r::UnitZ,   90_deg)));
+		CHECK_THAT(xen::Rotation3dz( 120_deg), IsMat(xen::Rotation3d(Vec3r::UnitZ,  120_deg)));
+		CHECK_THAT(xen::Rotation3dz(-100_deg), IsMat(xen::Rotation3d(Vec3r::UnitZ, -100_deg)));
+	}
+}
