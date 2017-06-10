@@ -29,7 +29,7 @@ Mat4r getViewMatrix(const Camera3d& camera, Vec2r viewport_size){
 	// but produce weird results otherwise
 
 	// Line up z axis with look_dir
-	Quat rot  = xen::getRotation(Vec3r::UnitZ, camera.look_dir);
+	Quat rot = xen::getRotation(Vec3r::UnitZ, camera.look_dir);
 	//rot = xen::getRotation(camera.up_dir, Vec3r::UnitY);
 
 	//printf("Z rot: (%f,%f,%f,%f)\n", rot.x, rot.y, rot.z, rot.w);

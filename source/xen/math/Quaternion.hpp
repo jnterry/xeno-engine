@@ -159,8 +159,7 @@ namespace xen{
 		// rotate 180 deg around any axis... cross will fail in this case?
 
 		Vec3r axis = cross(start_n, dest_n);
-		return { axis.x, axis.y, axis.z, sqrt(1 + d) };
-
+		return xen::normalized({ axis.x, axis.y, axis.z, sqrt(1 + d) });
 	}
 }
 

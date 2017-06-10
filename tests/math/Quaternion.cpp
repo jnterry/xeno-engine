@@ -107,6 +107,12 @@ TEST_CASE("Quaternion Normalized", "[math][Quaternion]"){
 }
 
 TEST_CASE("Quat Equality"){
+	// Rotation of 0 degrees equivalent regardless of axis
+	CHECK(Quat(Vec3r(1,0,0), 0_deg) == Quat(Vec3r(0,1,0), 0_deg));
+	CHECK(Quat(Vec3r(1,0,0), 0_deg) == Quat(Vec3r(0,0,1), 0_deg));
+	CHECK(Quat(Vec3r(1,0,0), 0_deg) == Quat(Vec3r(1,1,1), 0_deg));
+	CHECK(Quat(Vec3r(1,0,0), 0_deg) == Quat(Vec3r(5,1,2), 0_deg));
+
 	// Axis direction  matters, not its length
 	CHECK(Quat(Vec3r(0,0,1),  30_deg) == Quat(Vec3r(0,0,5),  30_deg));
 
@@ -129,13 +135,34 @@ TEST_CASE("Quat Equality"){
 TEST_CASE("getRotation as Quaterion", "[math][Quaternion]"){
 	//:TODO: test getting rotation from one vector to another
 
+	REQUIRE(xen::getRotation({1,0,0}, {1,0,0}) == Quat::Identity);
+	REQUIRE(xen::getRotation({1,0,0}, {5,0,0}) == Quat::Identity);
 
-	/*Quat r = xen::getRotation(Vec3r(1,0,0), Vec3r(0,1,0));
-	REQUIRE(1 - mag(r) <= 0.00001_r);
-	REQUIRE(((r == Quat( Vec3r::UnitZ, - 90_deg)) ||
-	         (r == Quat( Vec3r::UnitZ,  270_deg)) ||
-	         (r == Quat(-Vec3r::UnitZ,   90_deg)) ||
-	         (r == Quat(-Vec3r::UnitZ, -270_deg))
-	         ) == true);*/
+#define CHECK_QUAT(p1x,p1y,p1z,  p2x,p2y,p2z,   ax,ay,az,  angle) \
+	WHEN("Original = (" #p1x "," #p1y "," #p1z "), Final = (" #p2x "," #p2y "," #p2z ")"){ \
+		Quat rot;                                                       \
+		rot = xen::getRotation(Vec3r(p1x,p1y,p1z), Vec3r(p2x,p2y,p2z)); \
+		CHECK(xen::mag(rot) == Approx(1));                              \
+		CHECK(rot == Quat( Vec3r(ax,ay,az), angle));                    \
+		\
+	    rot = xen::getRotation(Vec3r(p1x,p1y,p1z), Vec3r(3*p2x,3*p2y,3*p2z)); \
+		CHECK(xen::mag(rot) == Approx(1));                                    \
+		CHECK(rot == Quat( Vec3r(ax,ay,az), angle));                          \
+	}
 
+	// 0 degree rotation around any axis is equiv
+	CHECK_QUAT(1,0,0,  1,0,0,  1,0,0,  0_deg);
+	CHECK_QUAT(1,0,0,  1,0,0,  0,1,0,  0_deg);
+	CHECK_QUAT(1,0,0,  1,0,0,  0,0,1,  0_deg);
+	CHECK_QUAT(1,0,0,  1,0,0,  1,1,1,  0_deg);
+
+	CHECK_QUAT(1, 0, 0,    0, 1, 0,     0, 0, 1,   90_deg);
+	CHECK_QUAT(1, 0, 0,    0,-1, 0,     0, 0, 1, - 90_deg);
+	CHECK_QUAT(1, 0, 0,   -1, 0, 0,     0, 0, 1,  180_deg);
+	CHECK_QUAT(5, 0, 0,    0, 5, 0,     0, 0, 1,   90_deg);
+
+	CHECK_QUAT(0, 1, 0,    0, 0, 1,     1, 0, 0,   90_deg);
+	CHECK_QUAT(0, 1, 0,    0, 0,-1,     1, 0, 0, - 90_deg);
+	CHECK_QUAT(0, 1, 0,    0,-1, 0,     1, 0, 0,  180_deg);
+	CHECK_QUAT(0, 3, 0,    0,-3, 0,     1, 0, 0,  180_deg);
 }
