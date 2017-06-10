@@ -55,7 +55,9 @@ namespace xen{
 
 	/// \brief Clamps an angle to being between 0 and 1 full revolution
 	inline Angle clamp(Angle a){
-		return { (real)fmod(a.radians, 2.0_r * xen::PI ) };
+		// clamp to between -1 and 1 revolution
+		real val = (real)fmod(a.radians, 2.0_r * xen::PI );
+		return { val < 0 ? val + 2.0_r * xen::PI : val  };
 	}
 }
 
@@ -73,8 +75,11 @@ inline xen::Angle operator-(const xen::Angle& lhs, const xen::Angle& rhs){ retur
 
 inline xen::Angle operator-(const xen::Angle& a) { return { -a.radians }; }
 
-inline bool operator==(const xen::Angle& a, const xen::Angle& b){ return a.radians == b.radians; }
-inline bool operator!=(const xen::Angle& a, const xen::Angle& b){ return a.radians != b.radians; }
+inline bool operator==(const xen::Angle& a, const xen::Angle& b){
+	real delta = a.radians - b.radians;
+	return delta * delta <= 0.0000001;
+}
+inline bool operator!=(const xen::Angle& a, const xen::Angle& b){ return !(a == b); }
 inline bool operator<=(const xen::Angle& a, const xen::Angle& b){ return a.radians <= b.radians; }
 inline bool operator>=(const xen::Angle& a, const xen::Angle& b){ return a.radians >= b.radians; }
 inline bool operator< (const xen::Angle& a, const xen::Angle& b){ return a.radians <  b.radians; }
