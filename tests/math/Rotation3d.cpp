@@ -288,6 +288,7 @@ TEST_CASE("Rotating about Z Axis"){
 
 TEST_CASE("Quaternion to Matrix", "[math][Quaternion]"){
 	// expected results calculated with: http://www.energid.com/resources/orientation-calculator/
+	// (note these results transposed when compared to ours, due to diff in row-major vs column-major order)
 
 #define TEST_QUAT_TO_MAT(ax, ay, az, a, m0,m1,m2,m3,m4,m5,m6,m7,m8)	  \
 	WHEN("Axis: (" #ax "," #ay "," #az "), Angle = " #a){ \
@@ -310,21 +311,21 @@ TEST_CASE("Quaternion to Matrix", "[math][Quaternion]"){
 	}
 
 	TEST_QUAT_TO_MAT(1,2,5, 30_deg,
-	                  0.8704911151974474 , -0.44750399476498637,  0.20490337486650506,
-	                  0.46536728922051085,  0.8838885860390907 , -0.04662889225973847,
-	                 -0.1602451387276938 ,  0.13594536453736095,  0.9776708819305944
+	                  0.8704911151974474 ,  0.46536728922051085, -0.1602451387276938 ,
+	                 -0.44750399476498637,  0.8838885860390907 ,  0.13594536453736095,
+	                  0.20490337486650506, -0.04662889225973847,  0.9776708819305944
 	                 );
 
 	TEST_QUAT_TO_MAT(6,-2,3, -50_deg,
-	                  0.9052292898242471,  0.24082420882028527, 0.3500908928983626,
-	                 -0.4157855199139829,  0.671947541699317  , 0.6128694009608437,
-	                 -0.0876489262578162, -0.7003500565076926 , 0.7083978148438373
+	                  0.9052292898242471 , -0.4157855199139829, -0.0876489262578162,
+	                  0.24082420882028527,  0.671947541699317 , -0.7003500565076926,
+	                  0.3500908928983626 ,  0.6128694009608437,  0.7083978148438373
 	                 );
 
 	TEST_QUAT_TO_MAT(5,1,0, 60_deg,
-	                  0.9807692158201847 , 0.09615392089907657,  0.16984159913046662,
-	                  0.09615392089907657, 0.5192303955046171 , -0.8492079956523331 ,
-	                 -0.16984159913046662, 0.8492079956523331 ,  0.49999961132480186
+	                  0.9807692158201847 ,  0.09615392089907657, -0.16984159913046662,
+	                  0.09615392089907657,  0.5192303955046171 ,  0.8492079956523331 ,
+	                  0.16984159913046662, -0.8492079956523331 ,  0.49999961132480186
 	                 );
 }
 
@@ -349,7 +350,7 @@ TEST_CASE("Quaternion and Matrix rotations equivalent"){
 		CHECK_THAT(xen::Rotation3dy(-100_deg), IsMat(xen::Rotation3d(Vec3r::UnitY, -100_deg)));
 	}
 
-	SECTION("Y Axis"){
+	SECTION("Z Axis"){
 		CHECK_THAT(xen::Rotation3dz(   0_deg), IsMat(xen::Rotation3d(Vec3r::UnitZ,    0_deg)));
 		CHECK_THAT(xen::Rotation3dz(  30_deg), IsMat(xen::Rotation3d(Vec3r::UnitZ,   30_deg)));
 		CHECK_THAT(xen::Rotation3dz(  45_deg), IsMat(xen::Rotation3d(Vec3r::UnitZ,   45_deg)));
