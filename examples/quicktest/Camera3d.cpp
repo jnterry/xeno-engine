@@ -14,7 +14,7 @@
 
 Mat4r getViewMatrix(const Camera3d& camera, Vec2r viewport_size){
 
-	// :TODO: assert angle is 0
+	// :TODO: assert angle is 90
 	//printf("Angle between camera up/look dir: %f\n", xen::minAngleBetween(camera.look_dir, camera.up_dir));
 
 	Mat4r result = Mat4r::Identity;
@@ -29,13 +29,11 @@ Mat4r getViewMatrix(const Camera3d& camera, Vec2r viewport_size){
 	// but produce weird results otherwise
 
 	// Line up z axis with look_dir
-	Quat rot  = xen::getRotation(camera.look_dir, Vec3r::UnitZ);
-	rot = xen::getRotation(camera.up_dir, Vec3r::UnitY);
+	Quat rot  = xen::getRotation(Vec3r::UnitZ, camera.look_dir);
+	//rot = xen::getRotation(camera.up_dir, Vec3r::UnitY);
 
 	//printf("Z rot: (%f,%f,%f,%f)\n", rot.x, rot.y, rot.z, rot.w);
 	result *= xen::Rotation3d(rot);
-
-
 
 	// Tilt camera up or down based on up direction
 	//xen::Angle about_x = xen::clockwiseAngleBetween(Vec3r::UnitY, -camera.up_dir) * xen::sign(camera.up_dir.z);
