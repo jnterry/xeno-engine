@@ -13,31 +13,23 @@
 #include "Camera3d.hpp"
 
 Mat4r getViewMatrix(const Camera3d& camera, Vec2r viewport_size){
-
-	// :TODO: assert angle is 90
-	//printf("Angle between camera up/look dir: %f\n", xen::minAngleBetween(camera.look_dir, camera.up_dir));
-
 	Mat4r result = Mat4r::Identity;
 
 	// move world by negative of camera position
 	result *= xen::Translation3d(-camera.position);
 
-
-	// :TODO: look_dir and up_dir work independently, but not together
-	// IE: look_dir works assuming up_dir   is UnitY
-	//     up_dir   works assuming look_dir is UnitZ
-	// but produce weird results otherwise
-
-	// Line up z axis with look_dir
-	Quat rot = xen::getRotation(camera.look_dir, -Vec3r::UnitZ);
-	//rot = xen::getRotation(camera.up_dir, Vec3r::UnitY);
-
-	//printf("Z rot: (%f,%f,%f,%f)\n", rot.x, rot.y, rot.z, rot.w);
+	// Line up z axis with look_dir, and y with up_dir
+	Quat rot = xen::getRotation(camera.look_dir, camera.up_dir,   -Vec3r::UnitZ, Vec3r::UnitY);
 	result *= xen::Rotation3d(rot);
 
-	// Tilt camera up or down based on up direction
-	//xen::Angle about_x = xen::clockwiseAngleBetween(Vec3r::UnitY, -camera.up_dir) * xen::sign(camera.up_dir.z);
-	//result *= xen::Rotation3dx(about_x);
+	//Vec3r up_dir_t = xen::rotated(camera.up_dir, rot);
+
+	// Line up y axis with up_dir
+	//result *= xen::Rotation3d(xen::getRotation(xen::rotated(camera.up_dir, rot), Vec3r::UnitY));
+
+	//printf("Up dir: (%f, %f, %f), (%f, %f, %f)\n",
+	//       camera.up_dir.x, camera.up_dir.y, camera.up_dir.z,
+	                                           //       up_dir_t.x, up_dir_t.y, up_dir_t.z);
 
 	// Do perspective projection
 	result *= xen::createPerspectiveProjection(camera.fov_y, viewport_size.x, viewport_size.y, camera.z_near, camera.z_far);

@@ -90,3 +90,41 @@ TEST_CASE("Vec3r Dot Product", "[math][Vector]"){
 	        CHECK(xen::dot(Vec3r(-10,6,8), Vec3r(2,-3,9)) == Approx(34));
 	}
 }
+
+
+TEST_CASE("Vec3r Project onto Plane",  "[math][Vector]"){
+	SECTION("Onto XY"){
+		for(real x = -5; x <= 5; ++x){
+			for(real y = -5; y <= 5; ++y){
+				for(real z = -5; z <= 5; ++z){
+					CHECK(xen::projectOntoPlane<real>({x,y,z},  Vec3r::UnitZ) == Vec3r(x,y,0));
+					CHECK(xen::projectOntoPlane<real>({x,y,z}, -Vec3r::UnitZ) == Vec3r(x,y,0));
+				}
+			}
+		}
+	}
+
+	SECTION("Onto XZ"){
+		for(real x = -5; x <= 5; ++x){
+			for(real y = -5; y <= 5; ++y){
+				for(real z = -5; z <= 5; ++z){
+					CHECK(xen::projectOntoPlane<real>({x,y,z},  Vec3r::UnitY) == Vec3r(x,0,z));
+					CHECK(xen::projectOntoPlane<real>({x,y,z}, -Vec3r::UnitY) == Vec3r(x,0,z));
+				}
+			}
+		}
+	}
+
+	SECTION("Onto YZ"){
+		for(real x = -5; x <= 5; ++x){
+			for(real y = -5; y <= 5; ++y){
+				for(real z = -5; z <= 5; ++z){
+					CHECK(xen::projectOntoPlane<real>({x,y,z},  Vec3r::UnitX) == Vec3r(0,y,z));
+					CHECK(xen::projectOntoPlane<real>({x,y,z}, -Vec3r::UnitX) == Vec3r(0,y,z));
+				}
+			}
+		}
+	}
+
+	//:TODO: onto arbitary planes
+}

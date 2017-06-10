@@ -363,6 +363,12 @@ namespace xen{
 	inline Angle angleBetween(const Vec<T_Dims, T>& a, const Vec<T_Dims, T>& b){
 		return xen::acos(dot(a,b) / (mag(a) * mag(b)));
 	}
+
+	/// \brief Projects the direction vector vec onto the plane defined by the normal vector norm
+	template<typename T>
+	inline Vec3<T> projectOntoPlane(Vec3<T> vec, Vec3<T> norm){
+		return vec - ((dot(vec,norm) / magSq(norm)) * norm);
+	}
 }
 
 template<u32 T_DIM, typename T>

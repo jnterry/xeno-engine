@@ -158,6 +158,18 @@ namespace xen{
 			return xen::normalized({ axis.x, axis.y, axis.z, k_cos_theta + k });
 		}
 	}
+
+	/// \brief Gets rotation which maps vector pair (u0, v0) onto (u2, v2)
+	/// This assumes the angle (u0, v0) is the same as (u2, v2)
+	inline Quaternion getRotation(const Vec3r& u0, const Vec3r& v0, const Vec3r u2, const Vec3r v2){
+		// taken from https://stackoverflow.com/questions/19445934/quaternion-from-two-vector-pairs
+		Quat  q2       = getRotation(u0, u2);
+		Vec3r v1       = rotated(v2, conjugate(q2));
+		Vec3r v0_proj  = projectOntoPlane(v0, u0);
+		Vec3r v1_proj  = projectOntoPlane(v1, u0);
+		Quat  q1       = getRotation(v0_proj, v1_proj);
+		return normalized(q2 * q1);
+	}
 }
 
 #endif
