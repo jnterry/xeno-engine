@@ -226,13 +226,13 @@ TEST_CASE("Rotating about Y Axis"){
       } \
 	}
 
-	CHECK_ROTS_Y(1, 0, 0,     0, 0, 1,      90_deg);
-	CHECK_ROTS_Y(1, 0, 0,     0, 0,-1,    - 90_deg);
-	CHECK_ROTS_Y(1, 0, 0,     0,-1, 0,     180_deg);
-	CHECK_ROTS_Y(1, 0, 0,     0,-1, 0,    -180_deg);
+	CHECK_ROTS_Y(1, 0, 0,     0, 0,-1,      90_deg);
+	CHECK_ROTS_Y(1, 0, 0,     0, 0, 1,    - 90_deg);
+	CHECK_ROTS_Y(1, 0, 0,    -1, 0, 0,     180_deg);
+	CHECK_ROTS_Y(1, 0, 0,    -1, 0, 0,    -180_deg);
 
-	CHECK_ROTS_Y(0, 0, 1,    -1, 0, 0,      90_deg);
-	CHECK_ROTS_Y(0, 0, 1,     1, 0, 0,    - 90_deg);
+	CHECK_ROTS_Y(0, 0, 1,     1, 0, 0,      90_deg);
+	CHECK_ROTS_Y(0, 0, 1,    -1, 0, 0,    - 90_deg);
 	CHECK_ROTS_Y(0, 0, 1,     0, 0,-1,     180_deg);
 	CHECK_ROTS_Y(0, 0, 1,     0, 0,-1,    -180_deg);
 
