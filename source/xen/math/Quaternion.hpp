@@ -156,10 +156,14 @@ namespace xen{
 		//if(d >= 1){ return Quaternion::Identity; }
 
 		//:TODO: if dot product is -1 then vecs are in oposite directions,
-		// rotate 180 deg around any axis... cross will fail in this case?
-
-		Vec3r axis = cross(start_n, dest_n);
-		return xen::normalized({ axis.x, axis.y, axis.z, sqrt(1 + d) });
+		if(d == -1){
+			// then vectors are in oposite directions, return quat representing
+			// rotation of 180 deg around arbitary axis
+			return { 0,0,0, -1};
+		} else {
+			Vec3r axis = cross(start_n, dest_n);
+			return xen::normalized({ axis.x, axis.y, axis.z, sqrt(1 + d) });
+		}
 	}
 }
 
