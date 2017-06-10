@@ -106,6 +106,26 @@ TEST_CASE("Quaternion Normalized", "[math][Quaternion]"){
 	}
 }
 
+TEST_CASE("Quat Equality"){
+	// Axis direction  matters, not its length
+	CHECK(Quat(Vec3r(0,0,1),  30_deg) == Quat(Vec3r(0,0,5),  30_deg));
+
+	// Clockwise rotation around axis is equiv to anticlockwise around axis in oposite direction
+	CHECK(Quat(Vec3r(1,0,0),  90_deg) == Quat(Vec3r(-1,0,0), -90_deg));
+	CHECK(Quat(Vec3r(0,1,0),  60_deg) == Quat(Vec3r(0,-1,0), -60_deg));
+	CHECK(Quat(Vec3r(0,0,1), -30_deg) == Quat(Vec3r(0,0,-1),  30_deg));
+
+	// Non-equivalent quats aren't equal
+	CHECK(Quat(Vec3r(1,0,0),  20_deg) != Quat(Vec3r(0,1,0),    20_deg));
+	CHECK(Quat(Vec3r(1,0,0),  50_deg) != Quat(Vec3r(1,0,0),    20_deg));
+
+	// Quats that encode same final result for a point not equal if direction reversed, etc
+	CHECK(Quat(Vec3r(1,0,0), 180_deg) != Quat(Vec3r(1,0,0),  -180_deg));
+	CHECK(Quat(Vec3r(0,1,0),  90_deg) != Quat(Vec3r(0,1,0),  -270_deg));
+	CHECK(Quat(Vec3r(0,0,1),   0_deg) != Quat(Vec3r(0,0,1),   360_deg));
+	CHECK(Quat(Vec3r(0,0,1), 180_deg) != Quat(Vec3r(0,0,1),   540_deg));
+}
+
 TEST_CASE("getRotation as Quaterion", "[math][Quaternion]"){
 	//:TODO: test getting rotation from one vector to another
 
