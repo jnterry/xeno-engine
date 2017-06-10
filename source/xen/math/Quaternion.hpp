@@ -145,24 +145,17 @@ namespace xen{
 	inline Vec3r rotated(Vec3r v, AxisAngle aa       ){ return rotated(v, Quat(aa     )); }
 	inline Vec3r rotated(Vec3r v, Vec3r axis, Angle a){ return rotated(v, Quat(axis, a)); }
 
-
 	inline Quaternion getRotation(const Vec3r& start, const Vec3r& dest){
-		Vec3r start_n = normalized(start);
-		Vec3r dest_n  = normalized(dest);
+		real k_cos_theta = dot(start, dest);
+		real k = sqrt(lengthSq(start) * lengthSq(dest));
 
-		real d = dot(start_n, dest_n);
-
-		// If dot product is 1 then vecs have same direction
-		//if(d >= 1){ return Quaternion::Identity; }
-
-		//:TODO: if dot product is -1 then vecs are in oposite directions,
-		if(d == -1){
-			// then vectors are in oposite directions, return quat representing
-			// rotation of 180 deg around arbitary axis
+		if (k_cos_theta / k == -1) {
+			// Then vectors point in opposite directions, return quaternion
+			// representing rotation of 180 deg around arbitary axis
 			return { 0,0,0, -1};
 		} else {
-			Vec3r axis = cross(start_n, dest_n);
-			return xen::normalized({ axis.x, axis.y, axis.z, sqrt(1 + d) });
+			Vec3r axis = cross(start, dest);
+			return xen::normalized({ axis.x, axis.y, axis.z, k_cos_theta + k });
 		}
 	}
 }
