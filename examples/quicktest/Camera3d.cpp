@@ -49,10 +49,19 @@ Camera3d generateCamera3d(const Camera3dOrbit& cam){
 	result.fov_y  = cam.fov_y;
 	result.z_near = cam.z_near;
 	result.z_far  = cam.z_far;
-	result.up_dir   = cam.up_dir;
+	result.up_dir = cam.up_dir;
 
+	// Start camera centered on the target
 	result.position  = cam.target;
-	result.position += Vec3r{cam.radius * xen::cos(cam.angle), cam.height, cam.radius * xen::sin(cam.angle)};
+
+	// Displace by camera's height along up_dir axis
+	result.position += xen::normalized(cam.up_dir) * cam.height;
+
+	// Displace by radius rotated around the up_dir
+	// find radius vector by rotating (1,0,0) to have +Y line up with up_dir
+	Vec3r radius = xen::rotated(Vec3r(cam.radius, 0, 0), getRotation(Vec3r::UnitY, cam.up_dir));
+	// The rotate radius around up_dir by angle, add it on to displacement
+	result.position += xen::rotated(radius, cam.up_dir, cam.angle);
 
 	result.look_dir = xen::normalized(cam.target - result.position);
 
