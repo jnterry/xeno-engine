@@ -114,7 +114,7 @@ namespace xen{
 			   };
 	}
 
-	inline Mat4r createOrthograhpicProjection(real left, real right, real bottom, real top, real zNear, real zFar){
+	inline Mat4r createOrthographicProjection(real left, real right, real bottom, real top, real zNear, real zFar){
 		return {                 2/(right-left),                            0,                          0,  0,
 		                                      0,               2/(top-bottom),                          0,  0,
 		                                      0,                            0,            -2/(zFar-zNear),  0,
