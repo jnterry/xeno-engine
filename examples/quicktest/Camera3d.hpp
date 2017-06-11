@@ -12,6 +12,9 @@
 #include <xen/math/Vector.hpp>
 #include <xen/math/Matrix.hpp>
 
+// other projection types:
+// http://www-f9.ijs.si/~matevz/docs/PovRay-3.50b/povdoc_182.html
+
 /// \brief Holds parameters for a perspective projection
 struct ProjectionPerspective{
 	xen::Angle fov_y;      /// \brief Field of view in y direction
@@ -79,4 +82,6 @@ Mat4r getViewProjectionMatrix(const T_CAM& cam, Vec2r viewport_size){
 	return getViewMatrix(c) * getProjectionMatrix(c, viewport_size);
 }
 
+Vec3r getCameraPosition(const Camera3dOrbit& cam);
+inline Vec3r getCameraPosition(const Camera3d&      cam){ return cam.position; }
 #endif

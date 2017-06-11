@@ -84,6 +84,7 @@ int main(int argc, char** argv){
 	int point_light_pos_loc   = xen::getUniformLocation(prog, "point_light_pos"  );
 	int point_light_color_loc = xen::getUniformLocation(prog, "point_light_color");
 	int emissive_color_loc    = xen::getUniformLocation(prog, "emissive_color"   );
+	int camera_pos_loc        = xen::getUniformLocation(prog, "camera_position"  );
 
 	sf::Clock timer;
 	real last_time = 0;
@@ -162,6 +163,7 @@ int main(int argc, char** argv){
 		xen::setUniform(point_light_pos_loc, light_pos);
 		point_light_color.w = (1_r + sin(time*9)) / 2.0_r;
 		xen::setUniform(point_light_color_loc, point_light_color);
+		xen::setUniform(camera_pos_loc, getCameraPosition(camera));
 
 		model_mat  = Mat4r::Identity;
 		model_mat *= xen::Rotation3dx(time * 41_deg);
@@ -274,7 +276,7 @@ static const GLfloat cube_buffer_data[] = {
     1.0f, 1.0f, 1.0f,
     0.0f, 1.0f, 0.0f, // Face E
     0.0f, 1.0f, 0.0f,
-    0.0f, 1.0f, 0.0f
+    0.0f, 1.0f, 0.0f,
 
     // normals
     -1.0f, 0.0f, 0.0f, // triangle 1 : begin
@@ -312,7 +314,7 @@ static const GLfloat cube_buffer_data[] = {
      0.0f, 1.0f, 0.0f,
      0.0f, 0.0f, 1.0f,
      0.0f, 0.0f, 1.0f,
-     0.0f, 0.0f, 1.0f,
+     0.0f, 0.0f, 1.0f
 };
 
 void initCube(){

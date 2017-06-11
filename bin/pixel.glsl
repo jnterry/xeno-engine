@@ -20,6 +20,15 @@ vec3 calcLight(vec4 light_color, vec3 dir){
 	float diffuse_factor = dot(normal, dir);
 	if(diffuse_factor > 0){
 		result += light_color.xyz * light_color.w * diffuse_factor;
+
+		//closer these are the more specular you get as eye is closer to the reflected beam
+		vec3 dir_to_cam = normalize(camera_position - world_position);
+		vec3 reflection_dir = normalize(reflect(dir, normal)); // expected specular reflection dir
+		float specular_factor = dot(dir_to_cam,reflection_dir); //cosine of the angle between directions, 1 when angle is 0, gets less as angle increases
+		specular_factor = pow(specular_factor, 2); //raise to specified power
+		if(specular_factor > 0){
+			result += light_color.xyz * specular_factor;
+		}
 	}
 
 	return result;
