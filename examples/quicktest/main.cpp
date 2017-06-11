@@ -74,12 +74,11 @@ int main(int argc, char** argv){
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
-	Mat4r view_mat;
+	Mat4r model_mat, view_mat, proj_mat, vp_mat;
 
 	xen::ShaderProgram* prog = loadShader(arena);
 	Mesh mesh_bunny = loadMesh("bunny.obj");
 	int mvpMatLoc = xen::getUniformLocation(prog, "mvpMatrix");
-	Mat4r model_mat;
 
 	sf::Clock timer;
 	real last_time = 0;
@@ -127,7 +126,10 @@ int main(int argc, char** argv){
 			camera.height -= camera_speed * dt;
 		}
 
-		view_mat = getViewMatrix(camera, window_size);
+
+		view_mat = getViewMatrix(camera);
+		proj_mat = getProjectionMatrix(camera, window_size);
+		vp_mat   = view_mat * proj_mat;
 
 		app.setActive(true);
 		glClearColor(0.0,0.0,0.0, 1);
@@ -143,19 +145,19 @@ int main(int argc, char** argv){
 
 		model_mat *= xen::Translation3d(xen::rotated(Vec3r{7, 0, 0},
 		                                             Vec3r::UnitY, xen::Degrees(time*90_r)));
-		xen::setUniform(mvpMatLoc, model_mat * view_mat);
+		xen::setUniform(mvpMatLoc, model_mat * vp_mat);
 		renderCube();
 
 		model_mat = Mat4r::Identity;
 		model_mat *= xen::Scale3d(30);
 		model_mat *= xen::Translation3d(0, 0, 0);
-		xen::setUniform(mvpMatLoc, model_mat * view_mat);
+		xen::setUniform(mvpMatLoc, model_mat * vp_mat);
 		renderMesh(mesh_bunny);
 
 		model_mat = Mat4r::Identity;
 		model_mat *= xen::Scale3d(5, 0.05, 5);
 		model_mat *= xen::Translation3d(0, -3, 0);
-		xen::setUniform(mvpMatLoc, model_mat * view_mat);
+		xen::setUniform(mvpMatLoc, model_mat * vp_mat);
 		renderCube();
 
 		app.display();

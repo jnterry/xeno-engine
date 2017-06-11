@@ -12,20 +12,19 @@
 
 #include "Camera3d.hpp"
 
-Mat4r getViewMatrix(const Camera3d& camera, Vec2r viewport_size){
-	Mat4r result = Mat4r::Identity;
-
+Mat4r getViewMatrix(const Camera3d& camera){
 	// move world by negative of camera position
-	result *= xen::Translation3d(-camera.position);
+	Mat4r result = xen::Translation3d(-camera.position);
 
 	// Line up z axis with look_dir, and y with up_dir
 	Quat rot = xen::getRotation(camera.look_dir, camera.up_dir,   -Vec3r::UnitZ, Vec3r::UnitY);
 	result *= xen::Rotation3d(rot);
 
-	// Do perspective projection
-	result *= xen::createPerspectiveProjection(camera.fov_y, viewport_size.x, viewport_size.y, camera.z_near, camera.z_far);
-
 	return result;
+}
+
+Mat4r getProjectionMatrix(const Camera3d& camera, Vec2r viewport_size){
+	return xen::createPerspectiveProjection(camera.fov_y, viewport_size.x, viewport_size.y, camera.z_near, camera.z_far);
 }
 
 Camera3d generateCamera3d(const Camera3dOrbit& cam){

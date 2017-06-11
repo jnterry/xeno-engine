@@ -56,17 +56,33 @@ struct Camera3dOrbit{
 	real       height;
 };
 
+inline Camera3d generateCamera3d(const Camera3d& c){ return c; }
+
 /// \brief Generates a Camera3d corresponding to some Camera3dOrbit
 Camera3d generateCamera3d(const Camera3dOrbit&);
+
+/// \brief Gets matrix that transforms points in world space into camera relative space
+Mat4r getViewMatrix(const Camera3d& camera);
 
 /// \brief Helper function which generates a standard Camera3d from some other, then
 /// calls getViewMatrix
 template <typename T_CAM>
-Mat4r getViewMatrix(const T_CAM& camera, Vec2r viewport_size){
-	return getViewMatrix(generateCamera3d(camera), viewport_size);
+Mat4r getViewMatrix(const T_CAM& camera){
+	return getViewMatrix(generateCamera3d(camera));
 }
 
-/// \brief Gets matrix that transforms points in world space into camera relative space post projection
-Mat4r getViewMatrix(const Camera3d& camera, Vec2r viewport_size);
+/// \brief Gets matrix which projects points from camera relative space onto some viewport
+Mat4r getProjectionMatrix(const Camera3d& camera, Vec2r viewport_size);
+
+template <typename T_CAM>
+Mat4r getProjectionMatrix(const T_CAM& camera, Vec2r viewport_size){
+	return getProjectionMatrix(generateCamera3d(camera), viewport_size);
+}
+
+template<typename T_CAM>
+Mat4r getViewProjectionMatrix(const T_CAM& cam, Vec2r viewport_size){
+	Camera3d c = generateCamera3d(cam);
+	return getViewMatrix(c) * getProjectionMatrix(c, viewport_size);
+}
 
 #endif
