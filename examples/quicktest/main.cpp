@@ -130,7 +130,7 @@ int main(int argc, char** argv){
 		view_mat = getViewMatrix(camera, window_size);
 
 		app.setActive(true);
-		glClearColor(0.2,0.2,0.2, 1);
+		glClearColor(0.0,0.0,0.0, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		xen::useShader(prog);
@@ -279,13 +279,24 @@ void renderMesh(const Mesh& mesh){
 	glEnableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mesh.gpu_buffer);
+	// positions
 	glVertexAttribPointer(0,                                 // attrib layout
 	                      3, GL_FLOAT,                       // components and type
 	                      GL_FALSE,                          // normalized
 	                      sizeof(float)*9,                   // stride
 	                      (const void*)0                     // offset
 	                      );
+
+	// color
 	glVertexAttribPointer(1,                                 // attrib layout
+	                      3, GL_FLOAT,                       // components and type
+	                      GL_FALSE,                          // normalized
+	                      sizeof(float)*9,                   // stride
+	                      (const void*)(sizeof(float) * 3)   // offset
+	                      );
+
+	// normals
+	glVertexAttribPointer(2,                                 // attrib layout
 	                      3, GL_FLOAT,                       // components and type
 	                      GL_FALSE,                          // normalized
 	                      sizeof(float)*9,                   // stride
@@ -425,8 +436,8 @@ Mesh loadMesh(const char* path){
 						n[1][k] = attrib.normals[3 * (size_t)f1 + k];
 						n[2][k] = attrib.normals[3 * (size_t)f2 + k];
 					}
-				} else { /* normal index is not defined for this face */
-					/* compute geometric normal */
+				} else { // normal index is not defined for this face
+					//compute geometric normal
 					CalcNormal(n[0], v[0], v[1], v[2]);
 					n[1][0] = n[0][0];
 					n[1][1] = n[0][1];
@@ -436,7 +447,7 @@ Mesh loadMesh(const char* path){
 					n[2][2] = n[0][2];
 				}
 			} else {
-				/* compute geometric normal */
+				//compute geometric normal
 				CalcNormal(n[0], v[0], v[1], v[2]);
 				n[1][0] = n[0][0];
 				n[1][1] = n[0][1];
@@ -454,7 +465,8 @@ Mesh loadMesh(const char* path){
 				vb[(3 * i + k) * stride + 4] = n[k][1];
 				vb[(3 * i + k) * stride + 5] = n[k][2];
 
-				/* Use normal as color. */
+				// Use normal as color
+				#if 0
 				c[0] = n[k][0];
 				c[1] = n[k][1];
 				c[2] = n[k][2];
@@ -466,6 +478,7 @@ Mesh loadMesh(const char* path){
 					c[1] /= len;
 					c[2] /= len;
 				}
+				#endif
 
 				vb[(3 * i + k) * stride + 6] = (c[0] * 0.5f + 0.5f);
 				vb[(3 * i + k) * stride + 7] = (c[1] * 0.5f + 0.5f);
