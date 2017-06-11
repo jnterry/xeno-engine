@@ -46,6 +46,7 @@ int main(int argc, char** argv){
 	camera.fov_y    = 80_deg;
 	camera.radius   = 10;
 	camera.angle    = 90_deg;
+	camera.up_dir   = Vec3r::UnitY;
 
 	sf::ContextSettings context_settings;
 	context_settings.depthBits = 24;

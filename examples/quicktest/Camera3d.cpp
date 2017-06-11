@@ -22,14 +22,20 @@ Mat4r getViewMatrix(const Camera3d& camera, Vec2r viewport_size){
 	Quat rot = xen::getRotation(camera.look_dir, camera.up_dir,   -Vec3r::UnitZ, Vec3r::UnitY);
 	result *= xen::Rotation3d(rot);
 
-	//Vec3r up_dir_t = xen::rotated(camera.up_dir, rot);
+	/*Vec3r zaxis = -camera.look_dir;
+	Vec3r xaxis = xen::cross(-Vec3r::UnitY, camera.look_dir);
+	Vec3r yaxis = xen::cross(zaxis, xaxis);
+	Mat4r result = {
+		xaxis.x, xaxis.y, xaxis.z, 0,
+		yaxis.x, yaxis.y, yaxis.z, 0,
+		zaxis.x, zaxis.y, zaxis.z, 0,
 
-	// Line up y axis with up_dir
-	//result *= xen::Rotation3d(xen::getRotation(xen::rotated(camera.up_dir, rot), Vec3r::UnitY));
+		-dot(xaxis, camera.position),
+		-dot(yaxis, camera.position),
+		-dot(zaxis, camera.position),
+		1
 
-	//printf("Up dir: (%f, %f, %f), (%f, %f, %f)\n",
-	//       camera.up_dir.x, camera.up_dir.y, camera.up_dir.z,
-	                                           //       up_dir_t.x, up_dir_t.y, up_dir_t.z);
+		};*/
 
 	// Do perspective projection
 	result *= xen::createPerspectiveProjection(camera.fov_y, viewport_size.x, viewport_size.y, camera.z_near, camera.z_far);
@@ -43,13 +49,12 @@ Camera3d generateCamera3d(const Camera3dOrbit& cam){
 	result.fov_y  = cam.fov_y;
 	result.z_near = cam.z_near;
 	result.z_far  = cam.z_far;
+	result.up_dir   = cam.up_dir;
 
 	result.position  = cam.target;
 	result.position += Vec3r{cam.radius * xen::cos(cam.angle), cam.height, cam.radius * xen::sin(cam.angle)};
 
 	result.look_dir = xen::normalized(cam.target - result.position);
-	auto pitch = xen::atan(cam.height / cam.radius);
-	result.up_dir   = Vec3r{ 0, xen::cos(pitch), xen::sin(pitch) };
 
 	return result;
 }
