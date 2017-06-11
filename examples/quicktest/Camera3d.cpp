@@ -22,21 +22,6 @@ Mat4r getViewMatrix(const Camera3d& camera, Vec2r viewport_size){
 	Quat rot = xen::getRotation(camera.look_dir, camera.up_dir,   -Vec3r::UnitZ, Vec3r::UnitY);
 	result *= xen::Rotation3d(rot);
 
-	/*Vec3r zaxis = -camera.look_dir;
-	Vec3r xaxis = xen::cross(-Vec3r::UnitY, camera.look_dir);
-	Vec3r yaxis = xen::cross(zaxis, xaxis);
-	Mat4r result = {
-		xaxis.x, xaxis.y, xaxis.z, 0,
-		yaxis.x, yaxis.y, yaxis.z, 0,
-		zaxis.x, zaxis.y, zaxis.z, 0,
-
-		-dot(xaxis, camera.position),
-		-dot(yaxis, camera.position),
-		-dot(zaxis, camera.position),
-		1
-
-		};*/
-
 	// Do perspective projection
 	result *= xen::createPerspectiveProjection(camera.fov_y, viewport_size.x, viewport_size.y, camera.z_near, camera.z_far);
 
