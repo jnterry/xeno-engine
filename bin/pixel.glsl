@@ -41,7 +41,7 @@ vec3 calcPointLight(vec4 light_col, vec3 light_pos, vec3 light_attenuation){
 void main(){
 	vec3 total_light = ambient_light;
 	total_light += calcPointLight(point_light_color, point_light_pos, point_light_attenuation);
-	total_light += calcLight(vec4(1,1,0.5,0.15), normalize(vec3(0,-1,-1)));
+	total_light += calcLight(vec4(1,1,1,0.15), normalize(vec3(0,-1,-1)));
 	total_light += emissive_color.xyz * emissive_color.w;
 
 	out_color = vec4(color * total_light, 1);
