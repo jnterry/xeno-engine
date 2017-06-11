@@ -237,7 +237,6 @@ static const GLfloat cube_buffer_data[] = {
      1.0f,-1.0f, 1.0f,
 
 
-
     // color
     0.0f, 0.0f, 0.0f, // Face A
     0.0f, 0.0f, 0.0f,
@@ -275,6 +274,44 @@ static const GLfloat cube_buffer_data[] = {
     0.0f, 1.0f, 0.0f, // Face E
     0.0f, 1.0f, 0.0f,
     0.0f, 1.0f, 0.0f
+
+    // normals
+    -1.0f, 0.0f, 0.0f, // triangle 1 : begin
+    -1.0f, 0.0f, 0.0f,
+    -1.0f, 0.0f, 0.0f, // triangle 1 : end
+     0.0f, 0.0f,-1.0f, // triangle 2 : begin
+     0.0f, 0.0f,-1.0f,
+     0.0f, 0.0f,-1.0f, // triangle 2 : end
+     0.0f,-1.0f, 0.0f,
+     0.0f,-1.0f, 0.0f,
+     0.0f,-1.0f, 0.0f,
+     0.0f, 0.0f, 1.0f,
+     0.0f, 0.0f, 1.0f,
+     0.0f, 0.0f, 1.0f,
+    -1.0f, 0.0f, 0.0f,
+    -1.0f, 0.0f, 0.0f,
+    -1.0f, 0.0f, 0.0f,
+     0.0f,-1.0f, 0.0f,
+     0.0f,-1.0f, 0.0f,
+     0.0f,-1.0f, 0.0f,
+     0.0f, 0.0f, 1.0f,
+     0.0f, 0.0f, 1.0f,
+     0.0f, 0.0f, 1.0f,
+     1.0f, 0.0f, 0.0f,
+     1.0f, 0.0f, 0.0f,
+     1.0f, 0.0f, 0.0f,
+     1.0f, 0.0f, 0.0f,
+     1.0f, 0.0f, 0.0f,
+     1.0f, 0.0f, 0.0f,
+     0.0f, 1.0f, 0.0f,
+     0.0f, 1.0f, 0.0f,
+     0.0f, 1.0f, 0.0f,
+     0.0f, 1.0f, 0.0f,
+     0.0f, 1.0f, 0.0f,
+     0.0f, 1.0f, 0.0f,
+     0.0f, 0.0f, 1.0f,
+     0.0f, 0.0f, 1.0f,
+     0.0f, 0.0f, 1.0f,
 };
 
 void initCube(){
@@ -301,7 +338,14 @@ void renderCube(){
 	                      GL_FLOAT, // type
 	                      GL_TRUE,  // normalized
 	                      0,        // stride
-	                      (void*)(sizeof(float)*3*12*3)  // start offset
+	                      (void*)(sizeof(float)*3*12*3*1)  // start offset
+	                      );
+	glVertexAttribPointer(2,        // attrib layout
+	                      3,        // components
+	                      GL_FLOAT, // type
+	                      GL_TRUE,  // normalized
+	                      0,        // stride
+	                      (void*)(sizeof(float)*3*12*3*2)  // start offset
 	                      );
 	glDrawArrays(GL_TRIANGLES, 0, 12*3);
 }

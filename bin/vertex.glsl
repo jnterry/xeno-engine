@@ -13,7 +13,7 @@ uniform mat4 model_mat;
 
 void main(){
 	color = vec3(1,1,1);//vert_color;
-	normal = vert_normal;
+	normal = normalize(model_mat * vec4(vert_normal,1)).xyz;
 	gl_Position = mvp_mat * vec4(vert_pos,1);
 	world_position = (model_mat * vec4(vert_pos,1)).xyz;
 }
