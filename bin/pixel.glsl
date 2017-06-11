@@ -12,7 +12,7 @@ uniform vec3 camera_position = vec3(0,0,0);
 uniform vec3 point_light_pos         = vec3(0,0,0);
 uniform vec4 point_light_color       = vec4(1,0,0,1); // xyz is rgb, w is intensity
 uniform vec3 point_light_attenuation = vec3(0.3,0.3,0);
-uniform vec3 emissive_color = vec3(0,0,0);
+uniform vec4 emissive_color = vec4(0,0,0,0);
 
 vec3 calcLight(vec4 light_color, vec3 dir){
 	vec3 result = vec3(0,0,0);
@@ -41,8 +41,8 @@ vec3 calcPointLight(vec4 light_col, vec3 light_pos, vec3 light_attenuation){
 void main(){
 	vec3 total_light = ambient_light;
 	total_light += calcPointLight(point_light_color, point_light_pos, point_light_attenuation);
-	total_light += calcLight(vec4(1,1,1,0.3), normalize(vec3(0,-1,-1)));
-	total_light += emissive_color;
+	total_light += calcLight(vec4(1,1,0.7,0.3), normalize(vec3(0,-1,-1)));
+	total_light += emissive_color.xyz * emissive_color.w;
 
 	out_color = vec4(color * total_light, 1);
 }

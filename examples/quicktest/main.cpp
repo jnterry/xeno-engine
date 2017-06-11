@@ -75,14 +75,15 @@ int main(int argc, char** argv){
 	glDepthFunc(GL_LESS);
 
 	Mat4r model_mat, view_mat, proj_mat, vp_mat;
-	Vec3r point_light_color = Vec3r(1,0,0);
+	Vec4r point_light_color = Vec4r(1,0,0,1);
 
 	xen::ShaderProgram* prog = loadShader(arena);
 	Mesh mesh_bunny = loadMesh("bunny.obj");
-	int mvp_mat_loc         = xen::getUniformLocation(prog, "mvp_mat"        );
-	int model_mat_loc       = xen::getUniformLocation(prog, "model_mat"      );
-	int point_light_pos_loc = xen::getUniformLocation(prog, "point_light_pos");
-	int emissive_color_loc  = xen::getUniformLocation(prog, "emissive_color");
+	int mvp_mat_loc           = xen::getUniformLocation(prog, "mvp_mat"          );
+	int model_mat_loc         = xen::getUniformLocation(prog, "model_mat"        );
+	int point_light_pos_loc   = xen::getUniformLocation(prog, "point_light_pos"  );
+	int point_light_color_loc = xen::getUniformLocation(prog, "point_light_color");
+	int emissive_color_loc    = xen::getUniformLocation(prog, "emissive_color"   );
 
 	sf::Clock timer;
 	real last_time = 0;
@@ -105,6 +106,22 @@ int main(int argc, char** argv){
 			case sf::Event::Resized:
 				glViewport(0,0,event.size.width, event.size.height);
 				window_size = {(real)event.size.width, (real)event.size.height};
+				break;
+			case sf::Event::KeyReleased:
+				switch(event.key.code){
+				case sf::Keyboard::R:
+					point_light_color.xyz = Vec3r(1,0,0);
+					break;
+				case sf::Keyboard::G:
+					point_light_color.xyz = Vec3r(0,1,0);
+					break;
+				case sf::Keyboard::B:
+					point_light_color.xyz = Vec3r(0,0,1);
+					break;
+				case sf::Keyboard::W:
+					point_light_color.xyz = Vec3r(1,1,1);
+					break;
+				}
 				break;
 			default: break;
 			}
@@ -130,7 +147,6 @@ int main(int argc, char** argv){
 			camera.height -= camera_speed * dt;
 		}
 
-
 		view_mat = getViewMatrix(camera);
 		proj_mat = getProjectionMatrix(camera, window_size);
 		vp_mat   = view_mat * proj_mat;
@@ -143,6 +159,8 @@ int main(int argc, char** argv){
 
 		Vec3r light_pos = xen::rotated(Vec3r{4, 3, 0}, Vec3r::UnitY, xen::Degrees(time*90_r));
 		xen::setUniform(point_light_pos_loc, light_pos);
+		point_light_color.w = (1_r + sin(time*9)) / 2.0_r;
+		xen::setUniform(point_light_color_loc, point_light_color);
 
 		model_mat  = Mat4r::Identity;
 		model_mat *= xen::Rotation3dx(time * 41_deg);
@@ -155,7 +173,7 @@ int main(int argc, char** argv){
 		xen::setUniform(model_mat_loc, model_mat);
 		xen::setUniform(emissive_color_loc, point_light_color);
 		renderCube();
-		xen::setUniform(emissive_color_loc, Vec3r::Origin);
+		xen::setUniform(emissive_color_loc, Vec4r::Origin);
 
 		model_mat = Mat4r::Identity;
 		model_mat *= xen::Scale3d(30);
@@ -492,7 +510,6 @@ Mesh loadMesh(const char* path){
 					c[2] /= len;
 				}
 				#endif
-
 				vb[(3 * i + k) * stride + 6] = (c[0] * 0.5f + 0.5f);
 				vb[(3 * i + k) * stride + 7] = (c[1] * 0.5f + 0.5f);
 				vb[(3 * i + k) * stride + 8] = (c[2] * 0.5f + 0.5f);
