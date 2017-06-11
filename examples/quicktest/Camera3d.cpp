@@ -23,16 +23,14 @@ Mat4r getViewMatrix(const Camera3d& camera){
 	return result;
 }
 
-Mat4r getProjectionMatrix(const Camera3d& camera, Vec2r viewport_size){
-	return xen::createPerspectiveProjection(camera.fov_y, viewport_size.x, viewport_size.y, camera.z_near, camera.z_far);
+Mat4r getProjectionMatrix(const ProjectionPerspective& p, Vec2r viewport_size){
+	return xen::createPerspectiveProjection(p.fov_y, viewport_size.x, viewport_size.y, p.z_near, p.z_far);
 }
 
 Camera3d generateCamera3d(const Camera3dOrbit& cam){
 	Camera3d result;
 
-	result.fov_y  = cam.fov_y;
-	result.z_near = cam.z_near;
-	result.z_far  = cam.z_far;
+	*((ProjectionPerspective*)(&result)) = *((ProjectionPerspective*)(&cam));
 	result.up_dir = cam.up_dir;
 
 	// Start camera centered on the target

@@ -12,14 +12,17 @@
 #include <xen/math/Vector.hpp>
 #include <xen/math/Matrix.hpp>
 
-/// \brief Holds data representing a camera in 3d space
-struct Camera3d{
-    xen::Angle fov_y;      /// \brief Field of view in y direction
+/// \brief Holds parameters for a perspective projection
+struct ProjectionPerspective{
+	xen::Angle fov_y;      /// \brief Field of view in y direction
 	real       z_near;     /// \brief Minumum distance to geometry from camera such that it is rendered
 	real       z_far;      /// \brief Maximum distance to geometry from camera such that it is rendered
+};
 
-	Vec3r      position;   /// \brief Camera's position in 3d space
-	Vec3r      look_dir;   /// \brief Direction in which camera is looking
+/// \brief Holds data representing a camera in 3d space
+struct Camera3d : public ProjectionPerspective{
+	Vec3r      position; /// \brief Camera's position in 3d space
+	Vec3r      look_dir; /// \brief Direction in which camera is looking
 
 	/// \brief Direction considered to be "up" to the camera
 	/// Note this is the direction in the world which is up, it need not be
@@ -35,11 +38,7 @@ struct Camera3d{
 ///
 /// Setting up_dir to (0,1,0) means camera can rotate around the target in the xz plane
 //, and additional rise up and below this plane as defined by its height
-struct Camera3dOrbit{
-	xen::Angle fov_y;  /// \brief Field of view in y direction
-	real       z_near; /// \brief Minumum distance to geometry from camera such that it is rendered
-	real       z_far;  /// \brief Maximum distance to geometry from camera such that it is rendered
-
+struct Camera3dOrbit : public ProjectionPerspective{
 	/// \brief Direction in the world considered to be "up" to the camera
 	Vec3r      up_dir;
 
@@ -72,12 +71,7 @@ Mat4r getViewMatrix(const T_CAM& camera){
 }
 
 /// \brief Gets matrix which projects points from camera relative space onto some viewport
-Mat4r getProjectionMatrix(const Camera3d& camera, Vec2r viewport_size);
-
-template <typename T_CAM>
-Mat4r getProjectionMatrix(const T_CAM& camera, Vec2r viewport_size){
-	return getProjectionMatrix(generateCamera3d(camera), viewport_size);
-}
+Mat4r getProjectionMatrix(const ProjectionPerspective& p, Vec2r viewport_size);
 
 template<typename T_CAM>
 Mat4r getViewProjectionMatrix(const T_CAM& cam, Vec2r viewport_size){

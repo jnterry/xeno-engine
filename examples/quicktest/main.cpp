@@ -34,17 +34,17 @@ xen::ShaderProgram* loadShader(xen::ArenaLinear&);
 Mesh loadMesh(const char* path);
 
 
-Camera3dOrbit camera = {0};
+Camera3dOrbit camera;
 real camera_speed = 10;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
-
 
 int main(int argc, char** argv){
 	camera.z_near   = 0.001;
 	camera.z_far    = 10000;
 	camera.fov_y    = 80_deg;
 	camera.radius   = 10;
+	camera.height   = 0;
 	camera.up_dir   = Vec3r::UnitY;
 	//:TODO: breaks if angle is exactly +90deg, never occurs
 	// under user control since dont hit dead on float value, but
@@ -121,6 +121,7 @@ int main(int argc, char** argv){
 				case sf::Keyboard::W:
 					point_light_color.xyz = Vec3r(1,1,1);
 					break;
+				default: break;
 				}
 				break;
 			default: break;
