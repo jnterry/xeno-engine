@@ -75,10 +75,14 @@ int main(int argc, char** argv){
 	glDepthFunc(GL_LESS);
 
 	Mat4r model_mat, view_mat, proj_mat, vp_mat;
+	Vec3r point_light_color = Vec3r(1,0,0);
 
 	xen::ShaderProgram* prog = loadShader(arena);
 	Mesh mesh_bunny = loadMesh("bunny.obj");
-	int mvpMatLoc = xen::getUniformLocation(prog, "mvpMatrix");
+	int mvp_mat_loc         = xen::getUniformLocation(prog, "mvp_mat"        );
+	int model_mat_loc       = xen::getUniformLocation(prog, "model_mat"      );
+	int point_light_pos_loc = xen::getUniformLocation(prog, "point_light_pos");
+	int emissive_color_loc  = xen::getUniformLocation(prog, "emissive_color");
 
 	sf::Clock timer;
 	real last_time = 0;
@@ -137,27 +141,34 @@ int main(int argc, char** argv){
 
 		xen::useShader(prog);
 
+		Vec3r light_pos = xen::rotated(Vec3r{4, 3, 0}, Vec3r::UnitY, xen::Degrees(time*90_r));
+		xen::setUniform(point_light_pos_loc, light_pos);
+
 		model_mat  = Mat4r::Identity;
 		model_mat *= xen::Rotation3dx(time * 41_deg);
 		model_mat *= xen::Rotation3dy(time * 67_deg);
 		model_mat *= xen::Rotation3dz(time * 83_deg);
 		model_mat *= xen::Scale3d(0.3 + sin(time*15)*0.03, 0.3 + sin(time*15 + 0.25*xen::PI)*0.03, 0.3 + sin(time*15 + 0.5*xen::PI)*0.03);
 
-		model_mat *= xen::Translation3d(xen::rotated(Vec3r{7, 0, 0},
-		                                             Vec3r::UnitY, xen::Degrees(time*90_r)));
-		xen::setUniform(mvpMatLoc, model_mat * vp_mat);
+		model_mat *= xen::Translation3d(light_pos);
+		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
+		xen::setUniform(model_mat_loc, model_mat);
+		xen::setUniform(emissive_color_loc, point_light_color);
 		renderCube();
+		xen::setUniform(emissive_color_loc, Vec3r::Origin);
 
 		model_mat = Mat4r::Identity;
 		model_mat *= xen::Scale3d(30);
 		model_mat *= xen::Translation3d(0, 0, 0);
-		xen::setUniform(mvpMatLoc, model_mat * vp_mat);
+		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
+		xen::setUniform(model_mat_loc, model_mat);
 		renderMesh(mesh_bunny);
 
 		model_mat = Mat4r::Identity;
 		model_mat *= xen::Scale3d(5, 0.05, 5);
 		model_mat *= xen::Translation3d(0, -3, 0);
-		xen::setUniform(mvpMatLoc, model_mat * vp_mat);
+		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
+		xen::setUniform(model_mat_loc, model_mat);
 		renderCube();
 
 		app.display();
