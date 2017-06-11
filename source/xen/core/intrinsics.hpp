@@ -68,6 +68,15 @@ namespace xen{
 
 	template<typename T>
 	T sign(T a){ return (a < 0) ? -1 : 1; }
+
+	/// \brief Clamps value to be between low and high
+	template<typename T>
+	T clamp(T val, T low, T high){
+		if(val < low ){ return low;  }
+		if(val > high){ return high; }
+		return val;
+	}
+
 }
 
 inline constexpr real operator"" _r(long double            val){ return (real)val; }

@@ -110,6 +110,7 @@ int main(int argc, char** argv){
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down)){
 			camera.radius += camera_speed * dt;
 		}
+		camera.radius = xen::clamp(camera.radius, 0.01_r, 100_r);
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
 			camera.angle -= camera_rotate_speed * dt;
 		}
