@@ -166,7 +166,7 @@ int main(int argc, char** argv){
 
 		model_mat = Mat4r::Identity;
 		model_mat *= xen::Scale3d(5, 0.05, 5);
-		model_mat *= xen::Translation3d(0, -3, 0);
+		model_mat *= xen::Translation3d(0, -0.5, 0);
 		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
 		xen::setUniform(model_mat_loc, model_mat);
 		renderCube();
