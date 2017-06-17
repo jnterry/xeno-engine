@@ -70,8 +70,8 @@ namespace xen{
 		u32          num_triangles;  /// \brief The number of triangles in this mesh
 		Vec3r        bounds_min;     /// \brief The min point of the Aabb of this mesh
 		Vec3r        bounds_max;     /// \brief The max point of the Aabb of this mesh
-		//u08          attrib_count;   /// \brief The number of attributes per vertex of this mesh
-		//VertexAttrib attributes[0];  /// \brief The types of attributes of this mesh
+		u08          attrib_count;   /// \brief The number of attributes per vertex of this mesh
+		VertexAttrib attribs[0];     /// \brief The types of attributes of this mesh
 	};
 
 	/// \brief The

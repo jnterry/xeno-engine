@@ -390,35 +390,18 @@ void renderCube(Vec3r color){
 }
 
 void renderMesh(const xen::Mesh* mesh){
-	XEN_CHECK_GL(glEnableVertexAttribArray(0));
-	XEN_CHECK_GL(glEnableVertexAttribArray(1));
-	XEN_CHECK_GL(glEnableVertexAttribArray(2));
-
 	XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->gpu_buffer->handle));
 
-	// positions
-	XEN_CHECK_GL(glVertexAttribPointer(0,                                 // attrib layout
-	                                   3, GL_FLOAT,                       // components and type
-	                                   GL_FALSE,                          // normalized
-	                                   sizeof(float)*9,                   // stride
-	                                   (const void*)0                     // offset
-	                                   ));
-
-	// color
-	XEN_CHECK_GL(glVertexAttribPointer(2,                                 // attrib layout
-	                                   3, GL_FLOAT,                       // components and type
-	                                   GL_FALSE,                          // normalized
-	                                   sizeof(float)*9,                   // stride
-	                                   (const void*)(sizeof(float) * 3)   // offset
-	                                   ));
-
-	// normals
-	XEN_CHECK_GL(glVertexAttribPointer(1,                                 // attrib layout
-	                                   3, GL_FLOAT,                       // components and type
-	                                   GL_FALSE,                          // normalized
-	                                   sizeof(float)*9,                   // stride
-	                                   (const void*)(sizeof(float) * 6)   // offset
-	                                   ));
+	for(int i = 0; i < mesh->attrib_count; ++i){
+		XEN_CHECK_GL(glEnableVertexAttribArray(i));
+		XEN_CHECK_GL(glVertexAttribPointer(i,           //attrib layout
+		                                   3, GL_FLOAT, // num components and type
+		                                   GL_FALSE,    // normalized
+		                                   mesh->attribs[i].stride,
+		                                   (void*)mesh->attribs[i].offset
+		                                  )
+		             );
+	}
 
 	XEN_CHECK_GL(glDrawArrays(GL_TRIANGLES, 0, mesh->num_triangles * 3));
 }
@@ -510,6 +493,18 @@ xen::Mesh* loadMesh(xen::ArenaLinear& arena, const char* path){
 	xen::Mesh* result = (xen::Mesh*)xen::ptrGetAdvanced(arena.next_byte, sizeof(xen::GpuBuffer));
 	result->gpu_buffer = (xen::GpuBuffer*)arena.next_byte;
 	xen::ptrAdvance(&arena.next_byte, sizeof(xen::GpuBuffer) + sizeof(xen::Mesh) + sizeof(xen::VertexAttrib)*3);
+
+	result->attrib_count = 3;
+	result->attribs[0].type = xen::VertexAttrib::PositionXYZ;
+	result->attribs[1].type = xen::VertexAttrib::ColorRGBf;
+	result->attribs[2].type = xen::VertexAttrib::NormalXYZ;
+	result->attribs[0].offset = 0 * sizeof(float);
+	result->attribs[1].offset = 6 * sizeof(float);
+	result->attribs[2].offset = 3 * sizeof(float);
+	result->attribs[0].stride = 9 * sizeof(float);
+	result->attribs[1].stride = 9 * sizeof(float);
+	result->attribs[2].stride = 9 * sizeof(float);
+
 
 	for (size_t i = 0; i < attrib.num_face_num_verts; i++) {
 		XenAssert(attrib.face_num_verts[i] == 3, "Assuming mesh triangulated");
