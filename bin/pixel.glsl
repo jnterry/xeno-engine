@@ -6,12 +6,12 @@ varying vec3 normal;
 
 out vec4 out_color;
 
-uniform vec3 ambient_light   = vec3(0.05, 0.05, 0.05);
+uniform vec3 ambient_light   = vec3(0.01, 0.01, 0.01);
 uniform vec3 camera_position = vec3(0,0,0);
 
 uniform vec3 point_light_pos         = vec3(0,0,0);
 uniform vec4 point_light_color       = vec4(1,0,0,1); // xyz is rgb, w is intensity
-uniform vec3 point_light_attenuation = vec3(0.3,0.3,0);
+uniform vec3 point_light_attenuation = vec3(0.0,0.3,0);
 uniform vec4 emissive_color = vec4(0,0,0,0);
 
 vec3 calcLight(vec4 light_color, vec3 dir){
@@ -19,7 +19,7 @@ vec3 calcLight(vec4 light_color, vec3 dir){
 
 	float diffuse_factor = dot(normal, dir);
 	if(diffuse_factor > 0){
-		result += light_color.xyz * light_color.w * diffuse_factor;
+		result += light_color.xyz * diffuse_factor;
 
 		//closer these are the more specular you get as eye is closer to the reflected beam
 		vec3 dir_to_cam = normalize(camera_position - world_position);
@@ -31,7 +31,7 @@ vec3 calcLight(vec4 light_color, vec3 dir){
 		}
 	}
 
-	return result;
+	return result * light_color.w;
 }
 
 vec3 calcPointLight(vec4 light_col, vec3 light_pos, vec3 light_attenuation){
@@ -50,10 +50,11 @@ vec3 calcPointLight(vec4 light_col, vec3 light_pos, vec3 light_attenuation){
 void main(){
 	vec3 total_light = ambient_light;
 	total_light += calcPointLight(point_light_color, point_light_pos, point_light_attenuation);
-	total_light += calcLight(vec4(1,1,1,0.15), normalize(vec3(0,-1,-1)));
+	total_light += calcLight(vec4(1,1,1,0.3), normalize(vec3(0,-1,-1)));
 	total_light += emissive_color.xyz * emissive_color.w;
 
 	vec3 normal_col = (normalize(normal) + vec3(1,1,1)) / 2.0;
 
-	out_color = vec4(normal/*color/* * total_light*/, 1) + emissive_color;
+	//out_color = vec4(normal_col,1);
+	out_color = vec4(color * total_light, 1);
 }

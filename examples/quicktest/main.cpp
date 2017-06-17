@@ -29,7 +29,7 @@ struct Mesh{
 	Vec3r bounds_max;
 };
 void initCube();
-void renderCube();
+void renderCube(Vec3r color);
 void renderMesh(const Mesh& mesh);
 xen::ShaderProgram* loadShader(xen::ArenaLinear&);
 Mesh loadMesh(const char* path);
@@ -166,19 +166,25 @@ int main(int argc, char** argv){
 		xen::setUniform(point_light_color_loc, point_light_color);
 		xen::setUniform(camera_pos_loc, getCameraPosition(camera));
 
+		////////////////////////////////////////////
+		// Draw Cube Light
 		model_mat  = Mat4r::Identity;
 		model_mat *= xen::Rotation3dx(time * 41_deg);
 		model_mat *= xen::Rotation3dy(time * 67_deg);
 		model_mat *= xen::Rotation3dz(time * 83_deg);
-		model_mat *= xen::Scale3d(0.3 + sin(time*15)*0.03, 0.3 + sin(time*15 + 0.25*xen::PI)*0.03, 0.3 + sin(time*15 + 0.5*xen::PI)*0.03);
-
+		model_mat *= xen::Scale3d(0.3 + sin(time*15)*0.03,
+		                          0.3 + sin(time*15 + 0.25*xen::PI)*0.03,
+		                          0.3 + sin(time*15 + 0.5*xen::PI)*0.03);
 		model_mat *= xen::Translation3d(light_pos);
 		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
 		xen::setUniform(model_mat_loc, model_mat);
 		xen::setUniform(emissive_color_loc, point_light_color);
-		renderCube();
+		renderCube(point_light_color.xyz);
 		xen::setUniform(emissive_color_loc, Vec4r::Origin);
+		////////////////////////////////////////////
 
+		////////////////////////////////////////////
+		// Draw Bunny
 		model_mat = Mat4r::Identity;
 		//model_mat *= xen::Rotation3dz(73_deg * time);
 		model_mat *= xen::Scale3d(20);
@@ -188,21 +194,27 @@ int main(int argc, char** argv){
 		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
 		xen::setUniform(model_mat_loc, model_mat);
 		renderMesh(mesh_bunny);
+		////////////////////////////////////////////
 
+		////////////////////////////////////////////
+		// Draw Floor
 		model_mat = Mat4r::Identity;
-		model_mat *= xen::Scale3d(5, 0.05, 5);
+		model_mat *= xen::Scale3d(30, 0.05, 30);
 		model_mat *= xen::Translation3d(0, -0.5, 0);
 		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
 		xen::setUniform(model_mat_loc, model_mat);
-		renderCube();
+		renderCube(Vec3r(0.7,0.7,0.7));
+		////////////////////////////////////////////
 
+		////////////////////////////////////////////
+		// Draw Axes
 		model_mat = Mat4r::Identity;
 		model_mat *= xen::Translation3d(1,0,0);
 		model_mat *= xen::Scale3d(5, 0.05, 0.05);
 		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
 		xen::setUniform(model_mat_loc, model_mat);
 		xen::setUniform(emissive_color_loc, Vec4r(1,0,0,1));
-		renderCube();
+		renderCube(Vec3r(Vec3r::UnitX));
 
 		model_mat = Mat4r::Identity;
 		model_mat *= xen::Translation3d(0,1,0);
@@ -210,7 +222,7 @@ int main(int argc, char** argv){
 		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
 		xen::setUniform(model_mat_loc, model_mat);
 		xen::setUniform(emissive_color_loc, Vec4r(0,1,0,1));
-		renderCube();
+		renderCube(Vec3r(Vec3r::UnitY));
 
 		model_mat = Mat4r::Identity;
 		model_mat *= xen::Translation3d(0,0,1);
@@ -218,7 +230,8 @@ int main(int argc, char** argv){
 		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
 		xen::setUniform(model_mat_loc, model_mat);
 		xen::setUniform(emissive_color_loc, Vec4r(0,0,1,1));
-		renderCube();
+		renderCube(Vec3r(Vec3r::UnitZ));
+		////////////////////////////////////////////
 
 		app.display();
 	}
@@ -353,9 +366,9 @@ void initCube(){
 }
 
 
-void renderCube(){
+void renderCube(Vec3r color){
 	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
+	glDisableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 	glBindBuffer(GL_ARRAY_BUFFER, cube_vert_buffer);
 	glVertexAttribPointer(0,        // attrib layout
@@ -365,13 +378,14 @@ void renderCube(){
 	                      0,        // stride
 	                      (void*)0  // start offset
 	                      );
-	glVertexAttribPointer(1,        // attrib layout
-	                      3,        // components
-	                      GL_FLOAT, // type
-	                      GL_TRUE,  // normalized
-	                      0,        // stride
-	                      (void*)(sizeof(float)*3*12*3*1)  // start offset
-	                      );
+	glVertexAttrib3f(1, color.x,color.y,color.z);
+	//glVertexAttribPointer(1,        // attrib layout
+	//                      3,        // components
+	//                      GL_FLOAT, // type
+	//                      GL_TRUE,  // normalized
+	//                      0,        // stride
+	//                      (void*)(sizeof(float)*3*12*3*1)  // start offset
+	//                      );
 	glVertexAttribPointer(2,        // attrib layout
 	                      3,        // components
 	                      GL_FLOAT, // type
@@ -397,7 +411,7 @@ void renderMesh(const Mesh& mesh){
 	                      );
 
 	// color
-	glVertexAttribPointer(1,                                 // attrib layout
+	glVertexAttribPointer(2,                                 // attrib layout
 	                      3, GL_FLOAT,                       // components and type
 	                      GL_FALSE,                          // normalized
 	                      sizeof(float)*9,                   // stride
@@ -405,7 +419,7 @@ void renderMesh(const Mesh& mesh){
 	                      );
 
 	// normals
-	glVertexAttribPointer(2,                                 // attrib layout
+	glVertexAttribPointer(1,                                 // attrib layout
 	                      3, GL_FLOAT,                       // components and type
 	                      GL_FALSE,                          // normalized
 	                      sizeof(float)*9,                   // stride
@@ -587,14 +601,18 @@ Mesh loadMesh(const char* path){
 					c[1] /= len;
 					c[2] /= len;
 				}
+				for(int i = 0; i < 3; ++ i){
+					c[i] *= 0.5f;
+					c[i] += 0.5f;
+				}
 				#else
 				c[0] = 1;
 				c[1] = 1;
 				c[2] = 1;
 				#endif
-				vb[(3 * i + k) * stride + 6] = (c[0] * 0.5f + 0.5f);
-				vb[(3 * i + k) * stride + 7] = (c[1] * 0.5f + 0.5f);
-				vb[(3 * i + k) * stride + 8] = (c[2] * 0.5f + 0.5f);
+				vb[(3 * i + k) * stride + 6] = c[0];
+				vb[(3 * i + k) * stride + 7] = c[1];
+				vb[(3 * i + k) * stride + 8] = c[2];
 			}
 		}
 		face_offset += (size_t)attrib.face_num_verts[i];
