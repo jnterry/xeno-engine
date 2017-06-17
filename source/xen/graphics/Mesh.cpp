@@ -225,6 +225,9 @@ namespace xen{
 
 		free(vb);
 		free(scratch.start);
+		tinyobj_attrib_free(&attrib);
+		tinyobj_shapes_free(shapes, num_shapes);
+		tinyobj_materials_free(materials, num_materials);
 
 		printf("Successfully loaded mesh '%s', gpu_buf: %i, num faces: %i, bounds:(%f, %f, %f) -> (%f, %f, %f)\n",
 		       path,
