@@ -8,6 +8,7 @@
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/memory.hpp>
+#include <xen/util/File.hpp>
 #include <xen/graphics/Shader.hpp>
 #include <xen/math/Vector.hpp>
 #include <xen/math/Matrix.hpp>
@@ -387,8 +388,8 @@ void renderMesh(const Mesh& mesh){
 xen::ShaderProgram* loadShader(xen::ArenaLinear& arena){
 	XenTempArena(scratch, 8196);
 
-	FileData vertex_src = loadFileAndNullTerminate(scratch, "vertex.glsl");
-	FileData pixel_src  = loadFileAndNullTerminate(scratch, "pixel.glsl");
+	xen::FileData vertex_src = xen::loadFileAndNullTerminate(scratch, "vertex.glsl");
+	xen::FileData pixel_src  = xen::loadFileAndNullTerminate(scratch, "pixel.glsl");
 
 	auto result = xen::createShaderProgram(arena, (char*)vertex_src.data, (char*)pixel_src.data);
 
@@ -434,7 +435,7 @@ Mesh loadMesh(const char* path){
 
 	xen::ArenaLinear arena = xen::createArenaLinear(alloc, xen::megabytes(4));
 
-	FileData file = loadFileAndNullTerminate(arena, path);
+	xen::FileData file = xen::loadFileAndNullTerminate(arena, path);
 	if(file.size == 0){
 		printf("Failed to open mesh file: %s\n", path);
 		exit(1);

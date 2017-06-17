@@ -14,6 +14,16 @@ set(XEN_HEADERS_CORE
   ${CMAKE_CURRENT_LIST_DIR}/xen/core/memory/utilities.hpp
 )
 
+##################################################
+## Util
+##################################################
+set(XEN_SOURCES_UTIL
+  ${CMAKE_CURRENT_LIST_DIR}/xen/util/File.cpp
+)
+
+set(XEN_HEADERS_UTIL
+  ${CMAKE_CURRENT_LIST_DIR}/xen/util/File.hpp
+)
 
 ##################################################
 ## Math
@@ -50,12 +60,14 @@ set(XEN_HEADERS_GRAPHICS
 
 set(XEN_SOURCES_ALL
   ${XEN_SOURCES_CORE}
+  ${XEN_SOURCES_UTIL}
   ${XEN_SOURCES_MATH}
   ${XEN_SOURCES_GRAPHICS}
 )
 
 set(XEN_HEADERS_ALL
   ${XEN_HEADERS_CORE}
+  ${XEN_HEADERS_UTIL}
   ${XEN_HEADERS_MATH}
   ${XEN_HEADERS_GRAPHICS}
 )
