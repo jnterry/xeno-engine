@@ -48,7 +48,7 @@
 namespace xen{
 	namespace impl{
 
-		void checkGl(u32 line, const char* file){
+		inline void checkGl(u32 line, const char* file){
 			GLenum err = glGetError();
 			if(err == GL_NO_ERROR){ return; }
 

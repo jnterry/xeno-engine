@@ -11,8 +11,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/bin")
 
 option(STRICT_COMPILE "Enables extra compiler warnings and errors" ON)
 
+set(XEN_EXTLIBS_DIR     "${CMAKE_CURRENT_LIST_DIR}/extlibs")
 set(PP_SFML_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/extlibs/sfml2.4.2/include/")
-set(XEN_INCLUDE_DIR  "${CMAKE_CURRENT_LIST_DIR}/source/")
+set(XEN_INCLUDE_DIR     "${CMAKE_CURRENT_LIST_DIR}/source/")
 
 if(STRICT_COMPILE)
   #setup warnings + errors

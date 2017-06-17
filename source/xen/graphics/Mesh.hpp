@@ -14,6 +14,8 @@
 
 #include <xen/core/intrinsics.hpp>
 
+#include "gl_header.hxx"
+
 namespace xen{
 
 	/// \brief Opaque type representing buffer of data usable by the graphics hardware
@@ -29,11 +31,11 @@ namespace xen{
 	struct VertexAttrib{
 		/// \brief Enumeration of the types of attributes of this mesh
 		enum Type{
-			PositionXYZ,  // \brief Vec3r representing (x,y,z) position of vertex
+			PositionXYZ,  /// \brief Vec3r representing (x,y,z) position of vertex
 
-			NormalXYZ,    // \brief Vec3r representing (x,y,z) coords of the vertex
+			NormalXYZ,    /// \brief Vec3r representing (x,y,z) coords of the vertex
 
-			ColorRGBf,    // \brief 3 floats between 0 and 1 representing color components of the vertex
+			ColorRGBf,    /// \brief 3 floats between 0 and 1 representing color components of the vertex
 		};
 
 		/// \brief The type of this attribute
@@ -90,7 +92,8 @@ namespace xen{
 	};
 
 	/// \brief Loads a mesh from file
-	//Mesh loadMesh(const char* const path, u32 flags = MeshLoadFlags::NONE);
+	/// \param arena Arena in which resulting Mesh instance is stored
+	Mesh* loadMesh(xen::ArenaLinear& arena, const char* const path, u32 flags = MeshLoadFlags::NONE);
 
 	/// \brief Creates a mesh from segregated buffers of data for each attribute
 	/// \param attrib_count The number of attributes for the final mesh
