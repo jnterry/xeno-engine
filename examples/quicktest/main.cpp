@@ -10,6 +10,8 @@
 #include <xen/core/memory.hpp>
 #include <xen/util/File.hpp>
 #include <xen/graphics/Shader.hpp>
+#include <xen/graphics/Mesh.hpp>
+#include <xen/graphics/gl_header.hxx>
 #include <xen/math/Vector.hpp>
 #include <xen/math/Matrix.hpp>
 #include <xen/math/Angle.hpp>
@@ -21,18 +23,11 @@
 #define TINYOBJ_LOADER_C_IMPLEMENTATION
 #include "tinyobj_loader_c.h"
 
-
-struct Mesh{
-	GLuint gpu_buffer;
-	u32   num_triangles;
-	Vec3r bounds_min;
-	Vec3r bounds_max;
-};
 void initCube();
 void renderCube(Vec3r color);
-void renderMesh(const Mesh& mesh);
+void renderMesh(const xen::Mesh* mesh);
 xen::ShaderProgram* loadShader(xen::ArenaLinear&);
-Mesh loadMesh(const char* path);
+xen::Mesh* loadMesh(xen::ArenaLinear& arena, const char* path);
 
 
 Camera3dOrbit camera;
@@ -66,20 +61,19 @@ int main(int argc, char** argv){
 	context_settings = app.getSettings();
 	printf("Initialized window, GL version: %i.%i\n", context_settings.majorVersion, context_settings.minorVersion);
 
-	XenTempArena(arena, 4096);
+	XenTempArena(arena, 8196);
 
 	app.setActive(true);
 	glewInit();
 	initCube();
 
-	glEnable(GL_DEPTH_TEST);
-	glDepthFunc(GL_LESS);
+	XEN_CHECK_GL(glEnable(GL_DEPTH_TEST));
+	XEN_CHECK_GL(glDepthFunc(GL_LESS));
 
 	Mat4r model_mat, view_mat, proj_mat, vp_mat;
 	Vec4r point_light_color = Vec4r(1,0,0,1);
 
-	xen::ShaderProgram* prog = loadShader(arena);
-	Mesh mesh_bunny = loadMesh("bunny.obj");
+	xen::ShaderProgram* prog  = loadShader(arena);
 	int mvp_mat_loc           = xen::getUniformLocation(prog, "mvp_mat"          );
 	int model_mat_loc         = xen::getUniformLocation(prog, "model_mat"        );
 	int point_light_pos_loc   = xen::getUniformLocation(prog, "point_light_pos"  );
@@ -87,11 +81,10 @@ int main(int argc, char** argv){
 	int emissive_color_loc    = xen::getUniformLocation(prog, "emissive_color"   );
 	int camera_pos_loc        = xen::getUniformLocation(prog, "camera_position"  );
 
+	xen::Mesh* mesh_bunny     = loadMesh(arena, "bunny.obj");
+
 	sf::Clock timer;
 	real last_time = 0;
-
-	Vec3r ctest = xen::cross(Vec3r{1,2,4}, Vec3r{9,8,7});
-	printf("Cross: %f, %f, %f\n", ctest.x, ctest.y ,ctest.z);
 
 	printf("Entering main loop\n");
 	while(app.isOpen()){
@@ -106,7 +99,7 @@ int main(int argc, char** argv){
 				app.close();
 				break;
 			case sf::Event::Resized:
-				glViewport(0,0,event.size.width, event.size.height);
+				XEN_CHECK_GL(glViewport(0,0,event.size.width, event.size.height));
 				window_size = {(real)event.size.width, (real)event.size.height};
 				break;
 			case sf::Event::KeyReleased:
@@ -155,8 +148,8 @@ int main(int argc, char** argv){
 		vp_mat   = view_mat * proj_mat;
 
 		app.setActive(true);
-		glClearColor(0.3,0.3,0.3, 1);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		XEN_CHECK_GL(glClearColor(0.1,0.1,0.1, 1));
+		XEN_CHECK_GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
 		xen::useShader(prog);
 
@@ -188,7 +181,7 @@ int main(int argc, char** argv){
 		model_mat = Mat4r::Identity;
 		//model_mat *= xen::Rotation3dz(73_deg * time);
 		model_mat *= xen::Scale3d(20);
-		model_mat *= xen::Translation3d(-0.5_r * (mesh_bunny.bounds_max - mesh_bunny.bounds_min));
+		model_mat *= xen::Translation3d(-0.5_r * (mesh_bunny->bounds_max - mesh_bunny->bounds_min));
 		model_mat *= xen::Rotation3dy(67_deg * time);
 		//model_mat *= xen::Translation3d(0, 0, 0);
 		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
@@ -359,26 +352,26 @@ static const GLfloat cube_buffer_data[] = {
 };
 
 void initCube(){
-	glGenBuffers(1, &cube_vert_buffer);
-	glBindBuffer(GL_ARRAY_BUFFER, cube_vert_buffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(cube_buffer_data),
-	             cube_buffer_data, GL_STATIC_DRAW);
+	XEN_CHECK_GL(glGenBuffers(1, &cube_vert_buffer));
+	XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, cube_vert_buffer));
+	XEN_CHECK_GL(glBufferData(GL_ARRAY_BUFFER, sizeof(cube_buffer_data),
+	                          cube_buffer_data, GL_STATIC_DRAW));
 }
 
 
 void renderCube(Vec3r color){
-	glEnableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
-	glBindBuffer(GL_ARRAY_BUFFER, cube_vert_buffer);
-	glVertexAttribPointer(0,        // attrib layout
-	                      3,        // components
-	                      GL_FLOAT, // type
-	                      GL_FALSE, // normalized
-	                      0,        // stride
-	                      (void*)0  // start offset
-	                      );
-	glVertexAttrib3f(1, color.x,color.y,color.z);
+	XEN_CHECK_GL(glEnableVertexAttribArray(0));
+	XEN_CHECK_GL(glDisableVertexAttribArray(1));
+	XEN_CHECK_GL(glEnableVertexAttribArray(2));
+	XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, cube_vert_buffer));
+	XEN_CHECK_GL(glVertexAttribPointer(0,        // attrib layout
+	                                   3,        // components
+	                                   GL_FLOAT, // type
+	                                   GL_FALSE, // normalized
+	                                   0,        // stride
+	                                   (void*)0  // start offset
+	                                   ));
+	XEN_CHECK_GL(glVertexAttrib3f(1, color.x,color.y,color.z));
 	//glVertexAttribPointer(1,        // attrib layout
 	//                      3,        // components
 	//                      GL_FLOAT, // type
@@ -386,47 +379,48 @@ void renderCube(Vec3r color){
 	//                      0,        // stride
 	//                      (void*)(sizeof(float)*3*12*3*1)  // start offset
 	//                      );
-	glVertexAttribPointer(2,        // attrib layout
-	                      3,        // components
-	                      GL_FLOAT, // type
-	                      GL_TRUE,  // normalized
-	                      0,        // stride
-	                      (void*)(sizeof(float)*3*12*3*2)  // start offset
-	                      );
-	glDrawArrays(GL_TRIANGLES, 0, 12*3);
+	XEN_CHECK_GL(glVertexAttribPointer(2,        // attrib layout
+	                                   3,        // components
+	                                   GL_FLOAT, // type
+	                                   GL_TRUE,  // normalized
+	                                   0,        // stride
+	                                   (void*)(sizeof(float)*3*12*3*2)  // start offset
+	                                   ));
+	XEN_CHECK_GL(glDrawArrays(GL_TRIANGLES, 0, 12*3));
 }
 
-void renderMesh(const Mesh& mesh){
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
+void renderMesh(const xen::Mesh* mesh){
+	XEN_CHECK_GL(glEnableVertexAttribArray(0));
+	XEN_CHECK_GL(glEnableVertexAttribArray(1));
+	XEN_CHECK_GL(glEnableVertexAttribArray(2));
 
-	glBindBuffer(GL_ARRAY_BUFFER, mesh.gpu_buffer);
+	XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->gpu_buffer->handle));
+
 	// positions
-	glVertexAttribPointer(0,                                 // attrib layout
-	                      3, GL_FLOAT,                       // components and type
-	                      GL_FALSE,                          // normalized
-	                      sizeof(float)*9,                   // stride
-	                      (const void*)0                     // offset
-	                      );
+	XEN_CHECK_GL(glVertexAttribPointer(0,                                 // attrib layout
+	                                   3, GL_FLOAT,                       // components and type
+	                                   GL_FALSE,                          // normalized
+	                                   sizeof(float)*9,                   // stride
+	                                   (const void*)0                     // offset
+	                                   ));
 
 	// color
-	glVertexAttribPointer(2,                                 // attrib layout
-	                      3, GL_FLOAT,                       // components and type
-	                      GL_FALSE,                          // normalized
-	                      sizeof(float)*9,                   // stride
-	                      (const void*)(sizeof(float) * 3)   // offset
-	                      );
+	XEN_CHECK_GL(glVertexAttribPointer(2,                                 // attrib layout
+	                                   3, GL_FLOAT,                       // components and type
+	                                   GL_FALSE,                          // normalized
+	                                   sizeof(float)*9,                   // stride
+	                                   (const void*)(sizeof(float) * 3)   // offset
+	                                   ));
 
 	// normals
-	glVertexAttribPointer(1,                                 // attrib layout
-	                      3, GL_FLOAT,                       // components and type
-	                      GL_FALSE,                          // normalized
-	                      sizeof(float)*9,                   // stride
-	                      (const void*)(sizeof(float) * 6)   // offset
-	                      );
+	XEN_CHECK_GL(glVertexAttribPointer(1,                                 // attrib layout
+	                                   3, GL_FLOAT,                       // components and type
+	                                   GL_FALSE,                          // normalized
+	                                   sizeof(float)*9,                   // stride
+	                                   (const void*)(sizeof(float) * 6)   // offset
+	                                   ));
 
-	glDrawArrays(GL_TRIANGLES, 0, mesh.num_triangles * 3);
+	XEN_CHECK_GL(glDrawArrays(GL_TRIANGLES, 0, mesh->num_triangles * 3));
 }
 
 xen::ShaderProgram* loadShader(xen::ArenaLinear& arena){
@@ -474,12 +468,12 @@ static void CalcNormal(float N[3], float v0[3], float v1[3], float v2[3]) {
   }
 }
 
-Mesh loadMesh(const char* path){
+xen::Mesh* loadMesh(xen::ArenaLinear& arena, const char* path){
 	xen::AllocatorMalloc alloc;
 
-	xen::ArenaLinear arena = xen::createArenaLinear(alloc, xen::megabytes(4));
+	xen::ArenaLinear scratch = xen::createArenaLinear(alloc, xen::megabytes(4));
 
-	xen::FileData file = xen::loadFileAndNullTerminate(arena, path);
+	xen::FileData file = xen::loadFileAndNullTerminate(scratch, path);
 	if(file.size == 0){
 		printf("Failed to open mesh file: %s\n", path);
 		exit(1);
@@ -512,7 +506,10 @@ Mesh loadMesh(const char* path){
 	// allocate space for vert buffer data
 	float* vb = (float*)malloc(sizeof(float) * stride * num_triangles * 3);
 
-	Mesh result;
+	xen::MemoryTransaction transaction(arena);
+	xen::Mesh* result = (xen::Mesh*)xen::ptrGetAdvanced(arena.next_byte, sizeof(xen::GpuBuffer));
+	result->gpu_buffer = (xen::GpuBuffer*)arena.next_byte;
+	xen::ptrAdvance(&arena.next_byte, sizeof(xen::GpuBuffer) + sizeof(xen::Mesh) + sizeof(xen::VertexAttrib)*3);
 
 	for (size_t i = 0; i < attrib.num_face_num_verts; i++) {
 		XenAssert(attrib.face_num_verts[i] == 3, "Assuming mesh triangulated");
@@ -538,12 +535,12 @@ Mesh loadMesh(const char* path){
 				v[0][k] = attrib.vertices[3 * (size_t)f0 + k];
 				v[1][k] = attrib.vertices[3 * (size_t)f1 + k];
 				v[2][k] = attrib.vertices[3 * (size_t)f2 + k];
-				result.bounds_min.elements[k] = (v[0][k] < result.bounds_min.elements[k]) ? v[0][k] : result.bounds_min.elements[k];
-				result.bounds_min.elements[k] = (v[1][k] < result.bounds_min.elements[k]) ? v[1][k] : result.bounds_min.elements[k];
-				result.bounds_min.elements[k] = (v[2][k] < result.bounds_min.elements[k]) ? v[2][k] : result.bounds_min.elements[k];
-				result.bounds_max.elements[k] = (v[0][k] > result.bounds_max.elements[k]) ? v[0][k] : result.bounds_max.elements[k];
-				result.bounds_max.elements[k] = (v[1][k] > result.bounds_max.elements[k]) ? v[1][k] : result.bounds_max.elements[k];
-				result.bounds_max.elements[k] = (v[2][k] > result.bounds_max.elements[k]) ? v[2][k] : result.bounds_max.elements[k];
+				result->bounds_min.elements[k] = (v[0][k] < result->bounds_min.elements[k]) ? v[0][k] : result->bounds_min.elements[k];
+				result->bounds_min.elements[k] = (v[1][k] < result->bounds_min.elements[k]) ? v[1][k] : result->bounds_min.elements[k];
+				result->bounds_min.elements[k] = (v[2][k] < result->bounds_min.elements[k]) ? v[2][k] : result->bounds_min.elements[k];
+				result->bounds_max.elements[k] = (v[0][k] > result->bounds_max.elements[k]) ? v[0][k] : result->bounds_max.elements[k];
+				result->bounds_max.elements[k] = (v[1][k] > result->bounds_max.elements[k]) ? v[1][k] : result->bounds_max.elements[k];
+				result->bounds_max.elements[k] = (v[2][k] > result->bounds_max.elements[k]) ? v[2][k] : result->bounds_max.elements[k];
 			}
 
 			if (attrib.num_normals > 0) {
@@ -618,23 +615,27 @@ Mesh loadMesh(const char* path){
 		face_offset += (size_t)attrib.face_num_verts[i];
 	}
 
-	result.gpu_buffer    = 0;
-	result.num_triangles = 0;
+	result->gpu_buffer->handle = 0;
+	result->num_triangles      = 0;
 
 	if (num_triangles > 0) {
-		glGenBuffers(1, &result.gpu_buffer);
-		glBindBuffer(GL_ARRAY_BUFFER, result.gpu_buffer);
+		glGenBuffers(1, &result->gpu_buffer->handle);
+		glBindBuffer(GL_ARRAY_BUFFER, result->gpu_buffer->handle);
 		glBufferData(GL_ARRAY_BUFFER, num_triangles * 3 * stride * sizeof(float), vb, GL_STATIC_DRAW);
-		result.num_triangles = (int)num_triangles;
+		result->num_triangles = (int)num_triangles;
 	}
 
 	free(vb);
-	free(arena.start);
+	free(scratch.start);
 
-	printf("Successfully loaded mesh '%s', num faces: %i, bounds:(%f, %f, %f) -> (%f, %f, %f)\n",
-	       path, result.num_triangles,
-	       result.bounds_min.x, result.bounds_min.y, result.bounds_min.z,
-	       result.bounds_max.x, result.bounds_max.y, result.bounds_max.z
+	printf("Successfully loaded mesh '%s', gpu_buf: %i, num faces: %i, bounds:(%f, %f, %f) -> (%f, %f, %f)\n",
+	       path,
+	       result->gpu_buffer->handle,
+	       result->num_triangles,
+	       result->bounds_min.x, result->bounds_min.y, result->bounds_min.z,
+	       result->bounds_max.x, result->bounds_max.y, result->bounds_max.z
 	       );
+
+	transaction.commit();
 	return result;
 }
