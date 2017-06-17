@@ -53,5 +53,7 @@ void main(){
 	total_light += calcLight(vec4(1,1,1,0.15), normalize(vec3(0,-1,-1)));
 	total_light += emissive_color.xyz * emissive_color.w;
 
-	out_color = vec4(color * total_light, 1);
+	vec3 normal_col = (normalize(normal) + vec3(1,1,1)) / 2.0;
+
+	out_color = vec4(normal/*color/* * total_light*/, 1) + emissive_color;
 }

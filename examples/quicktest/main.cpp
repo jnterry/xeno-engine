@@ -155,7 +155,7 @@ int main(int argc, char** argv){
 		vp_mat   = view_mat * proj_mat;
 
 		app.setActive(true);
-		glClearColor(0.0,0.0,0.0, 1);
+		glClearColor(0.3,0.3,0.3, 1);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		xen::useShader(prog);
@@ -180,8 +180,11 @@ int main(int argc, char** argv){
 		xen::setUniform(emissive_color_loc, Vec4r::Origin);
 
 		model_mat = Mat4r::Identity;
-		model_mat *= xen::Scale3d(30);
-		model_mat *= xen::Translation3d(0, 0, 0);
+		//model_mat *= xen::Rotation3dz(73_deg * time);
+		model_mat *= xen::Scale3d(20);
+		model_mat *= xen::Translation3d(-0.5_r * (mesh_bunny.bounds_max - mesh_bunny.bounds_min));
+		model_mat *= xen::Rotation3dy(67_deg * time);
+		//model_mat *= xen::Translation3d(0, 0, 0);
 		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
 		xen::setUniform(model_mat_loc, model_mat);
 		renderMesh(mesh_bunny);
@@ -191,6 +194,30 @@ int main(int argc, char** argv){
 		model_mat *= xen::Translation3d(0, -0.5, 0);
 		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
 		xen::setUniform(model_mat_loc, model_mat);
+		renderCube();
+
+		model_mat = Mat4r::Identity;
+		model_mat *= xen::Translation3d(1,0,0);
+		model_mat *= xen::Scale3d(5, 0.05, 0.05);
+		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
+		xen::setUniform(model_mat_loc, model_mat);
+		xen::setUniform(emissive_color_loc, Vec4r(1,0,0,1));
+		renderCube();
+
+		model_mat = Mat4r::Identity;
+		model_mat *= xen::Translation3d(0,1,0);
+		model_mat *= xen::Scale3d(0.05, 5, 0.05);
+		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
+		xen::setUniform(model_mat_loc, model_mat);
+		xen::setUniform(emissive_color_loc, Vec4r(0,1,0,1));
+		renderCube();
+
+		model_mat = Mat4r::Identity;
+		model_mat *= xen::Translation3d(0,0,1);
+		model_mat *= xen::Scale3d(0.05, 0.05, 5);
+		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
+		xen::setUniform(model_mat_loc, model_mat);
+		xen::setUniform(emissive_color_loc, Vec4r(0,0,1,1));
 		renderCube();
 
 		app.display();
@@ -329,6 +356,7 @@ void initCube(){
 void renderCube(){
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
 	glBindBuffer(GL_ARRAY_BUFFER, cube_vert_buffer);
 	glVertexAttribPointer(0,        // attrib layout
 	                      3,        // components
@@ -356,6 +384,8 @@ void renderCube(){
 
 void renderMesh(const Mesh& mesh){
 	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mesh.gpu_buffer);
 	// positions
@@ -557,6 +587,10 @@ Mesh loadMesh(const char* path){
 					c[1] /= len;
 					c[2] /= len;
 				}
+				#else
+				c[0] = 1;
+				c[1] = 1;
+				c[2] = 1;
 				#endif
 				vb[(3 * i + k) * stride + 6] = (c[0] * 0.5f + 0.5f);
 				vb[(3 * i + k) * stride + 7] = (c[1] * 0.5f + 0.5f);
