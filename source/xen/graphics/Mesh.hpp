@@ -95,7 +95,7 @@ namespace xen{
 
 			/// \brief Indicates that smooth normals should be generated such that normal
 			/// of each vertex is average of all faces the vertex is a part of
-			SMOOTH_NORMALS  = 0x01,
+			//SMOOTH_NORMALS  = 0x01,
 
 			/// \brief Modifies vertex positions such that center of mesh (according to bounding box)
 			/// is at the orgin

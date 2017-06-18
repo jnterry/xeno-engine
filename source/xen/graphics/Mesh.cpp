@@ -340,11 +340,13 @@ namespace xen{
 			if(result->attribs[i].stride){
 				const void* data_source = attrib_data[i];
 				bool  generated_data = false;
+
+				// check if we need to generate normals
 				if(result->attribs[i].type == VertexAttrib::NormalXYZ && data_source == nullptr){
 					// Then generate normals
 					generated_data = true;
 
-					//:TODO: dont use malloc, use arena
+					//:TODO: dont use malloc, use arena (or better have a thread local scratch space)
 					Vec3r* normals = (Vec3r*)malloc(sizeof(Vec3r) * vertex_count);
 					data_source = normals;
 					for(u32 v = 0; v < vertex_count; v += 3){
