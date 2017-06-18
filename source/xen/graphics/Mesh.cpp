@@ -64,6 +64,17 @@ namespace{
 		return 0;
 	}
 
+	xen::Mesh* pushMesh(xen::ArenaLinear& arena, u32 attrib_count){
+		xen::Mesh* result = (xen::Mesh*)xen::ptrGetAdvanced(arena.next_byte, sizeof(xen::GpuBuffer));
+		result->gpu_buffer = (xen::GpuBuffer*)arena.next_byte;
+		xen::ptrAdvance(&arena.next_byte,
+		                sizeof(xen::GpuBuffer) + sizeof(xen::Mesh) + sizeof(xen::VertexAttrib)*attrib_count);
+
+		result->attrib_count = attrib_count;
+
+		return result;
+	}
+
 }
 
 namespace xen{
@@ -105,9 +116,7 @@ namespace xen{
 		float* vb = (float*)malloc(sizeof(float) * stride * num_triangles * 3);
 
 		xen::MemoryTransaction transaction(arena);
-		xen::Mesh* result = (xen::Mesh*)xen::ptrGetAdvanced(arena.next_byte, sizeof(xen::GpuBuffer));
-		result->gpu_buffer = (xen::GpuBuffer*)arena.next_byte;
-		xen::ptrAdvance(&arena.next_byte, sizeof(xen::GpuBuffer) + sizeof(xen::Mesh) + sizeof(xen::VertexAttrib)*3);
+		xen::Mesh* result = pushMesh(arena, 3);
 
 		result->attrib_count = 3;
 		result->attribs[0].type = xen::VertexAttrib::PositionXYZ;
@@ -119,7 +128,6 @@ namespace xen{
 		result->attribs[0].stride = 9 * sizeof(float);
 		result->attribs[1].stride = 9 * sizeof(float);
 		result->attribs[2].stride = 9 * sizeof(float);
-
 
 		for (size_t i = 0; i < attrib.num_face_num_verts; i++) {
 			XenAssert(attrib.face_num_verts[i] == 3, "Assuming mesh triangulated");
@@ -260,12 +268,9 @@ namespace xen{
 		XenAssert(vertex_count % 3 == 0, "Mesh must be created from collection of triangles");
 
 		xen::MemoryTransaction transaction(arena);
-		xen::Mesh* result = (xen::Mesh*)xen::ptrGetAdvanced(arena.next_byte, sizeof(xen::GpuBuffer));
-		result->gpu_buffer = (xen::GpuBuffer*)arena.next_byte;
-		xen::ptrAdvance(&arena.next_byte, sizeof(xen::GpuBuffer) + sizeof(xen::Mesh) + sizeof(xen::VertexAttrib)*attrib_count);
+		xen::Mesh* result = pushMesh(arena, attrib_count);
 
 		result->num_triangles = vertex_count / 3;
-		result->attrib_count = attrib_count;
 
 		u32 gpu_buffer_size =   0;
 		u08 position_index  = 255; // index of attrib representing position

@@ -35,11 +35,14 @@ namespace xen{
 	struct VertexAttrib{
 		/// \brief Enumeration of the types of attributes of this mesh
 		enum Type{
-			PositionXYZ,  /// \brief Vec3r representing (x,y,z) position of vertex
+			/// \brief Vec3r representing (x,y,z) position of vertex
+			PositionXYZ,
 
-			NormalXYZ,    /// \brief Vec3r representing (x,y,z) coords of the vertex
+			/// \brief Vec3r representing (x,y,z) coords of the vertex
+			NormalXYZ,
 
-			ColorRGBf,    /// \brief 3 floats between 0 and 1 representing color components of the vertex
+			/// \brief 3 floats between 0 and 1 representing color components of the vertex
+			ColorRGBf,
 		};
 
 		/// \brief The type of this attribute
