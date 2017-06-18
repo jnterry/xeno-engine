@@ -79,6 +79,11 @@ namespace{
 
 namespace xen{
 	xen::Mesh* loadMesh(xen::ArenaLinear& arena, const char* path, u32 flags){
+		//:TODO: this function is a mess (directly taken from tinyobj example code)
+		// - we should take params of what VertexAttribs we want to load, and in what order in final mesh
+		//   - currently loads color, but obj doesn't support colors, should replace with a constant value
+		// - we need to support the flags
+
 		xen::AllocatorMalloc alloc; //:TODO: dont really want to be creating allocator here...
 		xen::ArenaLinear scratch = xen::createArenaLinear(alloc, xen::megabytes(4));
 
