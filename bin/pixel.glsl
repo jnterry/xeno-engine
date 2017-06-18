@@ -57,5 +57,6 @@ void main(){
 
 	//out_color = vec4(normal_col,1);
 	out_color = vec4(color * total_light, 1);
+	//out_color = vec4(color,1);
 	//out_color = vec4(1,0,0,1);
 }

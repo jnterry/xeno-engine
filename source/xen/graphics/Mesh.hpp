@@ -54,6 +54,8 @@ namespace xen{
 
 			/// \brief The constant value of this attrib, if stride is 0 and this attrib is 3 component floating type
 			Vec3r value3r;
+
+			Vec3f value3f;
 		};
 	};
 
@@ -87,7 +89,7 @@ namespace xen{
 
 			/// \brief Modifies vertex positions such that center of mesh (according to bounding box)
 			/// is at the orgin
-			CENTER_ORIGIN   = 0x02,
+			//CENTER_ORIGIN   = 0x02,
 		};
 	};
 
@@ -96,13 +98,18 @@ namespace xen{
 	Mesh* loadMesh(xen::ArenaLinear& arena, const char* const path, u32 flags = MeshLoadFlags::NONE);
 
 	/// \brief Creates a mesh from segregated buffers of data for each attribute
+	/// \param arena        Arena in which resulting Mesh instance is stored
 	/// \param attrib_count The number of attributes for the final mesh
 	/// \param attrib_types The types of each attribute of the mesh
+	/// \param vertex_count The number of verticies in the mesh, length of arrays pointed to by elements of attrib_data
 	/// \param attrib_data  Array of void* pointing to first byte of buffers containing
 	///                     the mesh data. If nullptr then will attempt to derive
 	///                     the data, eg, generating normals from positions
 	/// \param flags        Additional flags controling the way the mesh is created
-	//Mesh createMesh(u08 attrib_count, u32 attrib_types, void** attrib_data, u32 flags = MeshLoadFlags::NONE);
+	Mesh* createMesh(ArenaLinear& arena,
+	                 u08 attrib_count, VertexAttrib::Type* attrib_types,
+	                 u32 vertex_count, const void** attrib_data,
+	                 u32 flags = MeshLoadFlags::NONE);
 
 	/// \brief Destroys a mesh, cleaning up all its resources
 	//void destroyMesh(const char* mesh);

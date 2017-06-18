@@ -52,6 +52,15 @@ namespace{
 			N[1] /= len;
 		}
 	}
+
+	u32 getAttribTypeSize(xen::VertexAttrib::Type type){
+		switch(type){
+		case xen::VertexAttrib::PositionXYZ: return sizeof(Vec3r);
+		case xen::VertexAttrib::NormalXYZ:   return sizeof(Vec3r);
+		case xen::VertexAttrib::ColorRGBf:   return sizeof(Vec3f);
+		}
+	}
+
 }
 
 namespace xen{
@@ -237,6 +246,133 @@ namespace xen{
 		       result->bounds_max.x, result->bounds_max.y, result->bounds_max.z
 		       );
 
+		transaction.commit();
+		return result;
+	}
+
+	Mesh* createMesh(ArenaLinear& arena,
+	                 u08 attrib_count, VertexAttrib::Type* attrib_types,
+	                 u32 vertex_count, const void** attrib_data,
+	                 u32 flags){
+
+		XenAssert(vertex_count % 3 == 0, "Mesh must be created from collection of triangles");
+
+		xen::MemoryTransaction transaction(arena);
+		xen::Mesh* result = (xen::Mesh*)xen::ptrGetAdvanced(arena.next_byte, sizeof(xen::GpuBuffer));
+		result->gpu_buffer = (xen::GpuBuffer*)arena.next_byte;
+		xen::ptrAdvance(&arena.next_byte, sizeof(xen::GpuBuffer) + sizeof(xen::Mesh) + sizeof(xen::VertexAttrib)*attrib_count);
+
+		result->num_triangles = vertex_count / 3;
+		result->attrib_count = attrib_count;
+
+		printf("Creating mesh with %i triangles\n", result->num_triangles);
+		u32 gpu_buffer_size =   0;
+		u08 position_index  = 255; // index of attrib representing position
+
+		///////////////////////////////////////////////
+		// Set up mesh attributes, work out where to store data in gpu buffer
+		for(u08 i = 0; i < attrib_count; ++i){
+			result->attribs[i].type = attrib_types[i];
+			result->attribs[i].offset = gpu_buffer_size;
+
+			switch(attrib_types[i]){
+			case VertexAttrib::PositionXYZ:
+				XenAssert(attrib_data[i] != nullptr, "Mesh's position data cannot be inferred");
+				XenAssert(position_index == 255, "Mesh can only have single position attribute");
+				result->attribs[i].stride = sizeof(Vec3r);
+				position_index = i;
+				break;
+			case VertexAttrib::NormalXYZ:
+				result->attribs[i].stride = sizeof(Vec3r);
+				break;
+			case VertexAttrib::ColorRGBf:
+				if(attrib_data[i] == nullptr){
+					result->attribs[i].stride = 0;
+					result->attribs[i].value3f = Vec3f(1,1,1); // white by default
+				} else {
+					result->attribs[i].stride = sizeof(Vec3f);
+				}
+				break;
+			}
+
+			gpu_buffer_size += result->attribs[i].stride * vertex_count;
+
+		}
+
+		///////////////////////////////////////////////
+		// Calculate Mesh Bounds
+		XenAssert(position_index != 255, "Mesh's position data cannot be inferred");
+		Vec3r* positions = (Vec3r*)attrib_data[position_index];
+		result->bounds_min = positions[0];
+		result->bounds_max = positions[0];
+		for(u32 i = 1; i < vertex_count; ++i){
+			result->bounds_min.x = XenMin(result->bounds_min.x, positions[i].x);
+			result->bounds_min.y = XenMin(result->bounds_min.y, positions[i].y);
+			result->bounds_min.z = XenMin(result->bounds_min.z, positions[i].z);
+			result->bounds_max.x = XenMax(result->bounds_max.x, positions[i].x);
+			result->bounds_max.y = XenMax(result->bounds_max.y, positions[i].y);
+			result->bounds_max.z = XenMax(result->bounds_max.z, positions[i].z);
+		}
+		printf("Mesh bounds: (%f, %f, %f) :: (%f, %f, %f)\n",
+		       result->bounds_min.x, result->bounds_min.y, result->bounds_min.z,
+		       result->bounds_max.x, result->bounds_max.y, result->bounds_max.z
+		       );
+
+	    ///////////////////////////////////////////////
+		// Create the GPU buffer
+		XEN_CHECK_GL(glGenBuffers(1, &result->gpu_buffer->handle));
+		XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, result->gpu_buffer->handle));
+
+		///////////////////////////////////////////////
+		// Reserve space for data
+		XEN_CHECK_GL(glBufferData(GL_ARRAY_BUFFER, gpu_buffer_size, nullptr, GL_STATIC_DRAW));
+
+		///////////////////////////////////////////////
+		// Upload vertex attrib data to GPU buffer
+		for(u08 i = 0; i < attrib_count; ++i){
+			if(result->attribs[i].stride){
+				printf("Buffering data for attrib %i, offset: %i, length: %i\n",
+				       i,
+				       result->attribs[i].offset,
+				       getAttribTypeSize(result->attribs[i].type) * vertex_count
+				       );
+
+				const void* data_source = attrib_data[i];
+				bool  generated_data = false;
+				if(result->attribs[i].type == VertexAttrib::NormalXYZ && data_source == nullptr){
+					printf("Generating mesh normals\n");
+					// Then generate normals
+					generated_data = true;
+
+					//:TODO: dont use malloc, use arena
+					Vec3r* normals = (Vec3r*)malloc(sizeof(Vec3r) * vertex_count);
+					data_source = normals;
+					for(u32 v = 0; v < vertex_count; v += 3){
+						Vec3r n;
+						CalcNormal(n.elements,
+						           positions[v + 0].elements,
+						           positions[v + 1].elements,
+						           positions[v + 2].elements
+						           );
+						normals[v + 0] = n;
+						normals[v + 1] = n;
+						normals[v + 2] = n;
+					}
+				}
+
+				XEN_CHECK_GL(glBufferSubData(GL_ARRAY_BUFFER,
+				                             result->attribs[i].offset,
+				                             getAttribTypeSize(result->attribs[i].type) * vertex_count,
+				                             data_source
+				                             )
+				             );
+
+				if(generated_data){ free((void*)data_source); }
+			}
+		}
+
+		///////////////////////////////////////////////
+		// Return Result
 		transaction.commit();
 		return result;
 	}
