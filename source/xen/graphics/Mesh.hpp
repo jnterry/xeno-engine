@@ -26,6 +26,10 @@ namespace xen{
 		GLuint handle;
 	};
 
+	// gcc doesn't like the anonomous structures inside unions, disable the warning temporarily...
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wpedantic"
+
 	/// \brief Represents a single attribute of a Vertex, eg position data, normal data, etc.
 	/// Each vertex in a mesh will have a value for each attribute
 	struct VertexAttrib{
@@ -49,7 +53,7 @@ namespace xen{
 		union{
 			/// \brief Parameters describing layout of data in the GpuBuffer
 			struct{
-				u32 offset; /// \brief The offset of the first byte of one of these attributes in the GPU buffer
+				uptr offset; /// \brief The offset of the first byte of one of these attributes in the GPU buffer
 			};
 
 			/// \brief The constant value of this attrib, if stride is 0 and this attrib is 3 component floating type
@@ -77,6 +81,9 @@ namespace xen{
 		u08          attrib_count;   /// \brief The number of attributes per vertex of this mesh
 		VertexAttrib attribs[0];     /// \brief The types of attributes of this mesh
 	};
+
+	#pragma GCC diagnostic pop // re-enable -Wpedantic
+
 
 	/// \brief The
 	struct MeshLoadFlags {

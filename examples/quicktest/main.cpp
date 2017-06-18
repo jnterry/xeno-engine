@@ -197,7 +197,8 @@ int main(int argc, char** argv){
 	                                  nullptr,//&cube_buffer_data[3*2*6 * 1 * 3],
 	                                  nullptr// &cube_buffer_data[3*2*6 * 2 * 3]
 	};
-	XenAssert(XenArrayLength(vertex_spec) == XenArrayLength(cube_attrib_data));
+	XenAssert(XenArrayLength(vertex_spec) == XenArrayLength(cube_attrib_data),
+	          "Vertex spec attrib count must match num attribs used");
 	xen::Mesh* mesh_cube      = createMesh(arena,
 	                                       XenArrayLength(vertex_spec), vertex_spec,
 	                                       3 * 2 * 6, // Vertex count: (3 vert per tri) * (2 tri per face) * (6 faces)

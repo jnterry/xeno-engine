@@ -59,6 +59,9 @@ namespace{
 		case xen::VertexAttrib::NormalXYZ:   return sizeof(Vec3r);
 		case xen::VertexAttrib::ColorRGBf:   return sizeof(Vec3f);
 		}
+		// compiler should warn about for missing case above to prevent this
+		XenInvalidCodePath();
+		return 0;
 	}
 
 }
@@ -125,7 +128,6 @@ namespace xen{
 				float v[3][3];
 				float n[3][3];
 				float c[3];
-				float len2;
 
 				tinyobj_vertex_index_t idx0 = attrib.faces[face_offset + 3 * f + 0];
 				tinyobj_vertex_index_t idx1 = attrib.faces[face_offset + 3 * f + 1];
@@ -265,7 +267,6 @@ namespace xen{
 		result->num_triangles = vertex_count / 3;
 		result->attrib_count = attrib_count;
 
-		printf("Creating mesh with %i triangles\n", result->num_triangles);
 		u32 gpu_buffer_size =   0;
 		u08 position_index  = 255; // index of attrib representing position
 
@@ -313,10 +314,6 @@ namespace xen{
 			result->bounds_max.y = XenMax(result->bounds_max.y, positions[i].y);
 			result->bounds_max.z = XenMax(result->bounds_max.z, positions[i].z);
 		}
-		printf("Mesh bounds: (%f, %f, %f) :: (%f, %f, %f)\n",
-		       result->bounds_min.x, result->bounds_min.y, result->bounds_min.z,
-		       result->bounds_max.x, result->bounds_max.y, result->bounds_max.z
-		       );
 
 	    ///////////////////////////////////////////////
 		// Create the GPU buffer
@@ -331,16 +328,9 @@ namespace xen{
 		// Upload vertex attrib data to GPU buffer
 		for(u08 i = 0; i < attrib_count; ++i){
 			if(result->attribs[i].stride){
-				printf("Buffering data for attrib %i, offset: %i, length: %i\n",
-				       i,
-				       result->attribs[i].offset,
-				       getAttribTypeSize(result->attribs[i].type) * vertex_count
-				       );
-
 				const void* data_source = attrib_data[i];
 				bool  generated_data = false;
 				if(result->attribs[i].type == VertexAttrib::NormalXYZ && data_source == nullptr){
-					printf("Generating mesh normals\n");
 					// Then generate normals
 					generated_data = true;
 
