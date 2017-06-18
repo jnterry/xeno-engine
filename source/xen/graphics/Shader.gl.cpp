@@ -55,8 +55,43 @@ namespace xen{
 
 		XEN_CHECK_GL(glDetachShader(result->program, result->vertex_shader  ));
 		XEN_CHECK_GL(glDetachShader(result->program, result->pixel_shader));
-
 		transaction.commit();
+
+		////////////////////////////////////////////////////
+		// Query Shader Interface
+		// :TODO: all this is temp debug code, want to actually store this data somehow...
+		GLint attrib_count;
+
+		char tmp[256];
+
+		XEN_CHECK_GL(glGetProgramiv(result->program, GL_ACTIVE_ATTRIBUTES, &attrib_count));
+		printf("Created program\n");
+		printf("- Vertex Spec has %i attributes\n", attrib_count);
+		for(int i = 0; i < attrib_count; ++i){
+
+			GLint  attrib_size;
+			GLenum attrib_type;
+
+			XEN_CHECK_GL(glGetActiveAttrib(result->program, i,
+			                               XenArrayLength(tmp), NULL,
+			                               &attrib_size, &attrib_type,
+			                               tmp));
+
+			GLint attrib_location = XEN_CHECK_GL_RETURN(glGetAttribLocation(result->program, tmp));
+
+			printf("  - %2i: %24s, size: %i, type: %6i, location: %2i\n",
+			       i, tmp, attrib_size, attrib_type, attrib_location);
+		}
+
+		GLint uniform_count;
+		XEN_CHECK_GL(glGetProgramiv(result->program, GL_ACTIVE_UNIFORMS, &uniform_count));
+		printf("- Program has %i uniforms\n", uniform_count);
+		for(int i = 0; i < uniform_count; ++i){
+			XEN_CHECK_GL(glGetActiveUniformName(result->program, i, XenArrayLength(tmp), NULL, tmp));
+			printf("  - %2i: %24s\n", i, tmp);
+		}
+		////////////////////////////////////////////////////
+
 		return result;
 	}
 
