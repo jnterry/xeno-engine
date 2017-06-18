@@ -11,6 +11,7 @@
 #include <xen/util/File.hpp>
 #include <xen/graphics/Shader.hpp>
 #include <xen/graphics/Mesh.hpp>
+#include <xen/graphics/Texture.hpp>
 #include <xen/graphics/gl_header.hxx>
 #include <xen/math/Vector.hpp>
 #include <xen/math/Matrix.hpp>
@@ -205,6 +206,9 @@ int main(int argc, char** argv){
 	                                       cube_attrib_data
 	                                       );
 
+	xen::RawImage      test_image   = xen::loadImage(arena, "test.bmp");
+	xen::TextureHandle test_texture = xen::createTexture(&test_image);
+
 	sf::Clock timer;
 	real last_time = 0;
 
@@ -394,6 +398,7 @@ xen::ShaderProgram* loadShader(xen::ArenaLinear& arena){
 		xen::resetArena(scratch);
 		const char* errors = xen::getErrors(result, scratch);
 		printf("Shader Errors:\n%s\n", errors);
+		exit(1);
 	} else {
 		printf("Shader compiled successfully\n");
 	}

@@ -48,12 +48,14 @@ set(XEN_HEADERS_MATH
 set(XEN_SOURCES_GRAPHICS
   ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Shader.gl.cpp
   ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Mesh.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Texture.cpp
 )
 
 set(XEN_HEADERS_GRAPHICS
   ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/gl_header.hxx
   ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Shader.hpp
   ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Mesh.hpp
+  ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Texture.hpp
 )
 
 ##################################################
