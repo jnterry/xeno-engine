@@ -1,6 +1,5 @@
 add_executable(quicktest
   ${CMAKE_CURRENT_LIST_DIR}/main.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/Camera3d.cpp
   ${CMAKE_CURRENT_LIST_DIR}/utilities.cpp
 )
 

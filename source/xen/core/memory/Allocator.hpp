@@ -16,7 +16,7 @@
 
 namespace xen{
 	//////////////////////////////////////////////////////////////////////////
-	/// \brief Virutal class which represents some allocator from which memory may be obtained
+	/// \brief Virtual class which represents some allocator from which memory may be obtained
 	/// \note Allocation is slow, Allocator instances are intended to be used infrequently
 	/// in order to obtain large blocks of memory from the OS, which are then managed manually
 	/// by some top level system in Xenogin

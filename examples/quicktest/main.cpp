@@ -13,18 +13,18 @@
 #include <xen/graphics/Mesh.hpp>
 #include <xen/graphics/Texture.hpp>
 #include <xen/graphics/gl_header.hxx>
+#include <xen/graphics/Camera3d.hpp>
 #include <xen/math/Vector.hpp>
 #include <xen/math/Matrix.hpp>
 #include <xen/math/Angle.hpp>
 #include <xen/math/Quaternion.hpp>
 
 #include "utilities.hpp"
-#include "Camera3d.hpp"
 
 void renderMesh(const xen::Mesh* mesh);
 xen::ShaderProgram* loadShader(xen::ArenaLinear&);
 
-Camera3dOrbit camera;
+xen::Camera3dOrbit camera;
 real camera_speed = 10;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
@@ -190,9 +190,13 @@ int main(int argc, char** argv){
 	int emissive_color_loc    = xen::getUniformLocation(prog, "emissive_color"   );
 	int camera_pos_loc        = xen::getUniformLocation(prog, "camera_position"  );
 
-	xen::VertexAttrib::Type vertex_spec[] = {xen::VertexAttrib::PositionXYZ, xen::VertexAttrib::ColorRGBf, xen::VertexAttrib::NormalXYZ};
+	xen::VertexAttrib::Type vertex_spec[] = {
+		xen::VertexAttrib::PositionXYZ,
+		xen::VertexAttrib::ColorRGBf,
+		xen::VertexAttrib::NormalXYZ
+	};
 
-	xen::Mesh* mesh_bunny     = loadMesh(arena, "bunny.obj");
+	xen::Mesh* mesh_bunny = loadMesh(arena, "bunny.obj");
 
 	const void* cube_attrib_data[] = {&cube_buffer_data[3*2*6 * 0 * 3],
 	                                  nullptr,//&cube_buffer_data[3*2*6 * 1 * 3],
