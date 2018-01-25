@@ -59,7 +59,6 @@ TEST_CASE("Vec4r * Mat4r", "[math][Matrix]"){
 
 TEST_CASE("Vec3r * Mat4r", "[math][Matrix]"){
 	// calced using http://matrix.reshish.com/multiplication.php
-	CHECK((Vec3r(3,6,-2) * Mat4r{3,5,7,2,  -1,0,3,-7,  -2,-5,3,10,  -4,0,9,3}) == Vec3r(3,25,42));
-
-	CHECK((Vec3r(-3,9,0) * Mat4r{3,0,1,0,  5,0,0,-2,   -6,-3,-8,1,   0,5,3,0}) == Vec3r(36,5,0));
+	CHECK((Vec3r(3,6,-2) * Mat4r{3,5,7,2,  -1,0,3,-7,  -2,-5,3,10,  -4,0,9,3}) == (Vec3r(3,25,42) / -53_r));
+	CHECK((Vec3r(-3,9,0) * Mat4r{3,0,1,0,   5,0,0,-2,  -6,-3,-8,1,   0,5,3,0}) == (Vec3r(36,5, 0) / -18_r));
 }
