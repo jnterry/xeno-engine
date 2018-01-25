@@ -22,7 +22,7 @@ real camera_speed = 10;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
 
-const u32 STAR_COUNT = 1000;
+const u32 STAR_COUNT = 1024;
 
 Vec3r star_positions[STAR_COUNT];
 
@@ -37,17 +37,15 @@ int main(int argc, char** argv){
 	//:TODO: breaks if angle is exactly +90deg, never occurs
 	// under user control since don't hit dead on float value, but
 	// broken if set here
-	camera.angle    = -89.9_deg;
+	camera.angle    = -90.0_deg;
 
 	Vec2r window_size = {800, 600};
 	screen* screen = InitializeSDL(window_size.x, window_size.y, false);
 
-	int grid_count = 50;
+	int grid_count = xen::sqrt(STAR_COUNT);
 	for(u32 i = 0; i < STAR_COUNT; ++i){
-		int grid_x = i % grid_count;
-		int grid_y = i / grid_count;
-
-
+		//int grid_x = i % grid_count;
+		//int grid_y = i / grid_count;
 		//star_positions[i].x = xen::lerp(-100, 100, (float)grid_x / (float)grid_count);
 		//star_positions[i].y = xen::lerp(-100, 100, (float)grid_y / (float)grid_count);
 		//star_positions[i].z = -100;
