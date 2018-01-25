@@ -29,7 +29,13 @@ namespace xen {
 	}
 
 	Mat4r getProjectionMatrix(const ProjectionPerspective& p, Vec2r viewport_size){
-		return xen::createPerspectiveProjection(p.fov_y, viewport_size.x, viewport_size.y, p.z_near, p.z_far);
+		return
+			//xen::Translation3d(-viewport_size.x / 2.0f, -viewport_size.y, 0) *
+			xen::createPerspectiveProjection(p.fov_y, viewport_size.x, viewport_size.y, p.z_near, p.z_far)
+
+			;
+
+
 	}
 
 	Camera3d generateCamera3d(const Camera3dOrbit& cam){

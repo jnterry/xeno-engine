@@ -371,7 +371,7 @@ void renderMesh(const xen::Mesh* mesh){
 			XEN_CHECK_GL(glEnableVertexAttribArray(i));
 			XEN_CHECK_GL(glVertexAttribPointer(i,           //attrib layout
 			                                   3, GL_FLOAT, // num components and type
-			                                   GL_FALSE,    // normalized
+			                                   GL_FALSE,    // normalised
 			                                   mesh->attribs[i].stride,
 			                                   (void*)mesh->attribs[i].offset
 			                                   )

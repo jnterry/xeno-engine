@@ -90,7 +90,6 @@ namespace xen {
 
 	Vec3r getCameraPosition(const Camera3dOrbit& cam);
 	inline Vec3r getCameraPosition(const Camera3d&      cam){ return cam.position; }
-
 }
 
 #endif
