@@ -4,7 +4,7 @@
 /// \file Matrix.hpp
 /// \author Jamie Terry
 /// \date 2017/05/30
-/// \brief Contains type and functions for manipulating matricies
+/// \brief Contains type and functions for manipulating matrices
 ///
 /// \ingroup math
 ////////////////////////////////////////////////////////////////////////////////

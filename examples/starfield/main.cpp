@@ -71,7 +71,7 @@ int main(int argc, char** argv){
 		}
 
 		// Clear buffer
-		memset(screen->buffer, 0, screen->height*screen->width*sizeof(uint32_t));
+		memset(screen->buffer.pixels, 0, screen->buffer.height*screen->buffer.width*sizeof(xen::Color));
 
 		//camera.angle += dt * 30_deg;
 		Mat4f mat_vp = xen::getViewProjectionMatrix(camera, window_size);

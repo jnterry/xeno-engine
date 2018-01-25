@@ -34,6 +34,21 @@ namespace xen{
 		};
 		/// \brief Array of length width*height holding color of each pixel
 		Color* pixels;
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Helper struct used to access pixels of the image
+		/// \todo :TODO:COMP: Can we make some generic 2d array type?
+		/////////////////////////////////////////////////////////////////////
+		struct ColRef {
+			RawImage& image;
+			u32       col;
+
+			Color&       operator[](u32 index);
+			const Color& operator[](u32 index) const;
+		};
+
+		const ColRef operator[](u32 index) const;
+		ColRef       operator[](u32 index);
 	};
 
 	#pragma GCC diagnostic pop // re-enable -Wpedantic

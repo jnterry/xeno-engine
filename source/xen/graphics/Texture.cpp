@@ -83,6 +83,22 @@ namespace xen{
 
 		return (TextureHandle)texture_id;
 	}
+
+	Color& RawImage::ColRef::operator[](u32 index) {
+		return image.pixels[col + index*image.width];
+	}
+
+	const Color& RawImage::ColRef::operator[](u32 index) const{
+		return image.pixels[col + index*image.width];
+	}
+
+	RawImage::ColRef RawImage::operator[](u32 index){
+		return { *this, index };
+	}
+
+	const RawImage::ColRef RawImage::operator[](u32 index) const{
+		return { *const_cast<RawImage*>(this), index };
+	}
 }
 
 #endif
