@@ -1,4 +1,4 @@
-#ignore compiler output
+# Ignore compiler output
 *.exe
 *.dll
 *.lib
@@ -11,4 +11,8 @@
 *.pc
 *.obj
 quicktest
+starfield
 xen_unit_tests
+
+# Ignore program output
+screenshot.bmp
