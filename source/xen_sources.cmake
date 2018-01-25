@@ -36,6 +36,7 @@ set(XEN_SOURCES_MATH
   )
 
 set(XEN_HEADERS_MATH
+	${CMAKE_CURRENT_LIST_DIR}/xen/math/utilities.hpp
   ${CMAKE_CURRENT_LIST_DIR}/xen/math/Angle.hpp
   ${CMAKE_CURRENT_LIST_DIR}/xen/math/Vector.hpp
   ${CMAKE_CURRENT_LIST_DIR}/xen/math/Matrix.hpp
