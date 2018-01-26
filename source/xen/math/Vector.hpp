@@ -36,6 +36,11 @@ namespace xen{
 		};
 		static const Vec<2, T> UnitX, UnitY, Origin;
 		static const Vec<2, T> UnitAxes[2];
+
+		template<typename T2>
+		explicit operator Vec<2, T2>() const {
+			return { (T2)x, (T2)y };
+		}
 	};
 	template<typename T> const Vec<2, T> Vec<2, T>::UnitX       = {1,0};
 	template<typename T> const Vec<2, T> Vec<2, T>::UnitY       = {0,1};
@@ -56,6 +61,11 @@ namespace xen{
 		};
 		static const Vec<3, T> UnitX, UnitY, UnitZ, Origin;
 		static const Vec<3, T> UnitAxes[3];
+
+		template<typename T2>
+		explicit operator Vec<3, T2>() const {
+			return { (T2)x, (T2)y, (T2)z };
+		}
 	};
 	template<typename T> const Vec<3, T> Vec<3, T>::UnitX       = {1,0,0};
 	template<typename T> const Vec<3, T> Vec<3, T>::UnitY       = {0,1,0};
@@ -81,6 +91,11 @@ namespace xen{
 		};
 		static const Vec<4, T> UnitX, UnitY, UnitZ, UnitW, Origin;
 		static const Vec<4, T> UnitAxes[4];
+
+		template<typename T2>
+		explicit operator Vec<4, T2>() const {
+			return { (T2)x, (T2)y, (T2)z, (T2)w };
+		}
 	};
 	template<typename T> const Vec<4, T> Vec<4, T>::UnitX       = {1,0,0,0};
 	template<typename T> const Vec<4, T> Vec<4, T>::UnitY       = {0,1,0,0};

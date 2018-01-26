@@ -28,6 +28,12 @@ namespace xen {
 			struct { u08 r,g,b,a; };
 			u32 value;
 		};
+
+		static const Color BLACK;
+		static const Color WHITE;
+		static const Color RED;
+		static const Color GREEN;
+		static const Color BLUE;
 	};
 
 	#pragma GCC diagnostic pop // re-enable -Wpedantic

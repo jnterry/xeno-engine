@@ -4,16 +4,14 @@
 #include <xen/core/memory.hpp>
 #include <xen/core/random.hpp>
 #include <xen/util/File.hpp>
-#include <xen/graphics/Shader.hpp>
-#include <xen/graphics/Mesh.hpp>
-#include <xen/graphics/Texture.hpp>
-#include <xen/graphics/gl_header.hxx>
 #include <xen/graphics/Camera3d.hpp>
+#include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/math/utilities.hpp>
 #include <xen/math/Vector.hpp>
 #include <xen/math/Matrix.hpp>
 #include <xen/math/Angle.hpp>
 #include <xen/math/Quaternion.hpp>
+#include <xen/sren/renderer3d.hxx>
 
 #include "SDLauxilary.h"
 
@@ -55,6 +53,38 @@ int main(int argc, char** argv){
 		star_positions[i].z = xen::randf(-100, 100);
 	}
 
+	Vec3r axis_line_verts[] = {
+		{   0.0_r,   0.0_r,     0.0_r },
+		{ 100.0_r,   0.0_r,     0.0_r },
+
+		{   0.0_r,   0.0_r,     0.0_r },
+		{   0.0_r, 100.0_r,     0.0_r },
+
+		{   0.0_r,   0.0_r,     0.0_r },
+		{   0.0_r,   0.0_r,   100.0_r },
+	};
+
+	xen::RenderCommand3d render_commands[4];
+	render_commands[0].type                = xen::RenderCommand3d::POINTS;
+	render_commands[0].color               = xen::Color::WHITE;
+	render_commands[0].verticies.verticies = star_positions;
+	render_commands[0].verticies.count     = STAR_COUNT;
+
+	render_commands[1].type                = xen::RenderCommand3d::LINE_STRIP;
+	render_commands[1].color               = xen::Color::BLUE;
+	render_commands[1].verticies.verticies = &axis_line_verts[0];
+	render_commands[1].verticies.count     = 2;
+
+	render_commands[2].type                = xen::RenderCommand3d::LINE_STRIP;
+	render_commands[2].color               = xen::Color::GREEN;
+	render_commands[2].verticies.verticies = &axis_line_verts[2];
+	render_commands[2].verticies.count     = 2;
+
+	render_commands[3].type                = xen::RenderCommand3d::LINE_STRIP;
+	render_commands[3].color               = xen::Color::RED;
+	render_commands[3].verticies.verticies = &axis_line_verts[4];
+	render_commands[3].verticies.count     = 2;
+
 	int last_tick = SDL_GetTicks();
 
 	printf("Entering main loop\n");
@@ -62,6 +92,8 @@ int main(int argc, char** argv){
 		int tick = SDL_GetTicks();
 		float dt = ((float)(tick - last_tick)) / 1000.0f;
 		last_tick = tick;
+
+		printf("dt: %f\n", dt);
 
 		for(u32 i = 0; i < STAR_COUNT; ++i){
 			star_positions[i].z += dt * 50.0f;
@@ -71,7 +103,7 @@ int main(int argc, char** argv){
 		}
 
 		// Clear buffer
-		memset(screen->buffer.pixels, 0, screen->buffer.height*screen->buffer.width*sizeof(xen::Color));
+		xen::sren::clear(screen->buffer, xen::Color::BLACK);
 
 		//camera.angle += dt * 30_deg;
 		Mat4f mat_vp = xen::getViewProjectionMatrix(camera, window_size);
@@ -79,57 +111,7 @@ int main(int argc, char** argv){
 		Vec3f screen_space;
 		xen::Color color = {255, 255, 255, 0};
 
-		for(u32 i=0; i < STAR_COUNT; ++i) {
-
-			Vec3f clip_space = star_positions[i] * mat_vp;
-
-			/*if(clip_space.x < -1 || clip_space.x > 1 ||
-			   clip_space.y < -1 || clip_space.y > 1 ||
-			   clip_space.z < -1 || clip_space.z > 1){
-				printf("%f, %f, %f\n", clip_space.x, clip_space.y, clip_space.z);
-				continue;
-				}*/
-
-			Vec2f screen_space = clip_space.xy + (((Vec2f){1.0f, 1.0f}) / 2.0f) * window_size;
-
-			PutPixelSDL(screen, screen_space.x, screen_space.y, color);
-		}
-
-		for(int axis = 0; axis < 3; ++axis){
-			xen::Color color;
-			color.value = 0xFF << 8 * (axis);
-			for(float delta = 0; delta < 100; delta += 0.1f){
-				Vec3f world_space  = Vec3r::Origin;
-				world_space.elements[axis] = delta;
-				Vec3f clip_space = world_space * mat_vp;
-				Vec2f screen_space = clip_space.xy + (((Vec2f){1.0f, 1.0f}) / 2.0f) * window_size;
-
-				for(int dx = -2; dx <= 2; ++dx){
-					for(int dy = -2; dy <= 2; ++dy){
-						PutPixelSDL(screen, screen_space.x, screen_space.y, color);
-					}
-				}
-			}
-		}
-
-		for(int axis = 0; axis < 3; ++axis){
-			xen::Color color;
-			color.value = 0xFF << 8 * (axis);
-			for(float delta = 0; delta < 100; delta += 0.1f){
-				Vec3f world_space  = Vec3r::Origin;
-				world_space.elements[axis] = delta;
-				Vec3f clip_space = world_space * mat_vp;
-				Vec2f screen_space = clip_space.xy + (((Vec2f){1.0f, 1.0f}) / 2.0f) * window_size;
-
-				for(int dx = -2; dx <= 2; ++dx){
-					for(int dy = -2; dy <= 2; ++dy){
-						PutPixelSDL(screen, screen_space.x, screen_space.y, color);
-					}
-				}
-			}
-		}
-
-
+		xen::sren::renderRasterize(screen->buffer, xen::generateCamera3d(camera), render_commands, 4);
 
 		SDL_Renderframe(screen);
 	}

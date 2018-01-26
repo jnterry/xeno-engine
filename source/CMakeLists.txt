@@ -20,3 +20,6 @@ add_library(xen-graphics ${XEN_HEADERS_GRAPHICS} ${XEN_SOURCES_GRAPHICS})
 target_include_directories(xen-graphics PRIVATE "${XEN_EXTLIBS_DIR}/TinyObjLoader/")
 target_include_directories(xen-graphics PRIVATE "${XEN_EXTLIBS_DIR}/stb/")
 target_include_directories(xen-graphics PUBLIC  ${CMAKE_CURRENT_LIST_DIR})
+
+add_library(xen-sren ${XEN_HEADERS_SREN} ${XEN_SOURCES_SREN})
+target_include_directories(xen-sren PUBLIC  ${CMAKE_CURRENT_LIST_DIR})
