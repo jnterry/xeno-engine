@@ -11,7 +11,3 @@ target_link_libraries(starfield SDL2main)
 
 find_package(GLEW REQUIRED)
 target_link_libraries(starfield GLEW)
-
-include(FindPkgConfig)
-pkg_search_module(SDL REQUIRED sdl)
-target_include_directories(starfield PRIVATE ${sdl_include_dirs})
