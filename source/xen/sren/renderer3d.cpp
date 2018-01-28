@@ -86,16 +86,16 @@ namespace xen{
 
 			Mat4f mat_vp = xen::getViewProjectionMatrix(camera, (Vec2r)target.size);
 
-			xen::Aabb2r screen_rect = { Vec2r::Origin, (Vec2r)target.size };
+			xen::Aabb2r screen_rect = { Vec2r::Origin, (Vec2r)target.size - ((Vec2r){1,1}) };
 
 			RenderCommand3d* cmd = commands;
-			for(int i = 0; i < command_count; cmd = &commands[i], ++i){
+			for(u32 i = 0; i < command_count; cmd = &commands[i], ++i){
 				switch(cmd->type){
 				case RenderCommand3d::POINTS:
 					doRenderPoints(target, camera, cmd->color, cmd->verticies.verticies, cmd->verticies.count);
 					break;
 				case RenderCommand3d::LINE_STRIP:
-					for(int i = 0; i < cmd->verticies.count - 1; ++i){
+					for(u32 i = 0; i < cmd->verticies.count - 1; ++i){
 						LineSegment3r* line_world = (LineSegment3r*)(&cmd->verticies.verticies[i]);
 						LineSegment3r  line_clip  = xen::getTransformed(*line_world, mat_vp);
 
