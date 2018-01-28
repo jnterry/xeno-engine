@@ -19,6 +19,7 @@
 #include <xen/graphics/RenderCommand3d.hpp>
 
 #include <cstring>
+#include <cstdlib>
 
 namespace {
 	void doRenderPoints(xen::sren::RenderTarget& target, const xen::Camera3d& camera,
