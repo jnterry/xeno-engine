@@ -1,41 +1,61 @@
 #include <iostream>
+#include <sstream>
 
 #include <xen/math/Vector.hpp>
 #include <xen/math/Matrix.hpp>
 #include <xen/math/Quaternion.hpp>
+#include <xen/math/geometry_types.hpp>
 
 #include <catch.hpp>
 
 namespace xen{
 	//:TODO:COMP: when do meta type system, have these be auto-generated
-	inline std::ostream& operator<< (std::ostream& os, xen::Angle const& a){
+	inline std::ostream& operator<< (std::ostream& os, const xen::Angle& a){
 		os << xen::asDegrees(a) << "deg";
 		return os;
 	}
 
 	template<typename T>
-	inline std::ostream& operator<< (std::ostream& os, Vec3<T> const& v){
+	inline std::ostream& operator<< (std::ostream& os, const Vec2<T>& v){
+		os << "(" << v.x << "," << v.y << ")";
+		return os;
+	}
+
+	template<typename T>
+	inline std::ostream& operator<< (std::ostream& os, const Vec3<T>& v){
 		os << "(" << v.x << "," << v.y << "," << v.z << ")";
 		return os;
 	}
 
 	template<typename T>
-	inline std::ostream& operator<< (std::ostream& os, Vec4<T> const& v){
+	inline std::ostream& operator<< (std::ostream& os, const Vec4<T>& v){
 		os << "(" << v.x << "," << v.y << "," << v.z << "," << v.w << ")";
 		return os;
 	}
 
-	inline std::ostream& operator<< (std::ostream& os, xen::AxisAngle const& q){
+	inline std::ostream& operator<< (std::ostream& os, const xen::AxisAngle& q){
 		os << "{" << q.axis << "," << q.angle << "}";
 		return os;
 	}
 
-	inline std::ostream& operator<< (std::ostream& os, xen::Quaternion const& q){
+	template<u32 T_DIM, typename T>
+	inline std::ostream& operator<< (std::ostream& os, const xen::Aabb<T_DIM, T>& aabb){
+		os << "Aabb{" << aabb.min << ", " << aabb.max << "}";
+		return os;
+	}
+
+	template<u32 T_DIM, typename T>
+	inline std::ostream& operator<< (std::ostream& os, const xen::LineSegment<T_DIM, T>& line){
+		os << "LineSegment{" << line.p1 << ", " << line.p2 << "}";
+		return os;
+	}
+
+	inline std::ostream& operator<< (std::ostream& os, const xen::Quaternion& q){
 		return os << "(" << q.i << "i, " << q.j << "j, " << q.k << "k, " << q.r << ")";
 	}
 
 	template<u32 T_Row, u32 T_Col, typename T>
-	inline std::ostream& operator<< (std::ostream& os, xen::Matrix<T_Row, T_Col, T> const& m){
+	inline std::ostream& operator<< (std::ostream& os, const xen::Matrix<T_Row, T_Col, T>& m){
 		const T* e = m.elements;
 		for(u32 r = 0; r < T_Row; ++r){
 			os << "[" << e[T_Row * r + 0];

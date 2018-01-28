@@ -38,10 +38,10 @@ namespace xen {
 		Vec<T_DIM, T> max;
 	};
 	typedef Aabb<2, u32>  Aabb2u;
-	typedef Aabb<2, s32>  Aabb2i;
+	typedef Aabb<2, s32>  Aabb2s;
 	typedef Aabb<2, real> Aabb2r;
 	typedef Aabb<3, u32>  Aabb3u;
-	typedef Aabb<3, s32>  Aabb3i;
+	typedef Aabb<3, s32>  Aabb3s;
 	typedef Aabb<3, real> Aabb3r;
 	template <typename T> using Aabb2 = Aabb<2, T>;
 	template <typename T> using Aabb3 = Aabb<3, T>;
@@ -53,6 +53,16 @@ namespace xen {
 		Vec2r center;
 		real  radius;
 	};
+}
+
+template<u32 T_DIM, typename T>
+bool operator==(const xen::Aabb<T_DIM, T>& lhs, const xen::Aabb<T_DIM, T>& rhs){
+	return lhs.min == rhs.min && lhs.max == rhs.max;
+}
+
+template<u32 T_DIM, typename T>
+bool operator!=(const xen::Aabb<T_DIM, T>& lhs, const xen::Aabb<T_DIM, T>& rhs){
+	return lhs.min != rhs.min || lhs.max != rhs.max;
 }
 
 #endif

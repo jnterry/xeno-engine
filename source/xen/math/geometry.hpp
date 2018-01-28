@@ -117,30 +117,45 @@ namespace xen{
 	}
 
 	template<typename T>
+	bool haveIntersection(const Aabb2<T>& a, const Aabb2<T> b){
+		return !(b.min.x > a.max.x ||
+		         b.max.x < a.min.x ||
+		         b.min.y > a.max.y ||
+		         b.max.y < a.min.y);
+
+	}
+
+	template<typename T>
 	Aabb2<T>& intersect(Aabb2<T>& a, const Aabb2<T> b){
-		a.min.x = XenMax(a.min.x, b.min.x); //:TODO:COMP: vector max function which takes max of each axis?
-		a.min.y = XenMax(a.min.y, b.min.y); //would also mean this function could be generic for Aabb2 and Aabb3
-		a.max.x = XenMax(XenMin(a.max.x, b.max.x), b.min.x);
-		a.max.y = XenMax(XenMin(a.max.y, b.max.y), b.min.y);
+		if(haveIntersection(a, b)){
+			a.min.x = XenMax(a.min.x, b.min.x); //:TODO:COMP: vector max function which takes max of each axis?
+			a.min.y = XenMax(a.min.y, b.min.y); //would also mean this function could be generic for Aabb2 and Aabb3
+			a.max.x = XenMax(XenMin(a.max.x, b.max.x), b.min.x);
+			a.max.y = XenMax(XenMin(a.max.y, b.max.y), b.min.y);
+		} else {
+			a.min.x = 0;
+			a.min.y = 0;
+			a.max.x = 0;
+			a.max.y = 0;
+		}
 		return a;
 	}
 
 	template<typename T_LHS, typename T_RHS>
-	T_LHS getIntersection(T_LHS lhs, T_RHS rhs){
-		intersect(lhs, rhs);
-		return lhs;
-	}
-
-	template<typename T>
-	Aabb2<T> getIntersection(Aabb2<T> a, Aabb2<T> b){
-		Aabb2<T> result = a;
-		intersect(result, b);
+	T_LHS getIntersection(const T_LHS& lhs, const T_RHS& rhs){
+		T_LHS result = lhs;
+		intersect(result, rhs);
 		return result;
 	}
 
 	template<typename T>
 	bool hasArea(Aabb2<T> aabb){
 		return aabb.max.x > aabb.min.x && aabb.max.y > aabb.min.y;
+	}
+
+	template<typename T>
+	bool hasArea(Circle circle){
+		return circle.radius > 0;
 	}
 }
 

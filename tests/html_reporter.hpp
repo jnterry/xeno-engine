@@ -10,6 +10,7 @@
 #ifndef XEN_TEST_HTML_REPORTER_HPP
 #define XEN_TEST_HTML_REPORTER_HPP
 
+/*
 #include <catch.hpp>
 
 namespace Catch{
@@ -103,4 +104,5 @@ namespace Catch{
 	INTERNAL_CATCH_REGISTER_REPORTER( "html", HtmlReporter )
 } // end namespace Catch
 
+*/
 #endif
