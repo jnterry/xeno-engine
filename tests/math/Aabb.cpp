@@ -142,3 +142,7 @@ TEST_CASE("Aabb2/Aabb2 Intersection", "[math][Aabb]"){
 		      (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
 	}
 }
+
+// :TODO: aabb3 intersections
+// :TOOD: translations
+// :TODO: area

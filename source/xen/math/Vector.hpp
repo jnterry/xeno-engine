@@ -30,7 +30,7 @@ namespace xen{
 	template<typename T>
 	struct Vec<2,T>{
 		union{
-		    T elements[2];
+			T elements[2];
 			struct{ T x, y; };
 			struct{ T u, v; };
 		};

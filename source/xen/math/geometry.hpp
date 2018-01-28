@@ -24,7 +24,7 @@ namespace xen{
 		return aabb;
 	}
 
-	Circle& translate(Circle& circle, Vec2r delta){
+	inline Circle& translate(Circle& circle, Vec2r delta){
 		circle.center += delta;
 		return circle;
 	}

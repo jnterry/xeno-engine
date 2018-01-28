@@ -13,16 +13,44 @@
 #include <xen/math/Quaternion.hpp>
 #include <xen/sren/renderer3d.hxx>
 
+#include <SDL.h>
 #include "SDLauxilary.h"
 
 xen::Camera3dOrbit camera;
-real camera_speed = 10;
+real camera_speed = 100;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
 
 const u32 STAR_COUNT = 1024;
 
 Vec3r star_positions[STAR_COUNT];
+
+void handleInput(real dt){
+	SDL_PumpEvents();
+
+	const u8* keystate = SDL_GetKeyboardState(NULL);
+
+	if(keystate[SDL_SCANCODE_UP]){
+		camera.radius -= camera_speed * dt;
+	}
+	if(keystate[SDL_SCANCODE_DOWN]){
+		camera.radius += camera_speed * dt;
+	}
+	camera.radius = xen::clamp(camera.radius, 0.01_r, 250_r);
+
+	if(keystate[SDL_SCANCODE_LEFT]){
+		camera.angle -= camera_rotate_speed * dt;
+	}
+	if(keystate[SDL_SCANCODE_RIGHT]){
+		camera.angle += camera_rotate_speed * dt;
+	}
+	if(keystate[SDL_SCANCODE_A]){
+		camera.height += camera_speed * dt;
+	}
+	if(keystate[SDL_SCANCODE_Z]){
+		camera.height -= camera_speed * dt;
+	}
+}
 
 int main(int argc, char** argv){
 	camera.z_near   = 0.1;
@@ -94,6 +122,7 @@ int main(int argc, char** argv){
 		last_tick = tick;
 
 		printf("dt: %f\n", dt);
+		handleInput(dt);
 
 		for(u32 i = 0; i < STAR_COUNT; ++i){
 			star_positions[i].z += dt * 50.0f;

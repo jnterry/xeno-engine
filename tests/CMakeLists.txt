@@ -7,7 +7,8 @@ add_executable(xen_unit_tests
   ${CMAKE_CURRENT_LIST_DIR}/math/Matrix.cpp
   ${CMAKE_CURRENT_LIST_DIR}/math/Quaternion.cpp
   ${CMAKE_CURRENT_LIST_DIR}/math/Rotation3d.cpp
-	${CMAKE_CURRENT_LIST_DIR}/math/aabb.cpp
+	${CMAKE_CURRENT_LIST_DIR}/math/Aabb.cpp
+	${CMAKE_CURRENT_LIST_DIR}/math/LineSegment.cpp
 )
 
 
