@@ -21,7 +21,7 @@ real camera_speed = 100;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
 
-const u32 STAR_COUNT = 1024;
+const u32 STAR_COUNT = 4096;
 
 Vec3r star_positions[STAR_COUNT];
 
@@ -82,36 +82,53 @@ int main(int argc, char** argv){
 	}
 
 	Vec3r axis_line_verts[] = {
-		{   0.0_r,   0.0_r,     0.0_r },
-		{ 100.0_r,   0.0_r,     0.0_r },
+		{   0.0_r,   0.0_r,   0.0_r },
+		{ 100.0_r,   0.0_r,   0.0_r },
 
-		{   0.0_r,   0.0_r,     0.0_r },
-		{   0.0_r, 100.0_r,     0.0_r },
+		{   0.0_r,   0.0_r,   0.0_r },
+		{   0.0_r, 100.0_r,   0.0_r },
 
-		{   0.0_r,   0.0_r,     0.0_r },
-		{   0.0_r,   0.0_r,   100.0_r },
+		{   0.0_r,   0.0_r,   0.0_r },
+		{   0.0_r,   0.0_r, 100.0_r },
 	};
 
-	xen::RenderCommand3d render_commands[4];
+	Vec3r cube_lines[] = {
+		{-100.0_r, -100.0_r, -100.0_r },
+		{ 100.0_r, -100.0_r, -100.0_r },
+
+		{-100.0_r, -100.0_r, -100.0_r },
+		{-100.0_r,  100.0_r, -100.0_r },
+
+		{-100.0_r, -100.0_r, -100.0_r },
+		{-100.0_r, -100.0_r,  100.0_r },
+
+	};
+
+	xen::RenderCommand3d render_commands[5];
 	render_commands[0].type                = xen::RenderCommand3d::POINTS;
 	render_commands[0].color               = xen::Color::WHITE;
 	render_commands[0].verticies.verticies = star_positions;
 	render_commands[0].verticies.count     = STAR_COUNT;
 
-	render_commands[1].type                = xen::RenderCommand3d::LINE_STRIP;
+	render_commands[1].type                = xen::RenderCommand3d::LINES;
 	render_commands[1].color               = xen::Color::BLUE;
 	render_commands[1].verticies.verticies = &axis_line_verts[0];
 	render_commands[1].verticies.count     = 2;
 
-	render_commands[2].type                = xen::RenderCommand3d::LINE_STRIP;
+	render_commands[2].type                = xen::RenderCommand3d::LINES;
 	render_commands[2].color               = xen::Color::GREEN;
 	render_commands[2].verticies.verticies = &axis_line_verts[2];
 	render_commands[2].verticies.count     = 2;
 
-	render_commands[3].type                = xen::RenderCommand3d::LINE_STRIP;
+	render_commands[3].type                = xen::RenderCommand3d::LINES;
 	render_commands[3].color               = xen::Color::RED;
 	render_commands[3].verticies.verticies = &axis_line_verts[4];
 	render_commands[3].verticies.count     = 2;
+
+	render_commands[4].type                = xen::RenderCommand3d::LINES;
+	render_commands[4].color               = {255, 255, 0, 0};
+	render_commands[4].verticies.verticies = &cube_lines[0];
+	render_commands[4].verticies.count     = 2; //XenArrayLength(cube_lines);
 
 	int last_tick = SDL_GetTicks();
 
@@ -134,13 +151,14 @@ int main(int argc, char** argv){
 		// Clear buffer
 		xen::sren::clear(screen->buffer, xen::Color::BLACK);
 
-		//camera.angle += dt * 30_deg;
 		Mat4f mat_vp = xen::getViewProjectionMatrix(camera, window_size);
 
 		Vec3f screen_space;
 		xen::Color color = {255, 255, 255, 0};
 
-		xen::sren::renderRasterize(screen->buffer, xen::generateCamera3d(camera), render_commands, 4);
+		xen::sren::renderRasterize(screen->buffer, xen::generateCamera3d(camera),
+		                           render_commands, 4
+		                          );
 
 		SDL_Renderframe(screen);
 	}

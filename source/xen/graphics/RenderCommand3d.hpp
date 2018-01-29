@@ -24,6 +24,10 @@ namespace xen{
 			POINTS,
 
 			/// \brief Draws a set of points defined by `vertices` member
+			/// by joining subsequent pairs of points
+			LINES,
+
+			/// \brief Draws a set of points defined by `vertices` member
 			/// by joining adjacent points
 			LINE_STRIP,
 

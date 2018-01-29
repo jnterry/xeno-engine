@@ -62,10 +62,6 @@ namespace {
 			Vec2r delta = (line.p1 - line.p2) / num_pixels;
 			Vec2r cur   = line.p2;
 			for(u32 i = 0; i < (u32)num_pixels; ++i){
-				// :TODO: we should be cliping the line to screen space at call point...
-				if(cur.x < 0 || cur.y < 0 || cur.x >= target.size.x || cur.y >= target.size.y){
-					continue;
-				}
 				target[cur.x][cur.y] = color;
 				cur += delta;
 			}
@@ -88,14 +84,24 @@ namespace xen{
 
 			xen::Aabb2r screen_rect = { Vec2r::Origin, (Vec2r)target.size - ((Vec2r){1,1}) };
 
+			int stride = 0;
+
 			RenderCommand3d* cmd = commands;
-			for(u32 i = 0; i < command_count; cmd = &commands[i], ++i){
+			for(u32 cmd_index = 0; cmd_index < command_count; cmd = &commands[cmd_index], ++cmd_index){
+				printf("Executing render command: %i\n", cmd_index);
 				switch(cmd->type){
 				case RenderCommand3d::POINTS:
 					doRenderPoints(target, camera, cmd->color, cmd->verticies.verticies, cmd->verticies.count);
 					break;
+				case RenderCommand3d::LINES:
+					stride = 2;
+					goto do_render_lines;
+					break;
 				case RenderCommand3d::LINE_STRIP:
-					for(u32 i = 0; i < cmd->verticies.count - 1; ++i){
+					stride = 1;
+				do_render_lines:
+					for(u32 i = 0; i < cmd->verticies.count - 1; i += stride){
+						//printf("Doing vertex %i / %i\n", i, cmd->verticies.count);
 						LineSegment3r* line_world = (LineSegment3r*)(&cmd->verticies.verticies[i]);
 						LineSegment3r  line_clip  = xen::getTransformed(*line_world, mat_vp);
 
@@ -103,9 +109,9 @@ namespace xen{
 						line_screen.p1 = line_clip.p1.xy + (((Vec2f){1.0f, 1.0f}) / 2.0f) * (Vec2r)target.size;
 						line_screen.p2 = line_clip.p2.xy + (((Vec2f){1.0f, 1.0f}) / 2.0f) * (Vec2r)target.size;
 
-						xen::intersect(line_screen, screen_rect);
-
-						doRenderLine(target, line_screen, cmd->color);
+						if(xen::intersect(line_screen, screen_rect)){
+							doRenderLine(target, line_screen, cmd->color);
+						}
 					}
 					break;
 				default:

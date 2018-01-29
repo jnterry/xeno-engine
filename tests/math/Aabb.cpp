@@ -89,57 +89,65 @@ TEST_CASE("Aabb2/Aabb2 Intersection", "[math][Aabb]"){
 
 
 	SECTION("No intersection"){
+		xen::Aabb2r lhs;
+		xen::Aabb2r rhs;
+		xen::Aabb2r result;
+
 		// RHS to the left
-		CHECK(xen::getIntersection(xen::Aabb2r{Vec2r{ 5, 5}, Vec2r{ 6, 6}},
-		                           xen::Aabb2r{Vec2r{10, 5}, Vec2r{11, 6}})
-		      ==
-		      (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
+		lhs = xen::Aabb2r{Vec2r{ 5, 5}, Vec2r{ 6, 6}};
+		rhs = xen::Aabb2r{Vec2r{10, 5}, Vec2r{11, 6}};
+		CHECK(xen::haveIntersection(lhs, rhs) == false);
+		CHECK(xen::intersect       (lhs, rhs) == false);
+		CHECK(lhs == (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
 
 		// RHS to the top
-		CHECK(xen::getIntersection(xen::Aabb2r{Vec2r{ 5, 5}, Vec2r{ 6, 6}},
-		                           xen::Aabb2r{Vec2r{ 5,10}, Vec2r{ 6,11}})
-		      ==
-		      (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
+		lhs = xen::Aabb2r{Vec2r{ 5, 5}, Vec2r{ 6, 6}};
+		rhs = xen::Aabb2r{Vec2r{ 5,10}, Vec2r{ 6,11}};
+		CHECK(xen::haveIntersection(lhs, rhs) == false);
+		CHECK(xen::intersect       (lhs, rhs) == false);
+		CHECK(lhs == (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
 
 		// RHS to the right
-		CHECK(xen::getIntersection(xen::Aabb2r{Vec2r{ 5, 5}, Vec2r{ 6, 6}},
-		                           xen::Aabb2r{Vec2r{ 0, 5}, Vec2r{ 1, 6}})
-		      ==
-		      (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
+		lhs = xen::Aabb2r{Vec2r{ 5, 5}, Vec2r{ 6, 6}};
+		rhs = xen::Aabb2r{Vec2r{ 0, 5}, Vec2r{ 1, 6}};
+		CHECK(xen::haveIntersection(lhs, rhs) == false);
+		CHECK(xen::intersect       (lhs, rhs) == false);
+		CHECK(lhs == (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
 
 		// RHS to the bottom
-		CHECK(xen::getIntersection(xen::Aabb2r{Vec2r{ 5, 5}, Vec2r{ 6, 6}},
-		                           xen::Aabb2r{Vec2r{ 5, 0}, Vec2r{ 6, 1}})
-		      ==
-		      (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
+		lhs = xen::Aabb2r{Vec2r{ 5, 5}, Vec2r{ 6, 6}};
+		rhs = xen::Aabb2r{Vec2r{ 5, 0}, Vec2r{ 6, 1}};
+		CHECK(xen::haveIntersection(lhs, rhs) == false);
+		CHECK(xen::intersect       (lhs, rhs) == false);
+		CHECK(lhs == (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
 
 		// RHS to the top-left
-		CHECK(xen::getIntersection(xen::Aabb2r{Vec2r{ 5, 5}, Vec2r{ 6, 6}},
-		                           xen::Aabb2r{Vec2r{10,10}, Vec2r{11,11}}
-		                           )
-		      ==
-		      (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
+		lhs = xen::Aabb2r{Vec2r{ 5, 5}, Vec2r{ 6, 6}};
+		rhs = xen::Aabb2r{Vec2r{10,10}, Vec2r{11,11}};
+		CHECK(xen::haveIntersection(lhs, rhs) == false);
+		CHECK(xen::intersect       (lhs, rhs) == false);
+		CHECK(lhs == (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
 
 		// RHS to the top-right
-		CHECK(xen::getIntersection(xen::Aabb2r{Vec2r{ 5, 5}, Vec2r{ 6, 6}},
-		                           xen::Aabb2r{Vec2r{ 0,10}, Vec2r{ 1,11}}
-		                           )
-		      ==
-		      (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
+		lhs = xen::Aabb2r{Vec2r{ 5, 5}, Vec2r{ 6, 6}};
+		rhs = xen::Aabb2r{Vec2r{ 0,10}, Vec2r{ 1,11}};
+		CHECK(xen::haveIntersection(lhs, rhs) == false);
+		CHECK(xen::intersect       (lhs, rhs) == false);
+		CHECK(lhs == (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
 
 		// RHS to the bottom-left
-		CHECK(xen::getIntersection(xen::Aabb2r{Vec2r{ 5, 5}, Vec2r{ 6, 6}},
-		                           xen::Aabb2r{Vec2r{10, 0}, Vec2r{11, 1}}
-		                           )
-		      ==
-		      (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
+		lhs = xen::Aabb2r{Vec2r{ 5, 5}, Vec2r{ 6, 6}};
+		rhs = xen::Aabb2r{Vec2r{10, 0}, Vec2r{11, 1}};
+		CHECK(xen::haveIntersection(lhs, rhs) == false);
+		CHECK(xen::intersect       (lhs, rhs) == false);
+		CHECK(lhs == (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
 
 		// RHS to the bottom-right
-		CHECK(xen::getIntersection(xen::Aabb2r{Vec2r{ 5, 5}, Vec2r{ 6, 6}},
-		                           xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 1, 1}}
-		                           )
-		      ==
-		      (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
+		lhs = xen::Aabb2r{Vec2r{ 5, 5}, Vec2r{ 6, 6}};
+		rhs = xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 1, 1}};
+		CHECK(xen::haveIntersection(lhs, rhs) == false);
+		CHECK(xen::intersect       (lhs, rhs) == false);
+		CHECK(lhs == (xen::Aabb2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}}));
 	}
 }
 
