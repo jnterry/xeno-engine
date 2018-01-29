@@ -25,6 +25,9 @@ namespace xen{
 	template<u32 T_DIM, typename T>
 	struct Vec{
 		T elements[T_DIM];
+
+		T&       operator[](u32 index)       { return this->elements[index]; }
+		const T& operator[](u32 index) const { return this->elements[index]; }
 	};
 
 	template<typename T>
@@ -41,6 +44,9 @@ namespace xen{
 		explicit operator Vec<2, T2>() const {
 			return { (T2)x, (T2)y };
 		}
+
+		T&       operator[](u32 index)       { return this->elements[index]; }
+		const T& operator[](u32 index) const { return this->elements[index]; }
 	};
 	template<typename T> const Vec<2, T> Vec<2, T>::UnitX       = {1,0};
 	template<typename T> const Vec<2, T> Vec<2, T>::UnitY       = {0,1};
@@ -66,6 +72,9 @@ namespace xen{
 		explicit operator Vec<3, T2>() const {
 			return { (T2)x, (T2)y, (T2)z };
 		}
+
+		T&       operator[](u32 index)       { return this->elements[index]; }
+		const T& operator[](u32 index) const { return this->elements[index]; }
 	};
 	template<typename T> const Vec<3, T> Vec<3, T>::UnitX       = {1,0,0};
 	template<typename T> const Vec<3, T> Vec<3, T>::UnitY       = {0,1,0};
@@ -96,6 +105,9 @@ namespace xen{
 		explicit operator Vec<4, T2>() const {
 			return { (T2)x, (T2)y, (T2)z, (T2)w };
 		}
+
+		T&       operator[](u32 index)       { return this->elements[index]; }
+		const T& operator[](u32 index) const { return this->elements[index]; }
 	};
 	template<typename T> const Vec<4, T> Vec<4, T>::UnitX       = {1,0,0,0};
 	template<typename T> const Vec<4, T> Vec<4, T>::UnitY       = {0,1,0,0};
