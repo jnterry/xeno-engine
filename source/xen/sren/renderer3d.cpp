@@ -58,7 +58,9 @@ namespace {
 	void doRenderLine(xen::sren::RenderTarget& target, xen::LineSegment2r line, xen::Color color){
 		//https://www.cs.virginia.edu/luther/blog/posts/492.html
 		if(line.p1 != line.p2){
+			//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
 			real num_pixels = XenMax(abs(line.p1.x - line.p2.x), abs(line.p1.y - line.p2.y));
+			//printf("Drawing line with %f (%u) pixels\n", num_pixels, (u32)num_pixels);
 			Vec2r delta = (line.p1 - line.p2) / num_pixels;
 			Vec2r cur   = line.p2;
 			for(u32 i = 0; i < (u32)num_pixels; ++i){
@@ -87,8 +89,9 @@ namespace xen{
 			int stride = 0;
 
 			RenderCommand3d* cmd = commands;
-			for(u32 cmd_index = 0; cmd_index < command_count; cmd = &commands[cmd_index], ++cmd_index){
-				printf("Executing render command: %i\n", cmd_index);
+			for(u32 cmd_index = 0; cmd_index < command_count; ++cmd_index){
+				cmd = &commands[cmd_index];
+				printf("Executing render command: %u\n", cmd_index);
 				switch(cmd->type){
 				case RenderCommand3d::POINTS:
 					doRenderPoints(target, camera, cmd->color, cmd->verticies.verticies, cmd->verticies.count);
@@ -103,12 +106,21 @@ namespace xen{
 					for(u32 i = 0; i < cmd->verticies.count - 1; i += stride){
 						//printf("Doing vertex %i / %i\n", i, cmd->verticies.count);
 						LineSegment3r* line_world = (LineSegment3r*)(&cmd->verticies.verticies[i]);
+						//printf("%f, %f, %f  --- %f, %f, %f\n",
+						//       line_world->p1.x, line_world->p1.y, line_world->p1.z,
+							        //       line_world->p2.x, line_world->p2.y, line_world->p2.z);
+
 						LineSegment3r  line_clip  = xen::getTransformed(*line_world, mat_vp);
+
+						//printf("%f, %f, %f  --- %f, %f, %f\n",
+						//       line_clip.p1.x, line_clip.p1.y, line_clip.p1.z,
+							        //       line_clip.p2.x, line_clip.p2.y, line_clip.p2.z);
 
 						LineSegment2r  line_screen;
 						line_screen.p1 = line_clip.p1.xy + (((Vec2f){1.0f, 1.0f}) / 2.0f) * (Vec2r)target.size;
 						line_screen.p2 = line_clip.p2.xy + (((Vec2f){1.0f, 1.0f}) / 2.0f) * (Vec2r)target.size;
 
+						//printf("%f, %f  --- %f, %f\n", line_clip.p1.x, line_clip.p1.y, line_clip.p2.x, line_clip.p2.y);
 						if(xen::intersect(line_screen, screen_rect)){
 							doRenderLine(target, line_screen, cmd->color);
 						}
