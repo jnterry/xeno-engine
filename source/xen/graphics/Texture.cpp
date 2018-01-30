@@ -15,7 +15,7 @@
 #include <xen/core/memory.hpp>
 #include <xen/graphics/Texture.hpp>
 
-#include "gl_header.hxx"
+#include <xen/gl/gl_header.hxx>
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION

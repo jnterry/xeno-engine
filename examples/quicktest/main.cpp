@@ -9,10 +9,10 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/memory.hpp>
 #include <xen/util/File.hpp>
-#include <xen/graphics/Shader.hpp>
-#include <xen/graphics/Mesh.hpp>
+#include <xen/gl/Shader.hpp>
+#include <xen/gl/Mesh.hpp>
+#include <xen/gl/gl_header.hxx>
 #include <xen/graphics/Texture.hpp>
-#include <xen/graphics/gl_header.hxx>
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/math/utilities.hpp>
 #include <xen/math/Vector.hpp>
@@ -22,8 +22,8 @@
 
 #include "utilities.hpp"
 
-void renderMesh(const xen::Mesh* mesh);
-xen::ShaderProgram* loadShader(xen::ArenaLinear&);
+void renderMesh(const xen::gl::Mesh* mesh);
+xen::gl::ShaderProgram* loadShader(xen::ArenaLinear&);
 
 xen::Camera3dOrbit camera;
 real camera_speed = 50;
@@ -183,21 +183,21 @@ int main(int argc, char** argv){
 	Mat4r model_mat, view_mat, proj_mat, vp_mat;
 	Vec4r point_light_color = Vec4r(1,0,0,1);
 
-	xen::ShaderProgram* prog  = loadShader(arena);
-	int mvp_mat_loc           = xen::getUniformLocation(prog, "mvp_mat"          );
-	int model_mat_loc         = xen::getUniformLocation(prog, "model_mat"        );
-	int point_light_pos_loc   = xen::getUniformLocation(prog, "point_light_pos"  );
-	int point_light_color_loc = xen::getUniformLocation(prog, "point_light_color");
-	int emissive_color_loc    = xen::getUniformLocation(prog, "emissive_color"   );
-	int camera_pos_loc        = xen::getUniformLocation(prog, "camera_position"  );
+	xen::gl::ShaderProgram* prog  = loadShader(arena);
+	int mvp_mat_loc           = xen::gl::getUniformLocation(prog, "mvp_mat"          );
+	int model_mat_loc         = xen::gl::getUniformLocation(prog, "model_mat"        );
+	int point_light_pos_loc   = xen::gl::getUniformLocation(prog, "point_light_pos"  );
+	int point_light_color_loc = xen::gl::getUniformLocation(prog, "point_light_color");
+	int emissive_color_loc    = xen::gl::getUniformLocation(prog, "emissive_color"   );
+	int camera_pos_loc        = xen::gl::getUniformLocation(prog, "camera_position"  );
 
-	xen::VertexAttrib::Type vertex_spec[] = {
-		xen::VertexAttrib::PositionXYZ,
-		xen::VertexAttrib::ColorRGBf,
-		xen::VertexAttrib::NormalXYZ
+	xen::gl::VertexAttrib::Type vertex_spec[] = {
+		xen::gl::VertexAttrib::PositionXYZ,
+		xen::gl::VertexAttrib::ColorRGBf,
+		xen::gl::VertexAttrib::NormalXYZ
 	};
 
-	xen::Mesh* mesh_bunny = loadMesh(arena, "bunny.obj");
+	xen::gl::Mesh* mesh_bunny = xen::gl::loadMesh(arena, "bunny.obj");
 
 	const void* cube_attrib_data[] = {&cube_buffer_data[3*2*6 * 0 * 3],
 	                                  nullptr,//&cube_buffer_data[3*2*6 * 1 * 3],
@@ -205,11 +205,11 @@ int main(int argc, char** argv){
 	};
 	XenAssert(XenArrayLength(vertex_spec) == XenArrayLength(cube_attrib_data),
 	          "Vertex spec attrib count must match num attribs used");
-	xen::Mesh* mesh_cube      = createMesh(arena,
-	                                       XenArrayLength(vertex_spec), vertex_spec,
-	                                       3 * 2 * 6, // Vertex count: (3 vert per tri) * (2 tri per face) * (6 faces)
-	                                       cube_attrib_data
-	                                       );
+	xen::gl::Mesh* mesh_cube      = xen::gl::createMesh(arena,
+	                                                    XenArrayLength(vertex_spec), vertex_spec,
+	                                                    3 * 2 * 6, // Vertex count: (3 vert per tri) * (2 tri per face) * (6 faces)
+	                                                    cube_attrib_data
+	                                                    );
 
 	xen::RawImage      test_image   = xen::loadImage(arena, "test.bmp");
 	xen::TextureHandle test_texture = xen::createTexture(&test_image);
@@ -282,13 +282,13 @@ int main(int argc, char** argv){
 		XEN_CHECK_GL(glClearColor(0.1,0.1,0.1, 1));
 		XEN_CHECK_GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 
-		xen::useShader(prog);
+		xen::gl::useShader(prog);
 
 		Vec3r light_pos = xen::rotated(Vec3r{4, 3, 0}, Vec3r::UnitY, xen::Degrees(time*90_r));
-		xen::setUniform(point_light_pos_loc, light_pos);
+		xen::gl::setUniform(point_light_pos_loc, light_pos);
 		point_light_color.w = (1_r + sin(time*9)) / 2.0_r;
-		xen::setUniform(point_light_color_loc, point_light_color);
-		xen::setUniform(camera_pos_loc, getCameraPosition(camera));
+		xen::gl::setUniform(point_light_color_loc, point_light_color);
+		xen::gl::setUniform(camera_pos_loc, getCameraPosition(camera));
 
 		////////////////////////////////////////////
 		// Draw Cube Light
@@ -300,11 +300,11 @@ int main(int argc, char** argv){
 		                          0.3 + sin(time*15 + 0.25*xen::PI)*0.03,
 		                          0.3 + sin(time*15 + 0.5*xen::PI)*0.03);
 		model_mat *= xen::Translation3d(light_pos);
-		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
-		xen::setUniform(model_mat_loc, model_mat);
-		xen::setUniform(emissive_color_loc, point_light_color);
+		xen::gl::setUniform(mvp_mat_loc, model_mat * vp_mat);
+		xen::gl::setUniform(model_mat_loc, model_mat);
+		xen::gl::setUniform(emissive_color_loc, point_light_color);
 		renderMesh(mesh_cube);
-		xen::setUniform(emissive_color_loc, Vec4r::Origin);
+		xen::gl::setUniform(emissive_color_loc, Vec4r::Origin);
 		////////////////////////////////////////////
 
 		////////////////////////////////////////////
@@ -315,8 +315,8 @@ int main(int argc, char** argv){
 		model_mat *= xen::Translation3d(-0.5_r * (mesh_bunny->bounds_max - mesh_bunny->bounds_min));
 		model_mat *= xen::Rotation3dy(67_deg * time);
 		//model_mat *= xen::Translation3d(0, 0, 0);
-		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
-		xen::setUniform(model_mat_loc, model_mat);
+		xen::gl::setUniform(mvp_mat_loc, model_mat * vp_mat);
+		xen::gl::setUniform(model_mat_loc, model_mat);
 		renderMesh(mesh_bunny);
 		////////////////////////////////////////////
 
@@ -325,8 +325,8 @@ int main(int argc, char** argv){
 		model_mat = Mat4r::Identity;
 		model_mat *= xen::Scale3d(30, 0.05, 30);
 		model_mat *= xen::Translation3d(0, -0.5, 0);
-		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
-		xen::setUniform(model_mat_loc, model_mat);
+		xen::gl::setUniform(mvp_mat_loc, model_mat * vp_mat);
+		xen::gl::setUniform(model_mat_loc, model_mat);
 		renderMesh(mesh_cube);
 		////////////////////////////////////////////
 
@@ -335,25 +335,25 @@ int main(int argc, char** argv){
 		model_mat = Mat4r::Identity;
 		model_mat *= xen::Translation3d(1,0,0);
 		model_mat *= xen::Scale3d(5, 0.05, 0.05);
-		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
-		xen::setUniform(model_mat_loc, model_mat);
-		xen::setUniform(emissive_color_loc, Vec4r(1,0,0,1));
+		xen::gl::setUniform(mvp_mat_loc, model_mat * vp_mat);
+		xen::gl::setUniform(model_mat_loc, model_mat);
+		xen::gl::setUniform(emissive_color_loc, Vec4r(1,0,0,1));
 		renderMesh(mesh_cube);
 
 		model_mat = Mat4r::Identity;
 		model_mat *= xen::Translation3d(0,1,0);
 		model_mat *= xen::Scale3d(0.05, 5, 0.05);
-		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
-		xen::setUniform(model_mat_loc, model_mat);
-		xen::setUniform(emissive_color_loc, Vec4r(0,1,0,1));
+		xen::gl::setUniform(mvp_mat_loc, model_mat * vp_mat);
+		xen::gl::setUniform(model_mat_loc, model_mat);
+		xen::gl::setUniform(emissive_color_loc, Vec4r(0,1,0,1));
 		renderMesh(mesh_cube);
 
 		model_mat = Mat4r::Identity;
 		model_mat *= xen::Translation3d(0,0,1);
 		model_mat *= xen::Scale3d(0.05, 0.05, 5);
-		xen::setUniform(mvp_mat_loc, model_mat * vp_mat);
-		xen::setUniform(model_mat_loc, model_mat);
-		xen::setUniform(emissive_color_loc, Vec4r(0,0,1,1));
+		xen::gl::setUniform(mvp_mat_loc, model_mat * vp_mat);
+		xen::gl::setUniform(model_mat_loc, model_mat);
+		xen::gl::setUniform(emissive_color_loc, Vec4r(0,0,1,1));
 		renderMesh(mesh_cube);
 		////////////////////////////////////////////
 
@@ -364,7 +364,7 @@ int main(int argc, char** argv){
 	return 0;
 }
 
-void renderMesh(const xen::Mesh* mesh){
+void renderMesh(const xen::gl::Mesh* mesh){
 	XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->gpu_buffer->handle));
 
 	for(int i = 0; i < mesh->attrib_count; ++i){
@@ -391,17 +391,17 @@ void renderMesh(const xen::Mesh* mesh){
 	XEN_CHECK_GL(glDrawArrays(GL_TRIANGLES, 0, mesh->num_triangles * 3));
 }
 
-xen::ShaderProgram* loadShader(xen::ArenaLinear& arena){
+xen::gl::ShaderProgram* loadShader(xen::ArenaLinear& arena){
 	XenTempArena(scratch, 8196);
 
 	xen::FileData vertex_src = xen::loadFileAndNullTerminate(scratch, "vertex.glsl");
 	xen::FileData pixel_src  = xen::loadFileAndNullTerminate(scratch, "pixel.glsl");
 
-	auto result = xen::createShaderProgram(arena, (char*)vertex_src.data, (char*)pixel_src.data);
+	auto result = xen::gl::createShaderProgram(arena, (char*)vertex_src.data, (char*)pixel_src.data);
 
-	if(!xen::isOkay(result)){
+	if(!xen::gl::isOkay(result)){
 		xen::resetArena(scratch);
-		const char* errors = xen::getErrors(result, scratch);
+		const char* errors = xen::gl::getErrors(result, scratch);
 		printf("Shader Errors:\n%s\n", errors);
 		exit(1);
 	} else {
