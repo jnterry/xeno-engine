@@ -119,6 +119,22 @@ namespace xen{
 	                                                              ,{0,0,1,0}
 	                                                              ,{0,0,0,1}
 	                                                              };
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Creates a new xen::Vec from given components
+	/// \note We want Vec to be a trivial type (IE: no-constructor) so
+	/// we can use it in unions, create with initialise lists, etc, however
+	/// sometimes we need to create a vector from more complex data, eg, a 3d
+	/// vector from a 2d and a z component. This function allows for this,
+	/// without introducing a constructor into Vec
+	/////////////////////////////////////////////////////////////////////
+	template<typename T> Vec<2, T> mkVec(T x, T y          ){ return {x,y    }; }
+	template<typename T> Vec<3, T> mkVec(T x, T y, T z     ){ return {x,y,z  }; }
+	template<typename T> Vec<4, T> mkVec(T x, T y, T z, T w){ return {x,y,z,w}; }
+	template<typename T>
+	Vec<3, T> mkVec(Vec<2, T> xy,  T z) { return { xy.x,  xy.y,  z        }; }
+	template<typename T>
+	Vec<4, T> mkVec(Vec<3, T> xyz, T w) { return { xyz.x, xyz.y, xyz.z, w }; }
 }
 
 #pragma GCC diagnostic pop // re-enable -Wpedantic

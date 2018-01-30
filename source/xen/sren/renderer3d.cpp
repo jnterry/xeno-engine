@@ -26,12 +26,19 @@ namespace {
 	                    xen::Color color,
 	                    Vec3r* points, u32 count){
 
+		xen::Color the_color = color;
+
 		for(u32 i = 0; i < count; ++i){
-			Vec3f clip_space = points[i] * mvp_matrix;
+			Vec4f clip_space = xen::mkVec(points[i], 1_r) * mvp_matrix;
 
-			//printf("%f, %f, %f\n", clip_space.x, clip_space.y, clip_space.z);
+			if(clip_space.z < 0){
+				// Then point is behind the camera
+				continue;
+			}
 
-			Vec2f screen_space = clip_space.xy + (((Vec2f){1.0f, 1.0f}) / 2.0f) * (Vec2r)target.size;
+			Vec2f screen_space = ((clip_space.xy / clip_space.w) +
+			                      (((Vec2f){1.0f, 1.0f}) / 2.0f) * (Vec2r)target.size
+			                     );
 
 			if(screen_space.x < 0 ||
 			   screen_space.y < 0 ||
@@ -40,7 +47,7 @@ namespace {
 				continue;
 			}
 
-			target[screen_space.x][screen_space.y] = color;
+			target[screen_space.x][screen_space.y] = the_color;
 		}
 	}
 

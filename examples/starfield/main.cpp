@@ -161,9 +161,9 @@ int main(int argc, char** argv){
 		handleInput(dt);
 
 		for(u32 i = 0; i < STAR_COUNT; ++i){
-			star_positions[i].z += dt * 50.0f;
+			star_positions[i].z += dt * 75.0f;
 			if(star_positions[i].z >= 100.0f){
-				star_positions[i].z = -100.0f;
+				star_positions[i].z -= 200.0f;
 			}
 		}
 

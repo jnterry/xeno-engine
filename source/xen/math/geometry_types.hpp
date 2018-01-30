@@ -32,6 +32,9 @@ namespace xen {
 	typedef LineSegment<3, real> LineSegment3r;
 	typedef LineSegment<3, u32 > LineSegment3u;
 	typedef LineSegment<3, s32 > LineSegment3s;
+	typedef LineSegment<4, real> LineSegment4r;
+	typedef LineSegment<4, u32 > LineSegment4u;
+	typedef LineSegment<4, s32 > LineSegment4s;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents an Axis Aligned Bounding Box
