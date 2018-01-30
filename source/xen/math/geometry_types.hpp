@@ -53,10 +53,18 @@ namespace xen {
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents a 2d circle
 	/////////////////////////////////////////////////////////////////////
-	struct Circle{
-		Vec2r center;
-		real  radius;
+	template<u32 T_DIM, typename T>
+	struct Sphere{
+		Vec<T_DIM, T> center;
+		T             radius;
 	};
+	typedef Sphere<2, u32 > Sphere2u;
+	typedef Sphere<2, s32 > Sphere2s;
+	typedef Sphere<2, real> Sphere2r;
+	typedef Sphere<3, u32 > Sphere3u;
+	typedef Sphere<3, s32 > Sphere3s;
+	typedef Sphere<3, real> Sphere3r;
+	template <typename T> using Circle = Sphere<2, T>;
 }
 
 template<u32 T_DIM, typename T>

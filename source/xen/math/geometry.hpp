@@ -27,9 +27,10 @@ namespace xen{
 		return aabb;
 	}
 
-	inline Circle& translate(Circle& circle, Vec2r delta){
-		circle.center += delta;
-		return circle;
+	template<u32 T_DIM, typename T>
+	inline Sphere<T_DIM, T>& translate(Sphere<T_DIM, T>& sphere, Vec<T_DIM, T> delta){
+		sphere.center += delta;
+		return sphere;
 	}
 
 	template<u32 T_DIM, typename T>
@@ -70,6 +71,11 @@ namespace xen{
 		return aabb.min.x <= point.x && point.x <= aabb.max.x &&
 		       aabb.min.y <= point.y && point.y <= aabb.max.y &&
 		       aabb.min.z <= point.z && point.z <= aabb.max.z;
+	}
+
+	template<u32 T_DIM, typename T>
+	bool contains(const Sphere<T_DIM, T>& sphere, const Vec<T_DIM, T>& point){
+		return xen::distance(sphere.center, point) <= sphere.radius;
 	}
 
 	namespace impl{
@@ -267,9 +273,9 @@ namespace xen{
 		return aabb.max.x > aabb.min.x && aabb.max.y > aabb.min.y;
 	}
 
-	template<typename T>
-	bool hasArea(Circle circle){
-		return circle.radius > 0;
+	template<u32 T_DIM, typename T>
+	bool hasArea(Sphere<T_DIM, T> sphere){
+		return sphere.radius > 0;
 	}
 }
 
