@@ -1,16 +1,17 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \file Texture.hpp
+/// \file Image.hpp
 /// \author Jamie Terry
 /// \date 2017/06/18
-/// \brief Contains types and functions for manipulating Textures
+/// \brief Contains types and functions for loading, saving and maninpulating raw
+/// images
 ///
 /// \ingroup graphics
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_GRAPHICS_TEXTURE_HPP
-#define XEN_GRAPHICS_TEXTURE_HPP
+#ifndef XEN_GRAPHICS_IMAGE_HPP
+#define XEN_GRAPHICS_IMAGE_HPP
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/math/Vector.hpp>
@@ -18,9 +19,6 @@
 
 namespace xen{
 	struct ArenaLinear;
-
-	/// \brief Opaque type representing texture usable by graphics device
-	typedef u32 TextureHandle;
 
 	// gcc doesn't like the anonymous structures inside unions, disable the warning temporarily...
 	#pragma GCC diagnostic push
@@ -77,9 +75,6 @@ namespace xen{
 	/// \param filename The name of the file to save the image to
 	/////////////////////////////////////////////////////////////////////
 	bool     saveImage(const RawImage* image, const char* filename);
-
-	/// \brief Uploads texture data to graphics device, creating a Texture
-	TextureHandle createTexture(RawImage* image);
 }
 
 #endif

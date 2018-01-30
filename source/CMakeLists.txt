@@ -17,9 +17,12 @@ add_library(xen-math ${XEN_HEADERS_MATH} ${XEN_SOURCES_MATH})
 target_include_directories(xen-math PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
 add_library(xen-graphics ${XEN_HEADERS_GRAPHICS} ${XEN_SOURCES_GRAPHICS})
-target_include_directories(xen-graphics PRIVATE "${XEN_EXTLIBS_DIR}/TinyObjLoader/")
 target_include_directories(xen-graphics PRIVATE "${XEN_EXTLIBS_DIR}/stb/")
 target_include_directories(xen-graphics PUBLIC  ${CMAKE_CURRENT_LIST_DIR})
 
 add_library(xen-sren ${XEN_HEADERS_SREN} ${XEN_SOURCES_SREN})
 target_include_directories(xen-sren PUBLIC  ${CMAKE_CURRENT_LIST_DIR})
+
+add_library(xen-gl ${XEN_HEADERS_GL} ${XEN_SOURCES_GL})
+target_include_directories(xen-gl PRIVATE "${XEN_EXTLIBS_DIR}/TinyObjLoader/")
+target_include_directories(xen-gl PUBLIC  ${CMAKE_CURRENT_LIST_DIR})

@@ -14,7 +14,7 @@
 
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/Color.hpp>
-#include <xen/graphics/Texture.hpp>
+#include <xen/graphics/Image.hpp>
 #include <xen/graphics/Camera3d.hpp>
 
 #include <cstdio>

@@ -49,25 +49,20 @@ set(XEN_HEADERS_MATH
 ## Graphics
 ##################################################
 set(XEN_SOURCES_GRAPHICS
-  ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Shader.gl.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Mesh.cpp
-  ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Texture.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Image.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Camera3d.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Color.cpp
 )
 
 set(XEN_HEADERS_GRAPHICS
-  ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/gl_header.hxx
-  ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Shader.hpp
-  ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Mesh.hpp
-  ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Texture.hpp
+  ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Image.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Camera3d.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Color.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/RenderCommand3d.hpp
 )
 
 ##################################################
-## SREN
+## SREN Render Backend
 ##################################################
 set(XEN_SOURCES_SREN
   ${CMAKE_CURRENT_LIST_DIR}/xen/sren/renderer3d.cpp
@@ -75,6 +70,22 @@ set(XEN_SOURCES_SREN
 
 set(XEN_HEADERS_SREN
     ${CMAKE_CURRENT_LIST_DIR}/xen/sren/renderer3d.hxx
+)
+
+##################################################
+## GL Render Backend
+##################################################
+set(XEN_SOURCES_GL
+  ${CMAKE_CURRENT_LIST_DIR}/xen/gl/Mesh.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/gl/Shader.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/gl/Texture.cpp
+)
+
+set(XEN_HEADERS_GL
+	${CMAKE_CURRENT_LIST_DIR}/xen/gl/Shader.hpp
+  ${CMAKE_CURRENT_LIST_DIR}/xen/gl/Mesh.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/gl/Texture.hpp
+  ${CMAKE_CURRENT_LIST_DIR}/xen/gl/gl_header.hxx
 )
 
 ##################################################
@@ -86,6 +97,7 @@ set(XEN_SOURCES_ALL
   ${XEN_SOURCES_MATH}
   ${XEN_SOURCES_GRAPHICS}
 	${XEN_SOURCES_SREN}
+	${XEN_SOURCES_GL}
 )
 
 set(XEN_HEADERS_ALL
@@ -94,4 +106,5 @@ set(XEN_HEADERS_ALL
   ${XEN_HEADERS_MATH}
   ${XEN_HEADERS_GRAPHICS}
 	${XEN_HEADERS_SREN}
+	${XEN_SOURCES_GL}
 )
