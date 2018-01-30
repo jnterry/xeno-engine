@@ -29,7 +29,7 @@ namespace {
 		for(u32 i = 0; i < count; ++i){
 			Vec3f clip_space = points[i] * mvp_matrix;
 
-			printf("%f, %f, %f\n", clip_space.x, clip_space.y, clip_space.z);
+			//printf("%f, %f, %f\n", clip_space.x, clip_space.y, clip_space.z);
 
 			Vec2f screen_space = clip_space.xy + (((Vec2f){1.0f, 1.0f}) / 2.0f) * (Vec2r)target.size;
 

@@ -75,14 +75,9 @@ int main(int argc, char** argv){
 	}
 
 	Vec3r axis_line_verts[] = {
-		{   0.0_r,   0.0_r,   0.0_r },
-		{ 100.0_r,   0.0_r,   0.0_r },
-
-		{   0.0_r,   0.0_r,   0.0_r },
-		{   0.0_r, 100.0_r,   0.0_r },
-
-		{   0.0_r,   0.0_r,   0.0_r },
-		{   0.0_r,   0.0_r, 100.0_r },
+		Vec3r::Origin, Vec3r::UnitX,
+		Vec3r::Origin, Vec3r::UnitY,
+		Vec3r::Origin, Vec3r::UnitZ,
 	};
 
 	Vec3r cube_lines[] = {
@@ -126,19 +121,19 @@ int main(int argc, char** argv){
 	xen::RenderCommand3d render_commands[5];
 	render_commands[0].type                = xen::RenderCommand3d::LINES;
 	render_commands[0].color               = xen::Color::RED;
-	render_commands[0].model_matrix        = Mat4r::Identity;
+	render_commands[0].model_matrix        = xen::Scale3d(100_r);
 	render_commands[0].verticies.verticies = &axis_line_verts[0];
 	render_commands[0].verticies.count     = 2;
 
 	render_commands[1].type                = xen::RenderCommand3d::LINES;
 	render_commands[1].color               = xen::Color::GREEN;
-	render_commands[1].model_matrix        = Mat4r::Identity;
+	render_commands[1].model_matrix        = xen::Scale3d(100_r);
 	render_commands[1].verticies.verticies = &axis_line_verts[2];
 	render_commands[1].verticies.count     = 2;
 
 	render_commands[2].type                = xen::RenderCommand3d::LINES;
 	render_commands[2].color               = xen::Color::BLUE;
-	render_commands[2].model_matrix        = Mat4r::Identity;
+	render_commands[2].model_matrix        = xen::Scale3d(100_r);
 	render_commands[2].verticies.verticies = &axis_line_verts[4];
 	render_commands[2].verticies.count     = 2;
 
