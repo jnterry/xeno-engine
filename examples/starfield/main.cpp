@@ -144,7 +144,7 @@ int main(int argc, char** argv){
 	render_commands[3].verticies.count     = STAR_COUNT;
 
 	render_commands[4].type                = xen::RenderCommand3d::LINES;
-	render_commands[4].color               = {0, 255, 255, 0};
+	render_commands[4].color               = 0xFFFFFF00;
 	render_commands[4].model_matrix        = xen::Scale3d(200_r) * xen::Translation3d(-100.0_r, -100.0_r, -100.0_r);
 	render_commands[4].verticies.verticies = &cube_lines[0];
 	render_commands[4].verticies.count     = XenArrayLength(cube_lines);

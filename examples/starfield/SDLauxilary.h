@@ -28,7 +28,7 @@ void SDL_SaveImage(screen *s, const char* filename)
 {
   uint32_t rmask, gmask, bmask, amask;
 
-  if(SDL_BYTEORDER == SDL_BIG_ENDIAN) {
+  if(SDL_BYTEORDER != SDL_BIG_ENDIAN) {
       amask = 0xff << 0;
       rmask = 0xff << 8;
       gmask = 0xff << 16;

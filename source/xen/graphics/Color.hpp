@@ -34,6 +34,8 @@ namespace xen {
 		static const Color RED;
 		static const Color GREEN;
 		static const Color BLUE;
+
+		xen::Color& operator=(u32 val);
 	};
 
 	#pragma GCC diagnostic pop // re-enable -Wpedantic
@@ -45,5 +47,8 @@ namespace xen {
 	//	float r, g, b, a;
 	//};
 }
+
+bool operator==(const xen::Color& lhs, const xen::Color& rhs);
+bool operator!=(const xen::Color& lhs, const xen::Color& rhs);
 
 #endif
