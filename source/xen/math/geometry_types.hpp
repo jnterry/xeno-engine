@@ -87,4 +87,14 @@ bool operator!=(const xen::LineSegment<T_DIM, T>& lhs, const xen::LineSegment<T_
 	return lhs.p1 != rhs.p1 || lhs.p2 != rhs.p2;
 }
 
+template<u32 T_DIM, typename T>
+bool operator==(const xen::Sphere<T_DIM, T>& lhs, const xen::Sphere<T_DIM, T>& rhs){
+	return lhs.center == rhs.center && lhs.radius == rhs.radius;
+}
+
+template<u32 T_DIM, typename T>
+bool operator!=(const xen::Sphere<T_DIM, T>& lhs, const xen::Sphere<T_DIM, T>& rhs){
+	return lhs.center != rhs.center || lhs.radius != rhs.radius;
+}
+
 #endif
