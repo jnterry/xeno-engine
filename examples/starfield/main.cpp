@@ -36,7 +36,7 @@ void handleInput(real dt){
 	if(keystate[SDL_SCANCODE_DOWN]){
 		camera.radius += camera_speed * dt;
 	}
-	camera.radius = xen::clamp(camera.radius, 0.01_r, 250_r);
+	camera.radius = xen::clamp(camera.radius, 0.01_r, 500_r);
 
 	if(keystate[SDL_SCANCODE_LEFT]){
 		camera.angle -= camera_rotate_speed * dt;
@@ -55,27 +55,20 @@ void handleInput(real dt){
 int main(int argc, char** argv){
 	camera.z_near   = 0.1;
 	camera.z_far    = 100;
-	camera.fov_y    = 1_deg;
-	camera.radius   = 150;
+	camera.fov_y    = 0.1_deg;
+	camera.radius   = 250;
 	camera.height   = 0;
 	camera.up_dir   = Vec3r::UnitY;
 	camera.target   = Vec3r::Origin;
 	//:TODO: breaks if angle is exactly 0deg, never occurs
 	// under user control since don't hit dead on float value, but
 	// broken if set here
-	camera.angle    = 0.01_deg;
+	camera.angle    = 0.0_deg;
 
 	Vec2r window_size = {800, 600};
 	screen* screen = InitializeSDL(window_size.x, window_size.y, false);
 
-	int grid_count = xen::sqrt(STAR_COUNT);
 	for(u32 i = 0; i < STAR_COUNT; ++i){
-		//int grid_x = i % grid_count;
-		//int grid_y = i / grid_count;
-		//star_positions[i].x = xen::lerp(-100, 100, (float)grid_x / (float)grid_count);
-		//star_positions[i].y = xen::lerp(-100, 100, (float)grid_y / (float)grid_count);
-		//star_positions[i].z = -100;
-
 		star_positions[i].x = xen::randf(-100, 100);
 		star_positions[i].y = xen::randf(-100, 100);
 		star_positions[i].z = xen::randf(-100, 100);
@@ -177,11 +170,7 @@ int main(int argc, char** argv){
 		// Clear buffer
 		xen::sren::clear(screen->buffer, xen::Color::BLACK);
 
-		Mat4f mat_vp = xen::getViewProjectionMatrix(camera, window_size);
-
-		Vec3f screen_space;
-		xen::Color color = {255, 255, 255, 0};
-
+		// Do rendering
 		xen::sren::renderRasterize(screen->buffer, xen::generateCamera3d(camera),
 		                           render_commands, XenArrayLength(render_commands)
 		                          );

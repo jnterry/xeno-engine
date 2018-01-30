@@ -22,25 +22,12 @@
 #include <cstdlib>
 
 namespace {
-	void doRenderPoints(xen::sren::RenderTarget& target, const xen::Camera3d& camera,
+	void doRenderPoints(xen::sren::RenderTarget& target, const Mat4f& mvp_matrix,
 	                    xen::Color color,
 	                    Vec3r* points, u32 count){
 
-		Mat4f mat_vp = xen::getViewProjectionMatrix(camera, (Vec2r)target.size);
-
 		for(u32 i = 0; i < count; ++i){
-			Vec3f clip_space = points[i] * mat_vp;
-
-			/*if(clip_space.x < -1 || clip_space.x > 1 ||
-			  clip_space.y < -1 || clip_space.y > 1 ||
-			  clip_space.z < -1 || clip_space.z > 1){
-			  printf("%f, %f, %f\n", clip_space.x, clip_space.y, clip_space.z);
-			  continue;
-			  }*/
-
-			// :TODO: is this needed?
-			//printf("%f, %f, %f\n", clip_space.x, clip_space.y, clip_space.z);
-			//clip_space /= clip_space.z;
+			Vec3f clip_space = points[i] * mvp_matrix;
 
 			Vec2f screen_space = clip_space.xy + (((Vec2f){1.0f, 1.0f}) / 2.0f) * (Vec2r)target.size;
 
@@ -82,7 +69,7 @@ namespace xen{
 
 		void renderRasterize(RenderTarget& target, const Camera3d& camera, RenderCommand3d* commands, u32 command_count){
 
-			Mat4f mat_vp = xen::getViewProjectionMatrix(camera, (Vec2r)target.size);
+			Mat4f mat_vp = xen::getViewProjectionMatrix(camera, ((Vec2r){1, 1}));
 
 			xen::Aabb2r screen_rect = { Vec2r::Origin, (Vec2r)target.size - ((Vec2r){1,1}) };
 
@@ -94,7 +81,7 @@ namespace xen{
 				printf("Executing render command: %u\n", cmd_index);
 				switch(cmd->type){
 				case RenderCommand3d::POINTS:
-					doRenderPoints(target, camera, cmd->color, cmd->verticies.verticies, cmd->verticies.count);
+					doRenderPoints(target, mat_vp, cmd->color, cmd->verticies.verticies, cmd->verticies.count);
 					break;
 				case RenderCommand3d::LINES:
 					stride = 2;

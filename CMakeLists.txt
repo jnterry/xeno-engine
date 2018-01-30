@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.3)
+cmake_minimum_required(VERSION 2.8.1)
 project("Xeno Engine")
 set(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -14,6 +14,20 @@ option(STRICT_COMPILE "Enables extra compiler warnings and errors" ON)
 set(XEN_EXTLIBS_DIR     "${CMAKE_CURRENT_LIST_DIR}/extlibs")
 set(PP_SFML_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/extlibs/sfml2.4.2/include/")
 set(XEN_INCLUDE_DIR     "${CMAKE_CURRENT_LIST_DIR}/source/")
+
+# Force c++ 11 standard
+macro(use_cxx11)
+  if (CMAKE_VERSION VERSION_LESS "3.1")
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+      set (CMAKE_CXX_FLAGS "-std=gnu++11 ${CMAKE_CXX_FLAGS}")
+ 		else ()
+ 			message(FATAL_ERROR "Unable to enable c++11 support on this platform!")
+    endif ()
+  else ()
+    set (CMAKE_CXX_STANDARD 11)
+  endif ()
+endmacro(use_cxx11)
+use_cxx11()
 
 if(STRICT_COMPILE)
   #setup warnings + errors
