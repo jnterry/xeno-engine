@@ -26,7 +26,7 @@ void renderMesh(const xen::Mesh* mesh);
 xen::ShaderProgram* loadShader(xen::ArenaLinear&);
 
 xen::Camera3dOrbit camera;
-real camera_speed = 10;
+real camera_speed = 50;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
 
@@ -150,7 +150,7 @@ int main(int argc, char** argv){
 	camera.z_near   = 0.001;
 	camera.z_far    = 10000;
 	camera.fov_y    = 80_deg;
-	camera.radius   = 10;
+	camera.radius   = 100;
 	camera.height   = 0;
 	camera.up_dir   = Vec3r::UnitY;
 	//:TODO: breaks if angle is exactly +90deg, never occurs

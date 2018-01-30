@@ -17,7 +17,7 @@
 #include "SDLauxilary.h"
 
 xen::Camera3dOrbit camera;
-real camera_speed = 100;
+real camera_speed = 250;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
 
@@ -36,7 +36,7 @@ void handleInput(real dt){
 	if(keystate[SDL_SCANCODE_DOWN]){
 		camera.radius += camera_speed * dt;
 	}
-	camera.radius = xen::clamp(camera.radius, 0.01_r, 500_r);
+	camera.radius = xen::clamp(camera.radius, 0.01_r, 750_r);
 
 	if(keystate[SDL_SCANCODE_LEFT]){
 		camera.angle -= camera_rotate_speed * dt;
@@ -56,7 +56,7 @@ int main(int argc, char** argv){
 	camera.z_near   = 0.1;
 	camera.z_far    = 100;
 	camera.fov_y    = 0.1_deg;
-	camera.radius   = 250;
+	camera.radius   = 450;
 	camera.height   = 0;
 	camera.up_dir   = Vec3r::UnitY;
 	camera.target   = Vec3r::Origin;
@@ -86,66 +86,71 @@ int main(int argc, char** argv){
 	};
 
 	Vec3r cube_lines[] = {
-		{-100.0_r, -100.0_r, -100.0_r },
-		{ 100.0_r, -100.0_r, -100.0_r },
+		{ 0_r,  0_r,  0_r },
+		{ 1_r,  0_r,  0_r },
 
-		{ 100.0_r, -100.0_r, -100.0_r },
-		{ 100.0_r,  100.0_r, -100.0_r },
+		{ 1_r,  0_r,  0_r },
+		{ 1_r,  1_r,  0_r },
 
-		{ 100.0_r,  100.0_r, -100.0_r },
-		{-100.0_r,  100.0_r, -100.0_r },
+		{ 1_r,  1_r,  0_r },
+		{ 0_r,  1_r,  0_r },
 
-		{-100.0_r,  100.0_r, -100.0_r },
-		{-100.0_r, -100.0_r, -100.0_r },
+		{ 0_r,  1_r,  0_r },
+		{ 0_r,  0_r,  0_r },
 
-		{-100.0_r, -100.0_r,  100.0_r },
-		{ 100.0_r, -100.0_r,  100.0_r },
+		{ 0_r,  0_r,  1_r },
+		{ 1_r,  0_r,  1_r },
 
-		{ 100.0_r, -100.0_r,  100.0_r },
-		{ 100.0_r,  100.0_r,  100.0_r },
+		{ 1_r,  0_r,  1_r },
+		{ 1_r,  1_r,  1_r },
 
-		{ 100.0_r,  100.0_r,  100.0_r },
-		{-100.0_r,  100.0_r,  100.0_r },
+		{ 1_r,  1_r,  1_r },
+		{ 0_r,  1_r,  1_r },
 
-		{-100.0_r,  100.0_r,  100.0_r },
-		{-100.0_r, -100.0_r,  100.0_r },
+		{ 0_r,  1_r,  1_r },
+		{ 0_r,  0_r,  1_r },
 
-		{ 100.0_r,  100.0_r,  100.0_r },
-		{ 100.0_r,  100.0_r, -100.0_r },
+		{ 1_r,  1_r,  1_r },
+		{ 1_r,  1_r,  0_r },
 
-		{-100.0_r,  100.0_r,  100.0_r },
-		{-100.0_r,  100.0_r, -100.0_r },
+		{ 0_r,  1_r,  1_r },
+		{ 0_r,  1_r,  0_r },
 
-		{-100.0_r, -100.0_r,  100.0_r },
-		{-100.0_r, -100.0_r, -100.0_r },
+		{ 0_r,  0_r,  1_r },
+		{ 0_r,  0_r,  0_r },
 
-		{ 100.0_r, -100.0_r,  100.0_r },
-		{ 100.0_r, -100.0_r, -100.0_r },
+		{ 1_r,  0_r,  1_r },
+		{ 1_r,  0_r,  0_r },
 	};
 
 	xen::RenderCommand3d render_commands[5];
 	render_commands[0].type                = xen::RenderCommand3d::LINES;
 	render_commands[0].color               = xen::Color::RED;
+	render_commands[0].model_matrix        = Mat4r::Identity;
 	render_commands[0].verticies.verticies = &axis_line_verts[0];
 	render_commands[0].verticies.count     = 2;
 
 	render_commands[1].type                = xen::RenderCommand3d::LINES;
 	render_commands[1].color               = xen::Color::GREEN;
+	render_commands[1].model_matrix        = Mat4r::Identity;
 	render_commands[1].verticies.verticies = &axis_line_verts[2];
 	render_commands[1].verticies.count     = 2;
 
 	render_commands[2].type                = xen::RenderCommand3d::LINES;
 	render_commands[2].color               = xen::Color::BLUE;
+	render_commands[2].model_matrix        = Mat4r::Identity;
 	render_commands[2].verticies.verticies = &axis_line_verts[4];
 	render_commands[2].verticies.count     = 2;
 
 	render_commands[3].type                = xen::RenderCommand3d::POINTS;
 	render_commands[3].color               = xen::Color::WHITE;
+	render_commands[3].model_matrix        = Mat4r::Identity;
 	render_commands[3].verticies.verticies = star_positions;
 	render_commands[3].verticies.count     = STAR_COUNT;
 
 	render_commands[4].type                = xen::RenderCommand3d::LINES;
 	render_commands[4].color               = {255, 255, 0, 0};
+	render_commands[4].model_matrix        = xen::Scale3d(200_r) * xen::Translation3d(-100.0_r, -100.0_r, -100.0_r);
 	render_commands[4].verticies.verticies = &cube_lines[0];
 	render_commands[4].verticies.count     = XenArrayLength(cube_lines);
 

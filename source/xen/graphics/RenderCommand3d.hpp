@@ -14,6 +14,7 @@
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/math/Vector.hpp>
+#include <xen/math/Matrix.hpp>
 #include <xen/graphics/Color.hpp>
 
 namespace xen{
@@ -39,6 +40,9 @@ namespace xen{
 
 		/// \brief The diffuse color to use
 		Color color;
+
+		/// \brief Matrix to transform from world space to model space
+		Mat4r model_matrix;
 
 		/// \brief Extra type dependent data
 		union {

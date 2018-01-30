@@ -29,6 +29,8 @@ namespace {
 		for(u32 i = 0; i < count; ++i){
 			Vec3f clip_space = points[i] * mvp_matrix;
 
+			printf("%f, %f, %f\n", clip_space.x, clip_space.y, clip_space.z);
+
 			Vec2f screen_space = clip_space.xy + (((Vec2f){1.0f, 1.0f}) / 2.0f) * (Vec2r)target.size;
 
 			if(screen_space.x < 0 ||
@@ -69,7 +71,8 @@ namespace xen{
 
 		void renderRasterize(RenderTarget& target, const Camera3d& camera, RenderCommand3d* commands, u32 command_count){
 
-			Mat4f mat_vp = xen::getViewProjectionMatrix(camera, ((Vec2r){1, 1}));
+			Mat4r mat_vp  = xen::getViewProjectionMatrix(camera, ((Vec2r){1, 1}));
+			Mat4r mat_mvp;
 
 			xen::Aabb2r screen_rect = { Vec2r::Origin, (Vec2r)target.size - ((Vec2r){1,1}) };
 
@@ -79,9 +82,10 @@ namespace xen{
 			for(u32 cmd_index = 0; cmd_index < command_count; ++cmd_index){
 				cmd = &commands[cmd_index];
 				printf("Executing render command: %u\n", cmd_index);
+				mat_mvp = cmd->model_matrix * mat_vp;
 				switch(cmd->type){
 				case RenderCommand3d::POINTS:
-					doRenderPoints(target, mat_vp, cmd->color, cmd->verticies.verticies, cmd->verticies.count);
+					doRenderPoints(target, mat_mvp, cmd->color, cmd->verticies.verticies, cmd->verticies.count);
 					break;
 				case RenderCommand3d::LINES:
 					stride = 2;
@@ -97,7 +101,7 @@ namespace xen{
 						//       line_world->p1.x, line_world->p1.y, line_world->p1.z,
 							        //       line_world->p2.x, line_world->p2.y, line_world->p2.z);
 
-						LineSegment3r  line_clip  = xen::getTransformed(*line_world, mat_vp);
+						LineSegment3r  line_clip  = xen::getTransformed(*line_world, mat_mvp);
 
 						//printf("%f, %f, %f  --- %f, %f, %f\n",
 						//       line_clip.p1.x, line_clip.p1.y, line_clip.p1.z,
