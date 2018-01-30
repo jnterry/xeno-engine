@@ -49,13 +49,13 @@ set(XEN_HEADERS_MATH
 ## Graphics
 ##################################################
 set(XEN_SOURCES_GRAPHICS
-  ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Texture.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Image.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Camera3d.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Color.cpp
 )
 
 set(XEN_HEADERS_GRAPHICS
-  ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Texture.hpp
+  ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Image.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Camera3d.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Color.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/RenderCommand3d.hpp
@@ -78,11 +78,13 @@ set(XEN_HEADERS_SREN
 set(XEN_SOURCES_GL
   ${CMAKE_CURRENT_LIST_DIR}/xen/gl/Mesh.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/gl/Shader.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/gl/Texture.cpp
 )
 
 set(XEN_HEADERS_GL
 	${CMAKE_CURRENT_LIST_DIR}/xen/gl/Shader.hpp
   ${CMAKE_CURRENT_LIST_DIR}/xen/gl/Mesh.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/gl/Texture.hpp
   ${CMAKE_CURRENT_LIST_DIR}/xen/gl/gl_header.hxx
 )
 

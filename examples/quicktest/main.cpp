@@ -12,7 +12,8 @@
 #include <xen/gl/Shader.hpp>
 #include <xen/gl/Mesh.hpp>
 #include <xen/gl/gl_header.hxx>
-#include <xen/graphics/Texture.hpp>
+#include <xen/gl/Texture.hpp>
+#include <xen/graphics/Image.hpp>
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/math/utilities.hpp>
 #include <xen/math/Vector.hpp>
@@ -211,8 +212,8 @@ int main(int argc, char** argv){
 	                                                    cube_attrib_data
 	                                                    );
 
-	xen::RawImage      test_image   = xen::loadImage(arena, "test.bmp");
-	xen::TextureHandle test_texture = xen::createTexture(&test_image);
+	xen::RawImage          test_image   = xen::loadImage(arena, "test.bmp");
+	xen::gl::TextureHandle test_texture = xen::gl::createTexture(&test_image);
 
 	sf::Clock timer;
 	real last_time = 0;

@@ -7,7 +7,7 @@
 #include <cstring>
 
 #include <xen/graphics/Color.hpp>
-#include <xen/graphics/Texture.hpp>
+#include <xen/graphics/Image.hpp>
 
 typedef struct{
   SDL_Window *window;
