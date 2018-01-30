@@ -108,7 +108,7 @@ screen* InitializeSDL(int width, int height, bool fullscreen) {
   SDL_RenderSetLogicalSize(s->renderer, width,height);
 
   s->texture = SDL_CreateTexture(s->renderer,
-				 SDL_PIXELFORMAT_ARGB8888,
+				 SDL_PIXELFORMAT_ABGR8888,
 				 SDL_TEXTUREACCESS_STATIC,
 				 s->buffer.width, s->buffer.height);
   if(s->texture==0) {
