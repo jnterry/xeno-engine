@@ -54,7 +54,7 @@ namespace xen {
 	template <typename T> using Aabb3 = Aabb<3, T>;
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Represents a 2d circle
+	/// \brief Represents sphere in some number of dimensions
 	/////////////////////////////////////////////////////////////////////
 	template<u32 T_DIM, typename T>
 	struct Sphere{
@@ -68,6 +68,59 @@ namespace xen {
 	typedef Sphere<3, s32 > Sphere3s;
 	typedef Sphere<3, real> Sphere3r;
 	template <typename T> using Circle = Sphere<2, T>;
+
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents a triangle in some number of dimensions
+	/////////////////////////////////////////////////////////////////////
+
+	// gcc doesn't like the anonomous structures inside unions, disable the warning temporarily...
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wpedantic"
+
+	template<u32 T_DIM, typename T>
+	struct Triangle {
+		union {
+			struct {
+				Vec<T_DIM, T> p1;
+				Vec<T_DIM, T> p2;
+				Vec<T_DIM, T> p3;
+			};
+			Vec<T_DIM, T> points[3];
+		};
+	};
+
+	#pragma GCC diagnostic pop
+
+	typedef Triangle<2, u32 > Triangle2u;
+	typedef Triangle<2, s32 > Triangle2s;
+	typedef Triangle<2, real> Triangle2r;
+	typedef Triangle<3, u32 > Triangle3u;
+	typedef Triangle<3, s32 > Triangle3s;
+	typedef Triangle<3, real> Triangle3r;
+	template <typename T> using Triangle2 = Triangle<2, T>;
+	template <typename T> using Triangle3 = Triangle<3, T>;
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents a ray (aka half line) with some origin point
+	/// and direction
+	/////////////////////////////////////////////////////////////////////
+	template<u32 T_DIM, typename T>
+	struct Ray {
+		/// \brief Position from which the ray is originating
+		Vec<T_DIM, T> origin;
+
+		/// \brief Direction vector (magnitude 1) representing where the ray is "pointing"
+		Vec<T_DIM, T> direction;
+	};
+	typedef Ray<2, u32 > Ray2u;
+	typedef Ray<2, s32 > Ray2s;
+	typedef Ray<2, real> Ray2r;
+	typedef Ray<3, u32 > Ray3u;
+	typedef Ray<3, s32 > Ray3s;
+	typedef Ray<3, real> Ray3r;
+	template <typename T> using Ray2 = Ray<2, T>;
+	template <typename T> using Ray3 = Ray<3, T>;
 }
 
 template<u32 T_DIM, typename T>
@@ -98,6 +151,32 @@ bool operator==(const xen::Sphere<T_DIM, T>& lhs, const xen::Sphere<T_DIM, T>& r
 template<u32 T_DIM, typename T>
 bool operator!=(const xen::Sphere<T_DIM, T>& lhs, const xen::Sphere<T_DIM, T>& rhs){
 	return lhs.center != rhs.center || lhs.radius != rhs.radius;
+}
+
+template<u32 T_DIM, typename T>
+bool operator==(const xen::Triangle<T_DIM, T>& lhs, const xen::Triangle<T_DIM, T>& rhs){
+	return (lhs.p1 == rhs.p1 &&
+	        lhs.p2 == rhs.p2 &&
+	        lhs.p3 == rhs.p3
+	       );
+}
+
+template<u32 T_DIM, typename T>
+bool operator!=(const xen::Triangle<T_DIM, T>& lhs, const xen::Triangle<T_DIM, T>& rhs){
+	return (lhs.p1 != rhs.p1 ||
+	        lhs.p2 != rhs.p2 ||
+	        lhs.p3 != rhs.p3
+	       );
+}
+
+template<u32 T_DIM, typename T>
+bool operator==(const xen::Ray<T_DIM, T>& lhs, const xen::Ray<T_DIM, T>& rhs){
+	return (lhs.origin == rhs.origin && lhs.direction == rhs.direction);
+}
+
+template<u32 T_DIM, typename T>
+bool operator!=(const xen::Ray<T_DIM, T>& lhs, const xen::Ray<T_DIM, T>& rhs){
+	return (lhs.origin != rhs.origin || lhs.direction != rhs.direction);
 }
 
 #endif

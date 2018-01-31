@@ -40,6 +40,20 @@ namespace xen{
 		return line;
 	}
 
+	template<u32 T_DIM, typename T>
+  Triangle<T_DIM, T>& translate(Triangle<T_DIM, T>& triangle, Vec<T_DIM, T> delta){
+		triangle.p1 += delta;
+		triangle.p2 += delta;
+		triangle.p3 += delta;
+		return triangle;
+	}
+
+	template<u32 T_DIM, typename T>
+  Ray<T_DIM, T>& translate(Ray<T_DIM, T>& ray, Vec<T_DIM, T> delta){
+	  ray.origin += delta;
+		return ray;
+	}
+
 	template<typename T_OBJ, typename T_VEC>
 	T_OBJ getTranslated(T_OBJ original, T_VEC delta){
 		translate(original, delta);
@@ -51,6 +65,21 @@ namespace xen{
 		line.p1 *= mat;
 		line.p2 *= mat;
 		return line;
+	}
+
+	template<u32 T_DIM, typename T>
+	Triangle<T_DIM, T> transform(Triangle<T_DIM, T>& triangle, xen::Matrix<T_DIM+1, T_DIM+1, T> mat){
+		triangle.p1 *= mat;
+		triangle.p2 *= mat;
+		triangle.p3 *= mat;
+		return triangle;
+	}
+
+	template<u32 T_DIM, typename T>
+	Ray<T_DIM, T> transform(Ray<T_DIM, T>& ray, xen::Matrix<T_DIM+1, T_DIM+1, T> mat){
+		ray.origin    *= mat;
+		ray.direction  = xen::normalized(ray.direction * mat);
+		return ray;
 	}
 
 	template<typename T_OBJ, typename T_MAT>
