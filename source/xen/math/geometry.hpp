@@ -17,6 +17,7 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/math/geometry_types.hpp>
 #include <xen/math/Matrix.hpp>
+#include <xen/math/Vector.hpp>
 #include <xen/math/utilities.hpp>
 
 namespace xen{
@@ -286,6 +287,60 @@ namespace xen{
 			a.min.y = 0;
 			a.max.x = 0;
 			a.max.y = 0;
+			return false;
+		}
+	}
+
+	/*template<u32 T_DIMS, typename T>
+	struct TriangleRayIntersection {
+		bool exits; /// \brief Whether or not the intersection exists
+		Vec<T_DIMS, T> point; /// \brief The intersection point closest to the ray's origin
+	};*/
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Computes the intersection between a ray and a triangle.
+	/// \param ray The ray in question
+	/// \param triangle The triangle in question
+	/// \param result Vector in which the resulting point will be stored.
+	/// Should the ray be in the same plane as the triangle, (hence causing the
+	/// intersection to be a line segment) this will be set to the end of the
+	/// line segment closest to the ray's origin. IE: the intersection point
+	/// that the ray hits first.
+	/// \return True if an intersection exists, else false. result will only be
+	/// modified if true is returned
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	bool getIntersection(const Ray3<T>& ray, const Triangle3<T>& tri, Vec3<T>& result){
+		// https://en.wikipedia.org/wiki/M%C3%B6ller%E2%80%93Trumbore_intersection_algorithm
+		const real EPSILON = 0.0000001;
+		Vec3<T> edge1, edge2, h, s, q;
+		real a,f,u,v;
+		edge1 = tri.p2 - tri.p1;
+		edge2 = tri.p3 - tri.p1;
+		h = xen::cross(ray.direction, edge2);
+		a = xen::dot  (edge1, h);
+		if (a > -EPSILON && a < EPSILON) {
+			return false;
+		}
+		f = 1/a;
+		s = ray.origin - tri.p1;
+		u = f * (xen::dot(s, h));
+		if (u < 0.0 || u > 1.0) {
+			return false;
+		}
+		q = xen::cross(s, edge1);
+		v = f * xen::cross(ray.direction, q);
+		if (v < 0.0 || u + v > 1.0) {
+			return false;
+		}
+		// At this stage we can compute t to find out where the intersection point is on the line.
+		float t = f * xen::dot(edge2, q);
+		if (t > EPSILON) {
+			// ray intersection
+			result = ray.origin + ray.vector * t;
+			return true;
+		} else {
+			// This means that there is a line intersection but not a ray intersection.
 			return false;
 		}
 	}
