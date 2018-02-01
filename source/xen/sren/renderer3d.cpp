@@ -26,8 +26,6 @@ namespace {
 	                    xen::Color color,
 	                    Vec3r* points, u32 count){
 
-		xen::Color the_color = color;
-
 		for(u32 i = 0; i < count; ++i){
 			Vec4f clip_space = xen::mkVec(points[i], 1_r) * mvp_matrix;
 
@@ -36,9 +34,7 @@ namespace {
 				continue;
 			}
 
-			Vec2f screen_space = ((clip_space.xy / clip_space.w) +
-			                      (((Vec2f){1.0f, 1.0f}) / 2.0f) * (Vec2r)target.size
-			                     );
+			Vec2f screen_space = (clip_space.xy / clip_space.w) + ((Vec2r)target.size * 0.5_r);
 
 			if(screen_space.x < 0 ||
 			   screen_space.y < 0 ||
@@ -47,7 +43,7 @@ namespace {
 				continue;
 			}
 
-			target[screen_space.x][screen_space.y] = the_color;
+			target[screen_space.x][screen_space.y] = color;
 		}
 	}
 
@@ -78,10 +74,10 @@ namespace xen{
 
 		void renderRasterize(RenderTarget& target, const Camera3d& camera, RenderCommand3d* commands, u32 command_count){
 
-			Mat4r mat_vp  = xen::getViewProjectionMatrix(camera, ((Vec2r){1, 1}));
+			Mat4r mat_vp = xen::getViewProjectionMatrix(camera, xen::mkVec(1_r, 1_r));
 			Mat4r mat_mvp;
 
-			xen::Aabb2r screen_rect = { Vec2r::Origin, (Vec2r)target.size - ((Vec2r){1,1}) };
+		  xen::Aabb2r screen_rect = { Vec2r::Origin, (Vec2r)target.size - xen::mkVec(1_r, 1_r) };
 
 			int stride = 0;
 
@@ -115,8 +111,8 @@ namespace xen{
 							        //       line_clip.p2.x, line_clip.p2.y, line_clip.p2.z);
 
 						LineSegment2r  line_screen;
-						line_screen.p1 = line_clip.p1.xy + (((Vec2f){1.0f, 1.0f}) / 2.0f) * (Vec2r)target.size;
-						line_screen.p2 = line_clip.p2.xy + (((Vec2f){1.0f, 1.0f}) / 2.0f) * (Vec2r)target.size;
+						line_screen.p1 = line_clip.p1.xy + ((Vec2r)target.size * 0.5_r);
+						line_screen.p2 = line_clip.p2.xy + ((Vec2r)target.size * 0.5_r);
 
 						//printf("%f, %f  --- %f, %f\n", line_clip.p1.x, line_clip.p1.y, line_clip.p2.x, line_clip.p2.y);
 						if(xen::intersect(line_screen, screen_rect)){
