@@ -9,6 +9,7 @@ add_executable(xen_unit_tests
   ${CMAKE_CURRENT_LIST_DIR}/math/Rotation3d.cpp
 	${CMAKE_CURRENT_LIST_DIR}/math/Aabb.cpp
 	${CMAKE_CURRENT_LIST_DIR}/math/LineSegment.cpp
+	${CMAKE_CURRENT_LIST_DIR}/math/Ray.cpp
 )
 
 
