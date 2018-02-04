@@ -78,8 +78,13 @@ namespace xen{
 
 	template<u32 T_DIM, typename T>
 	Ray<T_DIM, T> transform(Ray<T_DIM, T>& ray, xen::Matrix<T_DIM+1, T_DIM+1, T> mat){
-		ray.origin    *= mat;
-		ray.direction  = xen::normalized(ray.direction * mat);
+		Vec<T_DIM, T> point = ray.origin + ray.direction;
+
+		ray.origin *= mat;
+		point      *= mat;
+
+		ray.direction = xen::normalized(point - ray.origin);
+
 		return ray;
 	}
 
