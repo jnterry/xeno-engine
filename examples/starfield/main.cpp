@@ -118,7 +118,17 @@ int main(int argc, char** argv){
 		{ 1_r,  0_r,  0_r },
 	};
 
-	xen::RenderCommand3d render_commands[5];
+	Vec3r mesh_verts[] = {
+		Vec3r{ 0_r, 0_r, 0_r },
+		Vec3r{ 1_r, 0_r, 0_r },
+		Vec3r{ 0_r, 1_r, 0_r },
+
+		Vec3r{ 0_r, 0_r, 0_r },
+		Vec3r{ 1_r, 0_r, 0_r },
+		Vec3r{ 0_r, 0_r, 1_r },
+	};
+
+	xen::RenderCommand3d render_commands[6];
 	render_commands[0].type                = xen::RenderCommand3d::LINES;
 	render_commands[0].color               = xen::Color::RED;
 	render_commands[0].model_matrix        = xen::Scale3d(100_r);
@@ -149,6 +159,12 @@ int main(int argc, char** argv){
 	render_commands[4].verticies.verticies = &cube_lines[0];
 	render_commands[4].verticies.count     = XenArrayLength(cube_lines);
 
+	render_commands[5].type                = xen::RenderCommand3d::TRIANGLES;
+	render_commands[5].color               = 0xFFFF0000;
+	render_commands[5].model_matrix        = xen::Scale3d(50_r) * xen::Translation3d(-75.0_r, -75.0_r, -75.0_r);
+	render_commands[5].verticies.verticies = &mesh_verts[0];
+	render_commands[5].verticies.count     = XenArrayLength(mesh_verts);
+
 	int last_tick = SDL_GetTicks();
 
 	printf("Entering main loop\n");
@@ -171,9 +187,9 @@ int main(int argc, char** argv){
 		xen::sren::clear(screen->buffer, xen::Color::BLACK);
 
 		// Do rendering
-		xen::sren::renderRasterize(screen->buffer, xen::generateCamera3d(camera),
-		                           render_commands, XenArrayLength(render_commands)
-		                          );
+		xen::sren::renderRaytrace(screen->buffer, xen::generateCamera3d(camera),
+		                          render_commands, XenArrayLength(render_commands)
+		                         );
 
 		SDL_Renderframe(screen);
 	}

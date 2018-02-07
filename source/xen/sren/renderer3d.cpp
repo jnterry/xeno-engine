@@ -73,7 +73,6 @@ namespace xen{
 		}
 
 		void renderRasterize(RenderTarget& target, const Camera3d& camera, RenderCommand3d* commands, u32 command_count){
-
 			Mat4r mat_vp = xen::getViewProjectionMatrix(camera, xen::mkVec(1_r, 1_r));
 			Mat4r mat_mvp;
 
@@ -120,6 +119,8 @@ namespace xen{
 						}
 					}
 					break;
+				case RenderCommand3d::TRIANGLES:
+					break;
 				default:
 					XenInvalidCodePath();
 					break;
@@ -128,7 +129,57 @@ namespace xen{
 		}
 
 		void renderRaytrace (RenderTarget& target, const Camera3d& camera, RenderCommand3d* commands, u32 command_count){
-			renderRasterize(target, camera, commands, command_count);
+			Vec2s target_size = (Vec2s)target.size;
+
+			Angle fov_y = camera.fov_y;
+			Angle fov_x = camera.fov_y * ((real)target_size.y / (real)target_size.x);
+
+			// Compute the image plane center, and offset between each pixel
+			// Start with doing this in camera space (so easy conceptually),
+			// then transform into world space by lining up z axis with
+			// camera's look_dir
+			Vec3r image_plane_center       = { 0, 0, camera.z_near };
+
+			// This is the offset between pixels on the image plane
+			//
+			//            x
+			//         _______
+			//         |     /
+			//         |    /
+			//  z_near |   /
+			//         |  /
+			//         | /
+			//         |/ angle = fov_x / target_width
+			Vec3r image_plane_pixel_offset_x = {
+				xen::tan(fov_x / (real)target_size.x) * camera.z_near, 0, 0
+			};
+			Vec3r image_plane_pixel_offset_y = {
+				xen::tan(fov_y / (real)target_size.y) * camera.z_near, 0, 0
+			};
+
+			Vec2s target_pos;
+			for(target_pos.x = 0; target_pos.x < target_size.x; ++target_pos.x) {
+				for(target_pos.y = 0; target_pos.y < target_size.y; ++target_pos.y) {
+
+					Vec2r center_offset = (Vec2r)target_pos - ((Vec2r)target_size / 2.0_r);
+
+					// Compute where the ray would intersect the image plane
+					Vec3r image_plane_position =
+						image_plane_center +
+						center_offset.x * image_plane_pixel_offset_x +
+						center_offset.y * image_plane_pixel_offset_y;
+
+					Ray3r primary_ray;
+					primary_ray.origin    = camera.position;
+					primary_ray.direction = xen::normalized(camera.position - image_plane_position);
+
+					// Do ray cast
+
+
+
+				}
+			}
+
 		}
 	}
 
