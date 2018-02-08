@@ -8,9 +8,9 @@
 #ifndef XEN_GRAPHICS_CAMERA3D_CPP
 #define XEN_GRAPHICS_CAMERA3D_CPP
 
-#include <xen/math/Vector.hpp>
-#include <xen/math/Matrix.hpp>
-#include <xen/math/Quaternion.hpp>
+#include <xen/math/vector.hpp>
+#include <xen/math/matrix.hpp>
+#include <xen/math/quaternion.hpp>
 #include <cstdio>
 
 #include "Camera3d.hpp"

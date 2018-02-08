@@ -9,10 +9,17 @@
 /// \ingroup math
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <xen/math/Quaternion.hpp>
+#include <xen/math/quaternion.hpp>
+#include <xen/math/vector.hpp>
 
 namespace xen{
 	const Quaternion Quaternion::Identity = {0,0,0,1};
+
+	Quaternion::Quaternion(Vec3r axis, Angle a){
+			a *= 0.5;
+			this->xyz = normalized(axis) * xen::sin(a);
+			this->w   = xen::cos(a);
+		}
 
 	AxisAngle::AxisAngle(Quaternion q){
 		real mag = length(q.xyz);

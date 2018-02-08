@@ -9,7 +9,7 @@
 /// \ingroup unit_tests
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <xen/math/Angle.hpp>
+#include <xen/math/angle.hpp>
 #include "ostream_operators.hpp"
 #include <catch.hpp>
 
