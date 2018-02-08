@@ -9,7 +9,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <xen/math/Vector.hpp>
-#include <xen/math/Matrix.hpp>
+#include <xen/math/matrix.hpp>
 #include <xen/math/Quaternion.hpp>
 
 #include "ostream_operators.hpp"

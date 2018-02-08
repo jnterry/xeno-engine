@@ -1,4 +1,4 @@
-#include <xen/math/Matrix.hpp>
+#include <xen/math/matrix.hpp>
 #include "ostream_operators.hpp"
 #include <catch.hpp>
 

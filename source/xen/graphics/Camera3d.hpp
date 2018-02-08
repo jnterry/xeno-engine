@@ -14,7 +14,7 @@
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/math/Vector.hpp>
-#include <xen/math/Matrix.hpp>
+#include <xen/math/matrix.hpp>
 
 namespace xen {
 
