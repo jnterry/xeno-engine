@@ -334,7 +334,7 @@ namespace xen{
 			return false;
 		}
 		q = xen::cross(s, edge1);
-		v = f * xen::cross(ray.direction, q);
+		v = f * xen::dot(ray.direction, q);
 		if (v < 0.0 || u + v > 1.0) {
 			return false;
 		}
@@ -342,7 +342,7 @@ namespace xen{
 		float t = f * xen::dot(edge2, q);
 		if (t > EPSILON) {
 			// ray intersection
-			result = ray.origin + ray.vector * t;
+			result = ray.origin + ray.direction * t;
 			return true;
 		} else {
 			// This means that there is a line intersection but not a ray intersection.
@@ -365,6 +365,20 @@ namespace xen{
 	template<u32 T_DIM, typename T>
 	bool hasArea(Sphere<T_DIM, T> sphere){
 		return sphere.radius > 0;
+	}
+
+	template<u32 T_DIM, typename T>
+	bool hasArea(Triangle<T_DIM, T> tri){
+		return tri.p1 != tri.p2 && tri.p1 != tri.p3 && tri.p2 != tri.p2;
+	}
+
+	template <typename T>
+	Vec3<T> computeNormal(Triangle<3, T> tri){
+		// Compute two edges
+		Vec3<T> e1 = tri.p2 - tri.p1;
+		Vec3<T> e2 = tri.p3 - tri.p1;
+
+		return xen::normalized(xen::cross(e2, e1));
 	}
 }
 

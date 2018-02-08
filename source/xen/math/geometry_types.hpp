@@ -86,7 +86,6 @@ namespace xen {
 				Vec<T_DIM, T> p2;
 				Vec<T_DIM, T> p3;
 			};
-			Vec<T_DIM, T> points[3];
 		};
 	};
 
