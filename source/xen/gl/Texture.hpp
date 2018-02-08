@@ -1,9 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \file Texture.hpp
-/// \author Jamie Terry
-/// \date 2018/01/30
 /// \brief Contains types and functions for representing Gpu Textures that
 /// can be used when rendering
 ///

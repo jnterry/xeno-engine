@@ -1,9 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \file renderer3d.hxx
-/// \author Jamie Terry
-/// \date 2015/01/25
 /// \brief Contains decleration of rendering functions for software renderer
 ///
 /// \ingroup sren

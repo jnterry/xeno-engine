@@ -1,9 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \file Shader.hpp
-/// \author Jamie Terry
-/// \date 2017/05/30
 /// \brief Contains functions for creating and using shaders
 ///
 /// \todo :TODO: Eventually we dont want user code to directly be getting uniform

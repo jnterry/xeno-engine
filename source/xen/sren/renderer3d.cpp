@@ -1,9 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \file renderer3d.cpp
-/// \author Jamie Terry
-/// \date 2018/01/25
 /// \brief Contains implementation of renderer3d
 ///
 /// \ingroup sren
@@ -13,10 +10,11 @@
 #define XEN_GRAPHICS_SREN_RENDERER3D_CPP
 
 #include <xen/math/geometry.hpp>
-#include <xen/sren/renderer3d.hxx>
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
+
+#include "renderer3d.hxx"
 
 #include <cstring>
 #include <cstdlib>
