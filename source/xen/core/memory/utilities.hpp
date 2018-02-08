@@ -11,7 +11,7 @@
 
 #include <cstddef>
 
-#include "../intrinsics.hpp"
+#include <xen/core/intrinsics.hpp>
 
 namespace xen{
 	/// \brief Returns a number of kilobytes as a number of bytes

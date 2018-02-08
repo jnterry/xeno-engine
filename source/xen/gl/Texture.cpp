@@ -10,9 +10,9 @@
 #define XEN_GL_TEXTURE_CPP
 
 #include <xen/gl/Texture.hpp>
-#include <xen/gl/gl_header.hxx>
-
 #include <xen/graphics/Image.hpp>
+
+#include "gl_header.hxx"
 
 namespace xen{
 	namespace gl {

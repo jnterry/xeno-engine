@@ -14,7 +14,7 @@
 #include <xen/math/quaternion.hpp>
 #include <cstdio>
 
-#include "Camera3d.hpp"
+#include <xen/graphics/Camera3d.hpp>
 
 namespace xen {
 

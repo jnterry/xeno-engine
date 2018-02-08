@@ -17,7 +17,7 @@
 #include <xen/config.hpp>
 
 #ifdef XEN_OS_WINDOWS
-	#include <xen/windows_header.hxx>
+	#include "../windows_header.hxx"
 	//#include <GL/glew.h>
 	#include <GL/gl.h>
 #elif defined XEN_OS_UNIX

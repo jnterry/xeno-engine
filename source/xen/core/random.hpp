@@ -10,7 +10,6 @@
 #define XEN_CORE_RANDOM_HPP
 
 namespace xen{
-
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Returns a random integer between low and high inclusive
 	/// sampled from a uniform distribution

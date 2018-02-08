@@ -9,7 +9,7 @@
 #ifndef XEN_CORE_MEMORY_ALLOCATOR_HPP
 #define XEN_CORE_MEMORY_ALLOCATOR_HPP
 
-#include "../intrinsics.hpp"
+#include <xen/core/intrinsics.hpp>
 
 namespace xen{
 	//////////////////////////////////////////////////////////////////////////

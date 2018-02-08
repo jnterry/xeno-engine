@@ -9,8 +9,8 @@
 #ifndef XEN_CORE_MEMORY_ALLOCATOR_CPP
 #define XEN_CORE_MEMORY_ALLOCATOR_CPP
 
-#include "Allocator.hpp"
-#include "utilities.hpp"
+#include <xen/core/memory/Allocator.hpp>
+#include <xen/core/memory/utilities.hpp>
 #include <cstdlib>
 
 namespace xen{

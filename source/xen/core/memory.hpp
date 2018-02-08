@@ -10,8 +10,8 @@
 #ifndef XEN_CORE_MEMORY_HPP
 #define XEN_CORE_MEMORY_HPP
 
-#include "memory/ArenaLinear.hpp"
-#include "memory/utilities.hpp"
-#include "memory/Allocator.hpp"
+#include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/core/memory/utilities.hpp>
+#include <xen/core/memory/Allocator.hpp>
 
 #endif
