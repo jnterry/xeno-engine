@@ -164,6 +164,66 @@ namespace xen {
 
 ////////////////////////////////////////////////////////////////////////////////
 // Define comparison operators
+inline bool operator==(const xen::Vec<2, float>& lhs, const xen::Vec<2, float>& rhs){
+	float dx = lhs.x - rhs.x;
+	float dy = lhs.y - rhs.y;
+
+	return (dx * dx <= 0.0000001 &&
+	        dy * dy <= 0.0000001
+	       );
+}
+inline bool operator==(const xen::Vec<2, double>& lhs, const xen::Vec<2, double>& rhs){
+	double dx = lhs.x - rhs.x;
+	double dy = lhs.y - rhs.y;
+
+	return (dx * dx <= 0.0000001 &&
+	        dy * dy <= 0.0000001
+	       );
+}
+inline bool operator==(const xen::Vec<3, float>& lhs, const xen::Vec<3, float>& rhs){
+	float dx = lhs.x - rhs.x;
+	float dy = lhs.y - rhs.y;
+	float dz = lhs.z - rhs.z;
+
+	return (dx * dx <= 0.0000001 &&
+	        dy * dy <= 0.0000001 &&
+	        dz * dz <= 0.0000001
+	       );
+}
+inline bool operator==(const xen::Vec<3, double>& lhs, const xen::Vec<3, double>& rhs){
+	double dx = lhs.x - rhs.x;
+	double dy = lhs.y - rhs.y;
+	double dz = lhs.z - rhs.z;
+
+	return (dx * dx <= 0.0000001 &&
+	        dy * dy <= 0.0000001 &&
+	        dz * dz <= 0.0000001
+	       );
+}
+inline bool operator==(const xen::Vec<4, float>& lhs, const xen::Vec<4, float>& rhs){
+	float dx = lhs.x - rhs.x;
+	float dy = lhs.y - rhs.y;
+	float dz = lhs.z - rhs.z;
+	float dw = lhs.w - rhs.w;
+
+	return (dx * dx <= 0.0000001 &&
+	        dy * dy <= 0.0000001 &&
+	        dz * dz <= 0.0000001 &&
+	        dw * dw <= 0.0000001
+	       );
+}
+inline bool operator==(const xen::Vec<4, double>& lhs, const xen::Vec<4, double>& rhs){
+	double dx = lhs.x - rhs.x;
+	double dy = lhs.y - rhs.y;
+	double dz = lhs.z - rhs.z;
+	double dw = lhs.w - rhs.w;
+
+	return (dx * dx <= 0.0000001 &&
+	        dy * dy <= 0.0000001 &&
+	        dz * dz <= 0.0000001 &&
+	        dw * dw <= 0.0000001
+	       );
+}
 template<typename T>
 bool operator==(const xen::Vec<2, T>& lhs, const xen::Vec<2, T>& rhs){
 	return lhs.x == rhs.x && lhs.y == rhs.y;
