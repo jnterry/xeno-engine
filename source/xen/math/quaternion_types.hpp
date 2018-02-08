@@ -10,7 +10,7 @@
 #define XEN_MATH_QUATERNION_TYPES_HPP
 
 #include <xen/core/intrinsics.hpp>
-#include <xen/math/Angle.hpp>
+#include <xen/math/angle.hpp>
 #include <xen/math/vector_types.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////

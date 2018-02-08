@@ -18,7 +18,7 @@
 #include <xen/math/utilities.hpp>
 #include <xen/math/vector.hpp>
 #include <xen/math/matrix.hpp>
-#include <xen/math/Angle.hpp>
+#include <xen/math/angle.hpp>
 #include <xen/math/quaternion.hpp>
 
 #include "utilities.hpp"

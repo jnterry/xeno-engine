@@ -10,7 +10,7 @@
 #define XEN_MATH_IMPL_VECTOR_OPERATIONS_HXX
 
 #include <xen/math/vector_types.hpp>
-#include <xen/math/Angle.hpp>
+#include <xen/math/angle.hpp>
 
 namespace xen{
 	/// \brief Computes dot product of two vectors
