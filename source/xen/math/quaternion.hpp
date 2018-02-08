@@ -1,12 +1,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \file Quaternion.hpp
-/// \author Jamie Terry
-/// \date 2017/06/01
-/// \brief Contains type to represent Quaternions, as well as functions for
-/// manipulating them. Additionally contains types and functions for representing
-/// rotations as an axis about which to rotate, and the angle by which to rotate
+/// \brief Helper header which includes all others related to representing
+/// and manipulating rotations as quaternions or an axis about which to rotate,
+/// and the angle by which to rotate
 ///
 /// \ingroup math
 ////////////////////////////////////////////////////////////////////////////////
@@ -15,52 +12,9 @@
 #define XEN_MATH_QUATERNION_HPP
 
 #include <xen/core/intrinsics.hpp>
-#include "Angle.hpp"
-#include "Vector.hpp"
-#include "Matrix.hpp"
-
-// gcc doesn't like the anonomous structures inside unions, disable the warning temporarily...
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
-
-namespace xen{
-	struct Quaternion;
-
-	/// \brief Represents a rotation as an axis about which to rotate, and an angle
-	struct AxisAngle{
-		AxisAngle() {}
-		AxisAngle(Vec3r naxis, Angle nangle) : axis(naxis), angle(nangle) {}
-		AxisAngle(Quaternion q);
-		Vec3r axis;
-		Angle angle;
-	};
-
-	/// \brief Represents a quaternion, coefficents stored in i,j,k, real order
-	struct Quaternion{
-		Quaternion() {}
-		Quaternion(real nx, real ny, real nz, real nw) : x(nx), y(ny), z(nz), w(nw) {}
-		Quaternion(Vec3r axis, Angle a){
-			a *= 0.5;
-			this->xyz = normalized(axis) * xen::sin(a);
-			this->w   = xen::cos(a);
-		}
-		Quaternion(AxisAngle aa) : Quaternion(aa.axis, aa.angle) {}
-		union{
-			real elements[4];
-			struct { real x,y,z,w; };
-			struct { real i,j,k,r; }; // i,j,k and real components
-			Vec3r xyz;
-			Vec4r xyzw;
-		};
-
-		/// \brief Quaternion which represents 0 rotation
-		static const Quaternion Identity;
-	};
-}
-
-#pragma GCC diagnostic pop // re-enable -Wpedantic
-
-typedef xen::Quaternion Quat;
+#include <xen/math/quaternion_types.hpp>
+#include <xen/math/matrix_types.hpp>
+#include <xen/math/vector.hpp>
 
 inline xen::Quaternion operator*(xen::Quaternion lhs, xen::Quaternion rhs){
 	return { (lhs.x * rhs.w) + (lhs.w * rhs.x) + (lhs.y * rhs.z) - (lhs.z * rhs.y)
@@ -82,15 +36,6 @@ inline xen::Quaternion operator*(xen::Quaternion q, const Vec3r& vec){
 
 inline xen::Quaternion operator/(xen::Quaternion q, real s){
 	return { q.x / s, q.y / s, q.z / s, q.w / s };
-}
-
-inline bool operator==(xen::Quaternion l, xen::Quaternion r){ return l.xyzw == r.xyzw; }
-inline bool operator!=(xen::Quaternion l, xen::Quaternion r){ return l.xyzw != r.xyzw; }
-inline bool operator==(xen::AxisAngle  l, xen::AxisAngle  r){
-	return l.axis == r.axis && l.angle == r.angle;
-}
-inline bool operator!=(xen::AxisAngle  l, xen::AxisAngle  r){
-	return l.axis != r.axis || l.angle != r.angle;
 }
 
 namespace xen{

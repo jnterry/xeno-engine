@@ -15,8 +15,8 @@
 #ifndef XEN_GL_SHADER_HPP
 #define XEN_GL_SHADER_HPP
 
-#include <xen/math/Vector.hpp>
-#include <xen/math/Matrix.hpp>
+#include <xen/math/vector_types.hpp>
+#include <xen/math/matrix_types.hpp>
 
 namespace xen{
 	struct ArenaLinear;

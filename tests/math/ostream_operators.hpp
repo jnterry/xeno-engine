@@ -1,9 +1,9 @@
 #include <iostream>
 #include <sstream>
 
-#include <xen/math/Vector.hpp>
-#include <xen/math/Matrix.hpp>
-#include <xen/math/Quaternion.hpp>
+#include <xen/math/vector_types.hpp>
+#include <xen/math/matrix_types.hpp>
+#include <xen/math/quaternion_types.hpp>
 #include <xen/math/geometry_types.hpp>
 
 #include <catch.hpp>

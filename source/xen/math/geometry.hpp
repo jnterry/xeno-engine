@@ -16,7 +16,8 @@
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/math/geometry_types.hpp>
-#include <xen/math/Matrix.hpp>
+#include <xen/math/matrix.hpp>
+#include <xen/math/vector.hpp>
 #include <xen/math/utilities.hpp>
 
 namespace xen{

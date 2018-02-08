@@ -13,7 +13,7 @@
 #define XEN_MATH_GEOMETRY_TYPES_HPP
 
 #include <xen/core/intrinsics.hpp>
-#include <xen/math/Vector.hpp>
+#include <xen/math/vector_types.hpp>
 
 namespace xen {
 	/////////////////////////////////////////////////////////////////////
