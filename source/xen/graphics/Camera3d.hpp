@@ -1,10 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \file Camera3d.hpp
-/// \author Jamie Terry
-/// \date 2017/05/31
-/// \brief Contains type for representing camera and functions for manipulating it
+/// \brief Contains type for representing a camera in some 3d world and
+/// declarations of functions for manipulating it
 ///
 /// \ingroup graphics
 ////////////////////////////////////////////////////////////////////////////////

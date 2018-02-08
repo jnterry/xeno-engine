@@ -1,9 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \file ArenaLinear.hpp
-/// \author Jamie Terry
-/// \date 2017/05/30
 /// \brief Contains the ArenaLinear type and associated functions
 ///
 /// \ingroup core
@@ -12,7 +9,7 @@
 #ifndef XEN_CORE_MEMORY_ARENA_LINEAR_HPP
 #define XEN_CORE_MEMORY_ARENA_LINEAR_HPP
 
-#include "utilities.hpp"
+#include <xen/core/utilities.hpp>
 
 /// \brief Creates a tempory ArenaLinear by allocating space from the stack
 /// \param name Name of arena to create

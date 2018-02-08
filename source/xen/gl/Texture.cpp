@@ -1,9 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \file Texture.cpp
-/// \author Jamie Terry
-/// \date 2018/01/30
 /// \brief Contains OpenGL specific function for dealing with textures
 ///
 /// \ingroup gl
@@ -13,9 +10,9 @@
 #define XEN_GL_TEXTURE_CPP
 
 #include <xen/gl/Texture.hpp>
-#include <xen/gl/gl_header.hxx>
-
 #include <xen/graphics/Image.hpp>
+
+#include "gl_header.hxx"
 
 namespace xen{
 	namespace gl {

@@ -1,9 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \file memory/utilities.hpp
-/// \author Jamie Terry
-/// \date 2017/05/30
 /// \brief Contains various memory utility functions
 ///
 /// \ingroup core
@@ -14,7 +11,7 @@
 
 #include <cstddef>
 
-#include "../intrinsics.hpp"
+#include <xen/core/intrinsics.hpp>
 
 namespace xen{
 	/// \brief Returns a number of kilobytes as a number of bytes
