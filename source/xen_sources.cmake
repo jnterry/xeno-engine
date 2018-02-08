@@ -41,7 +41,7 @@ set(XEN_SOURCES_MATH
 
 set(XEN_HEADERS_MATH
 	${CMAKE_CURRENT_LIST_DIR}/xen/math/utilities.hpp
-  ${CMAKE_CURRENT_LIST_DIR}/xen/math/Angle.hpp
+  ${CMAKE_CURRENT_LIST_DIR}/xen/math/angle.hpp
   ${CMAKE_CURRENT_LIST_DIR}/xen/math/vector_types.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/math/vector.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/math/matrix_types.hpp
