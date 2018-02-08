@@ -1,9 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \file Allocator.cpp
-/// \author Jamie Terry
-/// \date 2017/05/30
 /// \brief Contains definitions of types and functions declared in Allocator.hpp
 ///
 /// \ingroup core

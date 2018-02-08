@@ -1,9 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \file Texture.hpp
-/// \author Jamie Terry
-/// \date 2018/01/24
 /// \brief Contains types and functions for representing and manipulating colors
 ///
 /// \ingroup graphics

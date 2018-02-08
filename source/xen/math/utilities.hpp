@@ -1,9 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \file utilities.hpp
-/// \author Jamie Terry
-/// \date 2018/01/25
 /// \brief Contains various miscellaneous mathematical utility functions
 ///
 /// \ingroup math

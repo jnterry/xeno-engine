@@ -1,9 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \file memory.hpp
-/// \author Jamie Terry
-/// \date 2017/05/30
 /// \brief Convinience header which includes all files related to memory management
 /// in Xeno Engine
 ///
