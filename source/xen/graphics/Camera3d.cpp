@@ -10,7 +10,7 @@
 
 #include <xen/math/vector.hpp>
 #include <xen/math/matrix.hpp>
-#include <xen/math/Quaternion.hpp>
+#include <xen/math/quaternion.hpp>
 #include <cstdio>
 
 #include "Camera3d.hpp"
