@@ -50,6 +50,18 @@ namespace xen{
 		return os;
 	}
 
+	template<u32 T_DIM, typename T>
+	inline std::ostream& operator<< (std::ostream& os, const xen::Ray<T_DIM, T>& ray){
+		os << "Ray{" << ray.origin << ", " << ray.direction << "}";
+		return os;
+	}
+
+	template<u32 T_DIM, typename T>
+	inline std::ostream& operator<< (std::ostream& os, const xen::Triangle<T_DIM, T>& tri){
+		os << "Triangle[" << tri.p1 << ", " << tri.p2 << tri.p3 << "]";
+		return os;
+	}
+
 	inline std::ostream& operator<< (std::ostream& os, const xen::Quaternion& q){
 		return os << "(" << q.i << "i, " << q.j << "j, " << q.k << "k, " << q.r << ")";
 	}

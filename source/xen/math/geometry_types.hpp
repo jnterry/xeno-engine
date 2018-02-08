@@ -86,7 +86,6 @@ namespace xen {
 				Vec<T_DIM, T> p2;
 				Vec<T_DIM, T> p3;
 			};
-			Vec<T_DIM, T> points[3];
 		};
 	};
 
@@ -121,6 +120,15 @@ namespace xen {
 	typedef Ray<3, real> Ray3r;
 	template <typename T> using Ray2 = Ray<2, T>;
 	template <typename T> using Ray3 = Ray<3, T>;
+
+	/*template<u32 T_DIM, typename T>
+	struct Line {
+		/// \brief A point on the line
+		Vec<T_DIM, T> point;
+
+		/// \brief The direction vector of the line
+		Vec<T_DIM, T> direction;
+		};*/
 }
 
 template<u32 T_DIM, typename T>
