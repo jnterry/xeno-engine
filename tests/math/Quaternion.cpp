@@ -1,4 +1,4 @@
-#include <xen/math/Vector.hpp>
+#include <xen/math/vector_types.hpp>
 #include <xen/math/matrix_types.hpp>
 #include <xen/math/Quaternion.hpp>
 

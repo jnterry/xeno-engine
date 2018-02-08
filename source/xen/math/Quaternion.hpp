@@ -16,7 +16,7 @@
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/math/Angle.hpp>
-#include <xen/math/Vector.hpp>
+#include <xen/math/vector.hpp>
 #include <xen/math/matrix_types.hpp>
 
 // gcc doesn't like the anonomous structures inside unions, disable the warning temporarily...

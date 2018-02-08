@@ -13,7 +13,7 @@
 #define XEN_GL_SHADER_GL_CPP
 
 #include <xen/core/memory/ArenaLinear.hpp>
-#include <xen/math/Vector.hpp>
+#include <xen/math/vector_types.hpp>
 #include <xen/math/matrix_types.hpp>
 #include <xen/gl/Shader.hpp>
 

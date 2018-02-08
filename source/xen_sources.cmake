@@ -32,13 +32,20 @@ set(XEN_HEADERS_UTIL
 ##################################################
 set(XEN_SOURCES_MATH
   ${CMAKE_CURRENT_LIST_DIR}/xen/math/Quaternion.cpp
-  )
+	${CMAKE_CURRENT_LIST_DIR}/xen/math/impl/matrix_arithmetic.hxx
+	${CMAKE_CURRENT_LIST_DIR}/xen/math/impl/matrix_operations.hxx
+	${CMAKE_CURRENT_LIST_DIR}/xen/math/impl/matrix_transforms.hxx
+	${CMAKE_CURRENT_LIST_DIR}/xen/math/impl/vector_arithmetic.hxx
+	${CMAKE_CURRENT_LIST_DIR}/xen/math/impl/vector_operations.hxx
+)
 
 set(XEN_HEADERS_MATH
 	${CMAKE_CURRENT_LIST_DIR}/xen/math/utilities.hpp
   ${CMAKE_CURRENT_LIST_DIR}/xen/math/Angle.hpp
-  ${CMAKE_CURRENT_LIST_DIR}/xen/math/Vector.hpp
-  ${CMAKE_CURRENT_LIST_DIR}/xen/math/Matrix.hpp
+  ${CMAKE_CURRENT_LIST_DIR}/xen/math/vector_types.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/math/vector.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/math/matrix_types.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/math/matrix.hpp
   ${CMAKE_CURRENT_LIST_DIR}/xen/math/Quaternion.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/math/geometry_types.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/math/geometry.hpp

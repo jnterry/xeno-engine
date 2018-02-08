@@ -8,7 +8,7 @@
 /// applied to a 3d point
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <xen/math/Vector.hpp>
+#include <xen/math/vector_types.hpp>
 #include <xen/math/matrix.hpp>
 #include <xen/math/Quaternion.hpp>
 

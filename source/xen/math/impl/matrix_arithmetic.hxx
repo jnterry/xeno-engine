@@ -12,7 +12,7 @@
 #define XEN_MATH_IMPL_MATRIX_ARITHEMTIC_HPP
 
 #include <xen/math/matrix_types.hpp>
-#include <xen/math/Vector.hpp>
+#include <xen/math/vector_types.hpp>
 
 template<u32 T_Rows, u32 T_Cols, typename T>
 xen::Matrix<T_Rows, T_Cols, T> operator+=(xen::Matrix<T_Rows, T_Cols, T>& lhs, xen::Matrix<T_Rows, T_Cols, T>& rhs){

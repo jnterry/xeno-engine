@@ -11,6 +11,10 @@
 #ifndef XEN_MATH_IMPL_MATRIX_TRANSFORMS_HPP
 #define XEN_MATH_IMPL_MATRIX_TRANSFORMS_HPP
 
+#include <xen/math/Angle.hpp>
+#include <xen/math/matrix_types.hpp>
+#include <xen/math/vector_types.hpp>
+
 namespace xen{
     inline Mat3r Rotation2d(Angle a){
 		real s = xen::sin(a);

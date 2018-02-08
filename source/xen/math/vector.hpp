@@ -1,21 +1,18 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief Helper header which includes the matrix types and all
+/// \brief Helper header which includes the vector types and all
 /// related functions
 ///
 /// \ingroup math
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_MATH_MATRIX_HPP
-#define XEN_MATH_MATRIX_HPP
+#ifndef XEN_MATH_VECTOR_HPP
+#define XEN_MATH_VECTOR_HPP
 
-#include <xen/core/intrinsics.hpp>
+#include <xen/math/vector_types.hpp>
 
-#include <xen/math/matrix_types.hpp>
-
-#include <xen/math/impl/matrix_arithmetic.hxx>
-#include <xen/math/impl/matrix_transforms.hxx>
-#include <xen/math/impl/matrix_operations.hxx>
+#include <xen/math/impl/vector_arithmetic.hxx>
+#include <xen/math/impl/vector_operations.hxx>
 
 #endif

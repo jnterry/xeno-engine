@@ -13,7 +13,7 @@
 #define XEN_GRAPHICS_RENDERER3D_HPP
 
 #include <xen/core/intrinsics.hpp>
-#include <xen/math/Vector.hpp>
+#include <xen/math/vector_types.hpp>
 #include <xen/math/matrix_types.hpp>
 #include <xen/graphics/Color.hpp>
 

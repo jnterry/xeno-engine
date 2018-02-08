@@ -16,7 +16,7 @@
 #include <xen/graphics/Image.hpp>
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/math/utilities.hpp>
-#include <xen/math/Vector.hpp>
+#include <xen/math/vector.hpp>
 #include <xen/math/matrix.hpp>
 #include <xen/math/Angle.hpp>
 #include <xen/math/Quaternion.hpp>
