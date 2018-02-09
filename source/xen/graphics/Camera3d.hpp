@@ -1,10 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \file Camera3d.hpp
-/// \author Jamie Terry
-/// \date 2017/05/31
-/// \brief Contains type for representing camera and functions for manipulating it
+/// \brief Contains type for representing a camera in some 3d world and
+/// declarations of functions for manipulating it
 ///
 /// \ingroup graphics
 ////////////////////////////////////////////////////////////////////////////////
@@ -13,8 +11,8 @@
 #define XEN_GRAPHICS_CAMERA3D_HPP
 
 #include <xen/core/intrinsics.hpp>
-#include <xen/math/Vector.hpp>
-#include <xen/math/Matrix.hpp>
+#include <xen/math/vector_types.hpp>
+#include <xen/math/matrix.hpp>
 
 namespace xen {
 

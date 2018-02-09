@@ -1,11 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \file Angle.hpp
-/// \author Jamie Terry
-/// \date 2017/05/31
-/// \brief Contains type for representing angles, helps in ensuring units are correct
-/// and in converting between different units for angles
+/// \brief Contains type for representing angles, helps in ensuring units are
+/// correct and in converting between different units
 ///
 /// \ingroup math
 ////////////////////////////////////////////////////////////////////////////////
@@ -18,6 +15,31 @@
 #include <cmath>
 
 namespace xen{
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents an Angle in arbitrary dimensions.
+	///
+	/// The goal of this class if to make it possible to represent angles
+	/// in whatever unit is natural to the problem/programmer while ensuring
+	/// there are never any ambiguities about what the units are, and ensuring
+	/// we never pass radians to a function expecting degrees, or vice-versa.
+	///
+	/// The data structure itself does nothing and has no overhead in terms of
+	/// storage or speed as compared to using a scalar value to represent angles;
+	/// instead it is the associated functions that provide this type with its
+	/// power.
+	///
+	/// Angles can be expressed in any unit using the the named constructors
+	/// Degrees, Radians or Revolutions, or by using the custom literal suffixes
+	/// _deg, _rad or _rev.
+	///
+	/// By defining Angle as an actually type rather than just having conversion
+	/// functions we also gain type safety to avoid some programming errors,
+	/// for example, angle-angle multiplication is usually fairly meaningless
+	/// (the units would be radians squared), but angle-scalar multiplication
+	/// has meaning (simply changing the value of the angle). Conventions such
+	/// as this can be enforced using operator overloading now that a new type
+	/// has been defined to represent angles.
+	/////////////////////////////////////////////////////////////////////
 	struct Angle{
 		real radians;
 	};

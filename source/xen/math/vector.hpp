@@ -1,14 +1,18 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief Includes windows.h and cleans up some of their mess
+/// \brief Helper header which includes the vector types and all
+/// related functions
+///
+/// \ingroup math
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_WINDOWS_HEADER_HPP
-#define XEN_WINDOWS_HEADER_HPP
+#ifndef XEN_MATH_VECTOR_HPP
+#define XEN_MATH_VECTOR_HPP
 
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-//#undef ERROR //conflicts with xen::log::ERROR
+#include <xen/math/vector_types.hpp>
+
+#include "impl/vector_arithmetic.hxx"
+#include "impl/vector_operations.hxx"
 
 #endif

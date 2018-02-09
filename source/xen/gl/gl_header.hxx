@@ -1,14 +1,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \file gl_header.hxx
-/// \author Jamie Terry
-/// \date 2016/08/22
 /// \brief Convienience header which includes the correct opengl headers for this
 /// platform and also defines a helper macro that can be used to check for opengl
 /// errors
 ///
-/// \ingroup graphics
+/// \ingroup gl
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef XEN_GRAPHICS_GL_HEADER_HXX
@@ -20,7 +17,7 @@
 #include <xen/config.hpp>
 
 #ifdef XEN_OS_WINDOWS
-	#include <xen/windows_header.hxx>
+	#include "../windows_header.hxx"
 	//#include <GL/glew.h>
 	#include <GL/gl.h>
 #elif defined XEN_OS_UNIX

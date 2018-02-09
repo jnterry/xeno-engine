@@ -1,19 +1,20 @@
-////////////////////////////////////////////////////////////////////////////////
-/// \file Camera3d.cpp
-/// \author Jamie Terry
-/// \date 2017/06/01
-/// \brief Contains implementation of functions in Camera3d.hpp
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////
+///                      Part of Xeno Engine                             ///
+////////////////////////////////////////////////////////////////////////////
+/// \brief Contains implementation of camera related functions
+///
+/// \ingroup graphics
+////////////////////////////////////////////////////////////////////////////
 
 #ifndef XEN_GRAPHICS_CAMERA3D_CPP
 #define XEN_GRAPHICS_CAMERA3D_CPP
 
-#include <xen/math/Vector.hpp>
-#include <xen/math/Matrix.hpp>
-#include <xen/math/Quaternion.hpp>
+#include <xen/math/vector.hpp>
+#include <xen/math/matrix.hpp>
+#include <xen/math/quaternion.hpp>
 #include <cstdio>
 
-#include "Camera3d.hpp"
+#include <xen/graphics/Camera3d.hpp>
 
 namespace xen {
 

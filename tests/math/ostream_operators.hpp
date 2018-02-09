@@ -1,9 +1,9 @@
 #include <iostream>
 #include <sstream>
 
-#include <xen/math/Vector.hpp>
-#include <xen/math/Matrix.hpp>
-#include <xen/math/Quaternion.hpp>
+#include <xen/math/vector_types.hpp>
+#include <xen/math/matrix_types.hpp>
+#include <xen/math/quaternion_types.hpp>
 #include <xen/math/geometry_types.hpp>
 
 #include <catch.hpp>
@@ -47,6 +47,18 @@ namespace xen{
 	template<u32 T_DIM, typename T>
 	inline std::ostream& operator<< (std::ostream& os, const xen::LineSegment<T_DIM, T>& line){
 		os << "LineSegment{" << line.p1 << ", " << line.p2 << "}";
+		return os;
+	}
+
+	template<u32 T_DIM, typename T>
+	inline std::ostream& operator<< (std::ostream& os, const xen::Ray<T_DIM, T>& ray){
+		os << "Ray{" << ray.origin << ", " << ray.direction << "}";
+		return os;
+	}
+
+	template<u32 T_DIM, typename T>
+	inline std::ostream& operator<< (std::ostream& os, const xen::Triangle<T_DIM, T>& tri){
+		os << "Triangle[" << tri.p1 << ", " << tri.p2 << tri.p3 << "]";
 		return os;
 	}
 

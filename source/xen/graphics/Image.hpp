@@ -1,9 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \file Image.hpp
-/// \author Jamie Terry
-/// \date 2017/06/18
 /// \brief Contains types and functions for loading, saving and maninpulating raw
 /// images
 ///
@@ -14,7 +11,7 @@
 #define XEN_GRAPHICS_IMAGE_HPP
 
 #include <xen/core/intrinsics.hpp>
-#include <xen/math/Vector.hpp>
+#include <xen/math/vector_types.hpp>
 #include <xen/graphics/Color.hpp>
 
 namespace xen{

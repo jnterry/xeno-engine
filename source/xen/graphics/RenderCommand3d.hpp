@@ -1,9 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \file Renderer3d.hpp
-/// \author Jamie Terry
-/// \date 2018/01/25
 /// \brief Contains types for defining 3d render commands
 ///
 /// \ingroup graphics
@@ -13,8 +10,8 @@
 #define XEN_GRAPHICS_RENDERER3D_HPP
 
 #include <xen/core/intrinsics.hpp>
-#include <xen/math/Vector.hpp>
-#include <xen/math/Matrix.hpp>
+#include <xen/math/vector_types.hpp>
+#include <xen/math/matrix_types.hpp>
 #include <xen/graphics/Color.hpp>
 
 namespace xen{

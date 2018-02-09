@@ -1,4 +1,4 @@
-#include <xen/math/Vector.hpp>
+#include <xen/math/vector.hpp>
 #include "ostream_operators.hpp"
 #include <catch.hpp>
 

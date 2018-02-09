@@ -1,12 +1,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \file Mesh.cpp
-/// \author Jamie Terry
-/// \date 2017/06/17
 /// \brief Contains render API independent implementation of Mesh
 ///
-/// \ingroup graphics
+/// \ingroup gl
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef XEN_GL_MESH_CPP
@@ -15,7 +12,7 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/memory.hpp>
 #include <xen/util/File.hpp>
-#include <xen/math/Vector.hpp>
+#include <xen/math/vector.hpp>
 #include <xen/gl/Mesh.hpp>
 
 #include "gl_header.hxx"
