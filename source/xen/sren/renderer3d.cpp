@@ -9,6 +9,7 @@
 #ifndef XEN_GRAPHICS_SREN_RENDERER3D_CPP
 #define XEN_GRAPHICS_SREN_RENDERER3D_CPP
 
+#include <xen/math/quaternion.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/Color.hpp>
@@ -91,6 +92,7 @@ namespace xen{
 					stride = 2;
 					goto do_render_lines;
 					break;
+				case RenderCommand3d::TRIANGLES: // :TODO: rasterize this
 				case RenderCommand3d::LINE_STRIP:
 					stride = 1;
 				do_render_lines:
@@ -116,8 +118,6 @@ namespace xen{
 							doRenderLine(target, line_screen, cmd->color);
 						}
 					}
-					break;
-				case RenderCommand3d::TRIANGLES:
 					break;
 				default:
 					XenInvalidCodePath();
@@ -152,8 +152,20 @@ namespace xen{
 				xen::tan(fov_x / (real)target_size.x) * camera.z_near, 0, 0
 			};
 			Vec3r image_plane_pixel_offset_y = {
-				xen::tan(fov_y / (real)target_size.y) * camera.z_near, 0, 0
+				0, xen::tan(fov_y / (real)target_size.y) * camera.z_near, 0
 			};
+
+			xen::Quaternion camera_rotation = xen::getRotation(xen::normalized(image_plane_center),
+			                                                   xen::normalized(camera.look_dir)
+			                                                  );
+
+			image_plane_pixel_offset_x = xen::rotated(image_plane_pixel_offset_x, camera_rotation);
+			image_plane_pixel_offset_y = xen::rotated(image_plane_pixel_offset_y, camera_rotation);
+
+			printf("offset_x: (%8f, %8f, %8f), offset_y: (%8f, %8f, %8f)\n",
+			       image_plane_pixel_offset_x.x, image_plane_pixel_offset_x.y, image_plane_pixel_offset_x.z,
+			       image_plane_pixel_offset_y.x, image_plane_pixel_offset_y.y, image_plane_pixel_offset_y.z
+			      );
 
 			Vec2s target_pos;
 			for(target_pos.x = 0; target_pos.x < target_size.x; ++target_pos.x) {
@@ -172,9 +184,39 @@ namespace xen{
 					primary_ray.direction = xen::normalized(camera.position - image_plane_position);
 
 					// Do ray cast
+					for(u32 cmd_index = 0; cmd_index < command_count; ++cmd_index){
+						RenderCommand3d* cmd = &commands[cmd_index];
+						if(cmd->type != RenderCommand3d::TRIANGLES){
+							continue;
+						}
 
+						Mat4r mat_model_inv = xen::getInverse(cmd->model_matrix);
 
+						Ray3r primary_ray_model_space = xen::getTransformed(primary_ray, mat_model_inv);
 
+						//printf("Rendering a triangle mesh with: %i triangles\n", cmd->verticies.count / 3);
+
+						const Triangle3r* tri;
+
+						Vec3r closest_intersection = Vec3r::Origin;
+						bool found_intersection    = false;
+
+						for(u32 i = 0; i < cmd->verticies.count; i += 3){
+							tri = (const Triangle3r*)&cmd->verticies.verticies[i];
+
+							Vec3r intersection;
+
+							if(xen::getIntersection(primary_ray_model_space, *tri, intersection)){
+								// :TODO: determine if new intersection is closer
+								closest_intersection = intersection;
+								found_intersection = true;
+							}
+						}
+
+						if(found_intersection){
+							target[target_pos.x][target_pos.y] = Color::WHITE;
+						}
+					}
 				}
 			}
 

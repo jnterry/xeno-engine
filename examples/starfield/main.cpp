@@ -20,7 +20,7 @@ real camera_speed = 250;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
 
-const u32 STAR_COUNT = 1024;
+const u32 STAR_COUNT = 0; //1024;
 
 Vec3r star_positions[STAR_COUNT];
 
@@ -52,9 +52,9 @@ void handleInput(real dt){
 }
 
 int main(int argc, char** argv){
-	camera.z_near   = 0.1;
+	camera.z_near   = 10; // :TODO: change?
 	camera.z_far    = 100;
-	camera.fov_y    = 0.1_deg;
+	camera.fov_y    = 70_deg;
 	camera.radius   = 450;
 	camera.height   = 0;
 	camera.up_dir   = Vec3r::UnitY;
@@ -64,7 +64,7 @@ int main(int argc, char** argv){
 	// broken if set here
 	camera.angle    = 0.0_deg;
 
-	Vec2r window_size = {800, 600};
+	Vec2r window_size = {100, 100};
 	screen* screen = InitializeSDL(window_size.x, window_size.y, false);
 
 	for(u32 i = 0; i < STAR_COUNT; ++i){
@@ -160,7 +160,7 @@ int main(int argc, char** argv){
 
 	render_commands[5].type                = xen::RenderCommand3d::TRIANGLES;
 	render_commands[5].color               = 0xFFFF0000;
-	render_commands[5].model_matrix        = xen::Scale3d(50_r) * xen::Translation3d(-75.0_r, -75.0_r, -75.0_r);
+	render_commands[5].model_matrix        = xen::Scale3d(50_r) * xen::Rotation3dy(90_deg); // * xen::Translation3d(-75.0_r, -75.0_r, -75.0_r);
 	render_commands[5].verticies.verticies = &mesh_verts[0];
 	render_commands[5].verticies.count     = XenArrayLength(mesh_verts);
 
@@ -186,9 +186,12 @@ int main(int argc, char** argv){
 		xen::sren::clear(screen->buffer, xen::Color::BLACK);
 
 		// Do rendering
+		xen::sren::renderRasterize(screen->buffer, xen::generateCamera3d(camera),
+		                          render_commands, XenArrayLength(render_commands)
+		                          );
 		xen::sren::renderRaytrace(screen->buffer, xen::generateCamera3d(camera),
 		                          render_commands, XenArrayLength(render_commands)
-		                         );
+		                          );
 
 		SDL_Renderframe(screen);
 	}
