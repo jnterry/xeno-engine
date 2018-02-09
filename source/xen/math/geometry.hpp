@@ -378,6 +378,47 @@ namespace xen{
 
 		return xen::normalized(xen::cross(e2, e1));
 	}
+
+	template<u32 T_DIM, typename T>
+	LineSegment<T_DIM-1, T> fromHomo(LineSegment<T_DIM, T> a){
+		return LineSegment<T_DIM-1, T>{ fromHomo(a.p1), fromHomo(a.p2) };
+	}
+
+	template<u32 T_DIM, typename T>
+	Aabb<T_DIM-1, T> fromHomo(Aabb<T_DIM, T> a){
+		return Aabb<T_DIM-1, T>{ fromHomo(a.p1), fromHomo(a.p2) };
+	}
+
+	template<u32 T_DIM, typename T>
+  Sphere<T_DIM-1, T> fromHomo(Sphere<T_DIM, T> a){
+		return Sphere<T_DIM-1, T>{ fromHomo(a.center), a.radius };
+	}
+
+	template<u32 T_DIM, typename T>
+  Triangle<T_DIM-1, T> fromHomo(Triangle<T_DIM, T> a){
+		return Triangle<T_DIM-1, T>{ fromHomo(a.p1), fromHomo(a.p2), fromHomo(a.p3) };
+	}
+
+
+	template<u32 T_DIM, typename T>
+	LineSegment<T_DIM+1, T> toHomo(LineSegment<T_DIM, T> a, T val = 1){
+		return LineSegment<T_DIM+1, T>{ toHomo(a.p1, val), toHomo(a.p2, val) };
+	}
+
+	template<u32 T_DIM, typename T>
+	Aabb<T_DIM+1, T> toHomo(Aabb<T_DIM, T> a, T val = 1){
+		return Aabb<T_DIM+1, T>{ toHomo(a.p1, val), toHomo(a.p2, val) };
+	}
+
+	template<u32 T_DIM, typename T>
+	Sphere<T_DIM+1, T> toHomo(Sphere<T_DIM, T> a, T val = 1){
+		return Sphere<T_DIM+1, T>{ toHomo(a.center, val), a.radius };
+	}
+
+	template<u32 T_DIM, typename T>
+	Triangle<T_DIM+1, T> toHomo(Triangle<T_DIM, T> a, T val = 1){
+		return Triangle<T_DIM+1, T>{ toHomo(a.p1, val), toHomo(a.p2, val), toHomo(a.p3, val) };
+	}
 }
 
 #endif

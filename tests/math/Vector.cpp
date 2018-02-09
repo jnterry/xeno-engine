@@ -128,3 +128,19 @@ TEST_CASE("Vec3r Project onto Plane",  "[math][Vector]"){
 
 	//:TODO: onto arbitary planes
 }
+
+TEST_CASE("Vector toHomo", "[math][Vector]"){
+	CHECK(xen::toHomo(Vec3r{1,2,3}     ) == Vec4r{1,2,3,1});
+	CHECK(xen::toHomo(Vec3r{1,2,3}, 0_r) == Vec4r{1,2,3,0});
+
+	CHECK(xen::toHomo(Vec2r{6,7  }     ) == Vec3r{6,7,1  });
+	CHECK(xen::toHomo(Vec2r{8,9  }, 0_r) == Vec3r{8,9,0  });
+}
+
+TEST_CASE("Vector fromHomo", "[math][Vector]"){
+	CHECK(xen::fromHomo(Vec4r{2,4,6,1})  == Vec3r{2,4,6});
+	CHECK(xen::fromHomo(Vec4r{2,4,6,2})  == Vec3r{1,2,3});
+
+	CHECK(xen::fromHomo(Vec3r{4,8,1  })  == Vec2r{4,8  });
+	CHECK(xen::fromHomo(Vec3r{4,8,2  })  == Vec2r{2,4  });
+}
