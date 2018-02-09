@@ -60,6 +60,13 @@ namespace xen{
 	}
 
 	template<u32 T_DIM, typename T>
+	LineSegment<T_DIM, T> transform(LineSegment<T_DIM, T>& line, xen::Matrix<T_DIM, T_DIM, T> mat){
+		line.p1 *= mat;
+		line.p2 *= mat;
+		return line;
+	}
+
+	template<u32 T_DIM, typename T>
 	LineSegment<T_DIM, T> transform(LineSegment<T_DIM, T>& line, xen::Matrix<T_DIM+1, T_DIM+1, T> mat){
 		line.p1 *= mat;
 		line.p2 *= mat;

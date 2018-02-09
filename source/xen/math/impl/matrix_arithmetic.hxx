@@ -289,7 +289,17 @@ xen::Vec<2,T> operator*(const xen::Vec<2,T>& lhs, const xen::Matrix<3,3,T>& rhs)
 		     };
 }
 
+template<typename T>
+xen::Vec<3,T> operator*=(xen::Vec<3,T>& lhs, const xen::Matrix<3,3,T>& rhs){
+	lhs = lhs * rhs;
+	return lhs;
+}
 
+template<typename T>
+xen::Vec<4,T> operator*=(xen::Vec<4,T>& lhs, const xen::Matrix<4,4,T>& rhs){
+	lhs = lhs * rhs;
+	return lhs;
+}
 
 template<typename T>
 xen::Vec<3,T> operator*=(xen::Vec<3,T>& lhs, const xen::Matrix<4,4,T>& rhs){
