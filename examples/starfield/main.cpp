@@ -54,7 +54,7 @@ void handleInput(real dt){
 int main(int argc, char** argv){
 	camera.z_near   = 0.1;
 	camera.z_far    = 100;
-	camera.fov_y    = 0.1_deg;
+	camera.fov_y    = 10_deg;
 	camera.radius   = 450;
 	camera.height   = 0;
 	camera.up_dir   = Vec3r::UnitY;
@@ -150,6 +150,9 @@ int main(int argc, char** argv){
 
 	int last_tick = SDL_GetTicks();
 
+	// make it stupidly big so we always render to the entire screen
+	xen::Aabb2u viewport = { 0, 0, 100000, 100000 };
+
 	printf("Entering main loop\n");
 	while(NoQuitMessageSDL()) {
 		int tick = SDL_GetTicks();
@@ -170,7 +173,8 @@ int main(int argc, char** argv){
 		xen::sren::clear(screen->buffer, xen::Color::BLACK);
 
 		// Do rendering
-		xen::sren::renderRasterize(screen->buffer, xen::generateCamera3d(camera),
+		xen::sren::renderRasterize(screen->buffer, viewport,
+		                           xen::generateCamera3d(camera),
 		                           render_commands, XenArrayLength(render_commands)
 		                          );
 

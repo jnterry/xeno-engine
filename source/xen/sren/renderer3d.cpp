@@ -121,13 +121,17 @@ namespace xen{
 			memset(target.pixels, color.value, target.width * target.height * sizeof(Color));
 		}
 
-		void renderRasterize(RenderTarget& target, const Camera3d& camera, RenderCommand3d* commands, u32 command_count){
+		void renderRasterize(RenderTarget& target, const xen::Aabb2u& viewport,
+		                     const Camera3d& camera,
+		                     RenderCommand3d* commands, u32 command_count){
+
+			// Find the actual view_region we wish to draw to. This is the
+			// intersection of the actual target, and the user specified viewport
+			xen::Aabb2u screen_rect = { Vec2u::Origin, target.size - Vec2u{1,1} };
+			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 
 			Mat4r mat_vp = xen::getViewProjectionMatrix(camera, xen::mkVec(1_r, 1_r));
 			Mat4r mat_mvp;
-
-			xen::Aabb2r viewport = { Vec2r::Origin, (Vec2r)target.size - xen::mkVec(1_r, 1_r) };
-			//xen::Aabb2r viewport = { 100, 100, 500, 500 };
 
 			int stride = 0;
 
@@ -138,7 +142,7 @@ namespace xen{
 				mat_mvp = cmd->model_matrix * mat_vp;
 				switch(cmd->type){
 				case RenderCommand3d::POINTS:
-					doRenderPoints(target, viewport, mat_mvp, cmd->color, cmd->verticies.verticies, cmd->verticies.count);
+					doRenderPoints(target, view_region, mat_mvp, cmd->color, cmd->verticies.verticies, cmd->verticies.count);
 					break;
 				case RenderCommand3d::LINES:
 					stride = 2;
@@ -151,7 +155,7 @@ namespace xen{
 						//printf("Doing vertex %i / %i\n", i, cmd->verticies.count);
 						LineSegment3r* line_world = (LineSegment3r*)(&cmd->verticies.verticies[i]);
 
-						doRenderLine3d(target, viewport, mat_mvp, cmd->color, *line_world);
+						doRenderLine3d(target, view_region, mat_mvp, cmd->color, *line_world);
 					}
 					break;
 				default:
@@ -161,8 +165,10 @@ namespace xen{
 			}
 		}
 
-		void renderRaytrace (RenderTarget& target, const Camera3d& camera, RenderCommand3d* commands, u32 command_count){
-			renderRasterize(target, camera, commands, command_count);
+		void renderRaytrace (RenderTarget& target, const xen::Aabb2u& viewport,
+		                     const Camera3d& camera,
+		                     RenderCommand3d* commands, u32 command_count){
+			renderRasterize(target, viewport, camera, commands, command_count);
 		}
 	}
 
