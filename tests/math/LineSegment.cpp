@@ -128,8 +128,8 @@ TEST_CASE("LineSegment/Aabb2 Intersection", "[math][Aabb][LineSegment]"){
 		CHECK(xen::intersect       (line, aabb) == false);
 		CHECK(line == xen::LineSegment2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}});
 
-		aabb = xen::Aabb2r       {Vec2r{ 0, 0}, Vec2r{10,10}};
-		line = xen::LineSegment2r{Vec2r{-9, 9}, Vec2r{ 9,-9}};
+		aabb = xen::Aabb2r       {Vec2r{  0,  0}, Vec2r{ 10, 10}};
+		line = xen::LineSegment2r{Vec2r{-11, 11}, Vec2r{ 11,-12}};
 		//CHECK(xen::haveIntersection(line, aabb) == false);
 		CHECK(xen::intersect       (line, aabb) == false);
 		CHECK(line == xen::LineSegment2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}});
