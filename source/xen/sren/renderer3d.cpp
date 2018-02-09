@@ -20,7 +20,9 @@
 #include <cstdlib>
 
 namespace {
-	void doRenderPoints(xen::sren::RenderTarget& target, const Mat4f& mvp_matrix,
+	void doRenderPoints(xen::sren::RenderTarget& target,
+	                    const xen::Aabb2r& viewport,
+	                    const Mat4f& mvp_matrix,
 	                    xen::Color color,
 	                    Vec3r* points, u32 count){
 
@@ -33,12 +35,12 @@ namespace {
 			}
 
 			// :TODO: pass in viewport -> might not want to render to entire target
-			Vec2f screen_space = (clip_space.xy / clip_space.w) + ((Vec2r)target.size * 0.5_r);
+			Vec2f screen_space = (clip_space.xy / clip_space.w) + viewport.min + (viewport.max * 0.5_r);
 
-			if(screen_space.x < 0 ||
-			   screen_space.y < 0 ||
-			   screen_space.x > target.size.x ||
-			   screen_space.y > target.size.y){
+			if(screen_space.x < viewport.min.x ||
+			   screen_space.y < viewport.min.y ||
+			   screen_space.x > viewport.max.x ||
+			   screen_space.y > viewport.max.y){
 				continue;
 			}
 
@@ -62,12 +64,10 @@ namespace {
 	}
 
 	void doRenderLine3d(xen::sren::RenderTarget& target,
+	                    const xen::Aabb2r& viewport,
 	                    const Mat4f& mvp_matrix,
 	                    xen::Color color,
 	                    const xen::LineSegment3r& line){
-
-		// :TODO: pass in viewport -> might not want to render to entire target
-		xen::Aabb2r screen_rect { 0, 0, (real)target.size.x-1, (real)target.size.y-1 };
 
 		xen::LineSegment4r line_clip  = xen::getTransformed(xen::toHomo(line), mvp_matrix);
 
@@ -91,20 +91,21 @@ namespace {
 
 		///////////////////////////////////////////////////////////////////
 		// Do perspective divide (into normalized device coordinates)
-		line_clip.p1 /= line_clip.p1.w;
-		line_clip.p2 /= line_clip.p2.w;
+		// We only care about x and y coordinates at this point
+		line_clip.p1.xy /= line_clip.p1.w;
+		line_clip.p2.xy /= line_clip.p2.w;
 		///////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////////////////////////////////////
 		// Transform into screen space
 		xen::LineSegment2r  line_screen;
-		line_screen.p1 = line_clip.p1.xy + ((Vec2r)target.size * 0.5_r);
-		line_screen.p2 = line_clip.p2.xy + ((Vec2r)target.size * 0.5_r);
+		line_screen.p1 = line_clip.p1.xy + viewport.min + (viewport.max * 0.5_r);
+		line_screen.p2 = line_clip.p2.xy + viewport.min + (viewport.max * 0.5_r);
 		///////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////////////////////////////////////
 		// Clip to the viewport
-		if(xen::intersect(line_screen, screen_rect)){
+		if(xen::intersect(line_screen, viewport)){
 			doRenderLine2d(target, line_screen, color);
 		}
 		///////////////////////////////////////////////////////////////////
@@ -125,7 +126,8 @@ namespace xen{
 			Mat4r mat_vp = xen::getViewProjectionMatrix(camera, xen::mkVec(1_r, 1_r));
 			Mat4r mat_mvp;
 
-		  xen::Aabb2r screen_rect = { Vec2r::Origin, (Vec2r)target.size - xen::mkVec(1_r, 1_r) };
+			xen::Aabb2r viewport = { Vec2r::Origin, (Vec2r)target.size - xen::mkVec(1_r, 1_r) };
+			//xen::Aabb2r viewport = { 100, 100, 500, 500 };
 
 			int stride = 0;
 
@@ -136,7 +138,7 @@ namespace xen{
 				mat_mvp = cmd->model_matrix * mat_vp;
 				switch(cmd->type){
 				case RenderCommand3d::POINTS:
-					doRenderPoints(target, mat_mvp, cmd->color, cmd->verticies.verticies, cmd->verticies.count);
+					doRenderPoints(target, viewport, mat_mvp, cmd->color, cmd->verticies.verticies, cmd->verticies.count);
 					break;
 				case RenderCommand3d::LINES:
 					stride = 2;
@@ -149,7 +151,7 @@ namespace xen{
 						//printf("Doing vertex %i / %i\n", i, cmd->verticies.count);
 						LineSegment3r* line_world = (LineSegment3r*)(&cmd->verticies.verticies[i]);
 
-						doRenderLine3d(target, mat_mvp, cmd->color, *line_world);
+						doRenderLine3d(target, viewport, mat_mvp, cmd->color, *line_world);
 					}
 					break;
 				default:
