@@ -32,6 +32,7 @@ namespace {
 				continue;
 			}
 
+			// :TODO: pass in viewport -> might not want to render to entire target
 			Vec2f screen_space = (clip_space.xy / clip_space.w) + ((Vec2r)target.size * 0.5_r);
 
 			if(screen_space.x < 0 ||
@@ -45,7 +46,7 @@ namespace {
 		}
 	}
 
-	void doRenderLine(xen::sren::RenderTarget& target, xen::LineSegment2r line, xen::Color color){
+	void doRenderLine2d(xen::sren::RenderTarget& target, xen::LineSegment2r line, xen::Color color){
 		//https://www.cs.virginia.edu/luther/blog/posts/492.html
 		if(line.p1 != line.p2){
 			//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
@@ -58,6 +59,55 @@ namespace {
 				cur += delta;
 			}
 		}
+	}
+
+	void doRenderLine3d(xen::sren::RenderTarget& target,
+	                    const Mat4f& mvp_matrix,
+	                    xen::Color color,
+	                    const xen::LineSegment3r& line){
+
+		// :TODO: pass in viewport -> might not want to render to entire target
+		xen::Aabb2r screen_rect { 0, 0, (real)target.size.x-1, (real)target.size.y-1 };
+
+		xen::LineSegment4r line_clip  = xen::getTransformed(xen::toHomo(line), mvp_matrix);
+
+		///////////////////////////////////////////////////////////////////
+		// Do line clipping
+		if(line_clip.p1.z < 0 && line_clip.p2.z < 0){
+			// Then line is completely behind the camera
+			return;
+		}
+		if(line_clip.p1.z < 0){
+			// Then just one point is behind the camera, slide it along the direction
+			// of the line until its at same z as camera
+			Vec4r dir = line_clip.p2 - line_clip.p1;
+			line_clip.p1 += dir * ((-line_clip.p1.z) / dir.z);
+		}
+		if(line_clip.p2.z < 0){
+			Vec4r dir = line_clip.p1 - line_clip.p2;
+			line_clip.p2 += dir * ((-line_clip.p2.z) / dir.z);
+		}
+		///////////////////////////////////////////////////////////////////
+
+		///////////////////////////////////////////////////////////////////
+		// Do perspective divide (into normalized device coordinates)
+		line_clip.p1 /= line_clip.p1.w;
+		line_clip.p2 /= line_clip.p2.w;
+		///////////////////////////////////////////////////////////////////
+
+		///////////////////////////////////////////////////////////////////
+		// Transform into screen space
+		xen::LineSegment2r  line_screen;
+		line_screen.p1 = line_clip.p1.xy + ((Vec2r)target.size * 0.5_r);
+		line_screen.p2 = line_clip.p2.xy + ((Vec2r)target.size * 0.5_r);
+		///////////////////////////////////////////////////////////////////
+
+		///////////////////////////////////////////////////////////////////
+		// Clip to the viewport
+		if(xen::intersect(line_screen, screen_rect)){
+			doRenderLine2d(target, line_screen, color);
+		}
+		///////////////////////////////////////////////////////////////////
 	}
 }
 
@@ -98,24 +148,8 @@ namespace xen{
 					for(u32 i = 0; i < cmd->verticies.count - 1; i += stride){
 						//printf("Doing vertex %i / %i\n", i, cmd->verticies.count);
 						LineSegment3r* line_world = (LineSegment3r*)(&cmd->verticies.verticies[i]);
-						//printf("%f, %f, %f  --- %f, %f, %f\n",
-						//       line_world->p1.x, line_world->p1.y, line_world->p1.z,
-							        //       line_world->p2.x, line_world->p2.y, line_world->p2.z);
 
-						LineSegment3r  line_clip  = xen::getTransformed(*line_world, mat_mvp);
-
-						//printf("%f, %f, %f  --- %f, %f, %f\n",
-						//       line_clip.p1.x, line_clip.p1.y, line_clip.p1.z,
-							        //       line_clip.p2.x, line_clip.p2.y, line_clip.p2.z);
-
-						LineSegment2r  line_screen;
-						line_screen.p1 = line_clip.p1.xy + ((Vec2r)target.size * 0.5_r);
-						line_screen.p2 = line_clip.p2.xy + ((Vec2r)target.size * 0.5_r);
-
-						//printf("%f, %f  --- %f, %f\n", line_clip.p1.x, line_clip.p1.y, line_clip.p2.x, line_clip.p2.y);
-						if(xen::intersect(line_screen, screen_rect)){
-							doRenderLine(target, line_screen, cmd->color);
-						}
+						doRenderLine3d(target, mat_mvp, cmd->color, *line_world);
 					}
 					break;
 				default:

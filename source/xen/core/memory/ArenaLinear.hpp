@@ -9,7 +9,7 @@
 #ifndef XEN_CORE_MEMORY_ARENA_LINEAR_HPP
 #define XEN_CORE_MEMORY_ARENA_LINEAR_HPP
 
-#include <xen/core/utilities.hpp>
+#include <xen/core/memory/utilities.hpp>
 
 /// \brief Creates a tempory ArenaLinear by allocating space from the stack
 /// \param name Name of arena to create

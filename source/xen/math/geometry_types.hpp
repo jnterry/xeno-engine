@@ -26,6 +26,7 @@ namespace xen {
 	};
 	template <typename T> using LineSegment2 = LineSegment<2, T>;
 	template <typename T> using LineSegment3 = LineSegment<3, T>;
+	template <typename T> using LineSegment4 = LineSegment<4, T>;
 	typedef LineSegment<2, real> LineSegment2r;
 	typedef LineSegment<2, u32 > LineSegment2u;
 	typedef LineSegment<2, s32 > LineSegment2s;
@@ -44,14 +45,18 @@ namespace xen {
 		Vec<T_DIM, T> min;
 		Vec<T_DIM, T> max;
 	};
+	template <typename T> using Aabb2 = Aabb<2, T>;
+	template <typename T> using Aabb3 = Aabb<3, T>;
+	template <typename T> using Aabb4 = Aabb<4, T>;
 	typedef Aabb<2, u32>  Aabb2u;
 	typedef Aabb<2, s32>  Aabb2s;
 	typedef Aabb<2, real> Aabb2r;
 	typedef Aabb<3, u32>  Aabb3u;
 	typedef Aabb<3, s32>  Aabb3s;
 	typedef Aabb<3, real> Aabb3r;
-	template <typename T> using Aabb2 = Aabb<2, T>;
-	template <typename T> using Aabb3 = Aabb<3, T>;
+	typedef Aabb<4, u32>  Aabb4u;
+	typedef Aabb<4, s32>  Aabb4s;
+	typedef Aabb<4, real> Aabb4r;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents sphere in some number of dimensions
@@ -61,23 +66,26 @@ namespace xen {
 		Vec<T_DIM, T> center;
 		T             radius;
 	};
+	template <typename T> using Circle  = Sphere<2, T>;
+	template <typename T> using Sphere3 = Sphere<3, T>;
+	template <typename T> using Sphere4 = Sphere<4, T>;
 	typedef Sphere<2, u32 > Sphere2u;
 	typedef Sphere<2, s32 > Sphere2s;
 	typedef Sphere<2, real> Sphere2r;
 	typedef Sphere<3, u32 > Sphere3u;
 	typedef Sphere<3, s32 > Sphere3s;
 	typedef Sphere<3, real> Sphere3r;
-	template <typename T> using Circle = Sphere<2, T>;
-
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Represents a triangle in some number of dimensions
-	/////////////////////////////////////////////////////////////////////
+	typedef Sphere<4, u32 > Sphere4u;
+	typedef Sphere<4, s32 > Sphere4s;
+	typedef Sphere<4, real> Sphere4r;
 
 	// gcc doesn't like the anonomous structures inside unions, disable the warning temporarily...
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wpedantic"
 
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents a triangle in some number of dimensions
+	/////////////////////////////////////////////////////////////////////
 	template<u32 T_DIM, typename T>
 	struct Triangle {
 		union {
@@ -91,14 +99,18 @@ namespace xen {
 
 	#pragma GCC diagnostic pop
 
+	template <typename T> using Triangle2 = Triangle<2, T>;
+	template <typename T> using Triangle3 = Triangle<3, T>;
+	template <typename T> using Triangle4 = Triangle<4, T>;
 	typedef Triangle<2, u32 > Triangle2u;
 	typedef Triangle<2, s32 > Triangle2s;
 	typedef Triangle<2, real> Triangle2r;
 	typedef Triangle<3, u32 > Triangle3u;
 	typedef Triangle<3, s32 > Triangle3s;
 	typedef Triangle<3, real> Triangle3r;
-	template <typename T> using Triangle2 = Triangle<2, T>;
-	template <typename T> using Triangle3 = Triangle<3, T>;
+	typedef Triangle<4, u32 > Triangle4u;
+	typedef Triangle<4, s32 > Triangle4s;
+	typedef Triangle<4, real> Triangle4r;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents a ray (aka half line) with some origin point
@@ -112,14 +124,18 @@ namespace xen {
 		/// \brief Direction vector (magnitude 1) representing where the ray is "pointing"
 		Vec<T_DIM, T> direction;
 	};
+	template <typename T> using Ray2 = Ray<2, T>;
+	template <typename T> using Ray3 = Ray<3, T>;
+	template <typename T> using Ray4 = Ray<4, T>;
 	typedef Ray<2, u32 > Ray2u;
 	typedef Ray<2, s32 > Ray2s;
 	typedef Ray<2, real> Ray2r;
 	typedef Ray<3, u32 > Ray3u;
 	typedef Ray<3, s32 > Ray3s;
 	typedef Ray<3, real> Ray3r;
-	template <typename T> using Ray2 = Ray<2, T>;
-	template <typename T> using Ray3 = Ray<3, T>;
+	typedef Ray<4, u32 > Ray4u;
+	typedef Ray<4, s32 > Ray4s;
+	typedef Ray<4, real> Ray4r;
 
 	/*template<u32 T_DIM, typename T>
 	struct Line {

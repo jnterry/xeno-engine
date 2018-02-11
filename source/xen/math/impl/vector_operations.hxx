@@ -79,6 +79,42 @@ namespace xen{
 	inline Vec3<T> projectOntoPlane(Vec3<T> vec, Vec3<T> norm){
 		return vec - ((dot(vec,norm) / magSq(norm)) * norm);
 	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Converts from a 4d homogeneous coordinate space to a 3d
+	/// coordinate space
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	Vec3<T> fromHomo(const Vec4<T>& v){
+		return v.xyz / v.w;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Converts from a 3d space to a 4d homogeneous coordinate space
+	/// \param val_w The value to use for the w component, defaults to 1
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	Vec4<T> toHomo(const Vec3<T>& v, T val_w = 1){
+		return {v.x, v.y, v.z, val_w};
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Converts from a 3d homogeneous coordinate space to a 2d
+	/// coordinate space
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	Vec2<T> fromHomo(const Vec3<T>& v){
+		return v.xy / v.z;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Converts from a 2d space to a 3d homogeneous coordinate space
+	/// \param val_z The value to use for the z component, defaults to 1
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	Vec3<T> toHomo(const Vec2<T>& v, T val_z = 1){
+		return {v.x, v.y, val_z};
+	}
 }
 
 #endif
