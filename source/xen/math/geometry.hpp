@@ -301,11 +301,32 @@ namespace xen{
 		}
 	}
 
-	/*template<u32 T_DIMS, typename T>
-	struct TriangleRayIntersection {
-		bool exits; /// \brief Whether or not the intersection exists
-		Vec<T_DIMS, T> point; /// \brief The intersection point closest to the ray's origin
-	};*/
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Computes the barycentric coordinates for a
+	/// point p with respect to a given triangle
+	/// Taken from: https://gamedev.stackexchange.com/a/23745
+	/// \param p The point to find barycentric coordinates of
+	/// \param tri The triangle Barycentric coordinates are with respect to
+	/// \return Barycentric coordinates of point p
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	Vec3<T> getBarycentricCoordinates(const Vec3<T>& p, const Triangle3<T>& tri){
+    Vec3<T> v0 = tri.p2 - tri.p1;
+		Vec3<T> v1 = tri.p3 - tri.p1;
+		Vec3<T> v2 = p - tri.p1;
+
+    T d00 = xen::dot(v0, v0);
+    T d01 = xen::dot(v0, v1);
+    T d11 = xen::dot(v1, v1);
+    T d20 = xen::dot(v2, v0);
+    T d21 = xen::dot(v2, v1);
+    T denom = d00 * d11 - d01 * d01;
+    T v = (d11 * d20 - d01 * d21) / denom;
+    T w = (d00 * d21 - d01 * d20) / denom;
+    T u = 1.0f - v - w;
+		return {u,v,w};
+	}
+
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Computes the intersection between a ray and a triangle.
