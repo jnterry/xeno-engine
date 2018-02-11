@@ -9,6 +9,7 @@
 #ifndef XEN_GRAPHICS_SREN_RENDERER3D_CPP
 #define XEN_GRAPHICS_SREN_RENDERER3D_CPP
 
+#include <limits>
 #include <xen/math/quaternion.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/graphics/Camera3d.hpp>
@@ -233,16 +234,21 @@ namespace xen{
 						const Triangle3r* tri;
 
 						Vec3r closest_intersection = Vec3r::Origin;
+						real closest_intersection_length = std::numeric_limits<real>::max();
 						bool found_intersection    = false;
 
 						for(u32 i = 0; i < cmd->verticies.count; i += 3){
 							tri = (const Triangle3r*)&cmd->verticies.verticies[i];
 
 							Vec3r intersection;
+							real intersection_length;
 
 							if(xen::getIntersection(primary_ray_model_space, *tri, intersection)){
-								// :TODO: determine if new intersection is closer
-								closest_intersection = intersection;
+								// :TODO: visually inspect this with cornell box
+								intersection_length = distanceSq(camera.position, intersection);
+								if(closest_intersection_length > intersection_length){
+									closest_intersection = intersection;
+								}
 								found_intersection = true;
 							}
 						}
