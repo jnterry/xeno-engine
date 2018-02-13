@@ -63,3 +63,17 @@ TEST_CASE("Vec3r * Mat4r", "[math][Matrix]"){
 	CHECK((Vec3r(3,6,-2) * Mat4r{3,5,7,2,  -1,0,3,-7,  -2,-5,3,10,  -4,0,9,3}) == (Vec3r(3,25,42) / -53_r));
 	CHECK((Vec3r(-3,9,0) * Mat4r{3,0,1,0,   5,0,0,-2,  -6,-3,-8,1,   0,5,3,0}) == (Vec3r(36,5, 0) / -18_r));
 }
+
+TEST_CASE("Matrix Multiplication Order", "[math][Matrix]"){
+	// This does translation then scale
+	Mat4r transform = Mat4r::Identity;
+	transform *= xen::Translation3d(3, 0, 0);
+	transform *= xen::Scale3d      (2, 0, 0);
+	CHECK((Vec3r(1,0,0) * transform == Vec3r(8, 0, 0)));
+
+	// This does scale then translation
+  transform = Mat4r::Identity;
+	transform *= xen::Scale3d      (2, 0, 0);
+	transform *= xen::Translation3d(3, 0, 0);
+	CHECK((Vec3r(1,0,0) * transform == Vec3r(5, 0, 0)));
+}
