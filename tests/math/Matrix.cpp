@@ -68,12 +68,12 @@ TEST_CASE("Matrix Multiplication Order", "[math][Matrix]"){
 	// This does translation then scale
 	Mat4r transform = Mat4r::Identity;
 	transform *= xen::Translation3d(3, 0, 0);
-	transform *= xen::Scale3d      (2, 0, 0);
+	transform *= xen::Scale3d      (2, 1, 1);
 	CHECK((Vec3r(1,0,0) * transform == Vec3r(8, 0, 0)));
 
 	// This does scale then translation
   transform = Mat4r::Identity;
-	transform *= xen::Scale3d      (2, 0, 0);
+	transform *= xen::Scale3d      (2, 1, 1);
 	transform *= xen::Translation3d(3, 0, 0);
 	CHECK((Vec3r(1,0,0) * transform == Vec3r(5, 0, 0)));
 }
