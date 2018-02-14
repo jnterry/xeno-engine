@@ -53,6 +53,8 @@ namespace xen{
 	/// \todo :TODO: is this statement correct -> holds if matrices are orthogonal?
 	/// This is because the following operations are equivalent:
 	/// ABCv = v^{T}C^{T}B^{T}A^{T}
+	///
+	/// See: https://fgiesen.wordpress.com/2012/02/12/row-major-vs-column-major-row-vectors-vs-column-vectors/#comment-528
 	/////////////////////////////////////////////////////////////////////
 	template<u32 T_DIM, typename T>
 	struct Vec{
