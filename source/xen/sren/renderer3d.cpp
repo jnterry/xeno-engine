@@ -20,7 +20,9 @@
 #include <cstdlib>
 
 namespace {
-	void doRenderPoints(xen::sren::RenderTarget& target, const Mat4f& mvp_matrix,
+	void doRenderPoints(xen::sren::RenderTarget& target,
+	                    const xen::Aabb2r& viewport,
+	                    const Mat4f& mvp_matrix,
 	                    xen::Color color,
 	                    Vec3r* points, u32 count){
 
@@ -32,13 +34,25 @@ namespace {
 				continue;
 			}
 
-			// :TODO: pass in viewport -> might not want to render to entire target
-			Vec2f screen_space = (clip_space.xy / clip_space.w) + ((Vec2r)target.size * 0.5_r);
+			///////////////////////////////////////////////////////////////////
+			// Do perspective divide (into normalized device coordinates -> [-1, 1]
+			// We only care about x and y coordinates at this point
+			clip_space.xy /= (clip_space.w);
+			///////////////////////////////////////////////////////////////////
 
-			if(screen_space.x < 0 ||
-			   screen_space.y < 0 ||
-			   screen_space.x > target.size.x ||
-			   screen_space.y > target.size.y){
+			///////////////////////////////////////////////////////////////////
+			// Transform into screen space
+			Vec2r screen_space = clip_space.xy;
+
+			screen_space += Vec2r{1,1};                  // convert to [0, 2] space
+			screen_space /= 2.0_r;                       // convert to [0. 1] space
+			screen_space *= viewport.max - viewport.min; // convert to screen space
+			///////////////////////////////////////////////////////////////////
+
+			if(screen_space.x < viewport.min.x ||
+			   screen_space.y < viewport.min.y ||
+			   screen_space.x > viewport.max.x ||
+			   screen_space.y > viewport.max.y){
 				continue;
 			}
 
@@ -62,12 +76,10 @@ namespace {
 	}
 
 	void doRenderLine3d(xen::sren::RenderTarget& target,
+	                    const xen::Aabb2r& viewport,
 	                    const Mat4f& mvp_matrix,
 	                    xen::Color color,
 	                    const xen::LineSegment3r& line){
-
-		// :TODO: pass in viewport -> might not want to render to entire target
-		xen::Aabb2r screen_rect { 0, 0, (real)target.size.x-1, (real)target.size.y-1 };
 
 		xen::LineSegment4r line_clip  = xen::getTransformed(xen::toHomo(line), mvp_matrix);
 
@@ -90,21 +102,29 @@ namespace {
 		///////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////////////////////////////////////
-		// Do perspective divide (into normalized device coordinates)
-		line_clip.p1 /= line_clip.p1.w;
-		line_clip.p2 /= line_clip.p2.w;
+		// Do perspective divide (into normalized device coordinates -> [-1, 1]
+		// We only care about x and y coordinates at this point
+		line_clip.p1.xy /= (line_clip.p1.w);
+		line_clip.p2.xy /= (line_clip.p2.w);
 		///////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////////////////////////////////////
 		// Transform into screen space
 		xen::LineSegment2r  line_screen;
-		line_screen.p1 = line_clip.p1.xy + ((Vec2r)target.size * 0.5_r);
-		line_screen.p2 = line_clip.p2.xy + ((Vec2r)target.size * 0.5_r);
+		line_screen.p1 = line_clip.p1.xy;
+		line_screen.p2 = line_clip.p2.xy;
+
+		line_screen.p1 += Vec2r{1,1};                  // convert to [0, 2] space
+		line_screen.p1 /= 2.0_r;                       // convert to [0. 1] space
+		line_screen.p1 *= viewport.max - viewport.min; // convert to screen space
+		line_screen.p2 += Vec2r{1,1};                  // convert to [0, 2] space
+		line_screen.p2 /= 2.0_r;                       // convert to [0. 1] space
+		line_screen.p2 *= viewport.max - viewport.min; // convert to screen space
 		///////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////////////////////////////////////
 		// Clip to the viewport
-		if(xen::intersect(line_screen, screen_rect)){
+		if(xen::intersect(line_screen, viewport)){
 			doRenderLine2d(target, line_screen, color);
 		}
 		///////////////////////////////////////////////////////////////////
@@ -120,12 +140,17 @@ namespace xen{
 			memset(target.pixels, color.value, target.width * target.height * sizeof(Color));
 		}
 
-		void renderRasterize(RenderTarget& target, const Camera3d& camera, RenderCommand3d* commands, u32 command_count){
+		void renderRasterize(RenderTarget& target, const xen::Aabb2u& viewport,
+		                     const Camera3d& camera,
+		                     RenderCommand3d* commands, u32 command_count){
 
-			Mat4r mat_vp = xen::getViewProjectionMatrix(camera, xen::mkVec(1_r, 1_r));
+			// Find the actual view_region we wish to draw to. This is the
+			// intersection of the actual target, and the user specified viewport
+			xen::Aabb2u screen_rect = { Vec2u::Origin, target.size - Vec2u{1,1} };
+			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
+
+			Mat4r mat_vp = xen::getViewProjectionMatrix(camera, view_region.max - view_region.min);
 			Mat4r mat_mvp;
-
-		  xen::Aabb2r screen_rect = { Vec2r::Origin, (Vec2r)target.size - xen::mkVec(1_r, 1_r) };
 
 			int stride = 0;
 
@@ -136,7 +161,7 @@ namespace xen{
 				mat_mvp = cmd->model_matrix * mat_vp;
 				switch(cmd->type){
 				case RenderCommand3d::POINTS:
-					doRenderPoints(target, mat_mvp, cmd->color, cmd->verticies.verticies, cmd->verticies.count);
+					doRenderPoints(target, view_region, mat_mvp, cmd->color, cmd->verticies.verticies, cmd->verticies.count);
 					break;
 				case RenderCommand3d::LINES:
 					stride = 2;
@@ -149,7 +174,7 @@ namespace xen{
 						//printf("Doing vertex %i / %i\n", i, cmd->verticies.count);
 						LineSegment3r* line_world = (LineSegment3r*)(&cmd->verticies.verticies[i]);
 
-						doRenderLine3d(target, mat_mvp, cmd->color, *line_world);
+						doRenderLine3d(target, view_region, mat_mvp, cmd->color, *line_world);
 					}
 					break;
 				default:
@@ -159,8 +184,10 @@ namespace xen{
 			}
 		}
 
-		void renderRaytrace (RenderTarget& target, const Camera3d& camera, RenderCommand3d* commands, u32 command_count){
-			renderRasterize(target, camera, commands, command_count);
+		void renderRaytrace (RenderTarget& target, const xen::Aabb2u& viewport,
+		                     const Camera3d& camera,
+		                     RenderCommand3d* commands, u32 command_count){
+			renderRasterize(target, viewport, camera, commands, command_count);
 		}
 	}
 

@@ -19,6 +19,43 @@ namespace xen{
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wpedantic"
 
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents a row vector with some number of dimensions
+	///
+	/// \tparam T_DIM The number of dimensions
+	/// \tparam T     The type of each element
+	///
+	/// Note that since this is a row vector matrix multiplication is defined
+	/// as vector = vector * matrix;
+	///
+	/// Note that most literature for OpenGL uses the convention of column vectors,
+	/// and thus matrix multiplication is defined as vector = matrix * vector
+	///
+	/// In the graphics world, which is used is fairly inconsistent (see:
+	/// http://steve.hollasch.net/cgindex/math/matrix/column-vec.html)
+	///
+	/// Keep on your toes when looking at OpenGL tutorials, since things
+	/// will be backwards!!!
+	///
+	/// In Xeno Engine the choice to use row vectors was made for two main reasons:
+	/// - Convientient vector matrix multiplication syntax:
+	///   Since the vector is on the LHS, we can define the operator: vector *= matrix;
+	/// - Easier to reason about composing matrix transformations
+	///   For example:
+	///   Mat4r mat = Mat4r::Identity
+	///   mat *= xen::Translation3d(3, 0, 0);
+	///   mat *= xen::Scale3d      (2, 0, 0);
+	///   Produces a matrix which first translates a point, and then scales it.
+	///
+	///  This also means the model view projection matrix is equal to m * v * p
+	///  where as in some literature it is inverted such that mvp = p * v * m
+	///
+	/// \todo :TODO: is this statement correct -> holds if matrices are orthogonal?
+	/// This is because the following operations are equivalent:
+	/// ABCv = v^{T}C^{T}B^{T}A^{T}
+	///
+	/// See: https://fgiesen.wordpress.com/2012/02/12/row-major-vs-column-major-row-vectors-vs-column-vectors/#comment-528
+	/////////////////////////////////////////////////////////////////////
 	template<u32 T_DIM, typename T>
 	struct Vec{
 		T elements[T_DIM];
