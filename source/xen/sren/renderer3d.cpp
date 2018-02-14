@@ -34,8 +34,20 @@ namespace {
 				continue;
 			}
 
-			// :TODO: pass in viewport -> might not want to render to entire target
-			Vec2f screen_space = (clip_space.xy / clip_space.w) + viewport.min + (viewport.max * 0.5_r);
+			///////////////////////////////////////////////////////////////////
+			// Do perspective divide (into normalized device coordinates -> [-1, 1]
+			// We only care about x and y coordinates at this point
+			clip_space.xy /= (clip_space.w);
+			///////////////////////////////////////////////////////////////////
+
+			///////////////////////////////////////////////////////////////////
+			// Transform into screen space
+			Vec2r screen_space = clip_space.xy;
+
+			screen_space += Vec2r{1,1};                  // convert to [0, 2] space
+			screen_space /= 2.0_r;                       // convert to [0. 1] space
+			screen_space *= viewport.max - viewport.min; // convert to screen space
+			///////////////////////////////////////////////////////////////////
 
 			if(screen_space.x < viewport.min.x ||
 			   screen_space.y < viewport.min.y ||
@@ -90,17 +102,24 @@ namespace {
 		///////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////////////////////////////////////
-		// Do perspective divide (into normalized device coordinates)
+		// Do perspective divide (into normalized device coordinates -> [-1, 1]
 		// We only care about x and y coordinates at this point
-		line_clip.p1.xy /= line_clip.p1.w;
-		line_clip.p2.xy /= line_clip.p2.w;
+		line_clip.p1.xy /= (line_clip.p1.w);
+		line_clip.p2.xy /= (line_clip.p2.w);
 		///////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////////////////////////////////////
 		// Transform into screen space
 		xen::LineSegment2r  line_screen;
-		line_screen.p1 = line_clip.p1.xy + viewport.min + (viewport.max * 0.5_r);
-		line_screen.p2 = line_clip.p2.xy + viewport.min + (viewport.max * 0.5_r);
+		line_screen.p1 = line_clip.p1.xy;
+		line_screen.p2 = line_clip.p2.xy;
+
+		line_screen.p1 += Vec2r{1,1};                  // convert to [0, 2] space
+		line_screen.p1 /= 2.0_r;                       // convert to [0. 1] space
+		line_screen.p1 *= viewport.max - viewport.min; // convert to screen space
+		line_screen.p2 += Vec2r{1,1};                  // convert to [0, 2] space
+		line_screen.p2 /= 2.0_r;                       // convert to [0. 1] space
+		line_screen.p2 *= viewport.max - viewport.min; // convert to screen space
 		///////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////////////////////////////////////
@@ -130,7 +149,7 @@ namespace xen{
 			xen::Aabb2u screen_rect = { Vec2u::Origin, target.size - Vec2u{1,1} };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 
-			Mat4r mat_vp = xen::getViewProjectionMatrix(camera, xen::mkVec(1_r, 1_r));
+			Mat4r mat_vp = xen::getViewProjectionMatrix(camera, view_region.max - view_region.min);
 			Mat4r mat_mvp;
 
 			int stride = 0;

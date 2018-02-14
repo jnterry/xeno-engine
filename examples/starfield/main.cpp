@@ -52,9 +52,9 @@ void handleInput(real dt){
 }
 
 int main(int argc, char** argv){
-	camera.z_near   = 0.1;
-	camera.z_far    = 100;
-	camera.fov_y    = 10_deg;
+	camera.z_near   = 0.001;
+	camera.z_far    = 1000;
+	camera.fov_y    = 70_deg;
 	camera.radius   = 450;
 	camera.height   = 0;
 	camera.up_dir   = Vec3r::UnitY;
