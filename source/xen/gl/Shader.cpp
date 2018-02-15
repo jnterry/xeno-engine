@@ -32,9 +32,9 @@ namespace {
 namespace xen{
 	namespace gl {
 		struct ShaderProgram{
-			GLuint vertex_shader; /// \breif handle for the vertex stage
-			GLuint pixel_shader;  /// \breif handle for the pixel stage
-			GLuint program;       /// \breif handle for the program object
+			GLuint vertex_shader; /// \brief handle for the vertex stage
+			GLuint pixel_shader;  /// \brief handle for the pixel stage
+			GLuint program;       /// \brief handle for the program object
 		};
 
 		ShaderProgram* createShaderProgram(ArenaLinear& arena, const char* vertex_source, const char* pixel_source){
@@ -171,16 +171,16 @@ namespace xen{
 			glUniform4i(location, data.x, data.y, data.z, data.w);
 		}
 		void setUniform(int location, Mat3f data){
-			glUniformMatrix3fv(location, 1, GL_FALSE, data.elements);
+			glUniformMatrix3fv(location, 1, GL_TRUE, data.elements);
 		}
 		void setUniform(int location, Mat3d data){
-			glUniformMatrix3dv(location, 1, GL_FALSE, data.elements);
+			glUniformMatrix3dv(location, 1, GL_TRUE, data.elements);
 		}
 		void setUniform(int location, Mat4f data){
-			glUniformMatrix4fv(location, 1, GL_FALSE, data.elements);
+			glUniformMatrix4fv(location, 1, GL_TRUE, data.elements);
 		}
 		void setUniform(int location, Mat4d data){
-			glUniformMatrix4dv(location, 1, GL_FALSE, data.elements);
+			glUniformMatrix4dv(location, 1, GL_TRUE, data.elements);
 		}
 	}
 }

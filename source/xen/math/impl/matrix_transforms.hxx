@@ -51,17 +51,17 @@ namespace xen{
 		real f = 1/xen::tan(fov_y / 2.0_r);
 
 		return {  f/aspectRatio,  0,  0                                ,  0
-			   ,  0            ,  f,  0                                ,  0
-			   ,  0            ,  0,    (z_far+z_near) / (z_near-z_far), -1
-			   ,  0            ,  0,  (2*z_far*z_near) / (z_near-z_far),  0
-			   };
+			     ,  0            ,  f,  0                                ,  0
+			     ,  0            ,  0,    (z_far+z_near) / (z_near-z_far), -1
+			     ,  0            ,  0,  (2*z_far*z_near) / (z_near-z_far),  0
+			     };
 	}
 
 	inline Mat4r createOrthographicProjection(real left, real right, real bottom, real top, real zNear, real zFar){
 		return {                 2/(right-left),                            0,                          0,  0,
 		                                      0,               2/(top-bottom),                          0,  0,
 		                                      0,                            0,            -2/(zFar-zNear),  0,
-                   -((right+left)/(right-left)), -((top+bottom)/(top-bottom)),-((zFar+zNear)/(zFar-zNear)), 1};
+               -((right+left)/(right-left)), -((top+bottom)/(top-bottom)),-((zFar+zNear)/(zFar-zNear)), 1};
 	}
 
 }

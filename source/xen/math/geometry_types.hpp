@@ -23,6 +23,11 @@ namespace xen {
 	struct LineSegment{
 		Vec<T_DIM, T> p1;
 		Vec<T_DIM, T> p2;
+
+		template<typename T2>
+		explicit operator LineSegment<T_DIM, T2>() const {
+			return { (Vec<T_DIM, T2>)p1, (Vec<T_DIM, T2>)p2 };
+		}
 	};
 	template <typename T> using LineSegment2 = LineSegment<2, T>;
 	template <typename T> using LineSegment3 = LineSegment<3, T>;
@@ -44,6 +49,11 @@ namespace xen {
 	struct Aabb{
 		Vec<T_DIM, T> min;
 		Vec<T_DIM, T> max;
+
+		template<typename T2>
+		explicit operator Aabb<T_DIM, T2>() const {
+			return { (Vec<T_DIM, T2>)min, (Vec<T_DIM, T2>)max };
+		}
 	};
 	template <typename T> using Aabb2 = Aabb<2, T>;
 	template <typename T> using Aabb3 = Aabb<3, T>;
