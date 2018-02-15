@@ -77,3 +77,62 @@ TEST_CASE("Matrix Multiplication Order", "[math][Matrix]"){
 	transform *= xen::Translation3d(3, 0, 0);
 	CHECK((Vec3r(1,0,0) * transform == Vec3r(5, 0, 0)));
 }
+
+TEST_CASE("Matrix row-vector accessor", "[math][Matrix][Vector]"){
+	SECTION("2x4 matrix"){
+		xen::Matrix<2,4,real> mat2x4 = { 10, 20, 30, 40,
+		                                 50, 60, 70, 80 };
+
+		CHECK(mat2x4[0] == Vec4r(10, 20, 30, 40));
+		CHECK(mat2x4[1] == Vec4r(50, 60, 70, 80));
+
+		mat2x4[0][1] = 5;
+		mat2x4[1][2] = 6;
+
+		CHECK_THAT(mat2x4, IsMat(xen::Matrix<2,4,real>{ 10,  5, 30, 40,
+						                                        50, 60,  6, 80 })
+		);
+	}
+
+	SECTION("3x3 matrix"){
+		Mat3r mat3x3 = { 10, 20, 30,
+		                 40, 50, 60,
+		                 70, 80, 90 };
+
+		CHECK(mat3x3[0] == Vec3r(10, 20, 30));
+		CHECK(mat3x3[1] == Vec3r(40, 50, 60));
+		CHECK(mat3x3[2] == Vec3r(70, 80, 90));
+
+		mat3x3[0][0] = 1;
+		mat3x3[1][1] = 1;
+		mat3x3[2][2] = 1;
+
+		CHECK_THAT(mat3x3, IsMat(Mat3r{  1, 20, 30,
+						                        40,  1, 60,
+						                        70, 80,  1 })
+		);
+	}
+
+	SECTION("4x4 matrix"){
+		Mat4r mat4x4 = { 11, 12, 13, 14,
+		                 21, 22, 23, 24,
+		                 31, 32, 33, 34,
+		                 41, 42, 43, 44 };
+
+		CHECK(mat4x4[0] == Vec4r(11, 12, 13, 14));
+		CHECK(mat4x4[1] == Vec4r(21, 22, 23, 24));
+		CHECK(mat4x4[2] == Vec4r(31, 32, 33, 34));
+		CHECK(mat4x4[3] == Vec4r(41, 42, 43, 44));
+
+		mat4x4[0][3] = 1;
+		mat4x4[1][2] = 1;
+		mat4x4[2][1] = 1;
+		mat4x4[3][0] = 1;
+
+		CHECK_THAT(mat4x4, IsMat(Mat4r{ 11, 12, 13,  1,
+		                                21, 22,  1, 24,
+		                                31,  1, 33, 34,
+						                         1, 42, 43, 44 })
+		);
+	}
+}

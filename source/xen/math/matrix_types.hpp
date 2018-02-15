@@ -11,6 +11,7 @@
 #define XEN_MATH_MATRIX_TYPES_HPP
 
 #include <xen/core/intrinsics.hpp>
+#include <xen/math/vector_types.hpp>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Define the types
@@ -22,23 +23,39 @@ namespace xen{
 
 	template<u32 T_Rows, u32 T_Cols, typename T>
 	struct Matrix{
-		Matrix(){}
-		//union{
+		/// \brief The elements of this matrix, stored in row-major layout
+		/// IE: the matrix [ a b ]
+		//                 [ c d ]
+		// Is stored as the array: { a, b, c, d }
 		T elements[T_Rows * T_Cols];
-		//:TODO: not sure if in row major or column major format yet...
-		//Vec<T_Cols, T> rows[T_Rows];
-		//};
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Accesses a single row of the matrix as a row vector
+		/////////////////////////////////////////////////////////////////////
+		Vec<T_Cols, T>& operator[](u32 row){
+			return *((Vec<T_Cols, T>*)&this->elements[row * T_Cols]);
+		}
+		const Vec<T_Cols, T>& operator[](u32 row) const{
+			return *((Vec<T_Cols, T>*)&this->elements[row * T_Cols]);
+		}
 	};
 
 	template<typename T>
 	struct Matrix<3,3,T>{
-		//union{
 		T elements[9];
-		//:TODO: not sure if in row major or column major format yet...
-		//	Vec<3, T> rows[3];
-		//};
+
 		static const Matrix<3,3,T> Identity;
 		static const Matrix<3,3,T> Zero;
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Accesses a single row of the matrix as a row vector
+		/////////////////////////////////////////////////////////////////////
+		Vec<3, T>& operator[](u32 row){
+			return *((Vec<3, T>*)&this->elements[row * 3]);
+		}
+		const Vec<3, T>& operator[](u32 row) const{
+			return *((Vec<3, T>*)&this->elements[row * 3]);
+		}
 	};
 	template<typename T>
 	Matrix<3,3,T> const Matrix<3,3,T>::Identity = {1,0,0,   0,1,0,  0,0,1};
@@ -47,13 +64,20 @@ namespace xen{
 
 	template<typename T>
 	struct Matrix<4,4,T>{
-		//union{
 		T elements[16];
-		//:TODO: not sure if in row major or column major format yet...
-		//	Vec<4, T> rows[4];
-		//};
+
 		static const Matrix<4,4,T> Identity;
 		static const Matrix<4,4,T> Zero;
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Accesses a single row of the matrix as a row vector
+		/////////////////////////////////////////////////////////////////////
+		Vec<4, T>& operator[](u32 row){
+			return *((Vec<4, T>*)&this->elements[row * 4]);
+		}
+		const Vec<4, T>& operator[](u32 row) const{
+			return *((Vec<4, T>*)&this->elements[row * 4]);
+		}
 	};
 	template<typename T>
 	Matrix<4,4,T> const Matrix<4,4,T>::Identity = { 1,0,0,0,
