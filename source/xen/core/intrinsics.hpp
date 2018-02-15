@@ -15,9 +15,6 @@
 
 #define XenArrayLength(array) (sizeof(array) / sizeof((array)[0]))
 
-#define XenMin(A, B) ((A < B) ? (A) : (B))
-#define XenMax(A, B) ((A < B) ? (B) : (A))
-
 /// \brief Triggers break in debugger (or crash if no debugger)
 /// \todo :TODO: something better?
 #define XenBreak(...) (*(char*)nullptr) = 'a';
@@ -65,6 +62,11 @@ namespace xen{
 	#else
 	inline float  sqrt(float  val) { return sqrtf(val); }
 	#endif
+
+	template<typename T> const T& max(const T& a, const T& b){ return a >  b ? a : b; }
+	template<typename T>       T& max(      T& a,       T& b){ return a >  b ? a : b; }
+	template<typename T> const T& min(const T& a, const T& b){ return a <= b ? a : b; }
+	template<typename T>       T& min(      T& a,       T& b){ return a <= b ? a : b; }
 }
 
 inline constexpr real operator"" _r(long double            val){ return (real)val; }

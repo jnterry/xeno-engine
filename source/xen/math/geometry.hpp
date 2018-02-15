@@ -287,10 +287,10 @@ namespace xen{
 	template<typename T>
   bool intersect(Aabb2<T>& a, const Aabb2<T> b){
 		if(haveIntersection(a, b)){
-			a.min.x = XenMax(a.min.x, b.min.x); //:TODO:COMP: vector max function which takes max of each axis?
-			a.min.y = XenMax(a.min.y, b.min.y); //would also mean this function could be generic for Aabb2 and Aabb3
-			a.max.x = XenMax(XenMin(a.max.x, b.max.x), b.min.x);
-			a.max.y = XenMax(XenMin(a.max.y, b.max.y), b.min.y);
+			a.min.x = xen::max(a.min.x, b.min.x); //:TODO:COMP: vector max function which takes max of each axis?
+			a.min.y = xen::max(a.min.y, b.min.y); //would also mean this function could be generic for Aabb2 and Aabb3
+			a.max.x = xen::max(xen::min(a.max.x, b.max.x), b.min.x);
+			a.max.y = xen::max(xen::min(a.max.y, b.max.y), b.min.y);
 			return true;
 		} else {
 			a.min.x = 0;
