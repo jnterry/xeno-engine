@@ -157,7 +157,7 @@ int main(int argc, char** argv){
 	//:TODO: breaks if angle is exactly +90deg, never occurs
 	// under user control since dont hit dead on float value, but
 	// broken if set here
-	camera.angle    = -90_deg;
+	camera.angle    = 0_deg;
 
 	sf::ContextSettings context_settings;
 	context_settings.depthBits = 24;
