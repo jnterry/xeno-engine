@@ -313,13 +313,8 @@ xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear& arena,
 	result->bounds_min = positions[0];
 	result->bounds_max = positions[0];
 	for(u32 i = 1; i < vertex_count; ++i){
-		// :TODO:COMP: element wise min/max of vector
-		result->bounds_min.x = xen::min(result->bounds_min.x, positions[i].x);
-		result->bounds_min.y = xen::min(result->bounds_min.y, positions[i].y);
-		result->bounds_min.z = xen::min(result->bounds_min.z, positions[i].z);
-		result->bounds_max.x = xen::max(result->bounds_max.x, positions[i].x);
-		result->bounds_max.y = xen::max(result->bounds_max.y, positions[i].y);
-		result->bounds_max.z = xen::max(result->bounds_max.z, positions[i].z);
+		result->bounds_min = xen::min(result->bounds_min, positions[i]);
+		result->bounds_max = xen::max(result->bounds_max, positions[i]);
 	}
 
 	///////////////////////////////////////////////

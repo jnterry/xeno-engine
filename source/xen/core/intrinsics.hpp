@@ -63,10 +63,17 @@ namespace xen{
 	inline float  sqrt(float  val) { return sqrtf(val); }
 	#endif
 
-	template<typename T> const T& max(const T& a, const T& b){ return a >  b ? a : b; }
-	template<typename T>       T& max(      T& a,       T& b){ return a >  b ? a : b; }
-	template<typename T> const T& min(const T& a, const T& b){ return a <= b ? a : b; }
-	template<typename T>       T& min(      T& a,       T& b){ return a <= b ? a : b; }
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Finds the maximum of two objects
+	/////////////////////////////////////////////////////////////////////
+	template<typename T> T max(const T a, const T b){ return a >  b ? a : b; }
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Finds the minimum of two objects
+	/////////////////////////////////////////////////////////////////////
+	template<typename T> T min(const T a, const T b){ return a <= b ? a : b; }
+
+	// :TODO: vararg template to find max or min of multiple arguments
 }
 
 inline constexpr real operator"" _r(long double            val){ return (real)val; }
