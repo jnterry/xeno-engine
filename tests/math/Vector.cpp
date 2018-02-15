@@ -165,7 +165,7 @@ TEST_CASE("Elementwise min-max", "[math][minmax][Vector]"){
 
 		CHECK(xen::max(Vec3r{1, 2, 3}, Vec3r{-1, 5, 2}) == Vec3r{1, 5, 3});
 
-		CHECK(xen::max(Vec4r{1, 2, 3, 5}, Vec4r{-1, 5, 2, 5}) == Vec4r{1, 2, 3, 5});
+		CHECK(xen::max(Vec4r{1, 2, 3, 5}, Vec4r{-1, 5, 2, 5}) == Vec4r{1, 5, 3, 5});
 	}
 
 	// :TODO: this doesn't work...
