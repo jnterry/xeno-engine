@@ -64,16 +64,22 @@ namespace xen{
 	#endif
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Finds the maximum of two objects
+	/// \brief Finds the maximum of two or more items
 	/////////////////////////////////////////////////////////////////////
 	template<typename T> T max(const T a, const T b){ return a >  b ? a : b; }
+	template<typename T> T max(const T a           ){ return a; }
+	template<typename T, typename ...T_REST> T max(const T a, const T b, const T c, const T_REST... rest){
+		return xen::max(xen::max(a, b), xen::max(c, rest...));
+	}
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Finds the minimum of two objects
+	/// \brief Finds the minimum of two or more items
 	/////////////////////////////////////////////////////////////////////
 	template<typename T> T min(const T a, const T b){ return a <= b ? a : b; }
-
-	// :TODO: vararg template to find max or min of multiple arguments
+	template<typename T> T min(const T a           ){ return a; }
+	template<typename T, typename ...T_REST> T min(const T a, const T b, const T c, const T_REST... rest){
+		return xen::min(xen::min(a, b), xen::min(c, rest...));
+	}
 }
 
 inline constexpr real operator"" _r(long double            val){ return (real)val; }
