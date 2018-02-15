@@ -115,6 +115,72 @@ namespace xen{
 	Vec3<T> toHomo(const Vec2<T>& v, T val_z = 1){
 		return {v.x, v.y, val_z};
 	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Finds element-wise maximum of two vectors
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	Vec<2, T> max(const Vec<2, T>& a, const Vec<2, T>& b){
+		return { xen::max(a.x, b.x),
+				     xen::max(a.y, b.y)
+				   };
+	}
+	template<typename T>
+	Vec<3, T> max(const Vec<3, T>& a, const Vec<3, T>& b){
+		return { xen::max(a.x, b.x),
+				     xen::max(a.y, b.y),
+				     xen::max(a.z, b.z)
+				   };
+	}
+	template<typename T>
+	Vec<4, T> max(const Vec<4, T>& a, const Vec<4, T>& b){
+		return { xen::max(a.x, b.x),
+				     xen::max(a.y, b.y),
+				     xen::max(a.z, b.z),
+				     xen::max(a.w, b.w)
+				   };
+	}
+	template<u32 T_DIM, typename T>
+	Vec<T_DIM, T> max(const Vec<T_DIM, T>& a, const Vec<T_DIM, T>& b){
+		Vec<T_DIM, T> result;
+		for(u32 i = 0; i < T_DIM; ++i){
+			result[i] = xen::max(a[i], b[i]);
+		}
+		return result;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Finds element-wise minimum of two vectors
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	Vec<2, T> min(const Vec<2, T>& a, const Vec<2, T>& b){
+		return { xen::min(a.x, b.x),
+				     xen::min(a.y, b.y)
+				   };
+	}
+	template<typename T>
+	Vec<3, T> min(const Vec<3, T>& a, const Vec<3, T>& b){
+		return { xen::min(a.x, b.x),
+				     xen::min(a.y, b.y),
+				     xen::min(a.z, b.z)
+				   };
+	}
+	template<typename T>
+	Vec<4, T> min(const Vec<4, T>& a, const Vec<4, T>& b){
+		return { xen::min(a.x, b.x),
+				     xen::min(a.y, b.y),
+				     xen::min(a.z, b.z),
+				     xen::min(a.w, b.w)
+				   };
+	}
+	template<u32 T_DIM, typename T>
+	Vec<T_DIM, T> min(const Vec<T_DIM, T>& a, const Vec<T_DIM, T>& b){
+		Vec<T_DIM, T> result;
+		for(u32 i = 0; i < T_DIM; ++i){
+			result[i] = xen::min(a[i], b[i]);
+		}
+		return result;
+	}
 }
 
 #endif

@@ -284,19 +284,15 @@ namespace xen{
 
 	}
 
-	template<typename T>
-  bool intersect(Aabb2<T>& a, const Aabb2<T> b){
+	template<u32 T_DIM, typename T>
+	bool intersect(Aabb<T_DIM, T>& a, const Aabb<T_DIM, T> b){
 		if(haveIntersection(a, b)){
-			a.min.x = XenMax(a.min.x, b.min.x); //:TODO:COMP: vector max function which takes max of each axis?
-			a.min.y = XenMax(a.min.y, b.min.y); //would also mean this function could be generic for Aabb2 and Aabb3
-			a.max.x = XenMax(XenMin(a.max.x, b.max.x), b.min.x);
-			a.max.y = XenMax(XenMin(a.max.y, b.max.y), b.min.y);
+			a.min = xen::max(a.min, b.min);
+			a.max = xen::max(xen::min(a.max, b.max), b.min);
 			return true;
 		} else {
-			a.min.x = 0;
-			a.min.y = 0;
-			a.max.x = 0;
-			a.max.y = 0;
+			a.min = Vec<T_DIM, T>::Origin;
+			a.max = Vec<T_DIM, T>::Origin;
 			return false;
 		}
 	}

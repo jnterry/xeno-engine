@@ -144,3 +144,33 @@ TEST_CASE("Vector fromHomo", "[math][Vector]"){
 	CHECK(xen::fromHomo(Vec3r{4,8,1  })  == Vec2r{4,8  });
 	CHECK(xen::fromHomo(Vec3r{4,8,2  })  == Vec2r{2,4  });
 }
+
+TEST_CASE("Elementwise min-max", "[math][minmax][Vector]"){
+	SECTION("Two way"){
+		CHECK(xen::min(Vec2r{ 1,  2}, Vec2r{ 3,  4}) == Vec2r{ 1, 2});
+		CHECK(xen::min(Vec2r{ 1, 10}, Vec2r{ 5,  7}) == Vec2r{ 1, 7});
+		CHECK(xen::min(Vec2r{ 8, 10}, Vec2r{ 5,  7}) == Vec2r{ 5, 7});
+		CHECK(xen::min(Vec2r{ 8,  6}, Vec2r{ 5,  7}) == Vec2r{ 5, 6});
+
+		CHECK(xen::min(Vec3r{1, 2, 3}, Vec3r{-1, 5, 2}) == Vec3r{-1, 2, 2});
+
+		CHECK(xen::min(Vec4r{1, 2, 3, 10}, Vec4r{-1, 5, 2, 5}) == Vec4r{-1, 2, 2, 5});
+
+
+
+		CHECK(xen::max(Vec2r{ 1,  2}, Vec2r{ 3,  4}) == Vec2r{ 3, 4});
+		CHECK(xen::max(Vec2r{ 1, 10}, Vec2r{ 5,  7}) == Vec2r{ 5,10});
+		CHECK(xen::max(Vec2r{ 8, 10}, Vec2r{ 5,  7}) == Vec2r{ 8,10});
+		CHECK(xen::max(Vec2r{ 8,  6}, Vec2r{ 5,  7}) == Vec2r{ 8, 7});
+
+		CHECK(xen::max(Vec3r{1, 2, 3}, Vec3r{-1, 5, 2}) == Vec3r{1, 5, 3});
+
+		CHECK(xen::max(Vec4r{1, 2, 3, 5}, Vec4r{-1, 5, 2, 5}) == Vec4r{1, 2, 3, 5});
+	}
+
+	// :TODO: this doesn't work...
+	//SECTION("Three way"){
+	//	CHECK(xen::min(Vec3r{1, 10, 5}, Vec3r{3, 3, 7}, Vec3r{8, 20, 2}) == Vec3r{1, 3, 2});
+	//	CHECK(xen::max(Vec3r{1, 10, 5}, Vec3r{3, 3, 7}, Vec3r{8, 20, 2}) == Vec3r{8, 20, 7});
+	//}
+}

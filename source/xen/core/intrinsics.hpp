@@ -15,9 +15,6 @@
 
 #define XenArrayLength(array) (sizeof(array) / sizeof((array)[0]))
 
-#define XenMin(A, B) ((A < B) ? (A) : (B))
-#define XenMax(A, B) ((A < B) ? (B) : (A))
-
 /// \brief Triggers break in debugger (or crash if no debugger)
 /// \todo :TODO: something better?
 #define XenBreak(...) (*(char*)nullptr) = 'a';
@@ -65,6 +62,24 @@ namespace xen{
 	#else
 	inline float  sqrt(float  val) { return sqrtf(val); }
 	#endif
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Finds the maximum of two or more items
+	/////////////////////////////////////////////////////////////////////
+	template<typename T> T max(const T a, const T b){ return a >  b ? a : b; }
+	template<typename T> T max(const T a           ){ return a; }
+	template<typename T, typename ...T_REST> T max(const T a, const T b, const T c, const T_REST... rest){
+		return xen::max(xen::max(a, b), xen::max(c, rest...));
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Finds the minimum of two or more items
+	/////////////////////////////////////////////////////////////////////
+	template<typename T> T min(const T a, const T b){ return a <= b ? a : b; }
+	template<typename T> T min(const T a           ){ return a; }
+	template<typename T, typename ...T_REST> T min(const T a, const T b, const T c, const T_REST... rest){
+		return xen::min(xen::min(a, b), xen::min(c, rest...));
+	}
 }
 
 inline constexpr real operator"" _r(long double            val){ return (real)val; }

@@ -64,7 +64,7 @@ namespace {
 		//https://www.cs.virginia.edu/luther/blog/posts/492.html
 		if(line.p1 != line.p2){
 			//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
-			real num_pixels = XenMax(abs(line.p1.x - line.p2.x), abs(line.p1.y - line.p2.y));
+			real num_pixels = xen::max(abs(line.p1.x - line.p2.x), abs(line.p1.y - line.p2.y));
 			//printf("Drawing line with %f (%u) pixels\n", num_pixels, (u32)num_pixels);
 			Vec2r delta = (line.p1 - line.p2) / num_pixels;
 			Vec2r cur   = line.p2;
