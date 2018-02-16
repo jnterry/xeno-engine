@@ -209,7 +209,7 @@ namespace xen{
 			// Start with doing this in camera space (so easy conceptually),
 			// then transform into world space by lining up z axis with
 			// camera's look_dir
-			Vec3r image_plane_center       = { 0, 0, camera.z_near };
+			Vec3r image_plane_center       = camera.position + (Vec3r){ 0, 0, -camera.z_near };
 
 			// This is the offset between pixels on the image plane
 			//
@@ -234,6 +234,7 @@ namespace xen{
 
 			image_plane_pixel_offset_x = xen::rotated(image_plane_pixel_offset_x, camera_rotation);
 			image_plane_pixel_offset_y = xen::rotated(image_plane_pixel_offset_y, camera_rotation);
+			image_plane_center         = xen::rotated(image_plane_center,         camera_rotation);
 
 			printf("offset_x: (%8f, %8f, %8f), offset_y: (%8f, %8f, %8f)\n",
 			       image_plane_pixel_offset_x.x, image_plane_pixel_offset_x.y, image_plane_pixel_offset_x.z,
