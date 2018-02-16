@@ -59,11 +59,18 @@ namespace xen {
 		// Displace by camera's height along up_dir axis
 		result += xen::normalized(cam.up_dir) * cam.height;
 
-		// Displace by radius rotated around the up_dir
-		// find radius vector by rotating (1,0,0) to have +Y line up with up_dir
-		Vec3r radius = xen::rotated(Vec3r(cam.radius, 0, 0), getRotation(Vec3r::UnitY, cam.up_dir));
+
+		/////////////////////////////////////////////////////
+		// Compute radius vector (IE: target to camera position)
+		// Initially assume camera is looking down -ve z axis towards origin, and hence
+		// is at some +ve z location
+		Vec3r radius = {0, 0, cam.radius};
+		// Now rotate radius vector to line up our (0,1,0) with up_dir
+		radius = xen::rotated(radius, getRotation(Vec3r::UnitY, cam.up_dir));
 		// The rotate radius around up_dir by angle, add it on to displacement
-		result += xen::rotated(radius, cam.up_dir, cam.angle);
+		radius = xen::rotated(radius, cam.up_dir, cam.angle);
+		// Add displacement onto the resulting position
+		result += radius;
 
 		return result;
 	}

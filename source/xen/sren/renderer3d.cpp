@@ -66,7 +66,7 @@ namespace {
 		//https://www.cs.virginia.edu/luther/blog/posts/492.html
 		if(line.p1 != line.p2){
 			//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
-			real num_pixels = XenMax(abs(line.p1.x - line.p2.x), abs(line.p1.y - line.p2.y));
+			real num_pixels = xen::max(abs(line.p1.x - line.p2.x), abs(line.p1.y - line.p2.y));
 			//printf("Drawing line with %f (%u) pixels\n", num_pixels, (u32)num_pixels);
 			Vec2r delta = (line.p1 - line.p2) / num_pixels;
 			Vec2r cur   = line.p2;
@@ -116,6 +116,12 @@ namespace {
 		line_screen.p1 = line_clip.p1.xy;
 		line_screen.p2 = line_clip.p2.xy;
 
+		// :TODO: define operators on line_segment, triangle etc (treat them as
+		// multiple rows of row vectors and do matrix multiply, IE, line segment is:
+		// [ x1 y1 z1 w1 ]   [ a b c d ]   [ x1' y1' z1' w1' ]
+		// [ x2 y2 z2 w2 ] * [ e f g h ] = [ x2' y2' z2' w2' ]
+		//                   [ i j k l ]
+		//                   [ m n o p ]
 		line_screen.p1 += Vec2r{1,1};                  // convert to [0, 2] space
 		line_screen.p1 /= 2.0_r;                       // convert to [0. 1] space
 		line_screen.p1 *= viewport.max - viewport.min; // convert to screen space

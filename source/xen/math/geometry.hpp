@@ -284,28 +284,45 @@ namespace xen{
 
 	}
 
-	template<typename T>
-  bool intersect(Aabb2<T>& a, const Aabb2<T> b){
+	template<u32 T_DIM, typename T>
+	bool intersect(Aabb<T_DIM, T>& a, const Aabb<T_DIM, T> b){
 		if(haveIntersection(a, b)){
-			a.min.x = XenMax(a.min.x, b.min.x); //:TODO:COMP: vector max function which takes max of each axis?
-			a.min.y = XenMax(a.min.y, b.min.y); //would also mean this function could be generic for Aabb2 and Aabb3
-			a.max.x = XenMax(XenMin(a.max.x, b.max.x), b.min.x);
-			a.max.y = XenMax(XenMin(a.max.y, b.max.y), b.min.y);
+			a.min = xen::max(a.min, b.min);
+			a.max = xen::max(xen::min(a.max, b.max), b.min);
 			return true;
 		} else {
-			a.min.x = 0;
-			a.min.y = 0;
-			a.max.x = 0;
-			a.max.y = 0;
+			a.min = Vec<T_DIM, T>::Origin;
+			a.max = Vec<T_DIM, T>::Origin;
 			return false;
 		}
 	}
 
-	/*template<u32 T_DIMS, typename T>
-	struct TriangleRayIntersection {
-		bool exits; /// \brief Whether or not the intersection exists
-		Vec<T_DIMS, T> point; /// \brief The intersection point closest to the ray's origin
-	};*/
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Computes the barycentric coordinates for a
+	/// point p with respect to a given triangle
+	/// Taken from: https://gamedev.stackexchange.com/a/23745
+	/// \param p The point to find barycentric coordinates of
+	/// \param tri The triangle Barycentric coordinates are with respect to
+	/// \return Barycentric coordinates of point p
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	Vec3<T> getBarycentricCoordinates(const Vec3<T>& p, const Triangle3<T>& tri){
+    Vec3<T> v0 = tri.p2 - tri.p1;
+		Vec3<T> v1 = tri.p3 - tri.p1;
+		Vec3<T> v2 = p - tri.p1;
+
+    T d00 = xen::dot(v0, v0);
+    T d01 = xen::dot(v0, v1);
+    T d11 = xen::dot(v1, v1);
+    T d20 = xen::dot(v2, v0);
+    T d21 = xen::dot(v2, v1);
+    T denom = d00 * d11 - d01 * d01;
+    T v = (d11 * d20 - d01 * d21) / denom;
+    T w = (d00 * d21 - d01 * d20) / denom;
+    T u = 1.0f - v - w;
+		return {u,v,w};
+	}
+
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Computes the intersection between a ray and a triangle.
