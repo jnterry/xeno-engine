@@ -8,6 +8,7 @@
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/math/utilities.hpp>
 #include <xen/math/vector.hpp>
+#include <xen/math/quaternion.hpp>
 #include <xen/math/matrix.hpp>
 #include <xen/math/angle.hpp>
 #include <xen/sren/renderer3d.hxx>
@@ -48,6 +49,13 @@ void handleInput(real dt){
 	}
 	if(keystate[SDL_SCANCODE_Z]){
 		camera.height -= camera_speed * dt;
+	}
+
+	if(keystate[SDL_SCANCODE_Q]){
+		camera.up_dir = xen::rotated(camera.up_dir,  Vec3r::UnitZ, 90_deg * dt);
+	}
+	if(keystate[SDL_SCANCODE_E]){
+		camera.up_dir = xen::rotated(camera.up_dir, -Vec3r::UnitZ, 90_deg * dt);
 	}
 }
 
