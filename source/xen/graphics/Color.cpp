@@ -26,6 +26,11 @@ namespace xen{
 		return *this;
 	}
 
+	xen::Color& xen::Color::operator=(const xen::Color& other) {
+		this->value = other.value;
+		return *this;
+	}
+
 	xen::Color::Color() {
 		// no-op
 	}
