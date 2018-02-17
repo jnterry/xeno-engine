@@ -41,6 +41,9 @@ void handleInput(real dt){
 		camera.radius += camera_speed * dt;
 	}
 	camera.radius = xen::clamp(camera.radius, 0.01_r, 750_r);
+	//camera_x.position = (camera.radius + 50_r) * Vec3r::UnitX;
+	//camera_y.position = (camera.radius + 50_r) * Vec3r::UnitY;
+	//camera_z.position = (camera.radius + 50_r) * Vec3r::UnitZ;
 
 	if(keystate[SDL_SCANCODE_LEFT]){
 		camera.angle -= camera_rotate_speed * dt;
@@ -101,7 +104,7 @@ int main(int argc, char** argv){
 	// broken if set here
 	camera.angle    = 0.0_deg;
 
-	Vec2r window_size = {800, 600};
+	Vec2r window_size = {800, 800};
 	screen* screen = InitializeSDL(window_size.x, window_size.y, false);
 
 	for(u32 i = 0; i < STAR_COUNT; ++i){
@@ -286,16 +289,21 @@ int main(int argc, char** argv){
 		                           camera_x,
 		                           render_commands, XenArrayLength(render_commands)
 		                          );
+		xen::sren::renderCameraDebug(screen->buffer, viewport_x, camera_x, xen::generateCamera3d(camera));
+
 		xen::sren::clear(screen->buffer, viewport_y, xen::Color::BLACK);
 		xen::sren::renderRasterize(screen->buffer, viewport_y,
 		                           camera_y,
 		                           render_commands, XenArrayLength(render_commands)
 		                          );
+		xen::sren::renderCameraDebug(screen->buffer, viewport_y, camera_y, xen::generateCamera3d(camera));
+
 		xen::sren::clear(screen->buffer, viewport_z, xen::Color::BLACK);
 		xen::sren::renderRasterize(screen->buffer, viewport_z,
 		                           camera_z,
 		                           render_commands, XenArrayLength(render_commands)
 		                           );
+		xen::sren::renderCameraDebug(screen->buffer, viewport_z, camera_z, xen::generateCamera3d(camera));
 
 
 		SDL_Renderframe(screen);

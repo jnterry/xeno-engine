@@ -117,7 +117,7 @@ namespace {
 		line_screen.p1 = line_clip.p1.xy;
 		line_screen.p2 = line_clip.p2.xy;
 
-		// :TODO: define operators on line_segment, triangle etc (treat them as
+		// :TODO:COMP:ISSUE_5: define operators on line_segment, triangle etc (treat them as
 		// multiple rows of row vectors and do matrix multiply, IE, line segment is:
 		// [ x1 y1 z1 w1 ]   [ a b c d ]   [ x1' y1' z1' w1' ]
 		// [ x2 y2 z2 w2 ] * [ e f g h ] = [ x2' y2' z2' w2' ]
@@ -176,7 +176,6 @@ namespace xen{
 			RenderCommand3d* cmd = commands;
 			for(u32 cmd_index = 0; cmd_index < command_count; ++cmd_index){
 				cmd = &commands[cmd_index];
-				printf("Executing render command: %u\n", cmd_index);
 				mat_mvp = cmd->model_matrix * mat_vp;
 				switch(cmd->type){
 				case RenderCommand3d::POINTS:
@@ -317,6 +316,57 @@ namespace xen{
 				}
 			}
 		}
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Draws debug view of a camera (eg, origin, up dir, look dir, etc),
+		/// from some other camera's perspective
+		/// \param target          The render target to draw to
+		/// \param viewport        The area of the target to draw to
+		/// \param camera          The camera to use as the perspective to draw from
+		/// \param debugged_camera The camera to draw
+		/////////////////////////////////////////////////////////////////////
+		void renderCameraDebug(RenderTarget& target, const xen::Aabb2u& viewport,
+		                       const Camera3d& view_camera,
+		                       const Camera3d& camera
+		                       ) {
+
+			Vec3r axis_line[] = {
+				Vec3r::Origin, Vec3r::UnitX,
+			};
+
+			LineSegment3r camera_primary_axis = { camera.position,
+			                                      camera.position + camera.look_dir * xen::length(camera.position)
+			};
+
+			LineSegment3r camera_up_dir = { camera.position,
+			                                camera.position + camera.up_dir * 50_r
+			};
+
+			xen::RenderCommand3d render_commands[2];
+			render_commands[0].type                = xen::RenderCommand3d::LINES;
+			render_commands[0].color               = xen::Color::MAGENTA;
+			render_commands[0].model_matrix        = Mat4r::Identity;
+			// :TODO:COMP:ISSUE_5: nasty hack, make line segment an array of row vectors
+			render_commands[0].verticies.verticies = &camera_primary_axis.p1;
+			render_commands[0].verticies.count     = 2;
+
+			render_commands[1].type                = xen::RenderCommand3d::LINES;
+			render_commands[1].color               = xen::Color::GREEN;
+			render_commands[1].model_matrix        = Mat4r::Identity;
+			// :TODO:COMP:ISSUE_5: nasty hack, make line segment an array of row vectors
+			render_commands[1].verticies.verticies = &camera_up_dir.p1;
+			render_commands[1].verticies.count     = 2;
+
+			printf("Rendering camera primary axis: (%f, %f, %f), (%f, %f, %f)\n",
+			       camera_primary_axis.p1.x, camera_primary_axis.p1.y, camera_primary_axis.p1.z,
+			       camera_primary_axis.p2.x, camera_primary_axis.p2.y, camera_primary_axis.p2.z);
+
+			xen::sren::renderRasterize(target, viewport,
+			                           view_camera,
+			                           render_commands, XenArrayLength(render_commands)
+			                          );
+		}
+
 	}
 
 
