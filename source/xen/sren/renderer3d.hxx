@@ -31,6 +31,12 @@ namespace xen{
 		void clear(RenderTarget& target, Color color);
 
 		/////////////////////////////////////////////////////////////////////
+		/// \brief Clears the diffuse component of a section of a render target
+		/// to the specified color
+		/////////////////////////////////////////////////////////////////////
+		void clear(RenderTarget& target, const xen::Aabb2u& viewport, Color color);
+
+		/////////////////////////////////////////////////////////////////////
 		/// \brief Performs a set of render commands using software rasterizer
 		/// \param target The RenderTarget to draw to
 		/// \param viewport The region of the RenderTarget that may be modified

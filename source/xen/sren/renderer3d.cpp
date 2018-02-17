@@ -146,6 +146,14 @@ namespace xen{
 			memset(target.pixels, color.value, target.width * target.height * sizeof(Color));
 		}
 
+		void clear(RenderTarget& target, const xen::Aabb2u& viewport, Color color) {
+			for(u32 x = viewport.min.x; x < viewport.max.x; ++x){
+				for(u32 y = viewport.min.y; y < viewport.max.y; ++y){
+					target[x][y] = color;
+				}
+			}
+		}
+
 		void renderRasterize(RenderTarget& target, const xen::Aabb2u& viewport,
 		                     const Camera3d& camera,
 		                     RenderCommand3d* commands, u32 command_count){
