@@ -293,7 +293,8 @@ namespace xen{
 						}
 
 						if(found_intersection){
-							target[target_pos.x][target_pos.y] = Color::WHITE;
+							// :TODO: target_size.y - target_pos.y is a hack because everything is reflected in y currently
+							target[target_pos.x][target_size.y - target_pos.y] = cmd->color; //Color::WHITE;
 						}
 					}
 				}
