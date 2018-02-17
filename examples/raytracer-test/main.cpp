@@ -211,40 +211,38 @@ int main(int argc, char** argv){
 
 	u32 raytrace_size = 128;
 
-	// make it stupidly big so we always render to the entire screen
-	//xen::Aabb2u viewport = { 0, 0, 100000, 100000 };
-	u32 viewport_padding = 10;
-	Vec2u window_size_u = (Vec2u)window_size;
+	Vec2u window_size_u   = (Vec2u)window_size;
+	u32 viewport_padding  = 10;
+	Vec2u viewport_size   = { (window_size_u.x - viewport_padding * 3 ) / 2,
+	                          (window_size_u.y - viewport_padding * 3 ) / 2 };
+
+
 	xen::Aabb2u viewport_main = xen::makeAabbFromMinAndSize
 		(
-		 viewport_padding,
-		 (window_size_u.y - raytrace_size) / 2,
-		 raytrace_size,
-		 raytrace_size
+		 viewport_padding + (viewport_size.x - raytrace_size)/2,
+		 viewport_padding + (viewport_size.y - raytrace_size)/2,
+		 raytrace_size, raytrace_size
 		);
-
-	Vec2u preview_size = { (window_size_u.x - viewport_padding * 4 - raytrace_size) / 2,
-	                       (window_size_u.y - viewport_padding * 3                ) / 2 };
 
 	xen::Aabb2u viewport_y = xen::makeAabbFromMinAndSize
 		(
-		 viewport_padding * 2 + raytrace_size,
+		 viewport_padding * 2 + viewport_size.x,
 		 viewport_padding,
-		 preview_size.x, preview_size.y
+		 viewport_size.x, viewport_size.y
 		);
 
 	xen::Aabb2u viewport_x = xen::makeAabbFromMinAndSize
 		(
-		 viewport_padding * 2 + raytrace_size,
-		 viewport_padding * 2 + preview_size.y,
-		 preview_size.x, preview_size.y
+		 viewport_padding * 1 + 0,
+		 viewport_padding * 2 + viewport_size.y,
+		 viewport_size.x, viewport_size.y
 		);
 
 	xen::Aabb2u viewport_z = xen::makeAabbFromMinAndSize
 		(
-		 viewport_padding * 3 + raytrace_size + preview_size.x,
-		 viewport_padding * 2 + preview_size.y,
-		 preview_size.x, preview_size.y
+		 viewport_padding * 2 + viewport_size.x,
+		 viewport_padding * 2 + viewport_size.y,
+		 viewport_size.x, viewport_size.y
 		);
 
 
