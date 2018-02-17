@@ -72,7 +72,7 @@ int main(int argc, char** argv){
 	// broken if set here
 	camera.angle    = 0.0_deg;
 
-	Vec2r window_size = {100, 100};
+	Vec2r window_size = {128, 128};
 	screen* screen = InitializeSDL(window_size.x, window_size.y, false);
 
 	for(u32 i = 0; i < STAR_COUNT; ++i){
