@@ -47,6 +47,7 @@ namespace {
 			screen_space += Vec2r{1,1};                  // convert to [0, 2] space
 			screen_space /= 2.0_r;                       // convert to [0. 1] space
 			screen_space *= viewport.max - viewport.min; // convert to screen space
+			screen_space += viewport.min;
 			///////////////////////////////////////////////////////////////////
 
 			if(screen_space.x < viewport.min.x ||
@@ -123,9 +124,11 @@ namespace {
 		line_screen.p1 += Vec2r{1,1};                  // convert to [0, 2] space
 		line_screen.p1 /= 2.0_r;                       // convert to [0. 1] space
 		line_screen.p1 *= viewport.max - viewport.min; // convert to screen space
+		line_screen.p1 += viewport.min;
 		line_screen.p2 += Vec2r{1,1};                  // convert to [0, 2] space
 		line_screen.p2 /= 2.0_r;                       // convert to [0. 1] space
 		line_screen.p2 *= viewport.max - viewport.min; // convert to screen space
+		line_screen.p2 += viewport.min;
 		///////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////////////////////////////////////
@@ -144,6 +147,14 @@ namespace xen{
 			static_assert(sizeof(Color) == sizeof(int), "Relying on memset which takes int values");
 
 			memset(target.pixels, color.value, target.width * target.height * sizeof(Color));
+		}
+
+		void clear(RenderTarget& target, const xen::Aabb2u& viewport, Color color) {
+			for(u32 x = viewport.min.x; x < viewport.max.x; ++x){
+				for(u32 y = viewport.min.y; y < viewport.max.y; ++y){
+					target[x][y] = color;
+				}
+			}
 		}
 
 		void renderRasterize(RenderTarget& target, const xen::Aabb2u& viewport,

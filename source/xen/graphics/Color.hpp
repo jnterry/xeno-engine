@@ -31,8 +31,16 @@ namespace xen {
 		static const Color RED;
 		static const Color GREEN;
 		static const Color BLUE;
+		static const Color CYAN;
+		static const Color MAGENTA;
+		static const Color YELLOW;
+
+		Color();
+		Color(const Color& other);
+		Color(u08 r, u08 g, u08 b, u08 a = 255);
 
 		xen::Color& operator=(u32 val);
+		xen::Color& operator=(const xen::Color& other);
 	};
 
 	#pragma GCC diagnostic pop // re-enable -Wpedantic
