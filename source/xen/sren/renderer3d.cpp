@@ -209,9 +209,13 @@ namespace xen{
 		                     const Camera3d& camera,
 		                     RenderCommand3d* commands, u32 command_count){
 
-			// :TODO: use viewport
+			// :TODO:COMP: view region calc duplicated with rasterizer
+			// Find the actual view_region we wish to draw to. This is the
+			// intersection of the actual target, and the user specified viewport
+			xen::Aabb2u screen_rect = { Vec2u::Origin, target.size - Vec2u{1,1} };
+			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 
-			Vec2s target_size = (Vec2s)target.size;
+			Vec2s target_size = (Vec2s)xen::getSize(view_region);
 
 			Angle fov_y = camera.fov_y;
 			Angle fov_x = camera.fov_y * ((real)target_size.y / (real)target_size.x);
@@ -305,7 +309,9 @@ namespace xen{
 
 						if(found_intersection){
 							// :TODO: target_size.y - target_pos.y is a hack because everything is reflected in y currently
-							target[target_pos.x][target_size.y - target_pos.y] = cmd->color; //Color::WHITE;
+							Vec2u pixel_coord { target_pos. x, target_size.y - target_pos.y };
+							pixel_coord += (Vec2u)view_region.min;
+							target[pixel_coord.x][pixel_coord.y] = cmd->color; //Color::WHITE;
 						}
 					}
 				}

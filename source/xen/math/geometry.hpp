@@ -394,6 +394,15 @@ namespace xen{
 		return tri.p1 != tri.p2 && tri.p1 != tri.p3 && tri.p2 != tri.p2;
 	}
 
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Returns n-dimensional vector representing the size of some
+	/// aabb along each dimension
+	/////////////////////////////////////////////////////////////////////
+	template<u32 T_DIM, typename T>
+	Vec<T_DIM, T> getSize(Aabb<T_DIM, T> aabb){
+		return aabb.max - aabb.min;
+	}
+
 	template <typename T>
 	Vec3<T> computeNormal(Triangle<3, T> tri){
 		// Compute two edges
