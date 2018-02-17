@@ -443,6 +443,21 @@ namespace xen{
 	Triangle<T_DIM+1, T> toHomo(Triangle<T_DIM, T> a, T val = 1){
 		return Triangle<T_DIM+1, T>{ toHomo(a.p1, val), toHomo(a.p2, val), toHomo(a.p3, val) };
 	}
+
+	template<u32 T_DIM, typename T>
+	Aabb<T_DIM, T> makeAabbFromMinAndSize(Vec<T_DIM, T> min, Vec<T_DIM, T> size){
+		return { min, min + size };
+	}
+
+	template<typename T>
+	Aabb2<T> makeAabbFromMinAndSize(T mx, T my, T sx, T sy) {
+		return makeAabbFromMinAndSize(xen::mkVec(mx, my), xen::mkVec(sx, sy));
+	}
+
+	template<typename T>
+	Aabb3<T> makeAabbFromMinAndSize(T mx, T my, T mz, T sx, T sy, T sz) {
+		return makeAabbFromMinAndSize(xen::mkVec(mx, my, mz), xen::mkVec(sx, sy. sz));
+	}
 }
 
 #endif
