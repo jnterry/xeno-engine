@@ -21,7 +21,7 @@ real camera_speed = 250;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
 
-const u32 STAR_COUNT = 1024;
+const u32 STAR_COUNT = 0; //1024;
 
 Vec3r star_positions[STAR_COUNT];
 
@@ -67,9 +67,12 @@ int main(int argc, char** argv){
 	camera.height   = 0;
 	camera.up_dir   = Vec3r::UnitY;
 	camera.target   = Vec3r::Origin;
+	//:TODO: breaks if angle is exactly 0deg, never occurs
+	// under user control since don't hit dead on float value, but
+	// broken if set here
 	camera.angle    = 0.0_deg;
 
-	Vec2r window_size = {800, 600};
+	Vec2r window_size = {128, 128};
 	screen* screen = InitializeSDL(window_size.x, window_size.y, false);
 
 	for(u32 i = 0; i < STAR_COUNT; ++i){
@@ -122,7 +125,17 @@ int main(int argc, char** argv){
 		{ 1_r,  0_r,  0_r },
 	};
 
-	xen::RenderCommand3d render_commands[5];
+	Vec3r mesh_verts[] = {
+		Vec3r{ 0_r, 0_r, 0_r },
+		Vec3r{ 1_r, 0_r, 0_r },
+		Vec3r{ 0_r, 1_r, 0_r },
+
+		Vec3r{ 0_r, 0_r, 0_r },
+		Vec3r{ 1_r, 0_r, 0_r },
+		Vec3r{ 0_r, 0_r, 1_r },
+	};
+
+	xen::RenderCommand3d render_commands[7];
 	render_commands[0].type                = xen::RenderCommand3d::LINES;
 	render_commands[0].color               = xen::Color::RED;
 	render_commands[0].model_matrix        = xen::Scale3d(100_r);
@@ -153,6 +166,18 @@ int main(int argc, char** argv){
 	render_commands[4].verticies.verticies = &cube_lines[0];
 	render_commands[4].verticies.count     = XenArrayLength(cube_lines);
 
+	render_commands[5].type                = xen::RenderCommand3d::TRIANGLES;
+	render_commands[5].color               = 0x00FF00FF;
+	render_commands[5].model_matrix        = xen::Scale3d(50_r)* xen::Rotation3dy(90_deg); // * xen::Translation3d(-75.0_r, -75.0_r, -75.0_r);
+	render_commands[5].verticies.verticies = &mesh_verts[0];
+	render_commands[5].verticies.count     = 3;
+
+	render_commands[6].type                = xen::RenderCommand3d::TRIANGLES;
+	render_commands[6].color               = 0x00FFFF00;
+	render_commands[6].model_matrix        = xen::Scale3d(50_r)* xen::Rotation3dy(90_deg); // * xen::Translation3d(-75.0_r, -75.0_r, -75.0_r);
+	render_commands[6].verticies.verticies = &mesh_verts[3];
+	render_commands[6].verticies.count     = 3;
+
 	int last_tick = SDL_GetTicks();
 
 	// make it stupidly big so we always render to the entire screen
@@ -182,6 +207,10 @@ int main(int argc, char** argv){
 		                           xen::generateCamera3d(camera),
 		                           render_commands, XenArrayLength(render_commands)
 		                          );
+		xen::sren::renderRaytrace(screen->buffer, viewport,
+		                          xen::generateCamera3d(camera),
+		                          render_commands, XenArrayLength(render_commands)
+		                         );
 
 		SDL_Renderframe(screen);
 	}
