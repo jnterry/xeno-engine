@@ -219,14 +219,9 @@ namespace xen{
 			Angle fov_y = camera.fov_y;
 			Angle fov_x = camera.fov_y * ((real)target_size.y / (real)target_size.x);
 
-			// Compute the image plane center, and offset between each pixel
-			// Start with doing this in camera space (so easy conceptually),
-			// then transform into world space by lining up z axis with
-			// camera's look_dir
-			Vec3r image_plane_center       = camera.position + (Vec3r){ 0, 0, -camera.z_near };
 
-			// This is the offset between pixels on the image plane
-			//
+			// Compute distance between pixels on the image plane in world space using
+			// a bit of trig
 			//            x
 			//         _______
 			//         |     /
@@ -235,20 +230,20 @@ namespace xen{
 			//         |  /
 			//         | /
 			//         |/ angle = fov_x / target_width
-			Vec3r image_plane_pixel_offset_x = {
-				xen::tan(fov_x / (real)target_size.x) * camera.z_near, 0, 0
-			};
-			Vec3r image_plane_pixel_offset_y = {
-				0, xen::tan(fov_y / (real)target_size.y) * camera.z_near, 0
-			};
+			float image_plane_pixel_offset_x_distance = xen::tan(fov_x / (real)target_size.x) * camera.z_near;
+			float image_plane_pixel_offset_y_distance = xen::tan(fov_y / (real)target_size.y) * camera.z_near;
 
-			xen::Quaternion camera_rotation = xen::getRotation(xen::normalized(image_plane_center),
-			                                                   xen::normalized(camera.look_dir)
-			                                                  );
+		  Vec3r image_plane_center = camera.position - camera.look_dir * camera.z_near;
 
-			image_plane_pixel_offset_x = xen::rotated(image_plane_pixel_offset_x, camera_rotation);
-			image_plane_pixel_offset_y = xen::rotated(image_plane_pixel_offset_y, camera_rotation);
-			image_plane_center         = xen::rotated(image_plane_center,         camera_rotation);
+			Vec3r image_plane_pixel_offset_x =
+				-xen::normalized(
+				                 xen::cross(camera.up_dir, camera.look_dir)
+				                 ) * image_plane_pixel_offset_x_distance;
+
+			Vec3r image_plane_pixel_offset_y =
+				-xen::normalized(
+				                xen::cross(image_plane_pixel_offset_x, camera.look_dir)
+				                ) * image_plane_pixel_offset_y_distance;
 
 			printf("offset_x: (%8f, %8f, %8f), offset_y: (%8f, %8f, %8f)\n",
 			       image_plane_pixel_offset_x.x, image_plane_pixel_offset_x.y, image_plane_pixel_offset_x.z,
@@ -368,32 +363,17 @@ namespace xen{
 			// Start with doing this in camera space (so easy conceptually),
 			// then transform into world space by lining up z axis with
 			// camera's look_dir
-			Vec3r image_plane_center       = camera.position + (Vec3r){ 0, 0, -camera.z_near };
+			Vec3r image_plane_center = camera.position - camera.look_dir * camera.z_near;
 
-			// This is the offset between pixels on the image plane
-			//
-			//            x
-			//         _______
-			//         |     /
-			//         |    /
-			//  z_near |   /
-			//         |  /
-			//         | /
-			//         |/ angle = fov_x / target_width
-			Vec3r image_plane_pixel_offset_x = {
-				xen::tan(fov_x / (real)target_size.x) * camera.z_near, 0, 0
-			};
-			Vec3r image_plane_pixel_offset_y = {
-				0, xen::tan(fov_y / (real)target_size.y) * camera.z_near, 0
-			};
+			Vec3r image_plane_pixel_offset_x =
+				-xen::normalized(
+				                xen::cross(camera.up_dir, camera.look_dir)
+				                ) * xen::tan(fov_x / (real)target_size.x) * camera.z_near;
 
-			xen::Quaternion camera_rotation = xen::getRotation(xen::normalized(image_plane_center),
-			                                                   xen::normalized(camera.look_dir)
-			                                                  );
-
-			image_plane_pixel_offset_x = xen::rotated(image_plane_pixel_offset_x, camera_rotation);
-			image_plane_pixel_offset_y = xen::rotated(image_plane_pixel_offset_y, camera_rotation);
-			image_plane_center         = xen::rotated(image_plane_center,         camera_rotation);
+			Vec3r image_plane_pixel_offset_y =
+				-xen::normalized(
+				                xen::cross(image_plane_pixel_offset_x, camera.look_dir)
+				                ) * xen::tan(fov_y / (real)target_size.y) * camera.z_near;
 
 			Vec2s target_pos;
 			int ray_index = 0;
