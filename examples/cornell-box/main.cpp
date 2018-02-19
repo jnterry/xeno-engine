@@ -27,10 +27,6 @@ real camera_speed = 250;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
 
-const u32 STAR_COUNT = 0; //1024;
-
-Vec3r star_positions[STAR_COUNT];
-
 void handleInput(real dt){
 	SDL_PumpEvents();
 
@@ -130,13 +126,6 @@ int main(int argc, char** argv){
 		printf("dt: %f\n", dt);
 		handleInput(dt);
 
-		for(u32 i = 0; i < STAR_COUNT; ++i){
-			star_positions[i].z += dt * 75.0f;
-			if(star_positions[i].z >= 100.0f){
-				star_positions[i].z -= 200.0f;
-			}
-		}
-
 		// Clear buffer
 		xen::sren::clear(screen->buffer, xen::Color::BLACK);
 
@@ -145,7 +134,7 @@ int main(int argc, char** argv){
 															 xen::generateCamera3d(camera),
 															 render_commands, XenArrayLength(render_commands)
 															);
-															
+
 		SDL_Renderframe(screen);
 	}
 	printf("Exiting main loop\n");
