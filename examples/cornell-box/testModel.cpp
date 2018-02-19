@@ -1,4 +1,5 @@
-// Defines a simple test model: The Cornell Box
+#include <xen/core/intrinsics.hpp>
+#include <xen/math/vector_types.hpp>
 
 // ---------------------------------------------------------------------------
 // Define room coordinates
@@ -46,7 +47,7 @@ Vec3r blue   = { 0.15_r, 0.15_r, 0.75_r };
 Vec3r purple = { 0.75_r, 0.15_r, 0.75_r };
 Vec3r white  = { 0.75_r, 0.75_r, 0.75_r };
 
-Vec3r test_model_geometry[] = {
+Vec3r test_model_geometry_array[] = {
 	// ---------------------------------------------------------------------------
 	// room coordinates
 	// Floor
@@ -84,8 +85,8 @@ Vec3r test_model_geometry[] = {
 	// ---------------------------------------------------------------------------
 	// Tall block coordinates
 	// Front
-	E_tall, B_tall, A_tall
-	E_tall, F_tall, B_tall
+	E_tall, B_tall, A_tall,
+	E_tall, F_tall, B_tall,
 	// Front
 	F_tall, D_tall, B_tall,
 	F_tall, H_tall, D_tall,
@@ -98,9 +99,9 @@ Vec3r test_model_geometry[] = {
 	// TOP
 	G_tall, F_tall, E_tall,
 	G_tall, H_tall, F_tall,
-}
+};
 
-Vec3r test_model_color[] = {
+Vec3r test_model_color_array[] = {
 	// ---------------------------------------------------------------------------
 	// Room colors
 	// Floor
@@ -153,4 +154,9 @@ Vec3r test_model_color[] = {
 	blue, blue, blue,
 	blue, blue, blue,
 
-}
+};
+
+Vec3r *test_model_geometry = test_model_geometry_array;
+Vec3r *test_model_color = test_model_color_array;
+
+int test_model_num_vertices = XenArrayLength(test_model_geometry_array);
