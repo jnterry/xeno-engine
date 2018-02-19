@@ -81,6 +81,11 @@ namespace xen {
 					primary_ray.origin    = camera.position;
 					primary_ray.direction = xen::normalized(camera.position - image_plane_position);
 
+					Vec3r closest_intersection = Vec3r::Origin;
+					real closest_intersection_length = std::numeric_limits<real>::max();
+					xen::Color closest_intersection_color;
+					bool found_intersection    = false;
+
 					// Do ray cast
 					for(u32 cmd_index = 0; cmd_index < command_count; ++cmd_index){
 						RenderCommand3d* cmd = &commands[cmd_index];
@@ -96,10 +101,6 @@ namespace xen {
 
 						const Triangle3r* tri;
 
-						Vec3r closest_intersection = Vec3r::Origin;
-						real closest_intersection_length = std::numeric_limits<real>::max();
-						bool found_intersection    = false;
-
 						for(u32 i = 0; i < cmd->verticies.count; i += 3){
 							tri = (const Triangle3r*)&cmd->verticies.verticies[i];
 
@@ -107,21 +108,21 @@ namespace xen {
 							real intersection_length;
 
 							if(xen::getIntersection(primary_ray_model_space, *tri, intersection)){
-								// :TODO: visually inspect this with cornell box
 								intersection_length = distanceSq(camera.position, intersection);
 								if(closest_intersection_length > intersection_length){
+									closest_intersection_length = intersection_length;
 									closest_intersection = intersection;
+									closest_intersection_color = cmd->color;
 								}
 								found_intersection = true;
 							}
 						}
-
-						if(found_intersection){
-							// :TODO: target_size.y - target_pos.y is a hack because everything is reflected in y currently
-							Vec2s pixel_coord { target_pos.x, target_size.y - target_pos.y };
-							pixel_coord += (Vec2s)view_region.min;
-							target[pixel_coord.x][pixel_coord.y] = cmd->color; //Color::WHITE;
-						}
+					}
+					if(found_intersection){
+						// :TODO: target_size.y - target_pos.y is a hack because everything is reflected in y currently
+						Vec2s pixel_coord { target_pos.x, target_size.y - target_pos.y };
+						pixel_coord += (Vec2s)view_region.min;
+						target[pixel_coord.x][pixel_coord.y] = closest_intersection_color;
 					}
 				}
 			}
