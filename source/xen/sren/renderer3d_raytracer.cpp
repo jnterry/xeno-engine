@@ -118,8 +118,8 @@ namespace xen {
 
 						if(found_intersection){
 							// :TODO: target_size.y - target_pos.y is a hack because everything is reflected in y currently
-							Vec2u pixel_coord { target_pos. x, target_size.y - target_pos.y };
-							pixel_coord += (Vec2u)view_region.min;
+							Vec2s pixel_coord { target_pos.x, target_size.y - target_pos.y };
+							pixel_coord += (Vec2s)view_region.min;
 							target[pixel_coord.x][pixel_coord.y] = cmd->color; //Color::WHITE;
 						}
 					}
@@ -140,10 +140,6 @@ namespace xen {
 		                       const Camera3d& camera
 		                       ) {
 
-
-			Vec3r axis_line[] = {
-				Vec3r::Origin, Vec3r::UnitX,
-			};
 
 			LineSegment3r camera_primary_axis = { camera.position,
 			                                      camera.position + camera.look_dir * xen::length(camera.position)
