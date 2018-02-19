@@ -73,7 +73,8 @@ set(XEN_HEADERS_GRAPHICS
 ## SREN Render Backend
 ##################################################
 set(XEN_SOURCES_SREN
-  ${CMAKE_CURRENT_LIST_DIR}/xen/sren/renderer3d.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/xen/sren/renderer3d_raytracer.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/renderer3d_rasterizer.cpp
 )
 
 set(XEN_HEADERS_SREN
