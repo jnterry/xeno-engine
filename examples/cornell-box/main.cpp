@@ -185,10 +185,6 @@ int main(int argc, char** argv){
 		                           xen::generateCamera3d(camera),
 		                           render_commands, XenArrayLength(render_commands)
 		                           );
-		xen::sren::renderRaytrace(screen->buffer, viewport_main,
-		                          xen::generateCamera3d(camera),
-		                          render_commands, XenArrayLength(render_commands)
-		                         );
 
 		xen::sren::clear(screen->buffer, viewport_x, xen::Color::BLACK);
 		xen::sren::renderRasterize(screen->buffer, viewport_x,
