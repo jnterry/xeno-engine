@@ -118,42 +118,8 @@ int main(int argc, char** argv){
 
 	int last_tick = SDL_GetTicks();
 
-	u32 raytrace_size = 128;
-
-	Vec2u window_size_u   = (Vec2u)window_size;
-	u32 viewport_padding  = 10;
-	Vec2u viewport_size   = { (window_size_u.x - viewport_padding * 3 ) / 2,
-	                          (window_size_u.y - viewport_padding * 3 ) / 2 };
-
-
-	xen::Aabb2u viewport_main = xen::makeAabbFromMinAndSize
-		(
-		 viewport_padding + (viewport_size.x - raytrace_size)/2,
-		 viewport_padding + (viewport_size.y - raytrace_size)/2,
-		 raytrace_size, raytrace_size
-		);
-
-	xen::Aabb2u viewport_y = xen::makeAabbFromMinAndSize
-		(
-		 viewport_padding * 2 + viewport_size.x,
-		 viewport_padding,
-		 viewport_size.x, viewport_size.y
-		);
-
-	xen::Aabb2u viewport_x = xen::makeAabbFromMinAndSize
-		(
-		 viewport_padding * 1 + 0,
-		 viewport_padding * 2 + viewport_size.y,
-		 viewport_size.x, viewport_size.y
-		);
-
-	xen::Aabb2u viewport_z = xen::makeAabbFromMinAndSize
-		(
-		 viewport_padding * 2 + viewport_size.x,
-		 viewport_padding * 2 + viewport_size.y,
-		 viewport_size.x, viewport_size.y
-		);
-
+	// make it stupidly big so we always render to the entire screen
+	xen::Aabb2u viewport = { 0, 0, 100000, 100000 };
 
 	printf("Entering main loop\n");
 	while(NoQuitMessageSDL()) {
@@ -174,40 +140,12 @@ int main(int argc, char** argv){
 		// Clear buffer
 		xen::sren::clear(screen->buffer, xen::Color::BLACK);
 
-
-		// Clear buffer
-		xen::sren::clear(screen->buffer, xen::Color::BLACK);
-		xen::sren::clear(screen->buffer, xen::Color::WHITE);
-
 		// Do rendering
-		xen::sren::clear(screen->buffer, viewport_main, xen::Color::BLACK);
-		xen::sren::renderRasterize(screen->buffer, viewport_main,
-		                           xen::generateCamera3d(camera),
-		                           render_commands, XenArrayLength(render_commands)
-		                           );
-
-		xen::sren::clear(screen->buffer, viewport_x, xen::Color::BLACK);
-		xen::sren::renderRasterize(screen->buffer, viewport_x,
-		                           camera_x,
-		                           render_commands, XenArrayLength(render_commands)
-		                          );
-		xen::sren::renderCameraDebug(screen->buffer, viewport_x, camera_x, xen::generateCamera3d(camera));
-
-		xen::sren::clear(screen->buffer, viewport_y, xen::Color::BLACK);
-		xen::sren::renderRasterize(screen->buffer, viewport_y,
-		                           camera_y,
-		                           render_commands, XenArrayLength(render_commands)
-		                          );
-		xen::sren::renderCameraDebug(screen->buffer, viewport_y, camera_y, xen::generateCamera3d(camera));
-
-		xen::sren::clear(screen->buffer, viewport_z, xen::Color::BLACK);
-		xen::sren::renderRasterize(screen->buffer, viewport_z,
-		                           camera_z,
-		                           render_commands, XenArrayLength(render_commands)
-		                           );
-		xen::sren::renderCameraDebug(screen->buffer, viewport_z, camera_z, xen::generateCamera3d(camera));
-
-
+		xen::sren::renderRasterize(screen->buffer, viewport,
+															 xen::generateCamera3d(camera),
+															 render_commands, XenArrayLength(render_commands)
+															);
+															
 		SDL_Renderframe(screen);
 	}
 	printf("Exiting main loop\n");
