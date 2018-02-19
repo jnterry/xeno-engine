@@ -13,6 +13,7 @@
 quicktest
 starfield
 xen_unit_tests
+raytracer-test
 
 # Ignore program output
 screenshot.bmp

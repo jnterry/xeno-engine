@@ -64,6 +64,19 @@ namespace xen{
 		                     const Camera3d& camera,
 		                     RenderCommand3d* commands, u32 command_count);
 
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Draws debug view of a camera (eg, origin, up dir, look dir, etc),
+		/// from some other camera's perspective
+		/// \param target      The render target to draw to
+		/// \param viewport    The area of the target to draw to
+		/// \param view_camera The camera to use as the perspective to draw from
+		/// \param camera      The camera to draw
+		/////////////////////////////////////////////////////////////////////
+		void renderCameraDebug(RenderTarget& target, const xen::Aabb2u& viewport,
+		                       const Camera3d& view_camera,
+		                       const Camera3d& camera
+		                       );
+
 	}
 
 }

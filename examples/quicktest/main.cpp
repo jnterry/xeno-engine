@@ -274,6 +274,12 @@ int main(int argc, char** argv){
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Z)){
 			camera.height -= camera_speed * dt;
 		}
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q)){
+			camera.up_dir = xen::rotated(camera.up_dir,  Vec3r::UnitZ, 90_deg * dt);
+		}
+		if(sf::Keyboard::isKeyPressed(sf::Keyboard::E)){
+			camera.up_dir = xen::rotated(camera.up_dir, -Vec3r::UnitZ, 90_deg * dt);
+		}
 
 		view_mat = getViewMatrix(camera);
 		proj_mat = getProjectionMatrix(camera, window_size);

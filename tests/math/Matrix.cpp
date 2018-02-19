@@ -78,6 +78,33 @@ TEST_CASE("Matrix Multiplication Order", "[math][Matrix]"){
 	CHECK((Vec3r(1,0,0) * transform == Vec3r(5, 0, 0)));
 }
 
+TEST_CASE("Matrix4x4 Inverse", "[math][Matrix]"){
+	CHECK_THAT(xen::getInverse(Mat4r::Identity),
+	           IsMat(Mat4r::Identity)
+	          );
+
+	CHECK_THAT(xen::getInverse(xen::Scale3d(2, 4, 8)),
+	           IsMat(xen::Scale3d(0.5, 0.25, 0.125))
+	          );
+
+	CHECK_THAT(xen::getInverse(xen::Translation3d(2, 4, 8)),
+	           IsMat(xen::Translation3d(-2, -4, -8))
+	          );
+
+	CHECK_THAT(xen::getInverse(xen::Rotation3dx(45_deg)),
+	           IsMat(xen::Rotation3dx(-45_deg))
+	          );
+
+	CHECK_THAT(xen::getInverse(xen::Translation3d(1,2,3) *
+	                           xen::Scale3d      (10, 20, 30) *
+	                           xen::Rotation3dz  (90_deg)),
+	           IsMat(xen::Rotation3dz(-90_deg) *
+	                 xen::Scale3d    (1/10_r, 1/20_r, 1/30_r) *
+	                 xen::Translation3d(-1, -2, -3)
+	                )
+	          );
+}
+
 TEST_CASE("Matrix row-vector accessor", "[math][Matrix][Vector]"){
 	SECTION("2x4 matrix"){
 		xen::Matrix<2,4,real> mat2x4 = { 10, 20, 30, 40,

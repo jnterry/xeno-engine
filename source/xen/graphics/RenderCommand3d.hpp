@@ -29,6 +29,10 @@ namespace xen{
 			/// by joining adjacent points
 			LINE_STRIP,
 
+			/// \brief Draws a set of triangles defined by `vertices` member
+			/// by grouping every 3 vertices
+			TRIANGLES,
+
 			COUNT,
 		};
 
