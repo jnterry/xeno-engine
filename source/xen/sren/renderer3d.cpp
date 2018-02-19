@@ -330,6 +330,7 @@ namespace xen{
 		                       const Camera3d& camera
 		                       ) {
 
+
 			Vec3r axis_line[] = {
 				Vec3r::Origin, Vec3r::UnitX,
 			};
@@ -342,7 +343,84 @@ namespace xen{
 			                                camera.position + camera.up_dir * 50_r
 			};
 
-			xen::RenderCommand3d render_commands[2];
+			Vec3r camera_corner_rays[] = {
+				camera.position, camera.position,
+				camera.position, camera.position,
+				camera.position, camera.position,
+				camera.position, camera.position
+			};
+
+
+			////////////////////////////////////////////////////////////////////////////////////////
+
+			// :TODO:COMP: view region calc duplicated with rasterizer
+			// Find the actual view_region we wish to draw to. This is the
+			// intersection of the actual target, and the user specified viewport
+			xen::Aabb2u screen_rect = { Vec2u::Origin, target.size - Vec2u{1,1} };
+			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
+
+			Vec2s target_size = (Vec2s)xen::getSize(view_region);
+
+			Angle fov_y = camera.fov_y;
+			Angle fov_x = camera.fov_y * ((real)target_size.y / (real)target_size.x);
+
+			// Compute the image plane center, and offset between each pixel
+			// Start with doing this in camera space (so easy conceptually),
+			// then transform into world space by lining up z axis with
+			// camera's look_dir
+			Vec3r image_plane_center       = camera.position + (Vec3r){ 0, 0, -camera.z_near };
+
+			// This is the offset between pixels on the image plane
+			//
+			//            x
+			//         _______
+			//         |     /
+			//         |    /
+			//  z_near |   /
+			//         |  /
+			//         | /
+			//         |/ angle = fov_x / target_width
+			Vec3r image_plane_pixel_offset_x = {
+				xen::tan(fov_x / (real)target_size.x) * camera.z_near, 0, 0
+			};
+			Vec3r image_plane_pixel_offset_y = {
+				0, xen::tan(fov_y / (real)target_size.y) * camera.z_near, 0
+			};
+
+			xen::Quaternion camera_rotation = xen::getRotation(xen::normalized(image_plane_center),
+			                                                   xen::normalized(camera.look_dir)
+			                                                  );
+
+			image_plane_pixel_offset_x = xen::rotated(image_plane_pixel_offset_x, camera_rotation);
+			image_plane_pixel_offset_y = xen::rotated(image_plane_pixel_offset_y, camera_rotation);
+			image_plane_center         = xen::rotated(image_plane_center,         camera_rotation);
+
+			Vec2s target_pos;
+			int ray_index = 0;
+			for(target_pos.x = 0; target_pos.x < target_size.x; target_pos.x += target_size.x-1) {
+				for(target_pos.y = 0; target_pos.y < target_size.y; target_pos.y += target_size.y-1) {
+
+					Vec2r center_offset = (Vec2r)target_pos - ((Vec2r)target_size / 2.0_r);
+
+					// Compute where the ray would intersect the image plane
+					Vec3r image_plane_position =
+						image_plane_center +
+						center_offset.x * image_plane_pixel_offset_x +
+						center_offset.y * image_plane_pixel_offset_y;
+
+					Ray3r primary_ray;
+					primary_ray.origin    = camera.position;
+					primary_ray.direction = xen::normalized(camera.position - image_plane_position);
+
+					camera_corner_rays[ray_index*2 + 1] += primary_ray.direction * 100_r;
+
+					++ray_index;
+				}
+			}
+
+			////////////////////////////////////////////////////////////////////////////////////////
+
+			xen::RenderCommand3d render_commands[3];
 			render_commands[0].type                = xen::RenderCommand3d::LINES;
 			render_commands[0].color               = xen::Color::MAGENTA;
 			render_commands[0].model_matrix        = Mat4r::Identity;
@@ -357,9 +435,12 @@ namespace xen{
 			render_commands[1].verticies.verticies = &camera_up_dir.p1;
 			render_commands[1].verticies.count     = 2;
 
-			printf("Rendering camera primary axis: (%f, %f, %f), (%f, %f, %f)\n",
-			       camera_primary_axis.p1.x, camera_primary_axis.p1.y, camera_primary_axis.p1.z,
-			       camera_primary_axis.p2.x, camera_primary_axis.p2.y, camera_primary_axis.p2.z);
+			render_commands[2].type                = xen::RenderCommand3d::LINES;
+			render_commands[2].color               = xen::Color::WHITE;
+			render_commands[2].model_matrix        = Mat4r::Identity;
+			// :TODO:COMP:ISSUE_5: nasty hack, make line segment an array of row vectors
+			render_commands[2].verticies.verticies = &camera_corner_rays[0];
+			render_commands[2].verticies.count     = 8;
 
 			xen::sren::renderRasterize(target, viewport,
 			                           view_camera,
