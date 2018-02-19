@@ -245,11 +245,6 @@ namespace xen{
 				                xen::cross(image_plane_pixel_offset_x, camera.look_dir)
 				                ) * image_plane_pixel_offset_y_distance;
 
-			printf("offset_x: (%8f, %8f, %8f), offset_y: (%8f, %8f, %8f)\n",
-			       image_plane_pixel_offset_x.x, image_plane_pixel_offset_x.y, image_plane_pixel_offset_x.z,
-			       image_plane_pixel_offset_y.x, image_plane_pixel_offset_y.y, image_plane_pixel_offset_y.z
-			      );
-
 			Vec2s target_pos;
 			for(target_pos.x = 0; target_pos.x < target_size.x; ++target_pos.x) {
 				for(target_pos.y = 0; target_pos.y < target_size.y; ++target_pos.y) {
