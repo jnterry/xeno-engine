@@ -1,4 +1,4 @@
-// Defines a simple test model: The Cornel Box
+// Defines a simple test model: The Cornell Box
 
 // ---------------------------------------------------------------------------
 // Define room coordinates
