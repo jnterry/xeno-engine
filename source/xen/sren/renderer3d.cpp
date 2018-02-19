@@ -236,7 +236,7 @@ namespace xen{
 		  Vec3r image_plane_center = camera.position - camera.look_dir * camera.z_near;
 
 			Vec3r image_plane_pixel_offset_x =
-				-xen::normalized(
+				xen::normalized(
 				                 xen::cross(camera.up_dir, camera.look_dir)
 				                 ) * image_plane_pixel_offset_x_distance;
 
