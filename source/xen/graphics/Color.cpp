@@ -35,11 +35,11 @@ namespace xen{
 		// no-op
 	}
 	xen::Color::Color(const Color& other)
-		: r(other.r), b(other.b), g(other.g), a(other.a){
+		: r(other.r), g(other.g), b(other.b), a(other.a){
 		// no-op
 	}
 	xen::Color::Color(u08 nr, u08 ng, u08 nb, u08 na)
-		: r(nr), b(nb), g(ng), a(na){
+		: r(nr), g(ng), b(nb), a(na){
 		// no-op
 	}
 }
