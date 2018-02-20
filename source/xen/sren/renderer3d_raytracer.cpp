@@ -53,7 +53,7 @@ namespace xen {
 			float image_plane_pixel_offset_x_distance = xen::tan(fov_x / (real)target_size.x) * camera.z_near;
 			float image_plane_pixel_offset_y_distance = xen::tan(fov_y / (real)target_size.y) * camera.z_near;
 
-			Vec3r image_plane_center = camera.position - camera.look_dir * camera.z_near;
+			Vec3r image_plane_center = camera.position + camera.look_dir * camera.z_near;
 
 			Vec3r image_plane_pixel_offset_x =
 				xen::normalized(
@@ -175,7 +175,7 @@ namespace xen {
 			// Start with doing this in camera space (so easy conceptually),
 			// then transform into world space by lining up z axis with
 			// camera's look_dir
-			Vec3r image_plane_center = camera.position - camera.look_dir * camera.z_near;
+			Vec3r image_plane_center = camera.position + camera.look_dir * camera.z_near;
 
 			Vec3r image_plane_pixel_offset_x =
 				-xen::normalized(
