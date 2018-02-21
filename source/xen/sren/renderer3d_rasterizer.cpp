@@ -139,7 +139,36 @@ namespace {
 		}
 		///////////////////////////////////////////////////////////////////
 	}
+	// Taken from
+	// http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html#algo3
+	// :TODO: Write doRenderTriangle3d which takes a 3D triangle, put into clip
+	// space, clip it (maybe), and then convert into screen space and call this
+	void doRenderTriangle2d(xen::sren::RenderTarget& target,
+		                    const xen::Aabb2r& viewport,
+												const Mat4f& mvp_matrix,
+	                      xen::Color color, xen::Triangle2r& tri){
+		// :TODO: determine which vertex of triangle is on top, as per link
+		// Pseudo-code taken from:
+		// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
+		/*
+		function line(x0, y0, x1, y1)
+		real deltax := x1 - x0
+		real deltay := y1 - y0
+		real deltaerr := abs(deltay / deltax)    // Assume deltax != 0 (line is not vertical),
+					// note that this division needs to be done in a way that preserves the fractional part
+		real error := 0.0 // No error at start
+		int y := y0
+		for x from x0 to x1
+				plot(x,y)
+				error := error + deltaerr
+				while error ≥ 0.5 then
+						y := y + sign(deltay) * 1
+						error := error - 1.0
+		*/
+	}
 }
+
+
 
 namespace xen{
 
@@ -185,6 +214,11 @@ namespace xen{
 					goto do_render_lines;
 					break;
 				case RenderCommand3d::TRIANGLES: // :TODO: rasterize this
+					for(u32 i = 0; i < cmd->verticies.count - 1; i += 3){
+						Triangle3r* tri_world = (Triangle3r*)(&cmd->vertices.vertices[i]);
+						doRenderTriangle3d(target,view_region, mat_mvp, cmd->color, *tri_world);
+					}
+					break;
 				case RenderCommand3d::LINE_STRIP:
 					stride = 1;
 				do_render_lines:
