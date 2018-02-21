@@ -55,11 +55,11 @@ namespace xen{
 	}
 
 	Color& RawImage::ColRef::operator[](u32 row) {
-		return image.pixels[col + (image.height-row) * image.width];
+		return image.pixels[col + (image.height-row-1) * image.width];
 	}
 
 	const Color& RawImage::ColRef::operator[](u32 row) const{
-		return image.pixels[col + (image.height-row) * image.width];
+		return image.pixels[col + (image.height-row-1) * image.width];
 	}
 
 	RawImage::ColRef RawImage::operator[](u32 col){
