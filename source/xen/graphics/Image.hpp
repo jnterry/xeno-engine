@@ -38,12 +38,12 @@ namespace xen{
 			RawImage& image;
 			u32       col;
 
-			Color&       operator[](u32 index);
-			const Color& operator[](u32 index) const;
+			Color&       operator[](u32 row);
+			const Color& operator[](u32 row) const;
 		};
 
-		const ColRef operator[](u32 index) const;
-		ColRef       operator[](u32 index);
+		const ColRef operator[](u32 col) const;
+		ColRef       operator[](u32 col);
 	};
 
 	#pragma GCC diagnostic pop // re-enable -Wpedantic
