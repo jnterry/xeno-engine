@@ -69,27 +69,6 @@ static const real       Z_FAR  = 1000_r;
 static const xen::Angle FOV_Y  = 70_deg;
 
 int main(int argc, char** argv){
-	camera_x.z_near   = Z_NEAR;
-	camera_x.z_far    = Z_FAR;
-	camera_x.fov_y    = FOV_Y;
-	camera_x.position = {300, 0, 0};
-	camera_x.look_dir = -Vec3r::UnitX;
-	camera_x.up_dir   =  Vec3r::UnitY;
-
-	camera_y.z_near   = Z_NEAR;
-	camera_y.z_far    = Z_FAR;
-	camera_y.fov_y    = FOV_Y;
-	camera_y.position = {0, 300, 0};
-	camera_y.look_dir = -Vec3r::UnitY;
-	camera_y.up_dir   =  Vec3r::UnitX;
-
-	camera_z.z_near   = Z_NEAR;
-	camera_z.z_far    = Z_FAR;
-	camera_z.fov_y    = FOV_Y;
-	camera_z.position = {0, 0, 300};
-	camera_z.look_dir = -Vec3r::UnitZ;
-	camera_z.up_dir   =  Vec3r::UnitY;
-
 	camera.z_near   = 0.001;
 	camera.z_far    = 1000;
 	camera.fov_y    = 70_deg;
@@ -108,7 +87,7 @@ int main(int argc, char** argv){
 	xen::RenderCommand3d render_commands[1];
 	render_commands[0].type                = xen::RenderCommand3d::TRIANGLES;
 	render_commands[0].color               = xen::Color::RED;
-	render_commands[0].model_matrix        = Mat4r::Identity;
+	render_commands[0].model_matrix        = xen::Translation3d(-277_r, -277_r, -277_r);
 	render_commands[0].verticies.verticies = &test_model_geometry[0];
 	render_commands[0].verticies.count     = test_model_num_vertices;
 
