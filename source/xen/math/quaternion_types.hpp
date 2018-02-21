@@ -23,7 +23,9 @@ namespace xen{
 
 	struct Quaternion;
 
-	/// \brief Represents a rotation as an axis about which to rotate, and an angle
+	/// \brief Represents a rotation as an axis about which to rotate,
+	/// and an angle by which we will rotate in the clockwise direction
+	/// when looking along the axis
 	struct AxisAngle{
 		AxisAngle() {}
 		AxisAngle(Vec3r naxis, Angle nangle) : axis(naxis), angle(nangle) {}
