@@ -54,20 +54,20 @@ namespace xen{
 		return result;
 	}
 
-	Color& RawImage::ColRef::operator[](u32 index) {
-		return image.pixels[col + index*image.width];
+	Color& RawImage::ColRef::operator[](u32 row) {
+		return image.pixels[col + (image.height-row-1) * image.width];
 	}
 
-	const Color& RawImage::ColRef::operator[](u32 index) const{
-		return image.pixels[col + index*image.width];
+	const Color& RawImage::ColRef::operator[](u32 row) const{
+		return image.pixels[col + (image.height-row-1) * image.width];
 	}
 
-	RawImage::ColRef RawImage::operator[](u32 index){
-		return { *this, index };
+	RawImage::ColRef RawImage::operator[](u32 col){
+		return { *this, col };
 	}
 
-	const RawImage::ColRef RawImage::operator[](u32 index) const{
-		return { *const_cast<RawImage*>(this), index };
+	const RawImage::ColRef RawImage::operator[](u32 col) const{
+		return { *const_cast<RawImage*>(this), col };
 	}
 }
 
