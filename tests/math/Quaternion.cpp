@@ -145,7 +145,7 @@ TEST_CASE("getRotation as Quaterion", "[math][Quaternion]"){
 		CHECK(xen::mag(rot) == Approx(1));                              \
 		CHECK(rot == Quat( Vec3r(ax,ay,az), angle));                    \
 		\
-	    rot = xen::getRotation(Vec3r(p1x,p1y,p1z), Vec3r(3*p2x,3*p2y,3*p2z)); \
+		rot = xen::getRotation(Vec3r(p1x,p1y,p1z), Vec3r(3*p2x,3*p2y,3*p2z)); \
 		CHECK(xen::mag(rot) == Approx(1));                                    \
 		CHECK(rot == Quat( Vec3r(ax,ay,az), angle));                          \
 	}

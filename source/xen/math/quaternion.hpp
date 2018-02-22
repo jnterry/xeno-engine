@@ -80,7 +80,11 @@ namespace xen{
 
 			   , 0,0,0,1};
 	}
+	/// \breif Builds a rotation matrix from an AxisAngle rotation
 	inline Mat4r Rotation3d(AxisAngle aa           ){ return Rotation3d(Quat(aa         )); }
+
+	/// \brief Builds a rotation matrix from an AxisAngle rotation. Angle is clockwise
+	/// when looking in the direction of the axis vector
 	inline Mat4r Rotation3d(Vec3r axis, Angle angle){ return Rotation3d(Quat(axis, angle)); }
 
 	inline Vec3r rotated(Vec3r v, Quaternion q){
@@ -88,6 +92,9 @@ namespace xen{
 		return { r.x, r.y, r.z };
 	}
 	inline Vec3r rotated(Vec3r v, AxisAngle aa       ){ return rotated(v, Quat(aa     )); }
+
+	/// \brief Rotates a vector clockwise about some axis (when looking in
+	/// direction of axis) by some angle `a`
 	inline Vec3r rotated(Vec3r v, Vec3r axis, Angle a){ return rotated(v, Quat(axis, a)); }
 
 	inline Quaternion getRotation(const Vec3r& start, const Vec3r& dest){

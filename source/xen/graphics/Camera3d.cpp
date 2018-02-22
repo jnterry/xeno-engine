@@ -19,24 +19,37 @@
 namespace xen {
 
 	Mat4r getViewMatrix(const Camera3d& camera){
-		// move world by negative of camera position
-		Mat4r result = xen::Translation3d(-camera.position);
+		//////////////////////////////////////////////////////////
+		// Compute axes relative to the camera
 
-		// Line up z axis with look_dir, and y with up_dir
-		Quat rot = xen::getRotation(camera.look_dir, camera.up_dir,   -Vec3r::UnitZ, Vec3r::UnitY);
-		result *= xen::Rotation3d(rot);
+		// camera looks down z axis
+		Vec3r zaxis = camera.look_dir;
 
-		return result;
+		// up_dir and look_dir are two vectors within the plane containing camera's
+		// local z and y axis, hence the camera's "right" vector is orthogonal to
+		// this plane, so can be computed with a cross product
+		Vec3r xaxis = xen::normalized(xen::cross(camera.up_dir, camera.look_dir));
+
+		// Now we have the camera's x and z axis we can compute the yaxis as being
+		// orthogonal to this plane
+		Vec3r yaxis = xen::normalized(xen::cross(zaxis, xaxis));
+		//////////////////////////////////////////////////////////
+
+		Mat4r orientation = {
+			xaxis.x, yaxis.x, zaxis.x, 0,
+			xaxis.y, yaxis.y, zaxis.y, 0,
+			xaxis.z, yaxis.z, zaxis.z, 0,
+			0,       0,       0,       1
+		};
+
+		return xen::Translation3d(-camera.position) * orientation;
 	}
 
 	Mat4r getProjectionMatrix(const ProjectionPerspective& p, Vec2r viewport_size){
-		return
-			//xen::Translation3d(-viewport_size.x / 2.0f, -viewport_size.y, 0) *
-			xen::createPerspectiveProjection(p.fov_y, viewport_size.x, viewport_size.y, p.z_near, p.z_far)
-
-			;
-
-
+		return xen::createPerspectiveProjection(p.fov_y,
+		                                        viewport_size.x, viewport_size.y,
+		                                        p.z_near, p.z_far
+		                                       );
 	}
 
 	Camera3d generateCamera3d(const Camera3dOrbit& cam){
@@ -47,7 +60,7 @@ namespace xen {
 
 		result.position = getCameraPosition(cam);
 
-		result.look_dir = xen::normalized(cam.target - result.position);
+		result.look_dir = xen::normalized(result.position - cam.target);
 
 		return result;
 	}
