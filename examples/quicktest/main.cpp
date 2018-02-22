@@ -26,7 +26,7 @@
 void renderMesh(const xen::gl::Mesh* mesh);
 xen::gl::ShaderProgram* loadShader(xen::ArenaLinear&);
 
-xen::Camera3dOrbit camera;
+xen::Camera3dCylinder camera;
 real camera_speed = 50;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;

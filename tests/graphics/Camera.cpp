@@ -2,8 +2,8 @@
 #include "../math/ostream_operators.hpp"
 #include <catch.hpp>
 
-TEST_CASE("Camera 3d Orbit Position", "[graphics][Camera3d][Camera3dOrbit]"){
-	xen::Camera3dOrbit camera;
+TEST_CASE("Camera3dCylinder Position", "[graphics][Camera3d][Camera3dCylinder]"){
+	xen::Camera3dCylinder camera;
 	camera.up_dir = Vec3r::UnitY;
 	camera.height = 0;
 	camera.radius = 100;

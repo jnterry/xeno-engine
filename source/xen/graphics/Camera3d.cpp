@@ -52,7 +52,7 @@ namespace xen {
 		                                       );
 	}
 
-	Camera3d generateCamera3d(const Camera3dOrbit& cam){
+	Camera3d generateCamera3d(const Camera3dCylinder& cam){
 		Camera3d result;
 
 		*((ProjectionPerspective*)(&result)) = *((ProjectionPerspective*)(&cam));
@@ -65,7 +65,7 @@ namespace xen {
 		return result;
 	}
 
-	Vec3r getCameraPosition(const Camera3dOrbit& cam){
+	Vec3r getCameraPosition(const Camera3dCylinder& cam){
 		// Start camera centered on the target
 		Vec3r result = cam.target;
 

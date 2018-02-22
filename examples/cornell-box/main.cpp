@@ -19,10 +19,10 @@
 
 #include "testModel.hpp"
 
-xen::Camera3dOrbit camera;
-xen::Camera3d      camera_x;
-xen::Camera3d      camera_y;
-xen::Camera3d      camera_z;
+xen::Camera3dCylinder camera;
+xen::Camera3d         camera_x;
+xen::Camera3d         camera_y;
+xen::Camera3d         camera_z;
 real camera_speed = 250;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
