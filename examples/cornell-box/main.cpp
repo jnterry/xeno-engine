@@ -15,7 +15,7 @@
 #include <xen/sren/renderer3d.hxx>
 
 #include <SDL.h>
-#include "SDLauxilary.h"
+#include "../SDLauxilary.h"
 
 #include "testModel.hpp"
 

@@ -14,7 +14,7 @@
 #include <xen/sren/renderer3d.hxx>
 
 #include <SDL.h>
-#include "SDLauxilary.h"
+#include "../SDLauxilary.h"
 
 xen::Camera3dOrbit camera;
 real camera_speed = 250;
