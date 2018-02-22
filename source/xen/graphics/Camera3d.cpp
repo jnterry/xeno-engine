@@ -56,7 +56,7 @@ namespace xen {
 		Camera3d result;
 
 		*((ProjectionPerspective*)(&result)) = *((ProjectionPerspective*)(&cam));
-		result.up_dir = cam.up_dir;
+		result.up_dir = xen::rotated(cam.up_dir, cam.axis, cam.angle);
 
 		result.position = getCameraPosition(cam);
 
