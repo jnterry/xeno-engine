@@ -147,24 +147,48 @@ namespace {
 		                    const xen::Aabb2r& viewport,
 												const Mat4f& mvp_matrix,
 	                      xen::Color color, xen::Triangle2r& tri){
-		// :TODO: determine which vertex of triangle is on top, as per link
+		// :TODO: determine which vertex of triangle is on top, as per link.
 		// Pseudo-code taken from:
 		// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
-		/*
-		function line(x0, y0, x1, y1)
-		real deltax := x1 - x0
-		real deltay := y1 - y0
-		real deltaerr := abs(deltay / deltax)    // Assume deltax != 0 (line is not vertical),
-					// note that this division needs to be done in a way that preserves the fractional part
-		real error := 0.0 // No error at start
-		int y := y0
-		for x from x0 to x1
-				plot(x,y)
-				error := error + deltaerr
-				while error ≥ 0.5 then
-						y := y + sign(deltay) * 1
-						error := error - 1.0
-		*/
+		// :NOTE: tri.p1 in the following code should be the top most vertice & tri.p3 is bottom most,
+		//        assuming top left is 0,0. if bottom left is then tri.p1 should be bottom most
+
+		//          tri.p1
+		//            .
+		//            |\
+		//            | \
+		//          a |  \
+		//            |   \ b
+		//            |    \
+		//            |     \
+		//     tri.p2 .      \
+		//                    \
+		//                     . tri.p3
+
+		// :TODO: Following code plots line a, expand on this to fill triangle as in link
+		Vec2r a = tri.p2 - tri.p1;
+		real p_a = 2*a.y-a.x;
+		real x_a = tri.p1.x;
+		real y_a = tri.p1.y;
+
+		while(x_a < a.x) {
+			if (p_a>=0) {
+				// :TODO: plot(x,y)
+				y_a = y_a+1;
+				p_a = p_a+2*a.y-2*a.x;
+			} else {
+				// :TODO: plot(x,y)
+				p_a = p_a+2*a.y;
+			}
+			x_a += 1;
+		}
+
+	}
+	void doRenderTriangle3d(xen::sren::RenderTarget& target,
+		                    const xen::Aabb2r& viewport,
+												const Mat4f& mvp_matrix,
+	                      xen::Color color, xen::Triangle3r& tri){
+		//:TODO:
 	}
 }
 
@@ -215,7 +239,7 @@ namespace xen{
 					break;
 				case RenderCommand3d::TRIANGLES: // :TODO: rasterize this
 					for(u32 i = 0; i < cmd->verticies.count - 1; i += 3){
-						Triangle3r* tri_world = (Triangle3r*)(&cmd->vertices.vertices[i]);
+						Triangle3r* tri_world = (Triangle3r*)(&cmd->verticies.verticies[i]);
 						doRenderTriangle3d(target,view_region, mat_mvp, cmd->color, *tri_world);
 					}
 					break;
