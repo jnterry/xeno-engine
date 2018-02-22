@@ -71,22 +71,22 @@ int main(int argc, char** argv){
 	camera_x.z_far    = Z_FAR;
 	camera_x.fov_y    = FOV_Y;
 	camera_x.position = {300, 0, 0};
-	camera_x.look_dir = -Vec3r::UnitX;
-	camera_x.up_dir   =  Vec3r::UnitY;
+	camera_x.look_dir = Vec3r::UnitX; // :TODO: why are these look dirs not -ve of position?
+	camera_x.up_dir   = Vec3r::UnitY;
 
 	camera_y.z_near   = Z_NEAR;
 	camera_y.z_far    = Z_FAR;
 	camera_y.fov_y    = FOV_Y;
 	camera_y.position = {0, 300, 0};
-	camera_y.look_dir = -Vec3r::UnitY;
-	camera_y.up_dir   =  Vec3r::UnitX;
+	camera_y.look_dir = Vec3r::UnitY; // :TODO: why are these look dirs not -ve of position?
+	camera_y.up_dir   = Vec3r::UnitX;
 
 	camera_z.z_near   = Z_NEAR;
 	camera_z.z_far    = Z_FAR;
 	camera_z.fov_y    = FOV_Y;
 	camera_z.position = {0, 0, 300};
-	camera_z.look_dir = -Vec3r::UnitZ;
-	camera_z.up_dir   =  Vec3r::UnitY;
+	camera_z.look_dir = Vec3r::UnitZ; // :TODO: why are these look dirs not -ve of position?
+	camera_z.up_dir   = Vec3r::UnitY;
 
 	camera.z_near   = 0.001;
 	camera.z_far    = 1000;
