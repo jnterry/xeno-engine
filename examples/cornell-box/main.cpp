@@ -19,10 +19,10 @@
 
 #include "testModel.hpp"
 
-xen::Camera3dOrbit camera;
-xen::Camera3d      camera_x;
-xen::Camera3d      camera_y;
-xen::Camera3d      camera_z;
+xen::Camera3dCylinder camera;
+xen::Camera3d         camera_x;
+xen::Camera3d         camera_y;
+xen::Camera3d         camera_z;
 real camera_speed = 250;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
@@ -75,6 +75,7 @@ int main(int argc, char** argv){
 	camera.radius   = 450;
 	camera.height   = 0;
 	camera.up_dir   = Vec3r::UnitY;
+	camera.axis     = Vec3r::UnitY;
 	camera.target   = Vec3r::Origin;
 	//:TODO: breaks if angle is exactly 0deg, never occurs
 	// under user control since don't hit dead on float value, but

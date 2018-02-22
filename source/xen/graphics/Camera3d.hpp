@@ -39,15 +39,21 @@ namespace xen {
 
 	/// \brief Represents a camera which orbits around some central target
 	/// Camera operates as though fixed on a cylinder, oriented such that the
-	/// cylinder's axis is defined by up_dir. The height is how far along
-	/// the up_dir the camera is displaced. Radius and angle define the radius of the
-	/// cylinder and the angle by which the camera is displaced around that radius.
+	/// cylinder's axis is defined by axis. The height is how far along
+	/// the axis the camera is displaced. Radius and angle define the radius of
+	/// the cylinder and the angle by which the camera is displaced around that
+	/// radius.
 	///
-	/// Setting up_dir to (0,1,0) means camera can rotate around the target in the xz plane
-	/// and additional rise up and below this plane as defined by its height
-	struct Camera3dOrbit : public ProjectionPerspective{
+	/// Setting axis to (0,1,0) means camera can rotate around the target in the
+	/// xz plane and additional rise up and below this plane as defined by its
+	/// height
+	struct Camera3dCylinder : public ProjectionPerspective{
 		/// \brief Direction in the world considered to be "up" to the camera
 		Vec3r      up_dir;
+
+		/// \brief Direction along which the cylinder's axis runs.
+		/// Camera will move by "height" units along this direction
+		Vec3r      axis;
 
 		/// \brief Center point that the camera is focusing on
 		Vec3r      target;
@@ -64,8 +70,8 @@ namespace xen {
 
 	inline Camera3d generateCamera3d(const Camera3d& c){ return c; }
 
-	/// \brief Generates a Camera3d corresponding to some Camera3dOrbit
-	Camera3d generateCamera3d(const Camera3dOrbit&);
+	/// \brief Generates a Camera3d corresponding to some Camera3dCylinder
+	Camera3d generateCamera3d(const Camera3dCylinder&);
 
 	/// \brief Gets matrix that transforms points in world space into camera relative space
 	Mat4r getViewMatrix(const Camera3d& camera);
@@ -86,7 +92,7 @@ namespace xen {
 		return getViewMatrix(c) * getProjectionMatrix(c, viewport_size);
 	}
 
-	Vec3r getCameraPosition(const Camera3dOrbit& cam);
+	Vec3r getCameraPosition(const Camera3dCylinder& cam);
 	inline Vec3r getCameraPosition(const Camera3d&      cam){ return cam.position; }
 }
 

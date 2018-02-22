@@ -26,7 +26,7 @@
 void renderMesh(const xen::gl::Mesh* mesh);
 xen::gl::ShaderProgram* loadShader(xen::ArenaLinear&);
 
-xen::Camera3dOrbit camera;
+xen::Camera3dCylinder camera;
 real camera_speed = 50;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
@@ -148,12 +148,13 @@ static const GLfloat cube_buffer_data[] = {
 };
 
 int main(int argc, char** argv){
-	camera.z_near   = 0.001;
-	camera.z_far    = 10000;
-	camera.fov_y    = 80_deg;
-	camera.radius   = 100;
-	camera.height   = 0;
-	camera.up_dir   = Vec3r::UnitY;
+	camera.z_near = 0.001;
+	camera.z_far  = 10000;
+	camera.fov_y  = 80_deg;
+	camera.radius = 100;
+	camera.height = 0;
+	camera.up_dir = Vec3r::UnitY;
+	camera.axis   = Vec3r::UnitY;
 	//:TODO: breaks if angle is exactly +90deg, never occurs
 	// under user control since dont hit dead on float value, but
 	// broken if set here

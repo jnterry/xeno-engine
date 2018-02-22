@@ -16,7 +16,7 @@
 #include <SDL.h>
 #include "../SDLauxilary.h"
 
-xen::Camera3dOrbit camera;
+xen::Camera3dCylinder camera;
 real camera_speed = 250;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
@@ -60,14 +60,15 @@ void handleInput(real dt){
 }
 
 int main(int argc, char** argv){
-	camera.z_near   = 0.001;
-	camera.z_far    = 1000;
-	camera.fov_y    = 70_deg;
-	camera.radius   = 450;
-	camera.height   = 0;
-	camera.up_dir   = Vec3r::UnitY;
-	camera.target   = Vec3r::Origin;
-	camera.angle    = 0.0_deg;
+	camera.z_near = 0.001;
+	camera.z_far  = 1000;
+	camera.fov_y  = 70_deg;
+	camera.radius = 450;
+	camera.height = 0;
+	camera.up_dir = Vec3r::UnitY;
+	camera.axis   = Vec3r::UnitY;
+	camera.target = Vec3r::Origin;
+	camera.angle  = 0.0_deg;
 
 	Vec2r window_size = {800, 600};
 	screen* screen = InitializeSDL(window_size.x, window_size.y, false);
