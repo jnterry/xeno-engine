@@ -65,6 +65,7 @@ namespace {
 	void doRenderLine2d(xen::sren::RenderTarget& target, xen::LineSegment2r line, xen::Color color){
 		//https://www.cs.virginia.edu/luther/blog/posts/492.html
 		if(line.p1 != line.p2){
+			/*
 			//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
 			real num_pixels = xen::max(abs(line.p1.x - line.p2.x), abs(line.p1.y - line.p2.y));
 			//printf("Drawing line with %f (%u) pixels\n", num_pixels, (u32)num_pixels);
@@ -74,6 +75,52 @@ namespace {
 				target[cur.x][cur.y] = color;
 				cur += delta;
 			}
+			*/
+			// Bresenham Algorithm, taken from:
+			// https://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#C.2B.2B
+			// :NOTE: May be a more efficient implementation available
+			const bool steep = (fabs(line.p2.y - line.p1.y) > fabs(line.p2.x - line.p1.x));
+			if(steep){
+    		// Swap (line.p1.x, line.p1.y)
+				line.p1.x = line.p1.x + line.p1.y;
+				line.p1.y = line.p1.x - line.p1.y;
+				line.p1.x = line.p1.x - line.p1.y;
+				// Swap (line.p2.x, line.p2.y)
+				line.p2.x = line.p2.x + line.p2.y;
+				line.p2.y = line.p2.x - line.p2.y;
+				line.p2.x = line.p2.x - line.p2.y;
+  		}
+			if(line.p1.x > line.p2.x){
+				// Swap (line.p1.x, line.p2.x)
+				line.p1.x = line.p1.x + line.p2.x;
+				line.p2.x = line.p1.x - line.p2.x;
+				line.p1.x = line.p1.x - line.p2.x;
+				// Swap (line.p1.y, line.p2.y)
+				line.p1.y = line.p1.y + line.p2.y;
+				line.p2.y = line.p1.y - line.p2.y;
+				line.p1.y = line.p1.y - line.p2.y;
+ 			}
+			const real dx = line.p2.x - line.p1.x;
+  		const real dy = fabs(line.p2.y - line.p1.y);
+
+  		real error = dx / 2.0f;
+  		const int ystep = (line.p1.y < line.p2.y) ? 1 : -1;
+  		int y = (int)line.p1.y;
+			const int maxX = (int)line.p2.x;
+
+			for(int x=(int)line.p1.x; x<maxX; x++){
+    		if(steep){
+						target[y][x] = color;
+    		}else{
+        		target[x][y] = color;
+    		}
+
+    		error -= dy;
+    		if(error < 0){
+        	y += ystep;
+        	error += dx;
+    		}
+  		}
 		}
 	}
 
@@ -141,8 +188,6 @@ namespace {
 	}
 	// Taken from
 	// http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html#algo3
-	// :TODO: Write doRenderTriangle3d which takes a 3D triangle, put into clip
-	// space, clip it (maybe), and then convert into screen space and call this
 	void doRenderTriangle2d(xen::sren::RenderTarget& target,
 		                    const xen::Aabb2r& viewport,
 												const Mat4f& mvp_matrix,
@@ -150,40 +195,70 @@ namespace {
 		// :TODO: determine which vertex of triangle is on top, as per link.
 		// Pseudo-code taken from:
 		// https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
-		// :NOTE: tri.p1 in the following code should be the top most vertice & tri.p3 is bottom most,
-		//        assuming top left is 0,0. if bottom left is then tri.p1 should be bottom most
+		// :NOTE: tri.p1 in the following code should be the bottom most vertice & tri.p3 is top most,
+		//        as (0,0) is bottom left
 
-		//          tri.p1
-		//            .
-		//            |\
-		//            | \
-		//          a |  \
-		//            |   \ b
-		//            |    \
-		//            |     \
-		//     tri.p2 .      \
-		//                    \
 		//                     . tri.p3
+		//                    /
+		//     tri.p2 .      /
+		//            |     /
+		//            |    /
+		//            |   / b
+		//          a |  /
+		//            | /
+		//            |/
+		//            .
+		//          tri.p1
 
-		// :TODO: Following code plots line a, expand on this to fill triangle as in link
-		Vec2r a = tri.p2 - tri.p1;
-		real p_a = 2*a.y-a.x;
-		real x_a = tri.p1.x;
-		real y_a = tri.p1.y;
+		// Bresenham Algorithm, taken from:
+		// https://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#C.2B.2B
+		// :NOTE: May be a more efficient implementation available
+		const bool steep = (fabs(line.p2.y - line.p1.y) > fabs(line.p2.x - line.p1.x));
+		if(steep){
+			// Swap (line.p1.x, line.p1.y)
+			line.p1.x = line.p1.x + line.p1.y;
+			line.p1.y = line.p1.x - line.p1.y;
+			line.p1.x = line.p1.x - line.p1.y;
+			// Swap (line.p2.x, line.p2.y)
+			line.p2.x = line.p2.x + line.p2.y;
+			line.p2.y = line.p2.x - line.p2.y;
+			line.p2.x = line.p2.x - line.p2.y;
+		}
+		if(line.p1.x > line.p2.x){
+			// Swap (line.p1.x, line.p2.x)
+			line.p1.x = line.p1.x + line.p2.x;
+			line.p2.x = line.p1.x - line.p2.x;
+			line.p1.x = line.p1.x - line.p2.x;
+			// Swap (line.p1.y, line.p2.y)
+			line.p1.y = line.p1.y + line.p2.y;
+			line.p2.y = line.p1.y - line.p2.y;
+			line.p1.y = line.p1.y - line.p2.y;
+		}
+		const real dx = line.p2.x - line.p1.x;
+		const real dy = fabs(line.p2.y - line.p1.y);
 
-		while(x_a < a.x) {
-			if (p_a>=0) {
-				// :TODO: plot(x,y)
-				y_a = y_a+1;
-				p_a = p_a+2*a.y-2*a.x;
-			} else {
-				// :TODO: plot(x,y)
-				p_a = p_a+2*a.y;
+		real error = dx / 2.0f;
+		const int ystep = (line.p1.y < line.p2.y) ? 1 : -1;
+		int y = (int)line.p1.y;
+		const int maxX = (int)line.p2.x;
+
+		for(int x=(int)line.p1.x; x<maxX; x++){
+			if(steep){
+				target[y][x] = color;
+			}else{
+				target[x][y] = color;
 			}
-			x_a += 1;
+
+			error -= dy;
+			if(error < 0){
+				y += ystep;
+				error += dx;
+			}
 		}
 
 	}
+	// :TODO: Write doRenderTriangle3d which takes a 3D triangle, put into clip
+	// space, clip it (maybe), and then convert into screen space and call this
 	void doRenderTriangle3d(xen::sren::RenderTarget& target,
 		                    const xen::Aabb2r& viewport,
 												const Mat4f& mvp_matrix,
