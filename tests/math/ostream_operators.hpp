@@ -5,6 +5,7 @@
 #include <xen/math/matrix_types.hpp>
 #include <xen/math/quaternion_types.hpp>
 #include <xen/math/geometry_types.hpp>
+#include <xen/math/vertex_group_types.hpp>
 
 #include <catch.hpp>
 

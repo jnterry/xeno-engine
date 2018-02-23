@@ -11,6 +11,7 @@
 
 #include <xen/math/quaternion.hpp>
 #include <xen/math/geometry.hpp>
+#include <xen/math/vertex_group.hpp>
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
