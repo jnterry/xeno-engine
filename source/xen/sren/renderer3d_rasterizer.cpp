@@ -155,7 +155,7 @@ namespace xen{
 
 		void renderRasterize(RenderTarget& target, const xen::Aabb2u& viewport,
 		                     const RenderParameters3d& params,
-		                     RenderCommand3d* commands, u32 command_count){
+		                     const xen::Array<RenderCommand3d>& commands){
 
 			// Find the actual view_region we wish to draw to. This is the
 			// intersection of the actual target, and the user specified viewport
@@ -167,8 +167,8 @@ namespace xen{
 
 			int stride = 0;
 
-			RenderCommand3d* cmd = commands;
-			for(u32 cmd_index = 0; cmd_index < command_count; ++cmd_index){
+			const RenderCommand3d* cmd;
+			for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 				cmd = &commands[cmd_index];
 				mat_mvp = cmd->model_matrix * mat_vp;
 				switch(cmd->type){

@@ -24,6 +24,10 @@
 
 namespace {
 
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents the results from casting a ray out into the
+	/// scene to be rendered
+	/////////////////////////////////////////////////////////////////////
 	struct SceneRayCastResult {
 		/// \brief Whether an intersection with world geometry was found
 		bool  found_intersection;
@@ -39,17 +43,15 @@ namespace {
 	};
 
 	void castRayIntoScene(const xen::Ray3r& ray,
-	                      const xen::RenderCommand3d* commands, u32 command_count,
+	                      const xen::Array<xen::RenderCommand3d>& commands,
 	                      SceneRayCastResult& result){
 
 		result = {0};
 
-		Vec3r closest_intersection = Vec3r::Origin;
 		real closest_intersection_length_sq = std::numeric_limits<real>::max();
-		bool found_intersection    = false;
 
 		// Loop over all objects in scene
-		for(u32 cmd_index = 0; cmd_index < command_count; ++cmd_index){
+		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 			const xen::RenderCommand3d* cmd = &commands[cmd_index];
 			if(cmd->type != xen::RenderCommand3d::TRIANGLES){
 				continue;
@@ -92,7 +94,7 @@ namespace xen {
 		void renderRaytrace (RenderTarget& target,
 		                     const xen::Aabb2u& viewport,
 		                     const RenderParameters3d& params,
-		                     RenderCommand3d* commands, u32 command_count){
+		                     const xen::Array<RenderCommand3d>& commands){
 
 			xen::Aabb2u screen_rect = { Vec2u::Origin, target.size - Vec2u{1,1} };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
@@ -144,7 +146,7 @@ namespace xen {
 
 					/////////////////////////////////////////////////////////////////////
 					// Cast the ray into the scene
-					castRayIntoScene(primary_ray, commands, command_count, intersection);
+					castRayIntoScene(primary_ray, commands, intersection);
 
 					/////////////////////////////////////////////////////////////////////
 					// Color the pixel
@@ -244,7 +246,7 @@ namespace xen {
 
 			////////////////////////////////////////////////////////////////////////////////////////
 
-			xen::RenderCommand3d render_commands[3];
+			xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
 			render_commands[0].type                = xen::RenderCommand3d::LINES;
 			render_commands[0].color               = xen::Color::MAGENTA;
 			render_commands[0].model_matrix        = Mat4r::Identity;
@@ -266,10 +268,7 @@ namespace xen {
 			xen::RenderParameters3d params;
 			params.camera = view_camera;
 
-			xen::sren::renderRasterize(target, viewport,
-			                           params,
-			                           render_commands, XenArrayLength(render_commands)
-			                           );
+			xen::sren::renderRasterize(target, viewport, params, render_commands );
 		}
 	}
 }

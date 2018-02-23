@@ -9,6 +9,7 @@
 #ifndef XEN_GRAPHICS_SREN_RENDERER3D_HPP
 #define XEN_GRAPHICS_SREN_RENDERER3D_HPP
 
+#include <xen/core/array_types.hpp>
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/Image.hpp>
 #include <xen/math/geometry_types.hpp>
@@ -44,12 +45,11 @@ namespace xen{
 		/// \param params The 3d camera and other rendering parameters used to
 		/// view the scene
 		/// \param commands Array of render commands to perform
-		/// \param command_count The number of commands in the comands array
 		/////////////////////////////////////////////////////////////////////
 		void renderRasterize(RenderTarget& target,
 		                     const xen::Aabb2u& viewport,
 		                     const RenderParameters3d& params,
-		                     RenderCommand3d* commands, u32 command_count);
+		                     const xen::Array<RenderCommand3d>& commands);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Performs a set of render commands use software raytracer
@@ -58,12 +58,11 @@ namespace xen{
 		/// Represented in pixel values
 		/// \param camera The 3d camera used to view the scene
 		/// \param commands Array of render commands to perform
-		/// \param command_count The number of commands in the comands array
 		/////////////////////////////////////////////////////////////////////
 		void renderRaytrace (RenderTarget& target,
 		                     const xen::Aabb2u& viewport,
 		                     const RenderParameters3d& params,
-		                     RenderCommand3d* commands, u32 command_count);
+		                     const xen::Array<RenderCommand3d>& commands);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Draws debug view of a camera (eg, origin, up dir, look dir, etc),

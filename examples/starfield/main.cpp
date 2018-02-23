@@ -124,7 +124,7 @@ int main(int argc, char** argv){
 		{ 1_r,  0_r,  0_r },
 	};
 
-	xen::RenderCommand3d render_commands[5];
+	xen::FixedArray<xen::RenderCommand3d, 5> render_commands;
 	render_commands[0].type                = xen::RenderCommand3d::LINES;
 	render_commands[0].color               = xen::Color::RED;
 	render_commands[0].model_matrix        = xen::Scale3d(100_r);
@@ -182,8 +182,7 @@ int main(int argc, char** argv){
 		// Do rendering
 		render_params.camera = xen::generateCamera3d(camera);
 		xen::sren::renderRasterize(screen->buffer, viewport,
-		                           render_params,
-		                           render_commands, XenArrayLength(render_commands)
+		                           render_params, render_commands
 		                          );
 
 		SDL_Renderframe(screen);

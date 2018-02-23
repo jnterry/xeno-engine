@@ -157,7 +157,7 @@ int main(int argc, char** argv){
 		Vec3r{ 0_r, 0_r, 1_r },
 	};
 
-	xen::RenderCommand3d render_commands[6];
+	xen::FixedArray<xen::RenderCommand3d, 6> render_commands;
 	render_commands[0].type                = xen::RenderCommand3d::LINES;
 	render_commands[0].color               = xen::Color::RED;
 	render_commands[0].model_matrix        = xen::Scale3d(100_r);
@@ -254,36 +254,26 @@ int main(int argc, char** argv){
 		xen::sren::clear(screen->buffer, viewport_main, xen::Color::BLACK);
 		render_params.camera = xen::generateCamera3d(camera);
 		xen::sren::renderRasterize(screen->buffer, viewport_main,
-		                           render_params,
-		                           render_commands, XenArrayLength(render_commands)
-		                           );
+		                           render_params, render_commands);
 		xen::sren::renderRaytrace(screen->buffer, viewport_main,
-		                          render_params,
-		                          render_commands, XenArrayLength(render_commands)
-		                         );
+		                          render_params, render_commands);
 
 		xen::sren::clear(screen->buffer, viewport_x, xen::Color::BLACK);
 		render_params.camera = xen::generateCamera3d(camera_x);
 		xen::sren::renderRasterize(screen->buffer, viewport_x,
-		                           render_params,
-		                           render_commands, XenArrayLength(render_commands)
-		                          );
+		                           render_params, render_commands);
 		xen::sren::renderCameraDebug(screen->buffer, viewport_x, camera_x, xen::generateCamera3d(camera));
 
 		xen::sren::clear(screen->buffer, viewport_y, xen::Color::BLACK);
 		render_params.camera = xen::generateCamera3d(camera_y);
 		xen::sren::renderRasterize(screen->buffer, viewport_y,
-		                           render_params,
-		                           render_commands, XenArrayLength(render_commands)
-		                          );
+		                           render_params, render_commands);
 		xen::sren::renderCameraDebug(screen->buffer, viewport_y, camera_y, xen::generateCamera3d(camera));
 
 		xen::sren::clear(screen->buffer, viewport_z, xen::Color::BLACK);
 		render_params.camera = xen::generateCamera3d(camera_z);
 		xen::sren::renderRasterize(screen->buffer, viewport_z,
-		                           render_params,
-		                           render_commands, XenArrayLength(render_commands)
-		                           );
+		                           render_params, render_commands);
 		xen::sren::renderCameraDebug(screen->buffer, viewport_z, camera_z, xen::generateCamera3d(camera));
 
 

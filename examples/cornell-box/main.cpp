@@ -80,7 +80,7 @@ int main(int argc, char** argv){
 	Vec2r window_size = {800, 800};
 	screen* screen = InitializeSDL(window_size.x, window_size.y, false);
 
-	xen::RenderCommand3d render_commands[1];
+	xen::FixedArray<xen::RenderCommand3d, 1> render_commands;
 	render_commands[0].type                = xen::RenderCommand3d::TRIANGLES;
 	render_commands[0].color               = xen::Color::RED;
 	render_commands[0].model_matrix        = xen::Translation3d(-277_r, -277_r, -277_r);
@@ -107,9 +107,7 @@ int main(int argc, char** argv){
 		// Do rendering
 		render_params.camera = xen::generateCamera3d(camera);
 		xen::sren::renderRasterize(screen->buffer, viewport,
-		                           render_params,
-															 render_commands, XenArrayLength(render_commands)
-															);
+		                           render_params, render_commands);
 
 		SDL_Renderframe(screen);
 	}
