@@ -15,44 +15,7 @@
 #include <xen/math/vector.hpp>
 #include <xen/math/utilities.hpp>
 
-namespace xen{
-	template<u32 T_DIM, typename T>
-	LineSegment<T_DIM, T>& translate(LineSegment<T_DIM, T>& line, Vec<T_DIM, T> delta){
-		line.p1 += delta;
-		line.p2 += delta;
-		return line;
-	}
-
-	template<u32 T_DIM, typename T>
-  Triangle<T_DIM, T>& translate(Triangle<T_DIM, T>& triangle, Vec<T_DIM, T> delta){
-		triangle.p1 += delta;
-		triangle.p2 += delta;
-		triangle.p3 += delta;
-		return triangle;
-	}
-
-	template<u32 T_DIM, typename T>
-	LineSegment<T_DIM, T> transform(LineSegment<T_DIM, T>& line, xen::Matrix<T_DIM, T_DIM, T> mat){
-		line.p1 *= mat;
-		line.p2 *= mat;
-		return line;
-	}
-
-	template<u32 T_DIM, typename T>
-	LineSegment<T_DIM, T> transform(LineSegment<T_DIM, T>& line, xen::Matrix<T_DIM+1, T_DIM+1, T> mat){
-		line.p1 *= mat;
-		line.p2 *= mat;
-		return line;
-	}
-
-	template<u32 T_DIM, typename T>
-	Triangle<T_DIM, T> transform(Triangle<T_DIM, T>& triangle, xen::Matrix<T_DIM+1, T_DIM+1, T> mat){
-		triangle.p1 *= mat;
-		triangle.p2 *= mat;
-		triangle.p3 *= mat;
-		return triangle;
-	}
-
+namespace xen {
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Computes the barycentric coordinates for a
 	/// point p with respect to a given triangle
@@ -113,6 +76,91 @@ namespace xen{
 	Triangle<T_DIM+1, T> toHomo(Triangle<T_DIM, T> a, T val = 1){
 		return Triangle<T_DIM+1, T>{ toHomo(a.p1, val), toHomo(a.p2, val), toHomo(a.p3, val) };
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Translate by Vector
+////////////////////////////////////////////////////////////////////////////////
+
+template<u32 T_NUM, u32 T_DIM, typename T>
+xen::VertexGroup<T_NUM, T_DIM, T> operator+(const xen::VertexGroup<T_NUM, T_DIM, T>& vertices,
+                                            const xen::Vec<T_DIM, T>& delta){
+	xen::VertexGroup<T_NUM, T_DIM, T> result;
+	for(u32 i = 0; i < T_NUM; ++i){
+		result.vertices[i] = vertices.vertices[i] + delta;
+	}
+	return result;
+}
+
+template<u32 T_NUM, u32 T_DIM, typename T>
+xen::VertexGroup<T_NUM, T_DIM, T> operator-(const xen::VertexGroup<T_NUM, T_DIM, T>& vertices,
+                                            const xen::Vec<T_DIM, T>& delta){
+	xen::VertexGroup<T_NUM, T_DIM, T> result;
+	for(u32 i = 0; i < T_NUM; ++i){
+		result.vertices[i] = vertices.vertices[i] - delta;
+	}
+	return result;
+}
+
+
+template<u32 T_NUM, u32 T_DIM, typename T>
+xen::VertexGroup<T_NUM, T_DIM, T>& operator+=(xen::VertexGroup<T_NUM, T_DIM, T>& vertices,
+                                              const xen::Vec<T_DIM, T>& delta){
+	for(u32 i = 0; i < T_NUM; ++i){
+		vertices.vertices[i] += delta;
+	}
+	return vertices;
+}
+
+template<u32 T_NUM, u32 T_DIM, typename T>
+xen::VertexGroup<T_NUM, T_DIM, T>& operator-=(xen::VertexGroup<T_NUM, T_DIM, T>& vertices,
+                                              const xen::Vec<T_DIM, T>& delta){
+	for(u32 i = 0; i < T_NUM; ++i){
+		vertices.vertices[i] -= delta;
+	}
+	return vertices;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Transform by Matrix
+////////////////////////////////////////////////////////////////////////////////
+
+template<u32 T_NUM, u32 T_DIM, typename T>
+xen::VertexGroup<T_NUM, T_DIM, T>& operator*=(xen::VertexGroup <T_NUM, T_DIM, T>& lhs,
+                                              const xen::Matrix<T_DIM, T_DIM, T>& rhs){
+	for(u32 i = 0; i < T_NUM; ++i){
+		lhs.vertices[i] *= rhs;
+	}
+	return lhs;
+}
+
+template<u32 T_NUM, u32 T_DIM, typename T>
+xen::VertexGroup<T_NUM, T_DIM, T>& operator*=(xen::VertexGroup <T_NUM,   T_DIM,   T>& lhs,
+                                              const xen::Matrix<T_DIM+1, T_DIM+1, T>& rhs){
+	for(u32 i = 0; i < T_NUM; ++i){
+		lhs.vertices[i] *= rhs;
+	}
+	return lhs;
+}
+
+template<u32 T_NUM, u32 T_DIM, typename T>
+xen::VertexGroup<T_NUM, T_DIM, T> operator*(const xen::VertexGroup <T_NUM, T_DIM, T>& lhs,
+                                            const xen::Matrix      <T_DIM, T_DIM, T>& rhs){
+	xen::VertexGroup<T_NUM, T_DIM, T> result;
+	for(u32 i = 0; i < T_NUM; ++i){
+		result.vertices[i] = lhs.vertices[i] * rhs;
+	}
+	return result;
+}
+
+template<u32 T_NUM, u32 T_DIM, typename T>
+xen::VertexGroup<T_NUM, T_DIM, T> operator*(const xen::VertexGroup <T_NUM,   T_DIM,   T>& lhs,
+                                            const xen::Matrix      <T_DIM+1, T_DIM+1, T>& rhs){
+	xen::VertexGroup<T_NUM, T_DIM, T> result;
+	for(u32 i = 0; i < T_NUM; ++i){
+		result.vertices[i] = lhs.vertices[i] * rhs;
+	}
+	return result;
 }
 
 #endif

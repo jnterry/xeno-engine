@@ -84,7 +84,7 @@ namespace {
 	                    xen::Color color,
 	                    const xen::LineSegment3r& line){
 
-		xen::LineSegment4r line_clip  = xen::getTransformed(xen::toHomo(line), mvp_matrix);
+		xen::LineSegment4r line_clip  = xen::toHomo(line) * mvp_matrix;
 
 		///////////////////////////////////////////////////////////////////
 		// Do line clipping

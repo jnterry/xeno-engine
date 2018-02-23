@@ -44,7 +44,7 @@ namespace xen{
 	}
 
 	template<u32 T_DIM, typename T>
-	Ray<T_DIM, T> transform(Ray<T_DIM, T>& ray, xen::Matrix<T_DIM+1, T_DIM+1, T> mat){
+	Ray<T_DIM, T> transform(Ray<T_DIM, T>& ray, const xen::Matrix<T_DIM+1, T_DIM+1, T>& mat){
 		Vec<T_DIM, T> point = ray.origin + ray.direction;
 
 		ray.origin *= mat;
@@ -55,9 +55,9 @@ namespace xen{
 		return ray;
 	}
 
-	template<typename T_OBJ, typename T_MAT>
-	T_OBJ getTransformed(const T_OBJ& original, T_MAT mat){
-		T_OBJ result = original;
+	template<u32 T_DIM, typename T>
+  Ray<T_DIM, T> getTransformed(const Ray<T_DIM, T>& original, const xen::Matrix<T_DIM+1, T_DIM+1, T>& mat){
+		Ray<T_DIM, T> result = original;
 		transform(result, mat);
 		return result;
 	}
