@@ -1,3 +1,4 @@
+#include <xen/math/vertex_group.hpp>
 #include <xen/math/geometry.hpp>
 #include "ostream_operators.hpp"
 #include <catch.hpp>
