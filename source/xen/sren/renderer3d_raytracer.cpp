@@ -78,7 +78,8 @@ namespace xen {
 						center_offset.y * image_plane_pixel_offset_y;
 
 					Ray3r primary_ray;
-					primary_ray.origin    = camera.position;
+					// start the ray on image plane so z_near is respected
+					primary_ray.origin    = image_plane_position;
 					primary_ray.direction = xen::normalized(camera.position - image_plane_position);
 
 					Vec3r closest_intersection = Vec3r::Origin;
@@ -158,7 +159,7 @@ namespace xen {
 			};
 
 
-			////////////////////////////////////////////////////////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////
 
 			// :TODO:COMP: view region calc duplicated with rasterizer
 			// Find the actual view_region we wish to draw to. This is the
@@ -210,7 +211,7 @@ namespace xen {
 				}
 			}
 
-			////////////////////////////////////////////////////////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////
 
 			xen::RenderCommand3d render_commands[3];
 			render_commands[0].type                = xen::RenderCommand3d::LINES;
