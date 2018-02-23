@@ -50,6 +50,8 @@ set(XEN_HEADERS_MATH
   ${CMAKE_CURRENT_LIST_DIR}/xen/math/quaternion.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/math/geometry_types.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/math/geometry.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/math/vertex_group_types.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/math/vertex_group.hpp
 )
 
 
