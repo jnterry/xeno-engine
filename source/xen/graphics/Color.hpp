@@ -10,6 +10,7 @@
 #define XEN_GRAPHICS_COLOR_HPP
 
 #include <xen/core/intrinsics.hpp>
+#include <xen/math/vector.hpp>
 
 namespace xen {
 
@@ -44,6 +45,9 @@ namespace xen {
 	};
 
 	#pragma GCC diagnostic pop // re-enable -Wpedantic
+
+	typedef Vec3f Color3f;
+	typedef Vec4f Color4f;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Color represented as 4 floating values between 0 and 1

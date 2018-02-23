@@ -16,6 +16,7 @@
 #include <SDL.h>
 #include "../SDLauxilary.h"
 
+xen::RenderParameters3d render_params;
 xen::Camera3dCylinder camera;
 real camera_speed = 250;
 xen::Angle camera_rotate_speed = 120_deg;
@@ -179,8 +180,9 @@ int main(int argc, char** argv){
 		xen::sren::clear(screen->buffer, xen::Color::BLACK);
 
 		// Do rendering
+		render_params.camera = xen::generateCamera3d(camera);
 		xen::sren::renderRasterize(screen->buffer, viewport,
-		                           xen::generateCamera3d(camera),
+		                           render_params,
 		                           render_commands, XenArrayLength(render_commands)
 		                          );
 

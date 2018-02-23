@@ -10,12 +10,18 @@
 #define XEN_GRAPHICS_RENDERER3D_HPP
 
 #include <xen/core/intrinsics.hpp>
+#include <xen/core/array_types.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/math/matrix_types.hpp>
 #include <xen/graphics/Color.hpp>
+#include <xen/graphics/Light3d.hpp>
+#include <xen/graphics/Camera3d.hpp>
 
 namespace xen{
 
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents a single object to be rendered to the scene
+	/////////////////////////////////////////////////////////////////////
 	struct RenderCommand3d {
 		enum Types {
 			/// \brief Draws a set of points defined by `vertices` member
@@ -52,6 +58,26 @@ namespace xen{
 				u32    count;
 			} verticies;
 		};
+	};
+
+	/// \brief Extra parameters required to render a scene
+	struct RenderParameters3d {
+		RenderParameters3d();
+
+		/// \brief The camera with which to render to scene
+		Camera3d                  camera;
+
+		/// \brief The ambient lighting to be added to all objects in the scene
+		Color3f                   ambient_light;
+
+		/// \brief Array of light sources in the scene
+		xen::Array<LightSource3d> lights;
+
+		// delta time for animations (or per animated object?)
+		// skybox? -> useful as parameter to scene for reflections
+		// lens flare?
+		// fog?
+		// quality selection? (ray tracer faster/more accurate)
 	};
 
 }

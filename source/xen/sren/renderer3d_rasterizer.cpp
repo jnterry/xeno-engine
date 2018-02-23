@@ -154,7 +154,7 @@ namespace xen{
 		}
 
 		void renderRasterize(RenderTarget& target, const xen::Aabb2u& viewport,
-		                     const Camera3d& camera,
+		                     const RenderParameters3d& params,
 		                     RenderCommand3d* commands, u32 command_count){
 
 			// Find the actual view_region we wish to draw to. This is the
@@ -162,7 +162,7 @@ namespace xen{
 			xen::Aabb2u screen_rect = { Vec2u::Origin, target.size - Vec2u{1,1} };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 
-			Mat4r mat_vp = xen::getViewProjectionMatrix(camera, view_region.max - view_region.min);
+			Mat4r mat_vp = xen::getViewProjectionMatrix(params.camera, view_region.max - view_region.min);
 			Mat4r mat_mvp;
 
 			int stride = 0;

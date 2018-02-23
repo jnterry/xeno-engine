@@ -94,6 +94,7 @@ namespace xen{
 		union{
 			T elements[3];
 			struct{ T x, y, z;                     };
+			struct{ T r, g, b;                     };
 			struct{ T u, v;                        };
 			struct{ Vec<2, T> uv;                  };
 			struct{ Vec<2, T> xy;                  };
@@ -125,6 +126,7 @@ namespace xen{
 		union{
 		    T elements[4];
 			struct{ T x, y, z, w;                   };
+			struct{ T r, g, b, a;                   };
 			struct{ T u, v;                         };
 			struct{ Vec<2, T> xy, zw;               };
 			struct{ Vec<2, T> uv;                   };
