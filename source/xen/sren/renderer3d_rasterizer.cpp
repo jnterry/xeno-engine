@@ -49,7 +49,7 @@ namespace {
 			screen_space += Vec2r{1,1};                  // convert to [0, 2] space
 			screen_space /= 2.0_r;                       // convert to [0. 1] space
 			screen_space *= viewport.max - viewport.min; // convert to screen space
-			screen_space += viewport.min;
+			screen_space += viewport.min;                // move to correct part of screen
 			///////////////////////////////////////////////////////////////////
 
 			if(screen_space.x < viewport.min.x ||
@@ -114,23 +114,17 @@ namespace {
 		///////////////////////////////////////////////////////////////////
 		// Transform into screen space
 		xen::LineSegment2r  line_screen;
+
+		// :TODO:COMP:ISSUE_15: swizzle function
+		// Once we can do generic swizzles, we could make transform to screen space
+		// a template function and use same code for this and points and triangles, etc
 		line_screen.p1 = line_clip.p1.xy;
 		line_screen.p2 = line_clip.p2.xy;
 
-		// :TODO:COMP:ISSUE_5: define operators on line_segment, triangle etc (treat them as
-		// multiple rows of row vectors and do matrix multiply, IE, line segment is:
-		// [ x1 y1 z1 w1 ]   [ a b c d ]   [ x1' y1' z1' w1' ]
-		// [ x2 y2 z2 w2 ] * [ e f g h ] = [ x2' y2' z2' w2' ]
-		//                   [ i j k l ]
-		//                   [ m n o p ]
-		line_screen.p1 += Vec2r{1,1};                  // convert to [0, 2] space
-		line_screen.p1 /= 2.0_r;                       // convert to [0. 1] space
-		line_screen.p1 *= viewport.max - viewport.min; // convert to screen space
-		line_screen.p1 += viewport.min;
-		line_screen.p2 += Vec2r{1,1};                  // convert to [0, 2] space
-		line_screen.p2 /= 2.0_r;                       // convert to [0. 1] space
-		line_screen.p2 *= viewport.max - viewport.min; // convert to screen space
-		line_screen.p2 += viewport.min;
+		line_screen += Vec2r{1,1};                  // convert to [0, 2] space
+		line_screen /= 2.0_r;                       // convert to [0, 1] space
+		line_screen *= viewport.max - viewport.min; // convert to screen space
+		line_screen += viewport.min;                // move to correct part of screen
 		///////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////////////////////////////////////

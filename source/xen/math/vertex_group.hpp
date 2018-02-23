@@ -122,45 +122,50 @@ xen::VertexGroup<T_NUM, T_DIM, T>& operator-=(xen::VertexGroup<T_NUM, T_DIM, T>&
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Transform by Matrix
+// Multiply by scalar or matrix
+////////////////////////////////////////////////////////////////////////////////
+
+template<u32 T_NUM, u32 T_DIM, typename T, typename T_RHS>
+xen::VertexGroup<T_NUM, T_DIM, T>& operator*=(xen::VertexGroup <T_NUM, T_DIM, T>& lhs,
+                                              const T_RHS& rhs){
+	for(u32 i = 0; i < T_NUM; ++i){
+		lhs.vertices[i] *= rhs;
+	}
+	return lhs;
+}
+
+template<u32 T_NUM, u32 T_DIM, typename T, typename T_RHS>
+xen::VertexGroup<T_NUM, T_DIM, T> operator*(const xen::VertexGroup <T_NUM, T_DIM, T>& lhs,
+                                            const T_RHS& rhs){
+	xen::VertexGroup<T_NUM, T_DIM, T> result;
+	for(u32 i = 0; i < T_NUM; ++i){
+		result.vertices[i] = lhs.vertices[i] * rhs;
+	}
+	return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// Divide by scalar
 ////////////////////////////////////////////////////////////////////////////////
 
 template<u32 T_NUM, u32 T_DIM, typename T>
-xen::VertexGroup<T_NUM, T_DIM, T>& operator*=(xen::VertexGroup <T_NUM, T_DIM, T>& lhs,
-                                              const xen::Matrix<T_DIM, T_DIM, T>& rhs){
+xen::VertexGroup<T_NUM, T_DIM, T>& operator/=(xen::VertexGroup <T_NUM, T_DIM, T>& lhs,
+                                              T rhs){
 	for(u32 i = 0; i < T_NUM; ++i){
-		lhs.vertices[i] *= rhs;
+		lhs.vertices[i] /= rhs;
 	}
 	return lhs;
 }
 
 template<u32 T_NUM, u32 T_DIM, typename T>
-xen::VertexGroup<T_NUM, T_DIM, T>& operator*=(xen::VertexGroup <T_NUM,   T_DIM,   T>& lhs,
-                                              const xen::Matrix<T_DIM+1, T_DIM+1, T>& rhs){
-	for(u32 i = 0; i < T_NUM; ++i){
-		lhs.vertices[i] *= rhs;
-	}
-	return lhs;
-}
-
-template<u32 T_NUM, u32 T_DIM, typename T>
-xen::VertexGroup<T_NUM, T_DIM, T> operator*(const xen::VertexGroup <T_NUM, T_DIM, T>& lhs,
-                                            const xen::Matrix      <T_DIM, T_DIM, T>& rhs){
+xen::VertexGroup<T_NUM, T_DIM, T> operator/(const xen::VertexGroup <T_NUM, T_DIM, T>& lhs,
+                                            T rhs){
 	xen::VertexGroup<T_NUM, T_DIM, T> result;
 	for(u32 i = 0; i < T_NUM; ++i){
-		result.vertices[i] = lhs.vertices[i] * rhs;
+		result.vertices[i] = lhs.vertices[i] / rhs;
 	}
 	return result;
 }
 
-template<u32 T_NUM, u32 T_DIM, typename T>
-xen::VertexGroup<T_NUM, T_DIM, T> operator*(const xen::VertexGroup <T_NUM,   T_DIM,   T>& lhs,
-                                            const xen::Matrix      <T_DIM+1, T_DIM+1, T>& rhs){
-	xen::VertexGroup<T_NUM, T_DIM, T> result;
-	for(u32 i = 0; i < T_NUM; ++i){
-		result.vertices[i] = lhs.vertices[i] * rhs;
-	}
-	return result;
-}
 
 #endif

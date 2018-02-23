@@ -216,21 +216,18 @@ namespace xen {
 			render_commands[0].type                = xen::RenderCommand3d::LINES;
 			render_commands[0].color               = xen::Color::MAGENTA;
 			render_commands[0].model_matrix        = Mat4r::Identity;
-			// :TODO:COMP:ISSUE_5: nasty hack, make line segment an array of row vectors
-			render_commands[0].verticies.verticies = &camera_primary_axis.p1;
+			render_commands[0].verticies.verticies = &camera_primary_axis.vertices[0];
 			render_commands[0].verticies.count     = 2;
 
 			render_commands[1].type                = xen::RenderCommand3d::LINES;
 			render_commands[1].color               = xen::Color::GREEN;
 			render_commands[1].model_matrix        = Mat4r::Identity;
-			// :TODO:COMP:ISSUE_5: nasty hack, make line segment an array of row vectors
-			render_commands[1].verticies.verticies = &camera_up_dir.p1;
+			render_commands[1].verticies.verticies = &camera_up_dir.vertices[0];
 			render_commands[1].verticies.count     = 2;
 
 			render_commands[2].type                = xen::RenderCommand3d::LINES;
 			render_commands[2].color               = xen::Color::WHITE;
 			render_commands[2].model_matrix        = Mat4r::Identity;
-			// :TODO:COMP:ISSUE_5: nasty hack, make line segment an array of row vectors
 			render_commands[2].verticies.verticies = &camera_corner_rays[0];
 			render_commands[2].verticies.count     = 8;
 
