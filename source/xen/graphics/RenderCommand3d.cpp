@@ -14,7 +14,7 @@
 namespace xen{
 
 	RenderParameters3d::RenderParameters3d()
-		: ambient_light(Color3f{1,1,1}), lights({0, nullptr}){
+		: ambient_light(Color3f{1,1,1}), lights(){
 		camera.fov_y    = 70_deg;
 		camera.z_near   = 0.001_r;
 		camera.z_far    = 1000_r;

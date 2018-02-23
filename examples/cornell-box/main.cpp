@@ -82,7 +82,7 @@ int main(int argc, char** argv){
 
 	xen::FixedArray<xen::RenderCommand3d, 1> render_commands;
 	render_commands[0].type                = xen::RenderCommand3d::TRIANGLES;
-	render_commands[0].color               = xen::Color::RED;
+	render_commands[0].color               = xen::Color::RED4f;
 	render_commands[0].model_matrix        = xen::Translation3d(-277_r, -277_r, -277_r);
 	render_commands[0].verticies.verticies = &test_model_geometry[0];
 	render_commands[0].verticies.count     = test_model_num_vertices;

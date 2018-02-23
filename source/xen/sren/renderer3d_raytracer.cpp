@@ -147,13 +147,12 @@ namespace xen {
 					/////////////////////////////////////////////////////////////////////
 					// Cast the ray into the scene
 					castRayIntoScene(primary_ray, commands, intersection);
+					if(!intersection.found_intersection){ continue; }
 
 					/////////////////////////////////////////////////////////////////////
 					// Color the pixel
-					if(intersection.found_intersection){
-						Vec2s pixel_coord = target_pos + (Vec2s)view_region.min;
-						target[pixel_coord.x][pixel_coord.y] = commands[intersection.object_index].color;
-					}
+					Vec2s pixel_coord = target_pos + (Vec2s)view_region.min;
+					target[pixel_coord.x][pixel_coord.y] = commands[intersection.object_index].color;
 				}
 			}
 		}
@@ -248,19 +247,19 @@ namespace xen {
 
 			xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
 			render_commands[0].type                = xen::RenderCommand3d::LINES;
-			render_commands[0].color               = xen::Color::MAGENTA;
+			render_commands[0].color               = xen::Color::MAGENTA4f;
 			render_commands[0].model_matrix        = Mat4r::Identity;
 			render_commands[0].verticies.verticies = &camera_primary_axis.vertices[0];
 			render_commands[0].verticies.count     = 2;
 
 			render_commands[1].type                = xen::RenderCommand3d::LINES;
-			render_commands[1].color               = xen::Color::GREEN;
+			render_commands[1].color               = xen::Color::GREEN4f;
 			render_commands[1].model_matrix        = Mat4r::Identity;
 			render_commands[1].verticies.verticies = &camera_up_dir.vertices[0];
 			render_commands[1].verticies.count     = 2;
 
 			render_commands[2].type                = xen::RenderCommand3d::LINES;
-			render_commands[2].color               = xen::Color::WHITE;
+			render_commands[2].color               = xen::Color::WHITE4f;
 			render_commands[2].model_matrix        = Mat4r::Identity;
 			render_commands[2].verticies.verticies = &camera_corner_rays[0];
 			render_commands[2].verticies.count     = 8;

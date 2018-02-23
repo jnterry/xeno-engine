@@ -46,7 +46,7 @@ namespace xen{
 		u8 type;
 
 		/// \brief The diffuse color to use
-		Color color;
+		Color4f color;
 
 		/// \brief Matrix to transform from world space to model space
 		Mat4r model_matrix;

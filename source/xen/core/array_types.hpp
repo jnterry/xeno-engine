@@ -38,6 +38,8 @@ namespace xen{
 		static const constexpr u64 rows = 1;
 		static const constexpr u64 cols = T_SIZE;
 
+		FixedArray(){}
+
 		inline T&       operator[](u64 i)       { return elements[i]; }
 		inline const T& operator[](u64 i) const { return elements[i]; }
 
@@ -59,6 +61,8 @@ namespace xen{
 		T elements[T_ROWS * T_COLS];
 
 		static const constexpr u64 size = T_ROWS * T_COLS;
+
+		FixedArray2d(){}
 
 		inline FixedArray<T, T_COLS>&       operator[](u64 row)       { return elements[T_COLS * row]; }
 		inline const FixedArray<T, T_COLS>& operator[](u64 row) const { return elements[T_COLS * row]; }
