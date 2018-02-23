@@ -25,7 +25,7 @@ namespace {
 	void doRenderPoints(xen::sren::RenderTarget& target,
 	                    const xen::Aabb2r& viewport,
 	                    const Mat4f& mvp_matrix,
-	                    xen::Color color,
+	                    xen::Color4f color,
 	                    Vec3r* points, u32 count){
 
 		for(u32 i = 0; i < count; ++i){
@@ -63,7 +63,7 @@ namespace {
 		}
 	}
 
-	void doRenderLine2d(xen::sren::RenderTarget& target, xen::LineSegment2r line, xen::Color color){
+	void doRenderLine2d(xen::sren::RenderTarget& target, xen::LineSegment2r line, xen::Color4f color){
 		//https://www.cs.virginia.edu/luther/blog/posts/492.html
 		if(line.p1 != line.p2){
 			//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
@@ -81,7 +81,7 @@ namespace {
 	void doRenderLine3d(xen::sren::RenderTarget& target,
 	                    const xen::Aabb2r& viewport,
 	                    const Mat4f& mvp_matrix,
-	                    xen::Color color,
+	                    xen::Color4f color,
 	                    const xen::LineSegment3r& line){
 
 		xen::LineSegment4r line_clip  = xen::toHomo(line) * mvp_matrix;
@@ -170,10 +170,15 @@ namespace xen{
 			const RenderCommand3d* cmd;
 			for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 				cmd = &commands[cmd_index];
+
 				mat_mvp = cmd->model_matrix * mat_vp;
+
+				Color4f base_color = cmd->color;
+				base_color.rgb *= params.ambient_light;
+
 				switch(cmd->type){
 				case RenderCommand3d::POINTS:
-					doRenderPoints(target, view_region, mat_mvp, cmd->color, cmd->verticies.verticies, cmd->verticies.count);
+					doRenderPoints(target, view_region, mat_mvp, base_color, cmd->verticies.verticies, cmd->verticies.count);
 					break;
 				case RenderCommand3d::LINES:
 					stride = 2;
@@ -187,7 +192,7 @@ namespace xen{
 						//printf("Doing vertex %i / %i\n", i, cmd->verticies.count);
 						LineSegment3r* line_world = (LineSegment3r*)(&cmd->verticies.verticies[i]);
 
-						doRenderLine3d(target, view_region, mat_mvp, cmd->color, *line_world);
+						doRenderLine3d(target, view_region, mat_mvp, base_color, *line_world);
 					}
 					break;
 				default:

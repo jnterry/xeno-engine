@@ -10,6 +10,8 @@
 namespace xen {
 
 	struct LightSource3d {
+		LightSource3d(){}
+
 		enum Type {
 			POINT,
 			//DIRECTIONAL,
@@ -23,7 +25,7 @@ namespace xen {
 		/// \brief Parameters which control how quickly light intensity falls of
 		/// with distance.
 		/// x is constant, y is linear, z is quadratic
-		Vec3r attenuation;
+		Vec3f attenuation;
 
 		/// \brief The color of the light produced by this light source
 	  Color3f color;

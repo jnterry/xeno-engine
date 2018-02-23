@@ -68,7 +68,18 @@ static const xen::Angle FOV_Y  = 70_deg;
 
 xen::RenderParameters3d render_params;
 
+
 int main(int argc, char** argv){
+	xen::FixedArray<xen::LightSource3d, 1> scene_lights;
+
+	scene_lights[0].type           = xen::LightSource3d::POINT;
+	scene_lights[0].point.position = {10.0_r, 0.2_r, -10.0_r};
+	scene_lights[0].color          = xen::Color::WHITE4f.rgb;
+	scene_lights[0].attenuation    = {0.0f, 0.0f, 0.1f};
+
+	render_params.ambient_light = xen::Color3f(0.3f, 0.3f, 0.3f);
+	render_params.lights        = scene_lights;
+
 	camera_x.z_near   = Z_NEAR;
 	camera_x.z_far    = Z_FAR;
 	camera_x.fov_y    = FOV_Y;
@@ -234,10 +245,15 @@ int main(int argc, char** argv){
 
 
 	printf("Entering main loop\n");
+	float run_time = 0.0f;
 	while(NoQuitMessageSDL()) {
 		int tick = SDL_GetTicks();
 		float dt = ((float)(tick - last_tick)) / 1000.0f;
 		last_tick = tick;
+
+		run_time += dt;
+
+		scene_lights[0].point.position.y = xen::mapToRange(-1.f, 1.f, 0.01f, 1.0f, xen::sin(run_time * 90_deg));
 
 		printf("dt: %f\n", dt);
 		handleInput(dt);

@@ -29,9 +29,6 @@ namespace {
 	/// scene to be rendered
 	/////////////////////////////////////////////////////////////////////
 	struct SceneRayCastResult {
-		/// \brief Whether an intersection with world geometry was found
-		bool  found_intersection;
-
 		/// \brief The position of the intersection in world space
 		Vec3r intersection;
 
@@ -42,13 +39,12 @@ namespace {
 		u32 triangle_index;
 	};
 
-	void castRayIntoScene(const xen::Ray3r& ray,
+  bool castRayIntoScene(const xen::Ray3r& ray,
 	                      const xen::Array<xen::RenderCommand3d>& commands,
 	                      SceneRayCastResult& result){
 
-		result = {0};
-
 		real closest_intersection_length_sq = std::numeric_limits<real>::max();
+		bool found_intersection = false;
 
 		// Loop over all objects in scene
 		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
@@ -78,14 +74,16 @@ namespace {
 					if(intersection_length_sq < closest_intersection_length_sq){
 						closest_intersection_length_sq = intersection_length_sq;
 
-						result.intersection   = intersection;
+						result.intersection   = intersection * cmd->model_matrix;
 						result.object_index   = cmd_index;
 						result.triangle_index = i/3;
-						result.found_intersection = true;
+					  found_intersection = true;
 					}
 				}
 			}
 		}
+
+		return found_intersection;
 	}
 }
 
@@ -128,6 +126,7 @@ namespace xen {
 			// Loop over all pixels
 			Vec2s target_pos;
 			SceneRayCastResult intersection;
+			SceneRayCastResult shadow_intersection;
 			for(target_pos.x = 0; target_pos.x < target_size.x; ++target_pos.x) {
 				for(target_pos.y = 0; target_pos.y < target_size.y; ++target_pos.y) {
 					/////////////////////////////////////////////////////////////////////
@@ -146,13 +145,66 @@ namespace xen {
 
 					/////////////////////////////////////////////////////////////////////
 					// Cast the ray into the scene
-					castRayIntoScene(primary_ray, commands, intersection);
-					if(!intersection.found_intersection){ continue; }
+					if(!castRayIntoScene(primary_ray, commands, intersection)){
+						continue;
+					}
+
+					Color4f pixel_color = commands[intersection.object_index].color;
+					Color3f total_light = params.ambient_light;
+
+					/////////////////////////////////////////////////////////////////////
+					// Cast shadow ray
+					for(int i = 0; i < params.lights.size; ++i){
+						//printf("%i, %i :::::: Casting shadow ray for light %i\n",
+						//       target_pos.x, target_pos.y, i);
+						Ray3r shadow_ray;
+
+						switch(params.lights[i].type){
+						case xen::LightSource3d::POINT: {
+							shadow_ray.origin    = intersection.intersection;
+							shadow_ray.direction = xen::normalized(params.lights[i].point.position -
+							                                       intersection.intersection
+							                                      );
+
+							real light_dist_sq = xen::distanceSq(params.lights[i].point.position,
+							                                     intersection.intersection
+							                                    );
+
+							if(castRayIntoScene(shadow_ray, commands, shadow_intersection)){
+								real geom_dist_sq  = xen::distanceSq(shadow_intersection.intersection,
+								                                     intersection.intersection
+								                                    );
+
+								if(light_dist_sq > geom_dist_sq) {
+									// Then light source if blocked by geometry
+									break;
+								}
+							}
+
+							real attenuation = (params.lights[i].attenuation.x * 1.0+
+							                    params.lights[i].attenuation.y * xen::sqrt(light_dist_sq) +
+							                    params.lights[i].attenuation.z * light_dist_sq
+							                    );
+
+							//printf("Attenuation: %f, distance: %f\n", attenuation, light_dist_sq);
+
+							total_light += params.lights[i].color / attenuation;
+
+							break;
+						}
+						default:
+							printf("WARN: Unhandled light type in raytracer, type: %i\n",
+							       params.lights[i].type);
+							break;
+						}
+					}
+
+					pixel_color.rgb *= total_light;
 
 					/////////////////////////////////////////////////////////////////////
 					// Color the pixel
 					Vec2s pixel_coord = target_pos + (Vec2s)view_region.min;
-					target[pixel_coord.x][pixel_coord.y] = commands[intersection.object_index].color;
+					target[pixel_coord.x][pixel_coord.y] = pixel_color;
 				}
 			}
 		}
