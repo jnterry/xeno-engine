@@ -155,10 +155,7 @@ int main(int argc, char** argv){
 	camera.height = 0;
 	camera.up_dir = Vec3r::UnitY;
 	camera.axis   = Vec3r::UnitY;
-	//:TODO: breaks if angle is exactly +90deg, never occurs
-	// under user control since dont hit dead on float value, but
-	// broken if set here
-	camera.angle    = 0_deg;
+	camera.angle    = 90_deg;
 
 	sf::ContextSettings context_settings;
 	context_settings.depthBits = 24;

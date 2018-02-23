@@ -77,9 +77,6 @@ int main(int argc, char** argv){
 	camera.up_dir   = Vec3r::UnitY;
 	camera.axis     = Vec3r::UnitY;
 	camera.target   = Vec3r::Origin;
-	//:TODO: breaks if angle is exactly 0deg, never occurs
-	// under user control since don't hit dead on float value, but
-	// broken if set here
 	camera.angle    = 0.0_deg;
 
 	Vec2r window_size = {800, 800};
