@@ -8,6 +8,7 @@
 
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/Image.hpp>
+#include <xen/graphics/Camera3d.hpp>
 
 typedef struct{
   SDL_Window *window;
@@ -142,5 +143,41 @@ void PutPixelSDL(screen* s, u32 x, u32 y, xen::Color color){
 	}
 }
 
+real       camera_speed        = 250;
+xen::Angle camera_rotate_speed = 120_deg;
+
+void handleCameraInput(xen::Camera3dCylinder& camera, real dt){
+	SDL_PumpEvents();
+
+	const u8* keystate = SDL_GetKeyboardState(NULL);
+
+	if(keystate[SDL_SCANCODE_UP]){
+		camera.radius -= camera_speed * dt;
+	}
+	if(keystate[SDL_SCANCODE_DOWN]){
+		camera.radius += camera_speed * dt;
+	}
+	camera.radius = xen::clamp(camera.radius, 0.01_r, 750_r);
+
+	if(keystate[SDL_SCANCODE_LEFT]){
+		camera.angle -= camera_rotate_speed * dt;
+	}
+	if(keystate[SDL_SCANCODE_RIGHT]){
+		camera.angle += camera_rotate_speed * dt;
+	}
+	if(keystate[SDL_SCANCODE_A]){
+		camera.height += camera_speed * dt;
+	}
+	if(keystate[SDL_SCANCODE_Z]){
+		camera.height -= camera_speed * dt;
+	}
+
+	if(keystate[SDL_SCANCODE_Q]){
+		camera.up_dir = xen::rotated(camera.up_dir,  Vec3r::UnitZ, 90_deg * dt);
+	}
+	if(keystate[SDL_SCANCODE_E]){
+		camera.up_dir = xen::rotated(camera.up_dir, -Vec3r::UnitZ, 90_deg * dt);
+	}
+}
 
 #endif

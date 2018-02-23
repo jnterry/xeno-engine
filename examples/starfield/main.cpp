@@ -17,47 +17,9 @@
 #include "../SDLauxilary.h"
 
 xen::Camera3dCylinder camera;
-real camera_speed = 250;
-xen::Angle camera_rotate_speed = 120_deg;
-xen::Angle camera_pitch = 0_deg;
 
 const u32 STAR_COUNT = 1024;
-
 Vec3r star_positions[STAR_COUNT];
-
-void handleInput(real dt){
-	SDL_PumpEvents();
-
-	const u8* keystate = SDL_GetKeyboardState(NULL);
-
-	if(keystate[SDL_SCANCODE_UP]){
-		camera.radius -= camera_speed * dt;
-	}
-	if(keystate[SDL_SCANCODE_DOWN]){
-		camera.radius += camera_speed * dt;
-	}
-	camera.radius = xen::clamp(camera.radius, 0.01_r, 750_r);
-
-	if(keystate[SDL_SCANCODE_LEFT]){
-		camera.angle -= camera_rotate_speed * dt;
-	}
-	if(keystate[SDL_SCANCODE_RIGHT]){
-		camera.angle += camera_rotate_speed * dt;
-	}
-	if(keystate[SDL_SCANCODE_A]){
-		camera.height += camera_speed * dt;
-	}
-	if(keystate[SDL_SCANCODE_Z]){
-		camera.height -= camera_speed * dt;
-	}
-
-	if(keystate[SDL_SCANCODE_Q]){
-		camera.up_dir = xen::rotated(camera.up_dir,  Vec3r::UnitZ, 90_deg * dt);
-	}
-	if(keystate[SDL_SCANCODE_E]){
-		camera.up_dir = xen::rotated(camera.up_dir, -Vec3r::UnitZ, 90_deg * dt);
-	}
-}
 
 int main(int argc, char** argv){
 	camera.z_near = 0.001;
@@ -166,7 +128,7 @@ int main(int argc, char** argv){
 		last_tick = tick;
 
 		printf("dt: %f\n", dt);
-		handleInput(dt);
+		handleCameraInput(camera, dt);
 
 		for(u32 i = 0; i < STAR_COUNT; ++i){
 			star_positions[i].z += dt * 75.0f;

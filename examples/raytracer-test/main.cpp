@@ -21,46 +21,6 @@ xen::Camera3dCylinder camera;
 xen::Camera3d         camera_x;
 xen::Camera3d         camera_y;
 xen::Camera3d         camera_z;
-real camera_speed = 250;
-xen::Angle camera_rotate_speed = 120_deg;
-xen::Angle camera_pitch = 0_deg;
-
-void handleInput(real dt){
-	SDL_PumpEvents();
-
-	const u8* keystate = SDL_GetKeyboardState(NULL);
-
-	if(keystate[SDL_SCANCODE_UP]){
-		camera.radius -= camera_speed * dt;
-	}
-	if(keystate[SDL_SCANCODE_DOWN]){
-		camera.radius += camera_speed * dt;
-	}
-	camera.radius = xen::clamp(camera.radius, 0.01_r, 750_r);
-	//camera_x.position = (camera.radius + 50_r) * Vec3r::UnitX;
-	//camera_y.position = (camera.radius + 50_r) * Vec3r::UnitY;
-	//camera_z.position = (camera.radius + 50_r) * Vec3r::UnitZ;
-
-	if(keystate[SDL_SCANCODE_LEFT]){
-		camera.angle -= camera_rotate_speed * dt;
-	}
-	if(keystate[SDL_SCANCODE_RIGHT]){
-		camera.angle += camera_rotate_speed * dt;
-	}
-	if(keystate[SDL_SCANCODE_A]){
-		camera.height += camera_speed * dt;
-	}
-	if(keystate[SDL_SCANCODE_Z]){
-		camera.height -= camera_speed * dt;
-	}
-
-	if(keystate[SDL_SCANCODE_Q]){
-		camera.up_dir = xen::rotated(camera.up_dir,  Vec3r::UnitZ, 90_deg * dt);
-	}
-	if(keystate[SDL_SCANCODE_E]){
-		camera.up_dir = xen::rotated(camera.up_dir, -Vec3r::UnitZ, 90_deg * dt);
-	}
-}
 
 static const real       Z_NEAR = 0.001_r;
 static const real       Z_FAR  = 1000_r;
@@ -238,7 +198,7 @@ int main(int argc, char** argv){
 		last_tick = tick;
 
 		printf("dt: %f\n", dt);
-		handleInput(dt);
+		handleCameraInput(camera, dt);
 
 		// Clear buffer
 		xen::sren::clear(screen->buffer, xen::Color::BLACK);
