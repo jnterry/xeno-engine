@@ -36,8 +36,18 @@ TEST_CASE("linear interpolation"){
 		CHECK(xen::mapToRange<u08, float>(0, 255, 0.0f, 1.0f, 200) == 200.0f / 255.0f);
 		CHECK(xen::mapToRange<u08, float>(0, 255, 0.0f, 1.0f, 255) == 1.0f);
 
-		CHECK(xen::mapToRange(0.0f, 10.0f, 5.0f, 6.0f,  0.0f) == 5.00f);
-		CHECK(xen::mapToRange(0.0f, 10.0f, 5.0f, 6.0f,  5.5f) == 5.55f);
-		CHECK(xen::mapToRange(0.0f, 10.0f, 5.0f, 6.0f, 10.0f) == 6.00f);
+		CHECK(xen::mapToRange(0.0f, 10.0f, 5.0f, 6.0f, -10.0f) == 4.00f);
+		CHECK(xen::mapToRange(0.0f, 10.0f, 5.0f, 6.0f,   0.0f) == 5.00f);
+		CHECK(xen::mapToRange(0.0f, 10.0f, 5.0f, 6.0f,   5.5f) == 5.55f);
+		CHECK(xen::mapToRange(0.0f, 10.0f, 5.0f, 6.0f,  10.0f) == 6.00f);
+		CHECK(xen::mapToRange(0.0f, 10.0f, 5.0f, 6.0f,  20.0f) == 7.00f);
+	}
+
+	SECTION("mapToRangeClamped", "[math][utilities][lerp]"){
+		CHECK(xen::mapToRangeClamped(0.0f, 10.0f, 5.0f, 6.0f, -10.0f) == 5.00f);
+		CHECK(xen::mapToRangeClamped(0.0f, 10.0f, 5.0f, 6.0f,   0.0f) == 5.00f);
+		CHECK(xen::mapToRangeClamped(0.0f, 10.0f, 5.0f, 6.0f,   5.5f) == 5.55f);
+		CHECK(xen::mapToRangeClamped(0.0f, 10.0f, 5.0f, 6.0f,  10.0f) == 6.00f);
+		CHECK(xen::mapToRangeClamped(0.0f, 10.0f, 5.0f, 6.0f,  20.0f) == 6.00f);
 	}
 }
