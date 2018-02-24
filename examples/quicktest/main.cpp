@@ -190,10 +190,10 @@ int main(int argc, char** argv){
 	int emissive_color_loc    = xen::gl::getUniformLocation(prog, "emissive_color"   );
 	int camera_pos_loc        = xen::gl::getUniformLocation(prog, "camera_position"  );
 
-	xen::gl::VertexAttrib::Type vertex_spec[] = {
-		xen::gl::VertexAttrib::PositionXYZ,
-		xen::gl::VertexAttrib::ColorRGBf,
-		xen::gl::VertexAttrib::NormalXYZ
+	xen::VertexAttrib::Type vertex_spec[] = {
+		xen::VertexAttrib::PositionXYZ,
+		xen::VertexAttrib::ColorRGBf,
+		xen::VertexAttrib::NormalXYZ
 	};
 
 	xen::gl::Mesh* mesh_bunny = xen::gl::loadMesh(arena, "bunny.obj");

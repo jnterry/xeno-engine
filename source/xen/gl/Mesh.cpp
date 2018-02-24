@@ -50,11 +50,11 @@ namespace{
 		}
 	}
 
-	u32 getAttribTypeSize(xen::gl::VertexAttrib::Type type){
+	u32 getAttribTypeSize(xen::VertexAttrib::Type type){
 		switch(type){
-		case xen::gl::VertexAttrib::PositionXYZ: return sizeof(Vec3r);
-		case xen::gl::VertexAttrib::NormalXYZ:   return sizeof(Vec3r);
-		case xen::gl::VertexAttrib::ColorRGBf:   return sizeof(Vec3f);
+		case xen::VertexAttrib::PositionXYZ: return sizeof(Vec3r);
+		case xen::VertexAttrib::NormalXYZ:   return sizeof(Vec3r);
+		case xen::VertexAttrib::ColorRGBf:   return sizeof(Vec3f);
 		}
 		// compiler should warn about for missing case above to prevent this
 		XenInvalidCodePath();
@@ -65,7 +65,7 @@ namespace{
 		xen::gl::Mesh* result = (xen::gl::Mesh*)xen::ptrGetAdvanced(arena.next_byte, sizeof(xen::gl::GpuBuffer));
 		result->gpu_buffer = (xen::gl::GpuBuffer*)arena.next_byte;
 		xen::ptrAdvance(&arena.next_byte,
-		                sizeof(xen::gl::GpuBuffer) + sizeof(xen::gl::Mesh) + sizeof(xen::gl::VertexAttrib)*attrib_count);
+		                sizeof(xen::gl::GpuBuffer) + sizeof(xen::gl::Mesh) + sizeof(xen::VertexAttrib)*attrib_count);
 
 		result->attrib_count = attrib_count;
 
@@ -120,9 +120,9 @@ xen::gl::Mesh* xen::gl::loadMesh(xen::ArenaLinear& arena, const char* path, u32 
 	xen::gl::Mesh* result = pushMesh(arena, 3);
 
 	result->attrib_count = 3;
-	result->attribs[0].type = xen::gl::VertexAttrib::PositionXYZ;
-	result->attribs[1].type = xen::gl::VertexAttrib::ColorRGBf;
-	result->attribs[2].type = xen::gl::VertexAttrib::NormalXYZ;
+	result->attribs[0].type = xen::VertexAttrib::PositionXYZ;
+	result->attribs[1].type = xen::VertexAttrib::ColorRGBf;
+	result->attribs[2].type = xen::VertexAttrib::NormalXYZ;
 	result->attribs[0].offset = 0 * sizeof(float);
 	result->attribs[1].offset = 6 * sizeof(float);
 	result->attribs[2].offset = 3 * sizeof(float);
@@ -262,7 +262,7 @@ xen::gl::Mesh* xen::gl::loadMesh(xen::ArenaLinear& arena, const char* path, u32 
 }
 
 xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear& arena,
-                                   u08 attrib_count, xen::gl::VertexAttrib::Type* attrib_types,
+                                   u08 attrib_count, xen::VertexAttrib::Type* attrib_types,
                                    u32 vertex_count, const void** attrib_data,
                                    u32 flags){
 
@@ -283,16 +283,16 @@ xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear& arena,
 		result->attribs[i].offset = gpu_buffer_size;
 
 		switch(attrib_types[i]){
-		case xen::gl::VertexAttrib::PositionXYZ:
+		case xen::VertexAttrib::PositionXYZ:
 			XenAssert(attrib_data[i] != nullptr, "Mesh's position data cannot be inferred");
 			XenAssert(position_index == 255, "Mesh can only have single position attribute");
 			result->attribs[i].stride = sizeof(Vec3r);
 			position_index = i;
 			break;
-		case xen::gl::VertexAttrib::NormalXYZ:
+		case xen::VertexAttrib::NormalXYZ:
 			result->attribs[i].stride = sizeof(Vec3r);
 			break;
-		case xen::gl::VertexAttrib::ColorRGBf:
+		case xen::VertexAttrib::ColorRGBf:
 			if(attrib_data[i] == nullptr){
 				result->attribs[i].stride = 0;
 				result->attribs[i].value3f = Vec3f(1,1,1); // white by default
@@ -334,7 +334,7 @@ xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear& arena,
 			bool  generated_data = false;
 
 			// check if we need to generate normals
-			if(result->attribs[i].type == xen::gl::VertexAttrib::NormalXYZ && data_source == nullptr){
+			if(result->attribs[i].type == xen::VertexAttrib::NormalXYZ && data_source == nullptr){
 				// Then generate normals
 				generated_data = true;
 
