@@ -62,7 +62,7 @@ namespace{
 
 	void setAttributeSourceToDefault(xen::VertexAttributeSource& source,
 	                                 const xen::VertexAttributeType& type){
-		source.buffer = nullptr;
+		source.buffer = 0;
 
 		switch(type.type){
 		case xen::VertexAttributeType::PositionXYZ:
@@ -82,7 +82,6 @@ namespace{
 		xen::MemoryTransaction transaction(arena);
 
 		xen::gl::Mesh* result     = xen::pushType<xen::gl::Mesh>     (arena);
-		result->gpu_buffer        = xen::pushType<xen::gl::GpuBuffer>(arena);
 		result->attribute_count   = attrib_count;
 		result->attribute_types   = xen::pushTypeArray<xen::VertexAttributeType  >(arena, attrib_count);
 		result->attribute_sources = xen::pushTypeArray<xen::VertexAttributeSource>(arena, attrib_count);
@@ -151,9 +150,6 @@ xen::gl::Mesh* xen::gl::loadMesh(xen::ArenaLinear& arena, const char* path, u32 
 	result->attribute_sources[0].stride = 9 * sizeof(float);
 	result->attribute_sources[1].stride = 9 * sizeof(float);
 	result->attribute_sources[2].stride = 9 * sizeof(float);
-	result->attribute_sources[0].buffer = result->gpu_buffer;
-	result->attribute_sources[1].buffer = result->gpu_buffer;
-	result->attribute_sources[2].buffer = result->gpu_buffer;
 
 	for (size_t i = 0; i < attrib.num_face_num_verts; i++) {
 		XenAssert(attrib.face_num_verts[i] == 3, "Assuming mesh triangulated");
@@ -260,12 +256,14 @@ xen::gl::Mesh* xen::gl::loadMesh(xen::ArenaLinear& arena, const char* path, u32 
 		face_offset += (size_t)attrib.face_num_verts[i];
 	}
 
-	result->gpu_buffer->handle = 0;
-	result->num_triangles      = 0;
+	GLuint buffer_handle = 0;
 
 	if (num_triangles > 0) {
-		glGenBuffers(1, &result->gpu_buffer->handle);
-		glBindBuffer(GL_ARRAY_BUFFER, result->gpu_buffer->handle);
+		glGenBuffers(1, &buffer_handle);
+		for(u32 i = 0; i < 3; ++i){
+			result->attribute_sources[i].buffer = (GraphicsBuffer)buffer_handle;
+		}
+		glBindBuffer(GL_ARRAY_BUFFER, buffer_handle);
 		glBufferData(GL_ARRAY_BUFFER, num_triangles * 3 * stride * sizeof(float), vb, GL_STATIC_DRAW);
 		result->num_triangles = (int)num_triangles;
 	}
@@ -278,7 +276,7 @@ xen::gl::Mesh* xen::gl::loadMesh(xen::ArenaLinear& arena, const char* path, u32 
 
 	printf("Successfully loaded mesh '%s', gpu_buf: %i, num faces: %i, bounds:(%f, %f, %f) -> (%f, %f, %f)\n",
 	       path,
-	       result->gpu_buffer->handle,
+	       buffer_handle,
 	       result->num_triangles,
 	       result->bounds_min.x, result->bounds_min.y, result->bounds_min.z,
 	       result->bounds_max.x, result->bounds_max.y, result->bounds_max.z
@@ -307,8 +305,9 @@ xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear&                arena,
 
 	///////////////////////////////////////////////
 	// Create the GPU buffer
-	XEN_CHECK_GL(glGenBuffers(1, &result->gpu_buffer->handle));
-	XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, result->gpu_buffer->handle));
+	GLuint gpu_buffer;
+	XEN_CHECK_GL(glGenBuffers(1, &gpu_buffer));
+	XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, gpu_buffer));
 
 	///////////////////////////////////////////////
 	// Set up mesh attributes, work out where to store data in gpu buffer
@@ -330,7 +329,7 @@ xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear&                arena,
 			}
 		}
 
-		result->attribute_sources[i].buffer = (void*)result->gpu_buffer->handle;
+		result->attribute_sources[i].buffer = (GraphicsBuffer)gpu_buffer;
 		result->attribute_sources[i].offset = gpu_buffer_size;
 		result->attribute_sources[i].stride = getAttribTypeSize(attrib_types[i]);
 		gpu_buffer_size += result->attribute_sources[i].stride * vertex_count;
@@ -352,7 +351,7 @@ xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear&                arena,
 	XEN_CHECK_GL(glBufferData(GL_ARRAY_BUFFER, gpu_buffer_size, nullptr, GL_STATIC_DRAW));
 
 	printf("Created mesh, gpu_buf: %i, num faces: %i, bounds:(%f, %f, %f) -> (%f, %f, %f)\n",
-	       result->gpu_buffer->handle,
+	       gpu_buffer,
 	       result->num_triangles,
 	       result->bounds_min.x, result->bounds_min.y, result->bounds_min.z,
 	       result->bounds_max.x, result->bounds_max.y, result->bounds_max.z
@@ -368,7 +367,7 @@ xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear&                arena,
 			continue;
 		}
 
-		result->attribute_sources[i].buffer = (void*)result->gpu_buffer->handle;
+		result->attribute_sources[i].buffer = (GraphicsBuffer)gpu_buffer;
 
 		const void* data_source = attrib_data[i];
 		bool  generated_data = false;

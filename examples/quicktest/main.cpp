@@ -372,19 +372,9 @@ int main(int argc, char** argv){
 }
 
 void renderMesh(const xen::gl::Mesh* mesh){
-	XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->gpu_buffer->handle));
-
 	for(int i = 0; i < mesh->attribute_count; ++i){
-		if(mesh->attribute_sources[i].buffer == nullptr){
-			XEN_CHECK_GL(glDisableVertexAttribArray(i));
-			// :TODO: this relies on real being a float
-			XEN_CHECK_GL(glVertexAttrib3f(i,
-			                              mesh->attribute_sources[i].vec3r.x,
-			                              mesh->attribute_sources[i].vec3r.y,
-			                              mesh->attribute_sources[i].vec3r.z
-			                             )
-			             );
-		} else {
+		if(mesh->attribute_sources[i].buffer){
+			XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->attribute_sources[i].buffer));
 			XEN_CHECK_GL(glEnableVertexAttribArray(i));
 			XEN_CHECK_GL(glVertexAttribPointer(i,           //attrib layout
 			                                   3, GL_FLOAT, // num components and type
@@ -392,6 +382,15 @@ void renderMesh(const xen::gl::Mesh* mesh){
 			                                   mesh->attribute_sources[i].stride,
 			                                   (void*)mesh->attribute_sources[i].offset
 			                                  )
+			            );
+		} else {
+			XEN_CHECK_GL(glDisableVertexAttribArray(i));
+			// :TODO: this relies on real being a float
+			XEN_CHECK_GL(glVertexAttrib3f(i,
+			                              mesh->attribute_sources[i].vec3r.x,
+			                              mesh->attribute_sources[i].vec3r.y,
+			                              mesh->attribute_sources[i].vec3r.z
+			                             )
 			             );
 		}
 	}

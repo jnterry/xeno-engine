@@ -16,7 +16,7 @@
 namespace xen{
 
 	/// \brief Opaque type representing a memory buffer usable by the graphics device
-	typedef void* GraphicsBuffer;
+	typedef u32 GraphicsBuffer;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents meta-data about the type of a Mesh vertex attribute

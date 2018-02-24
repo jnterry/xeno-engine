@@ -17,11 +17,6 @@
 
 namespace xen{
 	namespace gl{
-		struct GpuBuffer{
-			// :TODO: this should be implementation only
-			GLuint handle;
-		};
-
 		/// \brief Type representing a mesh stored in some GpuBuffer which can be rendered
 		struct Mesh{
 
@@ -32,9 +27,6 @@ namespace xen{
 
 			// :TODO: support template param for type representing bounds min/max, so can
 			// support 2d or 3d meshes (or would we just always use quads in 2d with transparency?
-
-			/// \brief The GPU buffer containing this mesh's data
-			GpuBuffer*             gpu_buffer;
 
 			/// \brief The number of triangles in this mesh
 			u32                    num_triangles;
