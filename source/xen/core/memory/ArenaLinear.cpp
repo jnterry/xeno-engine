@@ -23,6 +23,10 @@ namespace xen{
 		arena.next_byte = arena.start;
 	}
 
+	bool isValid(ArenaLinear& arena){
+		return ((uptr)arena.next_byte) <= ((uptr)arena.end+1);
+	}
+
 	ptrdiff_t bytesRemaining(const ArenaLinear& arena){
 		return ptrDiff(arena.next_byte, arena.end);
 	}

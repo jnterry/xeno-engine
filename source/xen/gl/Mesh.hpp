@@ -33,12 +33,27 @@ namespace xen{
 			// :TODO: support template param for type representing bounds min/max, so can
 			// support 2d or 3d meshes (or would we just always use quads in 2d with transparency?
 
-			GpuBuffer*   gpu_buffer;     /// \brief The GPU buffer containing this mesh's data
-			u32          num_triangles;  /// \brief The number of triangles in this mesh
-			Vec3r        bounds_min;     /// \brief The min point of the Aabb of this mesh
-			Vec3r        bounds_max;     /// \brief The max point of the Aabb of this mesh
-			u08          attrib_count;   /// \brief The number of attributes per vertex of this mesh
-			VertexAttrib attribs[0];     /// \brief The types of attributes of this mesh
+			/// \brief The GPU buffer containing this mesh's data
+			GpuBuffer*             gpu_buffer;
+
+			/// \brief The number of triangles in this mesh
+			u32                    num_triangles;
+
+			// :TODO: convert to using a math Aabb
+			/// \brief The min point of the Aabb of this mesh
+			Vec3r                  bounds_min;
+
+			/// \brief The max point of the Aabb of this mesh
+			Vec3r                  bounds_max;
+
+			/// \brief The number of attributes per vertex of this mesh
+			u08                    attribute_count;
+
+			/// \brief The types of attributes of this mesh
+			VertexAttributeType*   attribute_types;
+
+			/// \brief The data sources for attributes of this mesh
+			VertexAttributeSource* attribute_sources;
 		};
 
 		#pragma GCC diagnostic pop // re-enable -Wpedantic
@@ -46,18 +61,18 @@ namespace xen{
 
 		/// \brief The
 		struct MeshLoadFlags {
-		enum Values{
-		NONE            = 0x00,
+			enum Values{
+				NONE            = 0x00,
 
-		/// \brief Indicates that smooth normals should be generated such that normal
-		/// of each vertex is average of all faces the vertex is a part of
-		//SMOOTH_NORMALS  = 0x01,
+				/// \brief Indicates that smooth normals should be generated such that normal
+				/// of each vertex is average of all faces the vertex is a part of
+				//SMOOTH_NORMALS  = 0x01,
 
-		/// \brief Modifies vertex positions such that center of mesh (according to bounding box)
-		/// is at the orgin
-		//CENTER_ORIGIN   = 0x02,
+				/// \brief Modifies vertex positions such that center of mesh (according to bounding box)
+				/// is at the orgin
+				//CENTER_ORIGIN   = 0x02,
 			};
-	};
+		};
 
 		/// \brief Loads a mesh from file
 		/// \param arena Arena in which resulting Mesh instance is stored
@@ -72,10 +87,12 @@ namespace xen{
 		///                     the mesh data. If nullptr then will attempt to derive
 		///                     the data, eg, generating normals from positions
 		/// \param flags        Additional flags controling the way the mesh is created
-		Mesh* createMesh(ArenaLinear& arena,
-			u08 attrib_count, VertexAttrib::Type* attrib_types,
-			u32 vertex_count, const void** attrib_data,
-			u32 flags = MeshLoadFlags::NONE);
+		Mesh* createMesh(ArenaLinear&               arena,
+		                 u08                        attrib_count,
+		                 const VertexAttributeType* attrib_types,
+		                 const void**               attrib_data,
+		                 u32                        vertex_count,
+		                 u32 flags = MeshLoadFlags::NONE);
 
 		/// \brief Destroys a mesh, cleaning up all its resources
 		//void destroyMesh(const char* mesh);

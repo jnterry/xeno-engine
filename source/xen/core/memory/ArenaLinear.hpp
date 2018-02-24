@@ -63,6 +63,8 @@ namespace xen{
 	/// Existing allocations should no longer be used
 	void resetArena(ArenaLinear& arena);
 
+	bool isValid(ArenaLinear& arena);
+
 	/// \brief Determines how many bytes are unused in the specified arena
 	ptrdiff_t bytesRemaining(const ArenaLinear& arena);
 
@@ -73,6 +75,19 @@ namespace xen{
 	/// \brief Pushes as much of the specified string as possible, truncating if nessacery.
 	/// Null terminator is not included
 	char* pushStringNoTerminate(ArenaLinear& arena, const char* str);
+
+	template<typename T>
+	T* pushTypeArray(ArenaLinear& arena, u32 length){
+		xen::ptrAlignForward(&arena.next_byte, alignof(T));
+		T* result = (T*)arena.next_byte;
+		xen::ptrAdvance     (&arena.next_byte, sizeof(T) * length);
+		return result;
+	}
+
+	template<typename T>
+	T* pushType(ArenaLinear& arena){
+		return pushTypeArray<T>(arena, 1);
+	}
 
 	/// \brief Reserves some number of bytes in an Arena and returns pointer to the first, does not initialize the bytes
 	/// \public \memberof xen::ArenaLinear

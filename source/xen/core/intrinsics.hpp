@@ -12,15 +12,26 @@
 
 #include <stdint.h>
 #include <cmath>
+#include <cstdio>
 
 #define XenArrayLength(array) (sizeof(array) / sizeof((array)[0]))
 
 /// \brief Triggers break in debugger (or crash if no debugger)
 /// \todo :TODO: something better?
-#define XenBreak(...) (*(char*)nullptr) = 'a';
+#define XenBreak(...) { \
+	printf("***XEN BREAK***\n"); \
+	(*(char*)nullptr) = 'a'; \
+	}
 
-#define XenAssert(cond, ...) { if(!(cond)){ XenBreak(__VAR_ARGS__); } }
-#define XenInvalidCodePath() XenBreak();
+// :TODO: something better than printf?
+#define XenAssert(cond, msg) \
+	if(!(cond)){ \
+		printf("*** XEN ASSERTION FAILURE: %s:%i - %s\n", __FILE__, __LINE__, msg); \
+		XenBreak(__VAR_ARGS__); \
+	}
+#define XenInvalidCodePath(msg)	  \
+	printf("***XEN INVALID CODE PATH: %s:%i - %s\n", __FILE__, __LINE__, msg); \
+	XenBreak();
 
 typedef float     r32;
 typedef double    r64;

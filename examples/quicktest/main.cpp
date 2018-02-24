@@ -190,10 +190,10 @@ int main(int argc, char** argv){
 	int emissive_color_loc    = xen::gl::getUniformLocation(prog, "emissive_color"   );
 	int camera_pos_loc        = xen::gl::getUniformLocation(prog, "camera_position"  );
 
-	xen::VertexAttrib::Type vertex_spec[] = {
-		xen::VertexAttrib::PositionXYZ,
-		xen::VertexAttrib::ColorRGBf,
-		xen::VertexAttrib::NormalXYZ
+	xen::VertexAttributeType vertex_spec[] = {
+		{ xen::VertexAttributeType::PositionXYZ },
+		{ xen::VertexAttributeType::ColorRGBf   },
+		{ xen::VertexAttributeType::NormalXYZ   }
 	};
 
 	xen::gl::Mesh* mesh_bunny = xen::gl::loadMesh(arena, "bunny.obj");
@@ -204,11 +204,13 @@ int main(int argc, char** argv){
 	};
 	XenAssert(XenArrayLength(vertex_spec) == XenArrayLength(cube_attrib_data),
 	          "Vertex spec attrib count must match num attribs used");
-	xen::gl::Mesh* mesh_cube      = xen::gl::createMesh(arena,
-	                                                    XenArrayLength(vertex_spec), vertex_spec,
-	                                                    3 * 2 * 6, // Vertex count: (3 vert per tri) * (2 tri per face) * (6 faces)
-	                                                    cube_attrib_data
-	                                                    );
+	xen::gl::Mesh* mesh_cube = xen::gl::createMesh
+		(
+		 arena,
+		 XenArrayLength(vertex_spec), vertex_spec,
+		 cube_attrib_data,
+		 3 * 2 * 6 // Vertex count: (3 vert per tri) * (2 tri per face) * (6 faces)
+		);
 
 	xen::RawImage          test_image   = xen::loadImage(arena, "test.bmp");
 	xen::gl::TextureHandle test_texture = xen::gl::createTexture(&test_image);
@@ -372,23 +374,24 @@ int main(int argc, char** argv){
 void renderMesh(const xen::gl::Mesh* mesh){
 	XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->gpu_buffer->handle));
 
-	for(int i = 0; i < mesh->attrib_count; ++i){
-		if(mesh->attribs[i].stride){
+	for(int i = 0; i < mesh->attribute_count; ++i){
+		if(mesh->attribute_sources[i].buffer == nullptr){
+			XEN_CHECK_GL(glDisableVertexAttribArray(i));
+			// :TODO: this relies on real being a float
+			XEN_CHECK_GL(glVertexAttrib3f(i,
+			                              mesh->attribute_sources[i].vec3r.x,
+			                              mesh->attribute_sources[i].vec3r.y,
+			                              mesh->attribute_sources[i].vec3r.z
+			                             )
+			             );
+		} else {
 			XEN_CHECK_GL(glEnableVertexAttribArray(i));
 			XEN_CHECK_GL(glVertexAttribPointer(i,           //attrib layout
 			                                   3, GL_FLOAT, // num components and type
 			                                   GL_FALSE,    // normalised
-			                                   mesh->attribs[i].stride,
-			                                   (void*)mesh->attribs[i].offset
-			                                   )
-			             );
-		} else {
-			XEN_CHECK_GL(glDisableVertexAttribArray(i));
-			XEN_CHECK_GL(glVertexAttrib3f(i,
-			                              mesh->attribs[i].value3r.x,
-			                              mesh->attribs[i].value3r.y,
-			                              mesh->attribs[i].value3r.z
-			                              )
+			                                   mesh->attribute_sources[i].stride,
+			                                   (void*)mesh->attribute_sources[i].offset
+			                                  )
 			             );
 		}
 	}
