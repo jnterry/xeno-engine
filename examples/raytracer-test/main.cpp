@@ -75,7 +75,7 @@ int main(int argc, char** argv){
 	scene_lights[0].type           = xen::LightSource3d::POINT;
 	scene_lights[0].point.position = {10.0_r, 0.2_r, -10.0_r};
 	scene_lights[0].color          = xen::Color::WHITE4f.rgb;
-	scene_lights[0].attenuation    = {0.0f, 0.0f, 0.1f};
+	scene_lights[0].attenuation    = {0.0f, 0.0f, 0.01f};
 
 	render_params.ambient_light = xen::Color3f(0.3f, 0.3f, 0.3f);
 	render_params.lights        = scene_lights;
@@ -253,7 +253,7 @@ int main(int argc, char** argv){
 
 		run_time += dt;
 
-		scene_lights[0].point.position.y = xen::mapToRange(-1.f, 1.f, 0.01f, 1.0f, xen::sin(run_time * 90_deg));
+		scene_lights[0].point.position.y = xen::mapToRange(-1.f, 1.f, 0.01f, 20.0f, xen::sin(run_time * 90_deg));
 
 		printf("dt: %f\n", dt);
 		handleInput(dt);
