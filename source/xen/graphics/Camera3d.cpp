@@ -17,7 +17,6 @@
 #include <xen/graphics/Camera3d.hpp>
 
 namespace xen {
-
 	Mat4r getViewMatrix(const Camera3d& camera){
 		//////////////////////////////////////////////////////////
 		// Compute axes relative to the camera

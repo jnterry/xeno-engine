@@ -94,6 +94,7 @@ namespace xen{
 		union{
 			T elements[3];
 			struct{ T x, y, z;                     };
+			struct{ T r, g, b;                     };
 			struct{ T u, v;                        };
 			struct{ Vec<2, T> uv;                  };
 			struct{ Vec<2, T> xy;                  };
@@ -121,14 +122,17 @@ namespace xen{
 
 	template<typename T>
 	struct Vec<4,T>{
+		Vec<4,T>(){}
 		Vec<4,T>(T nx, T ny, T nz, T nw) : x(nx), y(ny), z(nz), w(nw){}
 		union{
 		    T elements[4];
 			struct{ T x, y, z, w;                   };
+			struct{ T r, g, b, a;                   };
 			struct{ T u, v;                         };
 			struct{ Vec<2, T> xy, zw;               };
 			struct{ Vec<2, T> uv;                   };
 			struct{ Vec<3, T> xyz;                  };
+			struct{ Vec<3, T> rgb;                  };
 			struct{ T _unused1; Vec<3, T> yzw; };
 			struct{ T _unused2; Vec<2, T> yz;  };
 		};

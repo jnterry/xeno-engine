@@ -16,6 +16,7 @@
 #include <SDL.h>
 #include "../SDLauxilary.h"
 
+xen::RenderParameters3d render_params;
 xen::Camera3dCylinder camera;
 
 const u32 STAR_COUNT = 1024;
@@ -85,33 +86,33 @@ int main(int argc, char** argv){
 		{ 1_r,  0_r,  0_r },
 	};
 
-	xen::RenderCommand3d render_commands[5];
+	xen::FixedArray<xen::RenderCommand3d, 5> render_commands;
 	render_commands[0].type                = xen::RenderCommand3d::LINES;
-	render_commands[0].color               = xen::Color::RED;
+	render_commands[0].color               = xen::Color::RED4f;
 	render_commands[0].model_matrix        = xen::Scale3d(100_r);
 	render_commands[0].verticies.verticies = &axis_line_verts[0];
 	render_commands[0].verticies.count     = 2;
 
 	render_commands[1].type                = xen::RenderCommand3d::LINES;
-	render_commands[1].color               = xen::Color::GREEN;
+	render_commands[1].color               = xen::Color::GREEN4f;
 	render_commands[1].model_matrix        = xen::Scale3d(100_r);
 	render_commands[1].verticies.verticies = &axis_line_verts[2];
 	render_commands[1].verticies.count     = 2;
 
 	render_commands[2].type                = xen::RenderCommand3d::LINES;
-	render_commands[2].color               = xen::Color::BLUE;
+	render_commands[2].color               = xen::Color::BLUE4f;
 	render_commands[2].model_matrix        = xen::Scale3d(100_r);
 	render_commands[2].verticies.verticies = &axis_line_verts[4];
 	render_commands[2].verticies.count     = 2;
 
 	render_commands[3].type                = xen::RenderCommand3d::POINTS;
-	render_commands[3].color               = xen::Color::WHITE;
+	render_commands[3].color               = xen::Color::WHITE4f;
 	render_commands[3].model_matrix        = Mat4r::Identity;
 	render_commands[3].verticies.verticies = star_positions;
 	render_commands[3].verticies.count     = STAR_COUNT;
 
 	render_commands[4].type                = xen::RenderCommand3d::LINES;
-	render_commands[4].color               = 0xFFFFFF00;
+	render_commands[4].color               = xen::Color::CYAN4f;
 	render_commands[4].model_matrix        = xen::Scale3d(200_r) * xen::Translation3d(-100.0_r, -100.0_r, -100.0_r);
 	render_commands[4].verticies.verticies = &cube_lines[0];
 	render_commands[4].verticies.count     = XenArrayLength(cube_lines);
@@ -141,9 +142,9 @@ int main(int argc, char** argv){
 		xen::sren::clear(screen->buffer, xen::Color::BLACK);
 
 		// Do rendering
+		render_params.camera = xen::generateCamera3d(camera);
 		xen::sren::renderRasterize(screen->buffer, viewport,
-		                           xen::generateCamera3d(camera),
-		                           render_commands, XenArrayLength(render_commands)
+		                           render_params, render_commands
 		                          );
 
 		SDL_Renderframe(screen);

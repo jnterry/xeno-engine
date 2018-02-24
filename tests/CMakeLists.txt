@@ -6,6 +6,7 @@ add_executable(xen_unit_tests
 	${CMAKE_CURRENT_LIST_DIR}/core/minmax.cpp
 
   ${CMAKE_CURRENT_LIST_DIR}/math/ostream_operators.hpp
+	${CMAKE_CURRENT_LIST_DIR}/math/utilities.cpp
   ${CMAKE_CURRENT_LIST_DIR}/math/Angle.cpp
   ${CMAKE_CURRENT_LIST_DIR}/math/Vector.cpp
   ${CMAKE_CURRENT_LIST_DIR}/math/Matrix.cpp

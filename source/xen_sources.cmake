@@ -62,6 +62,7 @@ set(XEN_SOURCES_GRAPHICS
   ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Image.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Camera3d.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Color.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/RenderCommand3d.cpp
 )
 
 set(XEN_HEADERS_GRAPHICS

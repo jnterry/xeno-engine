@@ -25,7 +25,7 @@ namespace xen {
 	/// \return Barycentric coordinates of point p
 	/////////////////////////////////////////////////////////////////////
 	template<typename T>
-	Vec3<T> getBarycentricCoordinates(const Vec3<T>& p, const Triangle3<T>& tri){
+	Vec3<T> getBarycentricCoordinates(const Triangle3<T>& tri, const Vec3<T>& p){
     Vec3<T> v0 = tri.p2 - tri.p1;
 		Vec3<T> v1 = tri.p3 - tri.p1;
 		Vec3<T> v2 = p - tri.p1;

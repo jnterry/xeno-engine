@@ -78,28 +78,28 @@ TEST_CASE("Triangle toHomo", "[math][Triangle]"){
 	}
 
 	TEST_CASE("Triangle getBarycentric", "[math][Triangle]"){
-		CHECK(xen::getBarycentricCoordinates(Vec3r{0.5,0.2,0},
-			                                   xen::Triangle3r{Vec3r{0,0,0}, Vec3r{1,0,0}, Vec3r{0,1,0}}
+		CHECK(xen::getBarycentricCoordinates(xen::Triangle3r{Vec3r{0,0,0}, Vec3r{1,0,0}, Vec3r{0,1,0}},
+		                                     Vec3r{0.5,0.2,0}
 																			  )
 		      ==
 		      Vec3r{0.3,0.5,0.2}
 		     );
 
-		CHECK(xen::getBarycentricCoordinates(Vec3r{0,0,0},
-																				 xen::Triangle3r{Vec3r{0,0,0}, Vec3r{1,0,0}, Vec3r{0,1,0}}
+		CHECK(xen::getBarycentricCoordinates(xen::Triangle3r{Vec3r{0,0,0}, Vec3r{1,0,0}, Vec3r{0,1,0}},
+		                                     Vec3r{0,0,0}
 																				)
 					==
 					Vec3r{1.0,0.0,0.0}
 				 );
-		CHECK(xen::getBarycentricCoordinates(Vec3r{1,0,0},
-																				 xen::Triangle3r{Vec3r{0,0,0}, Vec3r{1,0,0}, Vec3r{0,1,0}}
+		CHECK(xen::getBarycentricCoordinates(xen::Triangle3r{Vec3r{0,0,0}, Vec3r{1,0,0}, Vec3r{0,1,0}},
+		                                     Vec3r{1,0,0}
 																				)
 					==
 					Vec3r{0.0,1.0,0.0}
 				 );
 
-		CHECK(xen::getBarycentricCoordinates(Vec3r{0,1,0},
-																				 xen::Triangle3r{Vec3r{0,0,0}, Vec3r{1,0,0}, Vec3r{0,1,0}}
+		CHECK(xen::getBarycentricCoordinates(xen::Triangle3r{Vec3r{0,0,0}, Vec3r{1,0,0}, Vec3r{0,1,0}},
+		                                     Vec3r{0,1,0}
 																				)
 					==
 					Vec3r{0.0,0.0,1.0}
