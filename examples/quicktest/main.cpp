@@ -319,7 +319,7 @@ int main(int argc, char** argv){
 		model_mat = Mat4r::Identity;
 		//model_mat *= xen::Rotation3dz(73_deg * time);
 		model_mat *= xen::Scale3d(20);
-		model_mat *= xen::Translation3d(-0.5_r * (mesh_bunny->bounds_max - mesh_bunny->bounds_min));
+		model_mat *= xen::Translation3d(-0.5_r * (mesh_bunny->bounds.max - mesh_bunny->bounds.min));
 		model_mat *= xen::Rotation3dy(67_deg * time);
 		//model_mat *= xen::Translation3d(0, 0, 0);
 		xen::gl::setUniform(mvp_mat_loc, model_mat * vp_mat);

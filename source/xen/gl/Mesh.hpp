@@ -11,6 +11,7 @@
 #define XEN_GL_MESH_HPP
 
 #include <xen/core/intrinsics.hpp>
+#include <xen/math/geometry_types.hpp>
 #include <xen/graphics/Mesh.hpp>
 
 #include "gl_header.hxx"
@@ -19,10 +20,6 @@ namespace xen{
 	namespace gl{
 		/// \brief Type representing a mesh stored in some GpuBuffer which can be rendered
 		struct Mesh{
-
-			Mesh(){}
-			~Mesh(){}
-
 			// :TODO: support indexed meshes
 
 			// :TODO: support template param for type representing bounds min/max, so can
@@ -31,12 +28,8 @@ namespace xen{
 			/// \brief The number of triangles in this mesh
 			u32                        num_triangles;
 
-			// :TODO: convert to using a math Aabb
-			/// \brief The min point of the Aabb of this mesh
-			Vec3r                      bounds_min;
-
-			/// \brief The max point of the Aabb of this mesh
-			Vec3r                      bounds_max;
+			/// \brief The bounding box of the geometry for this mesh
+			Aabb3r                     bounds;
 
 			/// \brief The number of attributes per vertex of this mesh
 			u08                        attribute_count;

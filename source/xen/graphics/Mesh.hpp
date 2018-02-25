@@ -15,7 +15,6 @@
 #include <xen/graphics/Color.hpp>
 
 namespace xen{
-
 	/// \brief Opaque type representing a memory buffer usable by the graphics device
 	typedef u32 GraphicsBuffer;
 
@@ -156,7 +155,6 @@ namespace xen{
 	/// the vertex attribute type's aspect
 	/////////////////////////////////////////////////////////////////////
 	VertexAttributeSource getDefaultVertexAttributeSource(xen::VertexAttributeType::Type type);
-
 }
 
 #endif

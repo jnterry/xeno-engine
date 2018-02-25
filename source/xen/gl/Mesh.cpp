@@ -150,12 +150,12 @@ xen::gl::Mesh* xen::gl::loadMesh(xen::ArenaLinear& arena, const char* path, u32 
 				v[2][k] = attrib.vertices[3 * (size_t)f2 + k];
 
 				// :TODO:COMP: have method that can update aabb bounds with a new point
-				result->bounds_min.elements[k] = (v[0][k] < result->bounds_min.elements[k]) ? v[0][k] : result->bounds_min.elements[k];
-				result->bounds_min.elements[k] = (v[1][k] < result->bounds_min.elements[k]) ? v[1][k] : result->bounds_min.elements[k];
-				result->bounds_min.elements[k] = (v[2][k] < result->bounds_min.elements[k]) ? v[2][k] : result->bounds_min.elements[k];
-				result->bounds_max.elements[k] = (v[0][k] > result->bounds_max.elements[k]) ? v[0][k] : result->bounds_max.elements[k];
-				result->bounds_max.elements[k] = (v[1][k] > result->bounds_max.elements[k]) ? v[1][k] : result->bounds_max.elements[k];
-				result->bounds_max.elements[k] = (v[2][k] > result->bounds_max.elements[k]) ? v[2][k] : result->bounds_max.elements[k];
+				result->bounds.min.elements[k] = (v[0][k] < result->bounds.min.elements[k]) ? v[0][k] : result->bounds.min.elements[k];
+				result->bounds.min.elements[k] = (v[1][k] < result->bounds.min.elements[k]) ? v[1][k] : result->bounds.min.elements[k];
+				result->bounds.min.elements[k] = (v[2][k] < result->bounds.min.elements[k]) ? v[2][k] : result->bounds.min.elements[k];
+				result->bounds.max.elements[k] = (v[0][k] > result->bounds.max.elements[k]) ? v[0][k] : result->bounds.max.elements[k];
+				result->bounds.max.elements[k] = (v[1][k] > result->bounds.max.elements[k]) ? v[1][k] : result->bounds.max.elements[k];
+				result->bounds.max.elements[k] = (v[2][k] > result->bounds.max.elements[k]) ? v[2][k] : result->bounds.max.elements[k];
 			}
 
 			if (attrib.num_normals > 0) {
@@ -252,8 +252,8 @@ xen::gl::Mesh* xen::gl::loadMesh(xen::ArenaLinear& arena, const char* path, u32 
 	       path,
 	       buffer_handle,
 	       result->num_triangles,
-	       result->bounds_min.x, result->bounds_min.y, result->bounds_min.z,
-	       result->bounds_max.x, result->bounds_max.y, result->bounds_max.z
+	       result->bounds.min.x, result->bounds.min.y, result->bounds.min.z,
+	       result->bounds.max.x, result->bounds.max.y, result->bounds.max.z
 	       );
 
 	transaction.commit();
@@ -315,11 +315,11 @@ xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear&                     arena,
 	// Calculate Mesh Bounds
 	XenAssert(position_index != 255, "Mesh's position data cannot be inferred");
 	Vec3r* positions = (Vec3r*)attrib_data[position_index];
-	result->bounds_min = positions[0];
-	result->bounds_max = positions[0];
+	result->bounds.min = positions[0];
+	result->bounds.max = positions[0];
 	for(u32 i = 1; i < vertex_count; ++i){
-		result->bounds_min = xen::min(result->bounds_min, positions[i]);
-		result->bounds_max = xen::max(result->bounds_max, positions[i]);
+		result->bounds.min = xen::min(result->bounds.min, positions[i]);
+		result->bounds.max = xen::max(result->bounds.max, positions[i]);
 	}
 
 	///////////////////////////////////////////////
@@ -329,8 +329,8 @@ xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear&                     arena,
 	printf("Created mesh, gpu_buf: %i, num faces: %i, bounds:(%f, %f, %f) -> (%f, %f, %f)\n",
 	       gpu_buffer,
 	       result->num_triangles,
-	       result->bounds_min.x, result->bounds_min.y, result->bounds_min.z,
-	       result->bounds_max.x, result->bounds_max.y, result->bounds_max.z
+	       result->bounds.min.x, result->bounds.min.y, result->bounds.min.z,
+	       result->bounds.max.x, result->bounds.max.y, result->bounds.max.z
 	      );
 
 	///////////////////////////////////////////////
