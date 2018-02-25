@@ -29,23 +29,23 @@ namespace xen{
 			// support 2d or 3d meshes (or would we just always use quads in 2d with transparency?
 
 			/// \brief The number of triangles in this mesh
-			u32                    num_triangles;
+			u32                        num_triangles;
 
 			// :TODO: convert to using a math Aabb
 			/// \brief The min point of the Aabb of this mesh
-			Vec3r                  bounds_min;
+			Vec3r                      bounds_min;
 
 			/// \brief The max point of the Aabb of this mesh
-			Vec3r                  bounds_max;
+			Vec3r                      bounds_max;
 
 			/// \brief The number of attributes per vertex of this mesh
-			u08                    attribute_count;
+			u08                        attribute_count;
 
 			/// \brief The types of attributes of this mesh
-			VertexAttributeType*   attribute_types;
+			VertexAttributeType::Type* attribute_types;
 
 			/// \brief The data sources for attributes of this mesh
-			VertexAttributeSource* attribute_sources;
+			VertexAttributeSource*     attribute_sources;
 		};
 
 		#pragma GCC diagnostic pop // re-enable -Wpedantic
@@ -79,11 +79,11 @@ namespace xen{
 		///                     the mesh data. If nullptr then will attempt to derive
 		///                     the data, eg, generating normals from positions
 		/// \param flags        Additional flags controling the way the mesh is created
-		Mesh* createMesh(ArenaLinear&               arena,
-		                 u08                        attrib_count,
-		                 const VertexAttributeType* attrib_types,
-		                 const void**               attrib_data,
-		                 u32                        vertex_count,
+		Mesh* createMesh(ArenaLinear&                     arena,
+		                 u08                              attrib_count,
+		                 const VertexAttributeType::Type* attrib_types,
+		                 const void**                     attrib_data,
+		                 u32                              vertex_count,
 		                 u32 flags = MeshLoadFlags::NONE);
 
 		/// \brief Destroys a mesh, cleaning up all its resources

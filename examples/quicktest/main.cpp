@@ -155,7 +155,7 @@ int main(int argc, char** argv){
 	camera.height = 0;
 	camera.up_dir = Vec3r::UnitY;
 	camera.axis   = Vec3r::UnitY;
-	camera.angle    = 90_deg;
+	camera.angle  = 90_deg;
 
 	sf::ContextSettings context_settings;
 	context_settings.depthBits = 24;
@@ -190,10 +190,10 @@ int main(int argc, char** argv){
 	int emissive_color_loc    = xen::gl::getUniformLocation(prog, "emissive_color"   );
 	int camera_pos_loc        = xen::gl::getUniformLocation(prog, "camera_position"  );
 
-	xen::VertexAttributeType vertex_spec[] = {
-		{ xen::VertexAttributeType::PositionXYZ },
-		{ xen::VertexAttributeType::ColorRGBf   },
-		{ xen::VertexAttributeType::NormalXYZ   }
+	xen::VertexAttributeType::Type vertex_spec[] = {
+		xen::VertexAttributeType::Position3r,
+		xen::VertexAttributeType::Color3f,
+		xen::VertexAttributeType::Normal3r
 	};
 
 	xen::gl::Mesh* mesh_bunny = xen::gl::loadMesh(arena, "bunny.obj");
