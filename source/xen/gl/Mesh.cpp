@@ -50,24 +50,6 @@ namespace{
 		}
 	}
 
-	void setAttributeSourceToDefault(xen::VertexAttributeSource& source,
-	                                 const xen::VertexAttributeType::Type& type){
-		source.buffer = 0;
-
-		switch(type){
-		case xen::VertexAttributeType::Position3r:
-			source.vec3r = {0,0,0};
-			return;
-		case xen::VertexAttributeType::Normal3r:
-			source.vec3r = {1,0,0};
-			return;
-		case xen::VertexAttributeType::Color3f:
-			source.color3f = xen::Color::WHITE4f.rgb;
-			return;
-		}
-		XenInvalidCodePath("Unhandled vertex attribute type while setting default source");
-	}
-
 	xen::gl::Mesh* pushMesh(xen::ArenaLinear& arena, u32 attrib_count){
 		xen::MemoryTransaction transaction(arena);
 
@@ -318,7 +300,7 @@ xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear&                     arena,
 			   xen::VertexAttributeType::_AspectNormal) {
 				// then normals will be computed down the line...
 			} else {
-				setAttributeSourceToDefault(result->attribute_sources[i], attrib_types[i]);
+				result->attribute_sources[i] = getDefaultVertexAttributeSource(attrib_types[i]);
 				continue;
 			}
 		}

@@ -109,12 +109,6 @@ namespace xen{
 	  };
   };
 
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Retrieves the size of a VertexAttributeType in bytes
-	/////////////////////////////////////////////////////////////////////
-	u32 getVertexAttributeTypeSize(VertexAttributeType::Type type);
-
 	// Disable gcc's warning about anonymous structs in unions temporarily...
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wpedantic"
@@ -150,6 +144,19 @@ namespace xen{
 	};
 
 	#pragma GCC diagnostic pop // re-enable -Wpedantic
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Retrieves the size of a VertexAttributeType in bytes
+	/////////////////////////////////////////////////////////////////////
+	u32 getVertexAttributeTypeSize(VertexAttributeType::Type type);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Gets the default source for a vertex attribute of the specified
+	/// type. This will be a constant with some sensible value dependent on
+	/// the vertex attribute type's aspect
+	/////////////////////////////////////////////////////////////////////
+	VertexAttributeSource getDefaultVertexAttributeSource(xen::VertexAttributeType::Type type);
+
 }
 
 #endif

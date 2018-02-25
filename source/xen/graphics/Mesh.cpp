@@ -28,6 +28,27 @@ namespace xen {
 
 		return result;
 	}
+
+	VertexAttributeSource getDefaultVertexAttributeSource(xen::VertexAttributeType::Type type) {
+		xen::VertexAttributeSource source = {0};
+
+		switch(type){
+		case xen::VertexAttributeType::Position3r:
+			source.vec3r = {0,0,0};
+			break;
+		case xen::VertexAttributeType::Normal3r:
+			source.vec3r = {1,0,0};
+			break;
+		case xen::VertexAttributeType::Color3f:
+			source.color3f = xen::Color::WHITE4f.rgb;
+			break;
+		default:
+			XenInvalidCodePath("Unhandled vertex attribute type while setting default source");
+			break;
+		}
+
+		return source;
+	}
 }
 
 #endif
