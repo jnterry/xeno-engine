@@ -53,6 +53,12 @@ namespace xen {
 			_device     :  8;
 	};
 
+	template<typename T>
+	T makeNullHandle(){
+		_GraphicsHandle<T::HANDLE_ID> result = {0};
+		return result;
+	}
+
 	/// \brief Handle to a Mesh which may be drawn by some GraphicsDevice.
 	///
 	/// A Mesh is the fundamental unit of geometry that may be rendered

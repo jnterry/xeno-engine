@@ -8,26 +8,29 @@
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/memory.hpp>
-#include <xen/util/File.hpp>
-#include <xen/gl/Shader.hpp>
-#include <xen/gl/gl_header.hxx>
-#include <xen/gl/Mesh.hxx>
-#include <xen/gl/Texture.hpp>
-#include <xen/graphics/Image.hpp>
-#include <xen/graphics/Camera3d.hpp>
+
 #include <xen/math/utilities.hpp>
 #include <xen/math/vector.hpp>
 #include <xen/math/matrix.hpp>
 #include <xen/math/angle.hpp>
 #include <xen/math/quaternion.hpp>
 
+#include <xen/graphics/Image.hpp>
+#include <xen/graphics/Camera3d.hpp>
+#include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/graphics/VertexAttribute.hpp>
+#include <xen/graphics/RenderCommand3d.hpp>
+#include <xen/graphics/Light3d.hpp>
+
+#include <xen/gl/Mesh.hxx>
+#include <xen/gl/Shader.hxx>
+#include <xen/gl/GlDevice.hpp>
+#include <xen/gl/Texture.hpp>
 
 #include "utilities.hpp"
 
-void renderMesh(const xen::gl::MeshHeader* mesh);
-xen::gl::ShaderProgram* loadShader(xen::ArenaLinear&);
-
+xen::RenderParameters3d render_params;
+xen::FixedArray<xen::LightSource3d, 1> light_sources;
 xen::Camera3dCylinder camera;
 real camera_speed = 50;
 xen::Angle camera_rotate_speed = 120_deg;
@@ -159,6 +162,8 @@ int main(int argc, char** argv){
 	camera.axis   = Vec3r::UnitY;
 	camera.angle  = 90_deg;
 
+	render_params.lights = light_sources;
+
 	sf::ContextSettings context_settings;
 	context_settings.depthBits = 24;
 	context_settings.stencilBits = 8;
@@ -166,9 +171,9 @@ int main(int argc, char** argv){
 	context_settings.majorVersion = 3;
 	context_settings.minorVersion = 0;
 
-	Vec2r window_size = {800, 600};
+	xen::Aabb2u viewport = { 0, 0, 800, 600 };
 
-	sf::Window app(sf::VideoMode(window_size.x, window_size.y, 32), "Window Title", sf::Style::Default, context_settings);
+	sf::Window app(sf::VideoMode(viewport.max.x, viewport.max.y, 32), "Window Title", sf::Style::Default, context_settings);
 
 	context_settings = app.getSettings();
 	printf("Initialized window, GL version: %i.%i\n", context_settings.majorVersion, context_settings.minorVersion);
@@ -178,19 +183,10 @@ int main(int argc, char** argv){
 	app.setActive(true);
 	glewInit();
 
-	XEN_CHECK_GL(glEnable(GL_DEPTH_TEST));
-	XEN_CHECK_GL(glDepthFunc(GL_LESS));
-
-	Mat4r model_mat, view_mat, proj_mat, vp_mat;
+	Mat4r model_mat;
 	Vec4r point_light_color = Vec4r(1,0,0,1);
 
-	xen::gl::ShaderProgram* prog  = loadShader(arena);
-	int mvp_mat_loc           = xen::gl::getUniformLocation(prog, "mvp_mat"          );
-	int model_mat_loc         = xen::gl::getUniformLocation(prog, "model_mat"        );
-	int point_light_pos_loc   = xen::gl::getUniformLocation(prog, "point_light_pos"  );
-	int point_light_color_loc = xen::gl::getUniformLocation(prog, "point_light_color");
-	int emissive_color_loc    = xen::gl::getUniformLocation(prog, "emissive_color"   );
-	int camera_pos_loc        = xen::gl::getUniformLocation(prog, "camera_position"  );
+	xen::GraphicsDevice* device = xen::createGlDevice(arena);
 
 	xen::VertexAttribute::Type vertex_spec[] = {
 		xen::VertexAttribute::Position3r,
@@ -220,6 +216,48 @@ int main(int argc, char** argv){
 	sf::Clock timer;
 	real last_time = 0;
 
+	int CMD_BUNNY  = 0;
+	int CMD_FLOOR  = 1;
+	int CMD_LIGHT  = 2;
+	int CMD_AXIS_X = 3;
+	int CMD_AXIS_Y = 4;
+	int CMD_AXIS_Z = 5;
+
+	xen::FixedArray<xen::RenderCommand3d , 6> render_cmds;
+	render_cmds[CMD_BUNNY ].type                = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_BUNNY ].color               = xen::Color::RED4f;
+	render_cmds[CMD_BUNNY ].model_matrix        = Mat4r::Identity;
+	render_cmds[CMD_BUNNY ].mesh_header         = mesh_bunny;
+
+  render_cmds[CMD_FLOOR ].type                = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_FLOOR ].color               = xen::Color::WHITE4f;
+	render_cmds[CMD_FLOOR ].model_matrix        = Mat4r::Identity;
+	render_cmds[CMD_FLOOR ].mesh_header         = mesh_cube;
+
+	render_cmds[CMD_LIGHT ].type                = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_LIGHT ].color               = xen::Color::RED4f;
+	render_cmds[CMD_LIGHT ].emissive_color      = xen::Color::RED4f;
+	render_cmds[CMD_LIGHT ].model_matrix        = Mat4r::Identity;
+	render_cmds[CMD_LIGHT ].mesh_header         = mesh_cube;
+
+	render_cmds[CMD_AXIS_X].type                = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_AXIS_X].color               = xen::Color::RED4f;
+	render_cmds[CMD_AXIS_X].emissive_color      = xen::Color::RED4f;
+	render_cmds[CMD_AXIS_X].model_matrix        = xen::Translation3d(1,0,0) * xen::Scale3d(5, 0.05, 0.05);
+	render_cmds[CMD_AXIS_X].mesh_header         = mesh_cube;
+
+	render_cmds[CMD_AXIS_Y].type                = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_AXIS_Y].color               = xen::Color::GREEN4f;
+	render_cmds[CMD_AXIS_Y].emissive_color      = xen::Color::GREEN4f;
+	render_cmds[CMD_AXIS_Y].model_matrix        = xen::Translation3d(0,1,0) * xen::Scale3d(0.05, 5, 0.05);
+	render_cmds[CMD_AXIS_Y].mesh_header         = mesh_cube;
+
+	render_cmds[CMD_AXIS_Z].type                = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_AXIS_Z].color               = xen::Color::BLUE4f;
+	render_cmds[CMD_AXIS_Z].emissive_color      = xen::Color::BLUE4f;
+	render_cmds[CMD_AXIS_Z].model_matrix        = xen::Translation3d(0,0,1) * xen::Scale3d(0.05, 0.05, 5);
+	render_cmds[CMD_AXIS_Z].mesh_header         = mesh_cube;
+
 	printf("Entering main loop\n");
 	while(app.isOpen()){
 		float time = timer.getElapsedTime().asSeconds();
@@ -234,7 +272,7 @@ int main(int argc, char** argv){
 				break;
 			case sf::Event::Resized:
 				XEN_CHECK_GL(glViewport(0,0,event.size.width, event.size.height));
-				window_size = {(real)event.size.width, (real)event.size.height};
+				viewport.max = {event.size.width, event.size.height};
 				break;
 			case sf::Event::KeyReleased:
 				switch(event.key.code){
@@ -283,21 +321,16 @@ int main(int argc, char** argv){
 			camera.up_dir = xen::rotated(camera.up_dir, -Vec3r::UnitZ, 90_deg * dt);
 		}
 
-		view_mat = getViewMatrix(camera);
-		proj_mat = getProjectionMatrix(camera, window_size);
-		vp_mat   = view_mat * proj_mat;
-
 		app.setActive(true);
-		XEN_CHECK_GL(glClearColor(0.1,0.1,0.1, 1));
-		XEN_CHECK_GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
-
-		xen::gl::useShader(prog);
 
 		Vec3r light_pos = xen::rotated(Vec3r{4, 3, 0}, Vec3r::UnitY, xen::Degrees(time*90_r));
-		xen::gl::setUniform(point_light_pos_loc, light_pos);
 		point_light_color.w = (1_r + sin(time*9)) / 2.0_r;
-		xen::gl::setUniform(point_light_color_loc, point_light_color);
-		xen::gl::setUniform(camera_pos_loc, getCameraPosition(camera));
+
+		////////////////////////////////////////////
+		// Set render params
+		render_params.camera = xen::generateCamera3d(camera);
+		render_params.lights[0].point.position = light_pos;
+		render_params.lights[0].color          = point_light_color;
 
 		////////////////////////////////////////////
 		// Draw Cube Light
@@ -309,12 +342,8 @@ int main(int argc, char** argv){
 		                          0.3 + sin(time*15 + 0.25*xen::PI)*0.03,
 		                          0.3 + sin(time*15 + 0.5*xen::PI)*0.03);
 		model_mat *= xen::Translation3d(light_pos);
-		xen::gl::setUniform(mvp_mat_loc, model_mat * vp_mat);
-		xen::gl::setUniform(model_mat_loc, model_mat);
-		xen::gl::setUniform(emissive_color_loc, point_light_color);
-		renderMesh(mesh_cube);
-		xen::gl::setUniform(emissive_color_loc, Vec4r::Origin);
-		////////////////////////////////////////////
+		render_cmds[CMD_LIGHT].model_matrix   = model_mat;
+		render_cmds[CMD_LIGHT].emissive_color = point_light_color;
 
 		////////////////////////////////////////////
 		// Draw Bunny
@@ -323,99 +352,24 @@ int main(int argc, char** argv){
 		model_mat *= xen::Scale3d(20);
 		model_mat *= xen::Translation3d(-0.5_r * (mesh_bunny->bounds.max - mesh_bunny->bounds.min));
 		model_mat *= xen::Rotation3dy(67_deg * time);
-		//model_mat *= xen::Translation3d(0, 0, 0);
-		xen::gl::setUniform(mvp_mat_loc, model_mat * vp_mat);
-		xen::gl::setUniform(model_mat_loc, model_mat);
-		renderMesh(mesh_bunny);
-		////////////////////////////////////////////
+		render_cmds[CMD_BUNNY].model_matrix = model_mat;
 
 		////////////////////////////////////////////
 		// Draw Floor
 		model_mat = Mat4r::Identity;
 		model_mat *= xen::Scale3d(30, 0.05, 30);
 		model_mat *= xen::Translation3d(0, -0.5, 0);
-		xen::gl::setUniform(mvp_mat_loc, model_mat * vp_mat);
-		xen::gl::setUniform(model_mat_loc, model_mat);
-		renderMesh(mesh_cube);
-		////////////////////////////////////////////
+		render_cmds[CMD_FLOOR].model_matrix = model_mat;
 
-		////////////////////////////////////////////
-		// Draw Axes
-		model_mat = Mat4r::Identity;
-		model_mat *= xen::Translation3d(1,0,0);
-		model_mat *= xen::Scale3d(5, 0.05, 0.05);
-		xen::gl::setUniform(mvp_mat_loc, model_mat * vp_mat);
-		xen::gl::setUniform(model_mat_loc, model_mat);
-		xen::gl::setUniform(emissive_color_loc, Vec4r(1,0,0,1));
-		renderMesh(mesh_cube);
-
-		model_mat = Mat4r::Identity;
-		model_mat *= xen::Translation3d(0,1,0);
-		model_mat *= xen::Scale3d(0.05, 5, 0.05);
-		xen::gl::setUniform(mvp_mat_loc, model_mat * vp_mat);
-		xen::gl::setUniform(model_mat_loc, model_mat);
-		xen::gl::setUniform(emissive_color_loc, Vec4r(0,1,0,1));
-		renderMesh(mesh_cube);
-
-		model_mat = Mat4r::Identity;
-		model_mat *= xen::Translation3d(0,0,1);
-		model_mat *= xen::Scale3d(0.05, 0.05, 5);
-		xen::gl::setUniform(mvp_mat_loc, model_mat * vp_mat);
-		xen::gl::setUniform(model_mat_loc, model_mat);
-		xen::gl::setUniform(emissive_color_loc, Vec4r(0,0,1,1));
-		renderMesh(mesh_cube);
-		////////////////////////////////////////////
-
+		device->clear (xen::makeNullHandle<xen::RenderTarget>(), viewport,
+		               xen::Color::BLACK
+		              );
+		device->render(xen::makeNullHandle<xen::RenderTarget>(), viewport,
+		               render_params, render_cmds
+		              );
 		app.display();
 	}
 	printf("Exiting main loop\n");
 
 	return 0;
-}
-
-void renderMesh(const xen::gl::MeshHeader* mesh){
-	for(int i = 0; i < mesh->attribute_count; ++i){
-		if(mesh->attribute_sources[i].buffer){
-			XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->attribute_sources[i].buffer));
-			XEN_CHECK_GL(glEnableVertexAttribArray(i));
-			XEN_CHECK_GL(glVertexAttribPointer(i,           //attrib layout
-			                                   3, GL_FLOAT, // num components and type
-			                                   GL_FALSE,    // normalised
-			                                   mesh->attribute_sources[i].stride,
-			                                   (void*)mesh->attribute_sources[i].offset
-			                                  )
-			            );
-		} else {
-			XEN_CHECK_GL(glDisableVertexAttribArray(i));
-			// :TODO: this relies on real being a float
-			XEN_CHECK_GL(glVertexAttrib3f(i,
-			                              mesh->attribute_sources[i].vec3r.x,
-			                              mesh->attribute_sources[i].vec3r.y,
-			                              mesh->attribute_sources[i].vec3r.z
-			                             )
-			             );
-		}
-	}
-
-	XEN_CHECK_GL(glDrawArrays(GL_TRIANGLES, 0, mesh->num_triangles * 3));
-}
-
-xen::gl::ShaderProgram* loadShader(xen::ArenaLinear& arena){
-	XenTempArena(scratch, 8196);
-
-	xen::FileData vertex_src = xen::loadFileAndNullTerminate(scratch, "vertex.glsl");
-	xen::FileData pixel_src  = xen::loadFileAndNullTerminate(scratch, "pixel.glsl");
-
-	auto result = xen::gl::createShaderProgram(arena, (char*)vertex_src.data, (char*)pixel_src.data);
-
-	if(!xen::gl::isOkay(result)){
-		xen::resetArena(scratch);
-		const char* errors = xen::gl::getErrors(result, scratch);
-		printf("Shader Errors:\n%s\n", errors);
-		exit(1);
-	} else {
-		printf("Shader compiled successfully\n");
-	}
-
-	return result;
 }

@@ -19,6 +19,13 @@ namespace xen{
 		return ArenaLinear(block, size);
 	}
 
+  void destroyArenaLinear(Allocator& alloc, ArenaLinear& arena){
+		alloc.deallocate(arena.start);
+		arena.start     = nullptr;
+		arena.end       = nullptr;
+		arena.next_byte = nullptr;
+	}
+
 	void resetArena(ArenaLinear& arena){
 		arena.next_byte = arena.start;
 	}

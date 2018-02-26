@@ -16,6 +16,7 @@
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/Light3d.hpp>
 #include <xen/graphics/Camera3d.hpp>
+#include <xen/graphics/GraphicsDevice_types.hpp>
 
 namespace xen{
 
@@ -39,6 +40,9 @@ namespace xen{
 			/// by grouping every 3 vertices
 			TRIANGLES,
 
+			/// \brief :TODO: tempoary, render a mesh handle as triangles
+			MESH,
+
 			COUNT,
 		};
 
@@ -47,6 +51,10 @@ namespace xen{
 
 		/// \brief The diffuse color to use
 		Color4f color;
+
+		/// \brief The emissive color of the surface, a/w component is interpreted
+		/// as a brightness modifier
+		Color4f emissive_color;
 
 		/// \brief Matrix to transform from world space to model space
 		Mat4r model_matrix;
@@ -57,6 +65,9 @@ namespace xen{
 				Vec3r* verticies;
 				u32    count;
 			} verticies;
+
+			/// :TODO: tempoary
+			void* mesh_header;
 		};
 	};
 

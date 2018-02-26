@@ -14,7 +14,6 @@ namespace xen {
 	struct GraphicsDevice;
 
 	GraphicsDevice* createGlDevice(ArenaLinear& arena);
-
 }
 
 #endif

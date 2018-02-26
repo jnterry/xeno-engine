@@ -100,8 +100,8 @@ set(XEN_SOURCES_GL
 )
 
 set(XEN_HEADERS_GL
-	${CMAKE_CURRENT_LIST_DIR}/xen/gl/Shader.hpp
-  ${CMAKE_CURRENT_LIST_DIR}/xen/gl/Mesh.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/gl/Shader.hxx
+  ${CMAKE_CURRENT_LIST_DIR}/xen/gl/Mesh.hxx
 	${CMAKE_CURRENT_LIST_DIR}/xen/gl/Texture.hpp
   ${CMAKE_CURRENT_LIST_DIR}/xen/gl/gl_header.hxx
 	${CMAKE_CURRENT_LIST_DIR}/xen/gl/GlDevice.hpp

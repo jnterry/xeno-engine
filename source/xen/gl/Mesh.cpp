@@ -54,10 +54,10 @@ namespace{
 	xen::gl::MeshHeader* pushMeshHeader(xen::ArenaLinear& arena, u32 attrib_count){
 		xen::MemoryTransaction transaction(arena);
 
-		xen::gl::MeshHeader* result = xen::pushType<xen::gl::MeshHeader>(arena);
+		xen::gl::MeshHeader* result = xen::reserveType<xen::gl::MeshHeader>(arena);
 		result->attribute_count     = attrib_count;
-		result->attribute_types     = xen::pushTypeArray<xen::VertexAttribute::Type    >(arena, attrib_count);
-		result->attribute_sources   = xen::pushTypeArray<xen::gl::VertexAttributeSource>(arena, attrib_count);
+		result->attribute_types     = xen::reserveTypeArray<xen::VertexAttribute::Type    >(arena, attrib_count);
+		result->attribute_sources   = xen::reserveTypeArray<xen::gl::VertexAttributeSource>(arena, attrib_count);
 
 		if(xen::isValid(arena)){
 			transaction.commit();

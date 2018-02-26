@@ -31,7 +31,7 @@ int main(int argc, char** argv){
 
 	scene_lights[0].type           = xen::LightSource3d::POINT;
 	scene_lights[0].point.position = {1.0_r, 1.0_r, 1.0_r};
-	scene_lights[0].color          = xen::Color::WHITE4f.rgb;
+	scene_lights[0].color          = xen::Color::WHITE4f;
 	scene_lights[0].attenuation    = {0.0f, 0.0f, 1.0f};
 
 	render_params.ambient_light = xen::Color3f(0.3f, 0.3f, 0.3f);

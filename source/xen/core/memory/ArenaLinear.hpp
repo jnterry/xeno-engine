@@ -11,6 +11,8 @@
 
 #include <xen/core/memory/utilities.hpp>
 
+#include <new>
+
 /// \brief Creates a tempory ArenaLinear by allocating space from the stack
 /// \param name Name of arena to create
 #define XenTempArena(name, size)	  \
@@ -59,6 +61,9 @@ namespace xen{
 	/// \note returned arena.start must be deallocated at some point
 	ArenaLinear createArenaLinear(Allocator& alloc, uint size);
 
+	/// \brief Destroys an ArenaLinear previously created with createArenaLinear
+	void destroyArenaLinear(Allocator& alloc, ArenaLinear& arena);
+
 	/// \brief Resets specified arena such that all space is usable again.
 	/// Existing allocations should no longer be used
 	void resetArena(ArenaLinear& arena);
@@ -76,38 +81,41 @@ namespace xen{
 	/// Null terminator is not included
 	char* pushStringNoTerminate(ArenaLinear& arena, const char* str);
 
+	/// \brief Reserves some number of bytes in an Arena and returns pointer to
+	/// the first. Does not initialise the bytes
+	/// \public \memberof xen::ArenaLinear
+	void* reserveBytes(ArenaLinear& arena, size_t num_bytes, u32 align = alignof(int));
+
+	/// \brief Reserves space for an array of some type in an ArenaLinear,
+	/// does not initialise the reserved space
+	/// \public \memberof xen::ArenaLinear
 	template<typename T>
-	T* pushTypeArray(ArenaLinear& arena, u32 length){
-		xen::ptrAlignForward(&arena.next_byte, alignof(T));
-		T* result = (T*)arena.next_byte;
-		xen::ptrAdvance     (&arena.next_byte, sizeof(T) * length);
-		return result;
+	T* reserveTypeArray(ArenaLinear& arena, u32 length){
+		return (T*)reserveBytes(arena, sizeof(T) * length, alignof(T));
 	}
 
+	/// \brief Reserves space for some type in an ArenaLinear,
+	/// does not initialise the reserved space
+	/// \public \memberof xen::ArenaLinear
 	template<typename T>
-	T* pushType(ArenaLinear& arena){
-		return pushTypeArray<T>(arena, 1);
+	T* reserveType(ArenaLinear& arena){
+	  return (T*)reserveBytes(arena, sizeof(T), alignof(T));
+	}
+
+
+	template<typename T>
+	inline T* reserve(ArenaLinear& arena, u32 count = 1, u32 align = alignof(T)){
+		return (T*)reserveBytes(arena, sizeof(T) * count, align);
 	}
 
 	/// \brief Pushes a new instance of some class into some arena. After
 	/// allocation calls the class's constructor with specified arguments
 	template<typename T, typename... T_ARGS>
-	T* pushNew(ArenaLinear& arena, T_ARGS... args){
-		T* result = pushType<T>(arena);
-		return new(result) T(args...);
+	inline T* emplace(ArenaLinear& arena, T_ARGS... args){
+		return new (reserveType<T>(arena)) (T)(args...);
 	}
 
-	/// \brief Reserves some number of bytes in an Arena and returns pointer to the first, does not initialize the bytes
-	/// \public \memberof xen::ArenaLinear
-	void* reserveBytes(ArenaLinear& arena, size_t num_bytes, u32 align = alignof(int));
 
-	/// \brief Reserves space for some type in an ArenaLinear, does not initialize the reserved space
-	/// \param count The number of instances of the type to reserve space for, puts them in continuous array
-	/// \public \memberof xen::ArenaLinear
-	template<typename T>
-	inline T* reserve(ArenaLinear& arena, u32 count = 1, u32 align = alignof(T)){
-		return (T*)reserveBytes(arena, sizeof(T) * count, align);
-	}
 }
 
 #endif
