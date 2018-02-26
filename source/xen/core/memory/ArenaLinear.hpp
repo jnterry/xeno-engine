@@ -89,6 +89,14 @@ namespace xen{
 		return pushTypeArray<T>(arena, 1);
 	}
 
+	/// \brief Pushes a new instance of some class into some arena. After
+	/// allocation calls the class's constructor with specified arguments
+	template<typename T, typename... T_ARGS>
+	T* pushNew(ArenaLinear& arena, T_ARGS... args){
+		T* result = pushType<T>(arena);
+		return new(result) T(args...);
+	}
+
 	/// \brief Reserves some number of bytes in an Arena and returns pointer to the first, does not initialize the bytes
 	/// \public \memberof xen::ArenaLinear
 	void* reserveBytes(ArenaLinear& arena, size_t num_bytes, u32 align = alignof(int));

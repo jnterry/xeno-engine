@@ -14,6 +14,7 @@
 #include <xen/util/File.hpp>
 #include <xen/math/vector.hpp>
 #include <xen/gl/Mesh.hpp>
+#include <xen/graphics/VertexAttribute.hpp>
 
 #include "gl_header.hxx"
 
@@ -55,8 +56,8 @@ namespace{
 
 		xen::gl::Mesh* result     = xen::pushType<xen::gl::Mesh>     (arena);
 		result->attribute_count   = attrib_count;
-		result->attribute_types   = xen::pushTypeArray<xen::VertexAttributeType::Type>(arena, attrib_count);
-		result->attribute_sources = xen::pushTypeArray<xen::VertexAttributeSource    >(arena, attrib_count);
+		result->attribute_types   = xen::pushTypeArray<xen::VertexAttribute::Type    >(arena, attrib_count);
+		result->attribute_sources = xen::pushTypeArray<xen::gl::VertexAttributeSource>(arena, attrib_count);
 
 		if(xen::isValid(arena)){
 			transaction.commit();
@@ -66,7 +67,33 @@ namespace{
 		}
 	}
 
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Gets the default source for a vertex attribute of the specified
+	/// type. This will be a constant with some sensible value dependent on
+	/// the vertex attribute type's aspect
+	/////////////////////////////////////////////////////////////////////
+	xen::gl::VertexAttributeSource getDefaultVertexAttributeSource(xen::VertexAttribute::Type type) {
+		xen::gl::VertexAttributeSource source = {0};
+
+		switch(type){
+		case xen::VertexAttribute::Position3r:
+			source.vec3r = {0,0,0};
+			break;
+		case xen::VertexAttribute::Normal3r:
+			source.vec3r = {1,0,0};
+			break;
+		case xen::VertexAttribute::Color3f:
+			source.color3f = xen::Color::WHITE4f.rgb;
+			break;
+		default:
+			XenInvalidCodePath("Unhandled vertex attribute type while setting default source");
+			break;
+		}
+
+		return source;
+	}
 }
+
 
 xen::gl::Mesh* xen::gl::loadMesh(xen::ArenaLinear& arena, const char* path, u32 flags){
 	//:TODO: this function is a mess (directly taken from tinyobj example code)
@@ -113,9 +140,9 @@ xen::gl::Mesh* xen::gl::loadMesh(xen::ArenaLinear& arena, const char* path, u32 
 	xen::MemoryTransaction transaction(arena);
 	xen::gl::Mesh* result = pushMesh(arena, 3);
 
-	result->attribute_types[0] = xen::VertexAttributeType::Position3r;
-	result->attribute_types[1] = xen::VertexAttributeType::Color3f;
-	result->attribute_types[2] = xen::VertexAttributeType::Normal3r;
+	result->attribute_types[0] = xen::VertexAttribute::Position3r;
+	result->attribute_types[1] = xen::VertexAttribute::Color3f;
+	result->attribute_types[2] = xen::VertexAttribute::Normal3r;
 
 	static_assert(sizeof(float) == sizeof(real), "This code assumes that real is a float");
 	result->attribute_sources[0].offset = 0 * sizeof(float);
@@ -235,7 +262,7 @@ xen::gl::Mesh* xen::gl::loadMesh(xen::ArenaLinear& arena, const char* path, u32 
 	if (num_triangles > 0) {
 		glGenBuffers(1, &buffer_handle);
 		for(u32 i = 0; i < 3; ++i){
-			result->attribute_sources[i].buffer = (GraphicsBuffer)buffer_handle;
+			result->attribute_sources[i].buffer = buffer_handle;
 		}
 		glBindBuffer(GL_ARRAY_BUFFER, buffer_handle);
 		glBufferData(GL_ARRAY_BUFFER, num_triangles * 3 * stride * sizeof(float), vb, GL_STATIC_DRAW);
@@ -260,11 +287,11 @@ xen::gl::Mesh* xen::gl::loadMesh(xen::ArenaLinear& arena, const char* path, u32 
 	return result;
 }
 
-xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear&                     arena,
-                                   u08                                   attrib_count,
-                                   const xen::VertexAttributeType::Type* attrib_types,
-                                   const void**                          attrib_data,
-                                   u32                                   vertex_count,
+xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear&                 arena,
+                                   u08                               attrib_count,
+                                   const xen::VertexAttribute::Type* attrib_types,
+                                   const void**                      attrib_data,
+                                   u32                               vertex_count,
                                    u32 flags){
 
 	XenAssert(vertex_count % 3 == 0, "Mesh must be created from collection of triangles");
@@ -288,16 +315,16 @@ xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear&                     arena,
 	for(u08 i = 0; i < attrib_count; ++i){
 		result->attribute_types[i] = attrib_types[i];
 
-		if((xen::VertexAttributeType::_AspectPosition & attrib_types[i]) ==
-		   xen::VertexAttributeType::_AspectPosition){
+		if((xen::VertexAttribute::_AspectPosition & attrib_types[i]) ==
+		   xen::VertexAttribute::_AspectPosition){
 			XenAssert(attrib_data[i] != nullptr, "Mesh's position data cannot be inferred");
 			XenAssert(position_index == 255, "Mesh can only have single position attribute");
 			position_index = i;
 		}
 
 		if(attrib_data[i] == nullptr){
-			if((xen::VertexAttributeType::_AspectNormal & attrib_types[i]) ==
-			   xen::VertexAttributeType::_AspectNormal) {
+			if((xen::VertexAttribute::_AspectNormal & attrib_types[i]) ==
+			   xen::VertexAttribute::_AspectNormal) {
 				// then normals will be computed down the line...
 			} else {
 				result->attribute_sources[i] = getDefaultVertexAttributeSource(attrib_types[i]);
@@ -305,9 +332,9 @@ xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear&                     arena,
 			}
 		}
 
-		result->attribute_sources[i].buffer = (GraphicsBuffer)gpu_buffer;
+		result->attribute_sources[i].buffer = gpu_buffer;
 		result->attribute_sources[i].offset = gpu_buffer_size;
-		result->attribute_sources[i].stride = getVertexAttributeTypeSize(attrib_types[i]);
+		result->attribute_sources[i].stride = getVertexAttributeSize(attrib_types[i]);
 		gpu_buffer_size += result->attribute_sources[i].stride * vertex_count;
 	}
 
@@ -338,22 +365,22 @@ xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear&                     arena,
 	for(u08 i = 0; i < attrib_count; ++i){
 		if(attrib_data[i] == nullptr &&
 		   (
-		    (result->attribute_types[i] & xen::VertexAttributeType::_AspectNormal) !=
-		    xen::VertexAttributeType::_AspectNormal
+		    (result->attribute_types[i] & xen::VertexAttribute::_AspectNormal) !=
+		    xen::VertexAttribute::_AspectNormal
 		   )
 		  ){
 			// Then its a constant attribute, there is nothing to buffer
 			continue;
 		}
 
-		result->attribute_sources[i].buffer = (GraphicsBuffer)gpu_buffer;
+		result->attribute_sources[i].buffer = gpu_buffer;
 
 		const void* data_source = attrib_data[i];
 		bool  generated_data = false;
 
 		// check if we need to generate normals
-		if(((xen::VertexAttributeType::_AspectNormal & result->attribute_types[i]) ==
-		    xen::VertexAttributeType::_AspectNormal
+		if(((xen::VertexAttribute::_AspectNormal & result->attribute_types[i]) ==
+		    xen::VertexAttribute::_AspectNormal
 		   ) &&
 		   data_source == nullptr){
 			// Then generate normals
@@ -377,7 +404,7 @@ xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear&                     arena,
 
 		XEN_CHECK_GL(glBufferSubData(GL_ARRAY_BUFFER,
 		                             result->attribute_sources[i].offset,
-		                             getVertexAttributeTypeSize(result->attribute_types[i]) * vertex_count,
+		                             getVertexAttributeSize(result->attribute_types[i]) * vertex_count,
 		                             data_source
 		                             )
 		             );
