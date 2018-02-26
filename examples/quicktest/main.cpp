@@ -10,8 +10,8 @@
 #include <xen/core/memory.hpp>
 #include <xen/util/File.hpp>
 #include <xen/gl/Shader.hpp>
-#include <xen/gl/Mesh.hpp>
 #include <xen/gl/gl_header.hxx>
+#include <xen/gl/Mesh.hxx>
 #include <xen/gl/Texture.hpp>
 #include <xen/graphics/Image.hpp>
 #include <xen/graphics/Camera3d.hpp>
@@ -21,9 +21,11 @@
 #include <xen/math/angle.hpp>
 #include <xen/math/quaternion.hpp>
 
+#include <xen/graphics/VertexAttribute.hpp>
+
 #include "utilities.hpp"
 
-void renderMesh(const xen::gl::Mesh* mesh);
+void renderMesh(const xen::gl::MeshHeader* mesh);
 xen::gl::ShaderProgram* loadShader(xen::ArenaLinear&);
 
 xen::Camera3dCylinder camera;
@@ -196,7 +198,7 @@ int main(int argc, char** argv){
 		xen::VertexAttribute::Normal3r
 	};
 
-	xen::gl::Mesh* mesh_bunny = xen::gl::loadMesh(arena, "bunny.obj");
+	xen::gl::MeshHeader* mesh_bunny = xen::gl::loadMesh(arena, "bunny.obj");
 
 	const void* cube_attrib_data[] = {&cube_buffer_data[3*2*6 * 0 * 3],
 	                                  nullptr,//&cube_buffer_data[3*2*6 * 1 * 3],
@@ -204,7 +206,7 @@ int main(int argc, char** argv){
 	};
 	XenAssert(XenArrayLength(vertex_spec) == XenArrayLength(cube_attrib_data),
 	          "Vertex spec attrib count must match num attribs used");
-	xen::gl::Mesh* mesh_cube = xen::gl::createMesh
+	xen::gl::MeshHeader* mesh_cube = xen::gl::createMesh
 		(
 		 arena,
 		 XenArrayLength(vertex_spec), vertex_spec,
@@ -371,7 +373,7 @@ int main(int argc, char** argv){
 	return 0;
 }
 
-void renderMesh(const xen::gl::Mesh* mesh){
+void renderMesh(const xen::gl::MeshHeader* mesh){
 	for(int i = 0; i < mesh->attribute_count; ++i){
 		if(mesh->attribute_sources[i].buffer){
 			XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->attribute_sources[i].buffer));

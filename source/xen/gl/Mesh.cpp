@@ -13,9 +13,9 @@
 #include <xen/core/memory.hpp>
 #include <xen/util/File.hpp>
 #include <xen/math/vector.hpp>
-#include <xen/gl/Mesh.hpp>
 #include <xen/graphics/VertexAttribute.hpp>
 
+#include "Mesh.hxx"
 #include "gl_header.hxx"
 
 #ifdef  XEN_USE_DOUBLE_PRECISION
@@ -51,13 +51,13 @@ namespace{
 		}
 	}
 
-	xen::gl::Mesh* pushMesh(xen::ArenaLinear& arena, u32 attrib_count){
+	xen::gl::MeshHeader* pushMeshHeader(xen::ArenaLinear& arena, u32 attrib_count){
 		xen::MemoryTransaction transaction(arena);
 
-		xen::gl::Mesh* result     = xen::pushType<xen::gl::Mesh>     (arena);
-		result->attribute_count   = attrib_count;
-		result->attribute_types   = xen::pushTypeArray<xen::VertexAttribute::Type    >(arena, attrib_count);
-		result->attribute_sources = xen::pushTypeArray<xen::gl::VertexAttributeSource>(arena, attrib_count);
+		xen::gl::MeshHeader* result = xen::pushType<xen::gl::MeshHeader>(arena);
+		result->attribute_count     = attrib_count;
+		result->attribute_types     = xen::pushTypeArray<xen::VertexAttribute::Type    >(arena, attrib_count);
+		result->attribute_sources   = xen::pushTypeArray<xen::gl::VertexAttributeSource>(arena, attrib_count);
 
 		if(xen::isValid(arena)){
 			transaction.commit();
@@ -95,7 +95,7 @@ namespace{
 }
 
 
-xen::gl::Mesh* xen::gl::loadMesh(xen::ArenaLinear& arena, const char* path, u32 flags){
+xen::gl::MeshHeader* xen::gl::loadMesh(xen::ArenaLinear& arena, const char* path, u32 flags){
 	//:TODO: this function is a mess (directly taken from tinyobj example code)
 	// - we should take params of what VertexAttribs we want to load, and in what order in final mesh
 	//   - currently loads color, but obj doesn't support colors, should replace with a constant value
@@ -138,7 +138,7 @@ xen::gl::Mesh* xen::gl::loadMesh(xen::ArenaLinear& arena, const char* path, u32 
 	float* vb = (float*)malloc(sizeof(float) * stride * num_triangles * 3);
 
 	xen::MemoryTransaction transaction(arena);
-	xen::gl::Mesh* result = pushMesh(arena, 3);
+	xen::gl::MeshHeader* result = pushMeshHeader(arena, 3);
 
 	result->attribute_types[0] = xen::VertexAttribute::Position3r;
 	result->attribute_types[1] = xen::VertexAttribute::Color3f;
@@ -287,17 +287,17 @@ xen::gl::Mesh* xen::gl::loadMesh(xen::ArenaLinear& arena, const char* path, u32 
 	return result;
 }
 
-xen::gl::Mesh* xen::gl::createMesh(xen::ArenaLinear&                 arena,
-                                   u08                               attrib_count,
-                                   const xen::VertexAttribute::Type* attrib_types,
-                                   const void**                      attrib_data,
-                                   u32                               vertex_count,
-                                   u32 flags){
+xen::gl::MeshHeader* xen::gl::createMesh(xen::ArenaLinear&                 arena,
+                                         u08                               attrib_count,
+                                         const xen::VertexAttribute::Type* attrib_types,
+                                         const void**                      attrib_data,
+                                         u32                               vertex_count,
+                                         u32 flags){
 
 	XenAssert(vertex_count % 3 == 0, "Mesh must be created from collection of triangles");
 
 	xen::MemoryTransaction transaction(arena);
-	xen::gl::Mesh* result = pushMesh(arena, attrib_count);
+	xen::gl::MeshHeader* result = pushMeshHeader(arena, attrib_count);
 
 	result->num_triangles = vertex_count / 3;
 

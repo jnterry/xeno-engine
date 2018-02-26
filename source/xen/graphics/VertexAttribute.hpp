@@ -110,6 +110,42 @@ namespace xen{
 	/// \brief Retrieves the size of a VertexAttributeType in bytes
 	/////////////////////////////////////////////////////////////////////
 	u32 getVertexAttributeSize(VertexAttribute::Type type);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents mesh data stored in main memory. This allows for
+	/// manipulations to be performed by the CPU, but the data IS NOT
+	/// in an appropriate format for rendering systems to draw the mesh
+	/////////////////////////////////////////////////////////////////////
+	struct MeshData {
+		/// \brief The number of attributes this Mesh has
+		u08                          attrib_count;
+
+		/// \brief The types of each mesh attribute
+		const VertexAttribute::Type* attrib_types;
+
+		/// \brief The data for each of this mesh's attributes
+		/// Array of length attrib_count, where each
+		const void**                 attrib_data;
+
+		/// \brief Number of vertices in the mesh
+		u32                          vertex_count;
+	};
+
+
+	/// \brief Additional flags which modify how mesh loading is performed
+	struct MeshLoadFlags {
+		enum Values{
+			NONE            = 0x00,
+
+			/// \brief Indicates that smooth normals should be generated such that normal
+			/// of each vertex is average of all faces the vertex is a part of
+			//SMOOTH_NORMALS  = 0x01,
+
+			/// \brief Modifies vertex positions such that center of mesh (according to bounding box)
+			/// is at the origin
+			//CENTER_ORIGIN   = 0x02,
+		};
+	};
 }
 
 #endif

@@ -55,7 +55,7 @@ namespace xen{
 		#pragma GCC diagnostic pop // re-enable -Wpedantic
 
 		/// \brief Type representing a mesh stored in some GpuBuffer which can be rendered
-		struct Mesh{
+		struct MeshHeader{
 			// :TODO: support indexed meshes
 
 			// :TODO: support template param for type representing bounds min/max, so can
@@ -79,25 +79,9 @@ namespace xen{
 
 		#pragma GCC diagnostic pop // re-enable -Wpedantic
 
-
-		/// \brief The
-		struct MeshLoadFlags {
-			enum Values{
-				NONE            = 0x00,
-
-				/// \brief Indicates that smooth normals should be generated such that normal
-				/// of each vertex is average of all faces the vertex is a part of
-				//SMOOTH_NORMALS  = 0x01,
-
-				/// \brief Modifies vertex positions such that center of mesh (according to bounding box)
-				/// is at the orgin
-				//CENTER_ORIGIN   = 0x02,
-			};
-		};
-
 		/// \brief Loads a mesh from file
 		/// \param arena Arena in which resulting Mesh instance is stored
-		Mesh* loadMesh(xen::ArenaLinear& arena, const char* const path, u32 flags = MeshLoadFlags::NONE);
+		MeshHeader* loadMesh(xen::ArenaLinear& arena, const char* const path, u32 flags = MeshLoadFlags::NONE);
 
 		/// \brief Creates a mesh from segregated buffers of data for each attribute
 		/// \param arena        Arena in which resulting Mesh instance is stored
@@ -108,12 +92,12 @@ namespace xen{
 		///                     the mesh data. If nullptr then will attempt to derive
 		///                     the data, eg, generating normals from positions
 		/// \param flags        Additional flags controling the way the mesh is created
-		Mesh* createMesh(ArenaLinear&                 arena,
-		                 u08                          attrib_count,
-		                 const VertexAttribute::Type* attrib_types,
-		                 const void**                 attrib_data,
-		                 u32                          vertex_count,
-		                 u32 flags = MeshLoadFlags::NONE);
+		MeshHeader* createMesh(ArenaLinear&                 arena,
+		                       u08                          attrib_count,
+		                       const VertexAttribute::Type* attrib_types,
+		                       const void**                 attrib_data,
+		                       u32                          vertex_count,
+		                       u32 flags = MeshLoadFlags::NONE);
 
 		/// \brief Destroys a mesh, cleaning up all its resources
 		//void destroyMesh(const char* mesh);
