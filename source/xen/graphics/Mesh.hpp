@@ -1,20 +1,23 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \brief Contains declaration VertexAttribute type and related functions
+/// \brief Contains declaration of Mesh and related types and functions
 ///
 /// \ingroup graphics
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_GRAPHICS_VERTEXATTRIBUTE_HPP
-#define XEN_GRAPHICS_VERTEXATTRIBUTE_HPP
+#ifndef XEN_GRAPHICS_MESH_HPP
+#define XEN_GRAPHICS_MESH_HPP
 
 #include <xen/config.hpp>
 #include <xen/core/intrinsics.hpp>
+#include <xen/core/array_types.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/graphics/Color.hpp>
 
 namespace xen{
+	struct ArenaLinear;
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents meta-data about the type of a Mesh vertex attribute.
 	///
@@ -26,7 +29,6 @@ namespace xen{
 	/// vary per vertex, or be constant for all vertices of a mesh.
 	/////////////////////////////////////////////////////////////////////
   struct VertexAttribute {
-
 	  // A type is really split into:
 	  // - aspect (position, normal, uv coord, etc)
 	  // - channel type (float, double, int, etc)
@@ -106,6 +108,9 @@ namespace xen{
 	  };
   };
 
+	/// \brief Full specification for the vertices of some mesh
+	typedef xen::Array<VertexAttribute::Type> VertexSpec;
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves the size of a VertexAttributeType in bytes
 	/////////////////////////////////////////////////////////////////////
@@ -118,19 +123,18 @@ namespace xen{
 	/////////////////////////////////////////////////////////////////////
 	struct MeshData {
 		/// \brief The number of attributes this Mesh has
-		u08                          attrib_count;
+		u08                    attrib_count;
 
 		/// \brief The types of each mesh attribute
-		const VertexAttribute::Type* attrib_types;
+		VertexAttribute::Type* attrib_types;
 
 		/// \brief The data for each of this mesh's attributes
 		/// Array of length attrib_count, where each
-		const void**                 attrib_data;
+		void**                 attrib_data;
 
 		/// \brief Number of vertices in the mesh
-		u32                          vertex_count;
+		u32                    vertex_count;
 	};
-
 
 	/// \brief Additional flags which modify how mesh loading is performed
 	struct MeshLoadFlags {
@@ -146,6 +150,57 @@ namespace xen{
 			//CENTER_ORIGIN   = 0x02,
 		};
 	};
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Creates a MeshData instance for the specified VertexSpec
+	///
+	/// All attribute data pointers will be set to nullptr
+	///
+	/// \note The returned MeshData instance will be self-contained within
+	/// the arena, that is, the arrays for attrib_types and attrib_data
+	/// will also be placed in the arena. Ownership of the memory for parameters
+	/// to this function is not changed by this function.
+	///
+	/// \param arena The arena to which the MeshData instance as well as
+	/// associated attrib_type array and attrib_data array will be pushed
+	///
+	/// \param spec The VertexSpec that the created MeshData should adhere to
+	///
+	/// \return Created MeshData instance
+	/////////////////////////////////////////////////////////////////////
+	MeshData* createEmptyMeshData(ArenaLinear& arena, const VertexSpec& spec);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Loads an obj file in order to fill in the data for a MeshData
+	/// instance.
+	///
+	/// This function will not overwrite any existing data for the Mesh, thus
+	/// the attrib_data pointers in the MeshData for any attributes you wish
+	/// to load from the obj file must be set to nullptr.
+	///
+	/// \note Obj files contain at most the aspects:
+	/// - position
+	/// - normal
+	/// - uv coordinate
+	/// The attrib_data pointers for vertex attributes for any other aspect
+	/// will not be changed by this function
+	///
+	/// \warn This function assumes the file specified by `path` exists and
+	/// will XenBreak otherwise
+	///
+	/// \param result MeshData instance to fill in to represent the loaded
+	/// data. The attrib_count and attrib_types fields should already be set up
+	/// as desired.
+	///
+	/// \param arena Arena in which to store the loaded vertex data
+	///
+	/// \param path The path of the file to load
+	///
+	/// \return True if mesh was successfully loaded, false otherwise. This can
+	/// occur if the arena if not large enough to fully contain the meshes vertex
+	/// data
+	/////////////////////////////////////////////////////////////////////
+  bool loadMeshObjFile(MeshData* result, ArenaLinear& arena, const char* path);
 }
 
 #endif

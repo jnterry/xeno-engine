@@ -102,12 +102,6 @@ namespace xen{
 	  return (T*)reserveBytes(arena, sizeof(T), alignof(T));
 	}
 
-
-	template<typename T>
-	inline T* reserve(ArenaLinear& arena, u32 count = 1, u32 align = alignof(T)){
-		return (T*)reserveBytes(arena, sizeof(T) * count, align);
-	}
-
 	/// \brief Pushes a new instance of some class into some arena. After
 	/// allocation calls the class's constructor with specified arguments
 	template<typename T, typename... T_ARGS>

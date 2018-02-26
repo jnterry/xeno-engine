@@ -13,7 +13,7 @@
 #include <xen/core/memory.hpp>
 #include <xen/util/File.hpp>
 #include <xen/math/vector.hpp>
-#include <xen/graphics/VertexAttribute.hpp>
+#include <xen/graphics/Mesh.hpp>
 
 #include "Mesh.hxx"
 #include "gl_header.hxx"
@@ -55,10 +55,14 @@ namespace{
 		xen::MemoryTransaction transaction(arena);
 
 		xen::gl::MeshHeader* result = xen::reserveType<xen::gl::MeshHeader>(arena);
+
+		if(!xen::isValid(arena)){ return nullptr; }
+
 		result->attribute_count     = attrib_count;
 		result->attribute_types     = xen::reserveTypeArray<xen::VertexAttribute::Type    >(arena, attrib_count);
 		result->attribute_sources   = xen::reserveTypeArray<xen::gl::VertexAttributeSource>(arena, attrib_count);
 
+		// :TODO:COMP: helper function -> return transaction.commitIfValid(arena, result);
 		if(xen::isValid(arena)){
 			transaction.commit();
 			return result;

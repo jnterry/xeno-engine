@@ -23,12 +23,25 @@ namespace xen{
 	/// \brief Returns a number of gigabytes as a number of bytes
 	inline constexpr size_t gigabytes(const size_t gb) { return megabytes(gb) * 1024; }
 
-	/// \brief Copies some number of bytes from A to B, returns param 'to'
-	inline void* copyBytes(const void* const from, void* const to, size_t num_bytes){
-		u8* source = (u8*)from;
-		u8* dest   = (u8*)to;
-		while(num_bytes--) { *dest++ = *source++; }
+	/// \brief Copies some array of type T from `from` to `to`. Returns param `to`
+	template<typename T>
+	inline T* copyArray(const T* const from, T* const to, size_t num_elements){
+		const T* source = from;
+		T* dest   = to;
+		while(num_elements--) { *dest++ = *source++; }
 		return to;
+	}
+
+	/// \brief Copies some number of bytes from `from` to `to`. Returns param 'to'
+	inline void* copyBytes(const void* const from, const void* const to, size_t num_bytes){
+		return copyArray<u8>((u8*)from, (u8*)to, num_bytes);
+	}
+
+	/// \brief Clears some number of bytes to 0. Returns param `bytes`
+	inline void* clearBytes(void* const bytes, size_t num_bytes){
+		u8* cur = (u8*)bytes;
+		while(num_bytes--) { *cur++ = 0; }
+		return bytes;
 	}
 
 	/// \brief Advances the pointer ptr such that its address mod align is 0,

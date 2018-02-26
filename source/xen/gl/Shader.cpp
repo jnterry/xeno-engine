@@ -40,7 +40,7 @@ namespace xen{
 		ShaderProgram* createShaderProgram(ArenaLinear& arena, const char* vertex_source, const char* pixel_source){
 			xen::MemoryTransaction transaction(arena);
 
-			ShaderProgram* result = xen::reserve<ShaderProgram>(arena);
+			ShaderProgram* result = xen::reserveType<ShaderProgram>(arena);
 			result->vertex_shader = compileShader(GL_VERTEX_SHADER,   vertex_source);
 			result->pixel_shader  = compileShader(GL_FRAGMENT_SHADER, pixel_source);
 

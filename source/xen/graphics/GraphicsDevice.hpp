@@ -73,7 +73,7 @@ namespace xen {
 		/// \return Mesh Handle to the created mesh, this handle may be used
 		/// in future with this GraphicsDevice to render the mesh
 		/////////////////////////////////////////////////////////////////////
-		virtual Mesh createMesh(MeshData& mesh_data) = 0;
+		virtual Mesh createMesh(const MeshData& mesh_data) = 0;
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Destroys a Mesh previously created by this GraphicsDevice

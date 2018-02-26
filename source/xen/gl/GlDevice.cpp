@@ -12,7 +12,7 @@
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
-#include <xen/graphics/VertexAttribute.hpp>
+#include <xen/graphics/Mesh.hpp>
 #include <xen/util/File.hpp>
 
 #include "gl_header.hxx"
@@ -111,7 +111,7 @@ namespace {
 			XEN_CHECK_GL(glDepthFunc(GL_LESS));
 		}
 
-		xen::Mesh createMesh(xen::MeshData& mesh_data){
+		xen::Mesh createMesh(const xen::MeshData& mesh_data){
 			u32 slot;
 			for(slot = 0; slot < MESH_STORE_SIZE; ++slot){
 				if(mesh_store[slot] == nullptr){
@@ -124,9 +124,9 @@ namespace {
 			mesh_store[slot] = xen::gl::createMesh(mesh_header_arena,
 			                                       mesh_data.attrib_count,
 			                                       mesh_data.attrib_types,
-			                                       mesh_data.attrib_data,
+			                                       (const void**)mesh_data.attrib_data,
 			                                       mesh_data.vertex_count
-			                                       );
+			                                      );
 
 			return makeHandle<xen::Mesh::HANDLE_ID>(slot, 0);
 
@@ -176,7 +176,7 @@ namespace {
 			                                     (Vec2r)(viewport.max - viewport.min));
 			Mat4r vp_mat   = view_mat * proj_mat;
 
-			for(int cmd_index = 0; cmd_index < commands.size; ++cmd_index){
+			for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 				const xen::RenderCommand3d* cmd = &commands[cmd_index];
 
 				if(cmd->type != xen::RenderCommand3d::MESH){ continue; }

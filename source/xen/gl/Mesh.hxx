@@ -12,7 +12,7 @@
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/math/geometry_types.hpp>
-#include <xen/graphics/VertexAttribute.hpp>
+#include <xen/graphics/Mesh.hpp>
 
 #include "gl_header.hxx"
 

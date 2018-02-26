@@ -18,7 +18,7 @@
 #include <xen/graphics/Image.hpp>
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
-#include <xen/graphics/VertexAttribute.hpp>
+#include <xen/graphics/Mesh.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/Light3d.hpp>
 
