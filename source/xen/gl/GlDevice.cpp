@@ -178,7 +178,7 @@ namespace {
 				xen::gl::setUniform(mvp_mat_loc,        cmd->model_matrix * vp_mat);
 				xen::gl::setUniform(model_mat_loc,      cmd->model_matrix);
 				xen::gl::setUniform(emissive_color_loc, cmd->emissive_color);
-				renderMesh((const xen::gl::MeshHeader*)cmd->mesh_header);
+				renderMesh(mesh_store[cmd->mesh._id]);
 			}
 		}
 		/// @}

@@ -196,7 +196,7 @@ int main(int argc, char** argv){
 
 	xen::MeshData* mesh_data_bunny = xen::createEmptyMeshData(arena, vertex_spec);
 	xen::loadMeshFile(mesh_data_bunny, arena, "bunny.obj");
-	xen::gl::MeshHeader* mesh_bunny = xen::gl::createMesh(arena, *mesh_data_bunny);
+	xen::Mesh mesh_bunny = device->createMesh(*mesh_data_bunny);
 
 	void* mesh_cube_attrib_data[] = {
 		&cube_buffer_data[3*2*6 * 0 * 3],
@@ -208,7 +208,7 @@ int main(int argc, char** argv){
 	mesh_data_cube.attrib_types = vertex_spec.elements;
 	mesh_data_cube.vertex_count = 3 * 2 * 6; // (3 vert per tri) * (2 tri per face) * (6 faces)
 	mesh_data_cube.attrib_data  = mesh_cube_attrib_data;
-	xen::gl::MeshHeader* mesh_cube = xen::gl::createMesh(arena, mesh_data_cube);
+	xen::Mesh mesh_cube = device->createMesh(mesh_data_cube);
 
 	xen::RawImage          test_image   = xen::loadImage(arena, "test.bmp");
 	xen::gl::TextureHandle test_texture = xen::gl::createTexture(&test_image);
@@ -227,36 +227,36 @@ int main(int argc, char** argv){
 	render_cmds[CMD_BUNNY ].type                = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_BUNNY ].color               = xen::Color::RED4f;
 	render_cmds[CMD_BUNNY ].model_matrix        = Mat4r::Identity;
-	render_cmds[CMD_BUNNY ].mesh_header         = mesh_bunny;
+	render_cmds[CMD_BUNNY ].mesh                = mesh_bunny;
 
   render_cmds[CMD_FLOOR ].type                = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_FLOOR ].color               = xen::Color::WHITE4f;
 	render_cmds[CMD_FLOOR ].model_matrix        = Mat4r::Identity;
-	render_cmds[CMD_FLOOR ].mesh_header         = mesh_cube;
+	render_cmds[CMD_FLOOR ].mesh                = mesh_cube;
 
 	render_cmds[CMD_LIGHT ].type                = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_LIGHT ].color               = xen::Color::RED4f;
 	render_cmds[CMD_LIGHT ].emissive_color      = xen::Color::RED4f;
 	render_cmds[CMD_LIGHT ].model_matrix        = Mat4r::Identity;
-	render_cmds[CMD_LIGHT ].mesh_header         = mesh_cube;
+	render_cmds[CMD_LIGHT ].mesh                = mesh_cube;
 
 	render_cmds[CMD_AXIS_X].type                = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_AXIS_X].color               = xen::Color::RED4f;
 	render_cmds[CMD_AXIS_X].emissive_color      = xen::Color::RED4f;
 	render_cmds[CMD_AXIS_X].model_matrix        = xen::Translation3d(1,0,0) * xen::Scale3d(5, 0.05, 0.05);
-	render_cmds[CMD_AXIS_X].mesh_header         = mesh_cube;
+	render_cmds[CMD_AXIS_X].mesh                = mesh_cube;
 
 	render_cmds[CMD_AXIS_Y].type                = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_AXIS_Y].color               = xen::Color::GREEN4f;
 	render_cmds[CMD_AXIS_Y].emissive_color      = xen::Color::GREEN4f;
 	render_cmds[CMD_AXIS_Y].model_matrix        = xen::Translation3d(0,1,0) * xen::Scale3d(0.05, 5, 0.05);
-	render_cmds[CMD_AXIS_Y].mesh_header         = mesh_cube;
+	render_cmds[CMD_AXIS_Y].mesh                = mesh_cube;
 
 	render_cmds[CMD_AXIS_Z].type                = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_AXIS_Z].color               = xen::Color::BLUE4f;
 	render_cmds[CMD_AXIS_Z].emissive_color      = xen::Color::BLUE4f;
 	render_cmds[CMD_AXIS_Z].model_matrix        = xen::Translation3d(0,0,1) * xen::Scale3d(0.05, 0.05, 5);
-	render_cmds[CMD_AXIS_Z].mesh_header         = mesh_cube;
+	render_cmds[CMD_AXIS_Z].mesh                = mesh_cube;
 
 	printf("Entering main loop\n");
 	while(app.isOpen()){
@@ -350,7 +350,7 @@ int main(int argc, char** argv){
 		model_mat = Mat4r::Identity;
 		//model_mat *= xen::Rotation3dz(73_deg * time);
 		model_mat *= xen::Scale3d(20);
-		model_mat *= xen::Translation3d(-0.5_r * (mesh_bunny->bounds.max - mesh_bunny->bounds.min));
+		model_mat *= xen::Translation3d(-0.5_r * (mesh_data_bunny->bounds.max - mesh_data_bunny->bounds.min));
 		model_mat *= xen::Rotation3dy(67_deg * time);
 		render_cmds[CMD_BUNNY].model_matrix = model_mat;
 

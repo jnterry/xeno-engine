@@ -40,7 +40,9 @@ namespace xen{
 			/// by grouping every 3 vertices
 			TRIANGLES,
 
-			/// \brief :TODO: tempoary, render a mesh handle as triangles
+			/// \brief :TODO: temporary, render a mesh handle as triangles
+			/// we really want to be able to render an actual mesh as
+			/// different primitive types
 			MESH,
 
 			COUNT,
@@ -66,8 +68,7 @@ namespace xen{
 				u32    count;
 			} verticies;
 
-			/// :TODO: tempoary
-			void* mesh_header;
+		  Mesh mesh;
 		};
 	};
 
