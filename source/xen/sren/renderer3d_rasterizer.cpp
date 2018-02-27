@@ -65,7 +65,6 @@ namespace {
 	void doRenderLine2d(xen::sren::RenderTarget& target, xen::LineSegment2r line, xen::Color color){
 		//https://www.cs.virginia.edu/luther/blog/posts/492.html
 		if(line.p1 != line.p2){
-			/*
 			//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
 			real num_pixels = xen::max(abs(line.p1.x - line.p2.x), abs(line.p1.y - line.p2.y));
 			//printf("Drawing line with %f (%u) pixels\n", num_pixels, (u32)num_pixels);
@@ -75,7 +74,7 @@ namespace {
 				target[cur.x][cur.y] = color;
 				cur += delta;
 			}
-			*/
+			/*
 			// Bresenham Algorithm, taken from:
 			// https://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#C.2B.2B
 			// :NOTE: May be a more efficient implementation available
@@ -122,6 +121,7 @@ namespace {
     		}
   		}
 		}
+		*/
 	}
 
 	void doRenderLine3d(xen::sren::RenderTarget& target,
@@ -211,144 +211,16 @@ namespace {
 		xen::LineSegment2r line_a = {tri.p1, tri.p2};
 		xen::LineSegment2r line_b = {tri.p1, tri.p3};
 		xen::LineSegment2r line_c = {tri.p2, tri.p3};
-
-		// :NOTE: May be a more efficient base Bresenham implementation available
-		const bool steep_a = (fabs(line_a.p2.y - line_a.p1.y) > fabs(line_a.p2.x - line_a.p1.x));
-		const bool steep_b = (fabs(line_b.p2.y - line_b.p1.y) > fabs(line_b.p2.x - line_b.p1.x));
-		const bool steep_c = (fabs(line_c.p2.y - line_c.p1.y) > fabs(line_c.p2.x - line_c.p1.x));
-		if(steep_a){
-			// Swap (line.p1.x, line.p1.y)
-			line_a.p1.x = line_a.p1.x + line_a.p1.y;
-			line_a.p1.y = line_a.p1.x - line_a.p1.y;
-			line_a.p1.x = line_a.p1.x - line_a.p1.y;
-			// Swap (line.p2.x, line.p2.y)
-			line_a.p2.x = line_a.p2.x + line_a.p2.y;
-			line_a.p2.y = line_a.p2.x - line_a.p2.y;
-			line_a.p2.x = line_a.p2.x - line_a.p2.y;
+		// :TODO: this just draws a straight line...
+		//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
+		real num_pixels = xen::max(abs(line.p1.x - line.p2.x), abs(line.p1.y - line.p2.y));
+		//printf("Drawing line with %f (%u) pixels\n", num_pixels, (u32)num_pixels);
+		Vec2r delta = (line.p1 - line.p2) / num_pixels;
+		Vec2r cur   = line.p2;
+		for(u32 i = 0; i < (u32)num_pixels; ++i){
+			target[cur.x][cur.y] = color;
+			cur += delta;
 		}
-		if(steep_b){
-			// Swap (line.p1.x, line.p1.y)
-			line_b.p1.x = line_b.p1.x + line_b.p1.y;
-			line_b.p1.y = line_b.p1.x - line_b.p1.y;
-			line_b.p1.x = line_b.p1.x - line_b.p1.y;
-			// Swap (line.p2.x, line.p2.y)
-			line_b.p2.x = line_b.p2.x + line_b.p2.y;
-			line_b.p2.y = line_b.p2.x - line_b.p2.y;
-			line_b.p2.x = line_b.p2.x - line_b.p2.y;
-		}
-		if(steep_c){
-			// Swap (line.p1.x, line.p1.y)
-			line_c.p1.x = line_c.p1.x + line_c.p1.y;
-			line_c.p1.y = line_c.p1.x - line_c.p1.y;
-			line_c.p1.x = line_c.p1.x - line_c.p1.y;
-			// Swap (line.p2.x, line.p2.y)
-			line_c.p2.x = line_c.p2.x + line_c.p2.y;
-			line_c.p2.y = line_c.p2.x - line_c.p2.y;
-			line_c.p2.x = line_c.p2.x - line_c.p2.y;
-		}
-		if(line_a.p1.x > line_a.p2.x){
-			// Swap (line.p1.x, line.p2.x)
-			line_a.p1.x = line_a.p1.x + line_a.p2.x;
-			line_a.p2.x = line_a.p1.x - line_a.p2.x;
-			line_a.p1.x = line_a.p1.x - line_a.p2.x;
-			// Swap (line.p1.y, line.p2.y)
-			line_a.p1.y = line_a.p1.y + line_a.p2.y;
-			line_a.p2.y = line_a.p1.y - line_a.p2.y;
-			line_a.p1.y = line_a.p1.y - line_a.p2.y;
-		}
-		if(line_b.p1.x > line_b.p2.x){
-			// Swap (line.p1.x, line.p2.x)
-			line_b.p1.x = line_b.p1.x + line_b.p2.x;
-			line_b.p2.x = line_b.p1.x - line_b.p2.x;
-			line_b.p1.x = line_b.p1.x - line_b.p2.x;
-			// Swap (line.p1.y, line.p2.y)
-			line_b.p1.y = line_b.p1.y + line_b.p2.y;
-			line_b.p2.y = line_b.p1.y - line_b.p2.y;
-			line_b.p1.y = line_b.p1.y - line_b.p2.y;
-		}
-		if(line_c.p1.x > line_c.p2.x){
-			// Swap (line.p1.x, line.p2.x)
-			line_c.p1.x = line_c.p1.x + line_c.p2.x;
-			line_c.p2.x = line_c.p1.x - line_c.p2.x;
-			line_c.p1.x = line_c.p1.x - line_c.p2.x;
-			// Swap (line.p1.y, line.p2.y)
-			line_c.p1.y = line_c.p1.y + line_c.p2.y;
-			line_c.p2.y = line_c.p1.y - line_c.p2.y;
-			line_c.p1.y = line_c.p1.y - line_c.p2.y;
-		}
-		const real dx_a = line_a.p2.x - line_a.p1.x;
-		const real dx_b = line_b.p2.x - line_b.p1.x;
-		const real dx_c = line_c.p2.x - line_c.p1.x;
-
-		const real dy_a = fabs(line_a.p2.y - line_a.p1.y);
-		const real dy_b = fabs(line_b.p2.y - line_b.p1.y);
-		const real dy_c = fabs(line_c.p2.y - line_c.p1.y);
-
-		real error_a = dx_a / 2.0f;
-		real error_b = dx_b / 2.0f;
-		real error_c = dx_c / 2.0f;
-		int y_a = (int)line_a.p1.y;
-		int y_b = (int)line_b.p1.y;
-		int y_c = (int)line_c.p1.y;
-		const int maxX_a = (int)line_a.p2.x;
-		const int maxX_b = (int)line_b.p2.x;
-		const int maxX_c = (int)line_c.p2.x;
-
-		bool hasChangedY_a = false;
-		bool hasChangedY_b = false;
-		bool hasChangedY_c = false;
-
-		// loop over line_b as this is guaranteed to be longest
-		// :TODO: Need to track x step for line a
-		for(int x_b=(int)line_b.p1.x; x_b<maxX_b; x_b++){
-			// draw line_a until change in y
-			if (!hasChangedY_a){
-				if(steep_a){
-					target[y_a][x_a] = color;
-				}else{
-					target[x_a][y_a] = color;
-				}
-			}
-			// draw line_b until change in y
-			if (!hasChangedY_b){
-				if(steep_b){
-					target[y_b][x_b] = color;
-				}else{
-					target[x_b][y_b] = color;
-				}
-			}
-			// If both have changed in y, as both start at same point then we know both are horizontal
-			if (hasChangedY_a && hasChangedY_b) {
-
-			}
-			error_a -= dy_a;
-			error_b -= dy_b;
-			if(error_a < 0){
-				++y_a;
-				error_a += dx_a;
-				hasChangedY_a = true;
-			}
-			if(error_b < 0){
-				++y_b;
-				error_b += dx_b;
-				hasChangedY_b = true;
-			}
-		}
-		/*
-		for(int x_a=(int)line_a.p1.x; x_a<maxX_a; x_a++){
-			if(steep_a){
-				target[y_a][x_a] = color;
-			}else{
-				target[x_a][y_a] = color;
-			}
-
-			error_a -= dy_a;
-			if(error_a < 0){
-				y_a += ystep_a;
-				error_a += dx_a;
-			}
-		}
-		*/
 
 	}
 	// :TODO: Write doRenderTriangle3d which takes a 3D triangle, put into clip
