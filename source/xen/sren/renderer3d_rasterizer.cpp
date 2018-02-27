@@ -120,8 +120,8 @@ namespace {
         	error += dx;
     		}
   		}
+			*/
 		}
-		*/
 	}
 
 	void doRenderLine3d(xen::sren::RenderTarget& target,
@@ -201,30 +201,66 @@ namespace {
 		//     tri.p2 .      /
 		//            |     /
 		//            |    /
-		//            |   / b
-		//          a |  /
+		//            |   / a
+		//          b |  /
 		//            | /
 		//            |/
 		//            .
 		//          tri.p1
-
-		xen::LineSegment2r line_a = {tri.p1, tri.p2};
-		xen::LineSegment2r line_b = {tri.p1, tri.p3};
+		// :TODO: current code works until we hit tri.p2, alter code such that once
+		//        this point is hit we instead step over c not b
+		xen::LineSegment2r line_a = {tri.p1, tri.p3};
+		xen::LineSegment2r line_b = {tri.p1, tri.p2};
 		xen::LineSegment2r line_c = {tri.p2, tri.p3};
-		// :TODO: this just draws a straight line...
-		//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
-		real num_pixels = xen::max(abs(line.p1.x - line.p2.x), abs(line.p1.y - line.p2.y));
-		//printf("Drawing line with %f (%u) pixels\n", num_pixels, (u32)num_pixels);
-		Vec2r delta = (line.p1 - line.p2) / num_pixels;
-		Vec2r cur   = line.p2;
-		for(u32 i = 0; i < (u32)num_pixels; ++i){
-			target[cur.x][cur.y] = color;
-			cur += delta;
+
+		real num_pixels_a = xen::max(abs(line_a.p1.x - line_a.p2.x), abs(line_a.p1.y - line_a.p2.y));
+		Vec2r delta_a = (line_a.p2 - line_a.p1) / num_pixels_a;
+		Vec2r curr_a  = line_a.p1;
+		Vec2r prev_a;
+		bool stepped_y_a = false;
+
+		real num_pixels_b = xen::max(abs(line_b.p1.x - line_b.p2.x), abs(line_b.p1.y - line_b.p2.y));
+		Vec2r delta_b = (line_b.p2 - line_b.p1) / num_pixels_b;
+		Vec2r curr_b  = line_b.p1;
+		Vec2r prev_b;
+		bool stepped_y_b = false;
+		// :TODO: This may need to be just < or != etc, idek
+		while (curr_b.y <= tri.p3.y){
+			if (!stepped_y_a){
+				target[curr_a.x][curr_a.y] = color;
+				prev_a = curr_a;
+				curr_a += delta_a;
+				// Equiv: stepped_y_a = ((u32)curr_a.y != (u32)prev_a.y) ? true : false;
+				stepped_y_a = !((u32)curr_a.y - (u32)prev_a.y);
+			}
+			while (!stepped_y_b){
+				target[curr_b.x][curr_b.y] = color;
+				prev_b = curr_b;
+				curr_b += delta_b;
+				// Equiv: stepped_y_b = ((u32)curr_b.y != (u32)prev_b.y) ? true : false;
+				stepped_y_b = !((u32)curr_b.y - (u32)prev_b.y);
+			}
+			if (stepped_y_a && stepped_y_b){
+				// draw horizontal line
+				// :TODO: May be a smarter way to do this
+				if (curr_a.x < curr_b.x){
+					for (int x=curr_a.x; x<=curr_b.x; ++x){
+						target[x][curr_a.y] = color;
+					}
+				}else{
+					for (int x=curr_b.x; x<=curr_a.x; ++x){
+						target[x][curr_a.y] = color;
+					}
+				}
+
+				stepped_y_a = false;
+				stepped_y_b = false;
+			}
 		}
 
 	}
 	// :TODO: Write doRenderTriangle3d which takes a 3D triangle, put into clip
-	// space, clip it (maybe), and then convert into screen space and call this
+	// space, clip it (maybe), and then convert into screen space and call doRenderTriangle2d
 	void doRenderTriangle3d(xen::sren::RenderTarget& target,
 		                    const xen::Aabb2r& viewport,
 												const Mat4f& mvp_matrix,
