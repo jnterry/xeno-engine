@@ -196,7 +196,7 @@ namespace xen{
 					}
 					break;
 				default:
-					XenInvalidCodePath();
+					XenInvalidCodePath("Unhandled render command type in software rasterizer");
 					break;
 				}
 			}

@@ -12,8 +12,8 @@
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/math/matrix_types.hpp>
-#include <xen/gl/Shader.hpp>
 
+#include "Shader.hxx"
 #include "gl_header.hxx"
 
 namespace {
@@ -40,7 +40,7 @@ namespace xen{
 		ShaderProgram* createShaderProgram(ArenaLinear& arena, const char* vertex_source, const char* pixel_source){
 			xen::MemoryTransaction transaction(arena);
 
-			ShaderProgram* result = xen::reserve<ShaderProgram>(arena);
+			ShaderProgram* result = xen::reserveType<ShaderProgram>(arena);
 			result->vertex_shader = compileShader(GL_VERTEX_SHADER,   vertex_source);
 			result->pixel_shader  = compileShader(GL_FRAGMENT_SHADER, pixel_source);
 
@@ -147,40 +147,40 @@ namespace xen{
 		}
 
 		void setUniform(int location, Vec3f data){
-			glUniform3f(location, data.x, data.y, data.z);
+			XEN_CHECK_GL(glUniform3f(location, data.x, data.y, data.z));
 		}
 		void setUniform(int location, Vec3d data){
-			glUniform3d(location, data.x, data.y, data.z);
+			XEN_CHECK_GL(glUniform3d(location, data.x, data.y, data.z));
 		}
 		void setUniform(int location, Vec3u data){
-			glUniform3ui(location, data.x, data.y, data.z);
+			XEN_CHECK_GL(glUniform3ui(location, data.x, data.y, data.z));
 		}
 		void setUniform(int location, Vec3s data){
-			glUniform3i(location, data.x, data.y, data.z);
+			XEN_CHECK_GL(glUniform3i(location, data.x, data.y, data.z));
 		}
 		void setUniform(int location, Vec4f data){
-			glUniform4f(location, data.x, data.y, data.z, data.w);
+			XEN_CHECK_GL(glUniform4f(location, data.x, data.y, data.z, data.w));
 		}
 		void setUniform(int location, Vec4d data){
-			glUniform4d(location, data.x, data.y, data.z, data.w);
+			XEN_CHECK_GL(glUniform4d(location, data.x, data.y, data.z, data.w));
 		}
 		void setUniform(int location, Vec4u data){
-			glUniform4ui(location, data.x, data.y, data.z, data.w);
+			XEN_CHECK_GL(glUniform4ui(location, data.x, data.y, data.z, data.w));
 		}
 		void setUniform(int location, Vec4s data){
-			glUniform4i(location, data.x, data.y, data.z, data.w);
+			XEN_CHECK_GL(glUniform4i(location, data.x, data.y, data.z, data.w));
 		}
 		void setUniform(int location, Mat3f data){
-			glUniformMatrix3fv(location, 1, GL_TRUE, data.elements);
+			XEN_CHECK_GL(glUniformMatrix3fv(location, 1, GL_TRUE, data.elements));
 		}
 		void setUniform(int location, Mat3d data){
-			glUniformMatrix3dv(location, 1, GL_TRUE, data.elements);
+			XEN_CHECK_GL(glUniformMatrix3dv(location, 1, GL_TRUE, data.elements));
 		}
 		void setUniform(int location, Mat4f data){
-			glUniformMatrix4fv(location, 1, GL_TRUE, data.elements);
+			XEN_CHECK_GL(glUniformMatrix4fv(location, 1, GL_TRUE, data.elements));
 		}
 		void setUniform(int location, Mat4d data){
-			glUniformMatrix4dv(location, 1, GL_TRUE, data.elements);
+			XEN_CHECK_GL(glUniformMatrix4dv(location, 1, GL_TRUE, data.elements));
 		}
 	}
 }

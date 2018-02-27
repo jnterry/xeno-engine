@@ -188,7 +188,7 @@ namespace xen {
 
 							//printf("Attenuation: %f, distance: %f\n", attenuation, light_dist_sq);
 
-							total_light += params.lights[i].color / attenuation;
+							total_light += (params.lights[i].color / attenuation).rgb * params.lights[i].color.w;
 
 							break;
 						}

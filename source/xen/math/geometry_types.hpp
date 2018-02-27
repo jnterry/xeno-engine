@@ -24,10 +24,19 @@ namespace xen {
 		Vec<T_DIM, T> min;
 		Vec<T_DIM, T> max;
 
+		/// \brief Aabb whose min point is set to a vector of max values for type T,
+		/// and whose max point is set to a vector of min values for type T
+		/// Thus such an Aabb can be built up by repeatedly calling
+		/// addPoint or similar
+		static const Aabb<T_DIM, T> MaxMinBox;
+
 		template<typename T2>
 		explicit operator Aabb<T_DIM, T2>() const {
 			return { (Vec<T_DIM, T2>)min, (Vec<T_DIM, T2>)max };
 		}
+	};
+	template<u32 T_DIM, typename T> const Aabb<T_DIM, T> Aabb<T_DIM, T>::MaxMinBox = {
+		Vec<T_DIM, T>::Max, Vec<T_DIM, T>::Min
 	};
 	template <typename T> using Aabb2 = Aabb<2, T>;
 	template <typename T> using Aabb3 = Aabb<3, T>;

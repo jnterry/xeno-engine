@@ -1,0 +1,19 @@
+////////////////////////////////////////////////////////////////////////////
+///                      Part of Xeno Engine                             ///
+////////////////////////////////////////////////////////////////////////////
+/// \brief Contains definition of the GlDevice type
+///
+/// \ingroup gl
+////////////////////////////////////////////////////////////////////////////
+
+#ifndef XEN_GL_GLDEVICE_HPP
+#define XEN_GL_GLDEVICE_HPP
+
+namespace xen {
+	struct ArenaLinear;
+	struct GraphicsDevice;
+
+	GraphicsDevice* createGlDevice(ArenaLinear& arena);
+}
+
+#endif

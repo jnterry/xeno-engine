@@ -28,7 +28,7 @@ namespace xen {
 		Vec3f attenuation;
 
 		/// \brief The color of the light produced by this light source
-	  Color3f color;
+	  Color4f color;
 
 		union {
 			struct {
