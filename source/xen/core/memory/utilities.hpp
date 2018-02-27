@@ -27,7 +27,7 @@ namespace xen{
 	template<typename T>
 	inline T* copyArray(const T* const from, T* const to, size_t num_elements){
 		const T* source = from;
-		T* dest   = to;
+		T*       dest   = to;
 		while(num_elements--) { *dest++ = *source++; }
 		return to;
 	}

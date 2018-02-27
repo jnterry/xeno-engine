@@ -47,6 +47,9 @@ namespace xen{
 				/// \brief Value for 3 component real values when buffer is null
 				Vec3r   vec3r;
 
+				/// \brief Value for 2 component float vector when buffer is null
+				Vec2f   vec2f;
+
 				/// \brief Value for 3 component float color values when buffer is null
 				Color3f color3f;
 			};
@@ -79,25 +82,10 @@ namespace xen{
 
 		#pragma GCC diagnostic pop // re-enable -Wpedantic
 
-		/// \brief Loads a mesh from file
-		/// \param arena Arena in which resulting Mesh instance is stored
-		MeshHeader* loadMesh(xen::ArenaLinear& arena, const char* const path, u32 flags = MeshLoadFlags::NONE);
-
 		/// \brief Creates a mesh from segregated buffers of data for each attribute
-		/// \param arena        Arena in which resulting Mesh instance is stored
-		/// \param attrib_count The number of attributes for the final mesh
-		/// \param attrib_types The types of each attribute of the mesh
-		/// \param vertex_count The number of verticies in the mesh, length of arrays pointed to by elements of attrib_data
-		/// \param attrib_data  Array of void* pointing to first byte of buffers containing
-		///                     the mesh data. If nullptr then will attempt to derive
-		///                     the data, eg, generating normals from positions
-		/// \param flags        Additional flags controling the way the mesh is created
-		MeshHeader* createMesh(ArenaLinear&                 arena,
-		                       u08                          attrib_count,
-		                       const VertexAttribute::Type* attrib_types,
-		                       const void**                 attrib_data,
-		                       u32                          vertex_count,
-		                       u32 flags = MeshLoadFlags::NONE);
+		/// \param arena     Arena in which resulting MeshHeader instance is stored
+		/// \param mesh_data The data for the Mesh as stored on the CPU
+		MeshHeader* createMesh(ArenaLinear& arena, const MeshData& md);
 
 		/// \brief Destroys a mesh, cleaning up all its resources
 		//void destroyMesh(const char* mesh);

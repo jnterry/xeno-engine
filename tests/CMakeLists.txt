@@ -24,8 +24,8 @@ add_executable(xen_unit_tests
 
 target_include_directories(xen_unit_tests PRIVATE ${XEN_INCLUDE_DIR})
 target_link_libraries(xen_unit_tests xen-graphics)
+target_link_libraries(xen_unit_tests xen-util    )
 target_link_libraries(xen_unit_tests xen-math    )
 target_link_libraries(xen_unit_tests xen-core    )
-
 
 target_include_directories(xen_unit_tests PRIVATE ${CMAKE_CURRENT_LIST_DIR}/extlibs)

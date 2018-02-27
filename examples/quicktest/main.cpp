@@ -36,7 +36,7 @@ real camera_speed = 50;
 xen::Angle camera_rotate_speed = 120_deg;
 xen::Angle camera_pitch = 0_deg;
 
-static const GLfloat cube_buffer_data[] = {
+static GLfloat cube_buffer_data[] = {
     -1.0f,-1.0f,-1.0f, // triangle 1 : begin
     -1.0f,-1.0f, 1.0f,
     -1.0f, 1.0f, 1.0f, // triangle 1 : end
@@ -178,7 +178,8 @@ int main(int argc, char** argv){
 	context_settings = app.getSettings();
 	printf("Initialized window, GL version: %i.%i\n", context_settings.majorVersion, context_settings.minorVersion);
 
-	XenTempArena(arena, 8196);
+	xen::Allocator* alloc  = new xen::AllocatorCounter<xen::AllocatorMalloc>();
+	xen::ArenaLinear arena = xen::createArenaLinear(*alloc, xen::megabytes(32));
 
 	app.setActive(true);
 	glewInit();
@@ -188,27 +189,26 @@ int main(int argc, char** argv){
 
 	xen::GraphicsDevice* device = xen::createGlDevice(arena);
 
-	xen::VertexAttribute::Type vertex_spec[] = {
-		xen::VertexAttribute::Position3r,
-		xen::VertexAttribute::Color3f,
-		xen::VertexAttribute::Normal3r
-	};
+	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
+	vertex_spec[0] = xen::VertexAttribute::Position3r;
+	vertex_spec[1] = xen::VertexAttribute::Color3f;
+	vertex_spec[2] = xen::VertexAttribute::Normal3r;
 
-	xen::gl::MeshHeader* mesh_bunny = xen::gl::loadMesh(arena, "bunny.obj");
+	xen::MeshData* mesh_data_bunny = xen::createEmptyMeshData(arena, vertex_spec);
+	xen::loadMeshFile(mesh_data_bunny, arena, "bunny.obj");
+	xen::gl::MeshHeader* mesh_bunny = xen::gl::createMesh(arena, *mesh_data_bunny);
 
-	const void* cube_attrib_data[] = {&cube_buffer_data[3*2*6 * 0 * 3],
-	                                  nullptr,//&cube_buffer_data[3*2*6 * 1 * 3],
-	                                  nullptr// &cube_buffer_data[3*2*6 * 2 * 3]
+	void* mesh_cube_attrib_data[] = {
+		&cube_buffer_data[3*2*6 * 0 * 3],
+		nullptr,//&cube_buffer_data[3*2*6 * 1 * 3],
+		nullptr// &cube_buffer_data[3*2*6 * 2 * 3]
 	};
-	XenAssert(XenArrayLength(vertex_spec) == XenArrayLength(cube_attrib_data),
-	          "Vertex spec attrib count must match num attribs used");
-	xen::gl::MeshHeader* mesh_cube = xen::gl::createMesh
-		(
-		 arena,
-		 XenArrayLength(vertex_spec), vertex_spec,
-		 cube_attrib_data,
-		 3 * 2 * 6 // Vertex count: (3 vert per tri) * (2 tri per face) * (6 faces)
-		);
+  xen::MeshData mesh_data_cube;
+	mesh_data_cube.attrib_count = 3;
+	mesh_data_cube.attrib_types = vertex_spec.elements;
+	mesh_data_cube.vertex_count = 3 * 2 * 6; // (3 vert per tri) * (2 tri per face) * (6 faces)
+	mesh_data_cube.attrib_data  = mesh_cube_attrib_data;
+	xen::gl::MeshHeader* mesh_cube = xen::gl::createMesh(arena, mesh_data_cube);
 
 	xen::RawImage          test_image   = xen::loadImage(arena, "test.bmp");
 	xen::gl::TextureHandle test_texture = xen::gl::createTexture(&test_image);
@@ -370,6 +370,8 @@ int main(int argc, char** argv){
 		app.display();
 	}
 	printf("Exiting main loop\n");
+
+	xen::destroyArenaLinear(*alloc, arena);
 
 	return 0;
 }

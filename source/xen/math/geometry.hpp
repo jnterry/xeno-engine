@@ -367,6 +367,13 @@ namespace xen{
 	Aabb3<T> makeAabbFromMinAndSize(T mx, T my, T mz, T sx, T sy, T sz) {
 		return makeAabbFromMinAndSize(xen::mkVec(mx, my, mz), xen::mkVec(sx, sy. sz));
 	}
+
+	template<u32 T_DIM, typename T>
+	Aabb<T_DIM, T>& addPoint(Aabb<T_DIM, T>& aabb, Vec<T_DIM, T> p){
+		aabb.min = xen::min(aabb.min, p);
+		aabb.max = xen::max(aabb.max, p);
+		return aabb;
+	}
 }
 
 #endif

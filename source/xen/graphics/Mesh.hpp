@@ -13,6 +13,7 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/array_types.hpp>
 #include <xen/math/vector_types.hpp>
+#include <xen/math/geometry_types.hpp>
 #include <xen/graphics/Color.hpp>
 
 namespace xen{
@@ -63,8 +64,10 @@ namespace xen{
 
 		  _AspectPosition     = 0x0100,
 		  _AspectNormal       = 0x0200,
-		  _AspectTangent      = 0x0300,
-		  _AspectColor        = 0x0400,
+		  _AspectColor        = 0x0300,
+		  //_AspectTangent      = 0x0400,
+		  //_AspectBiTangent      = 0x0800,
+
 
 		  // :TODO: -> if we have multiple textures we may want multiple texture
 		  // coordinates. We could say if top bit of aspect is set then the aspect
@@ -72,7 +75,7 @@ namespace xen{
 		  // texture channels to apply a set of uv coordinates to
 		  // But... what if we want more than 7 texture channels for a mesh?
 		  // bump this to 32 bit?
-		  _AspectTextureCoord = 0x8000,
+		  _AspectTexCoord     = 0x8000,
 		  _AspectMax,
 
 		  _AspectMask = 0xFF00,
@@ -105,11 +108,13 @@ namespace xen{
 
 		  /// \brief 3 component RGB color with each component between 0 and 1
 		  Color3f    = _AspectColor    | _TypeFloat | 3,
+
+		  /// \brief 2 component floating point texture coordinate between 0 and 1
+		  TexCoord2f = _AspectTexCoord | _TypeFloat | 2,
 	  };
   };
 
-	/// \brief Full specification for the vertices of some mesh
-	typedef xen::Array<VertexAttribute::Type> VertexSpec;
+	typedef xen::Array<xen::VertexAttribute::Type> VertexSpec;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves the size of a VertexAttributeType in bytes
@@ -134,20 +139,27 @@ namespace xen{
 
 		/// \brief Number of vertices in the mesh
 		u32                    vertex_count;
+
+		/// \brief The bounding box of this mesh
+		xen::Aabb3r            bounds;
 	};
 
 	/// \brief Additional flags which modify how mesh loading is performed
 	struct MeshLoadFlags {
 		enum Values{
-			NONE            = 0x00,
+			NONE             = 0x00,
 
-			/// \brief Indicates that smooth normals should be generated such that normal
-			/// of each vertex is average of all faces the vertex is a part of
-			//SMOOTH_NORMALS  = 0x01,
+			/// \brief Indicates that normals should be generated if not present
+			/// in the mesh file
+			GENERATE_NORMALS = 0x01,
+
+			/// \brief Indicates that smooth normals should be generated such that
+			/// normal of each vertex is average of all faces the vertex is a part of
+		  SMOOTH_NORMALS = 0x02,
 
 			/// \brief Modifies vertex positions such that center of mesh (according to bounding box)
 			/// is at the origin
-			//CENTER_ORIGIN   = 0x02,
+			//CENTER_ORIGIN   = 0x04,
 		};
 	};
 
@@ -171,22 +183,13 @@ namespace xen{
 	MeshData* createEmptyMeshData(ArenaLinear& arena, const VertexSpec& spec);
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Loads an obj file in order to fill in the data for a MeshData
-	/// instance.
+	/// \brief Loads a mesh file in order to fill in the data for a MeshData
+	/// instance. Uses assimp in the background, so can be any format that
+	/// assimp can load.
 	///
 	/// This function will not overwrite any existing data for the Mesh, thus
 	/// the attrib_data pointers in the MeshData for any attributes you wish
 	/// to load from the obj file must be set to nullptr.
-	///
-	/// \note Obj files contain at most the aspects:
-	/// - position
-	/// - normal
-	/// - uv coordinate
-	/// The attrib_data pointers for vertex attributes for any other aspect
-	/// will not be changed by this function
-	///
-	/// \warn This function assumes the file specified by `path` exists and
-	/// will XenBreak otherwise
 	///
 	/// \param result MeshData instance to fill in to represent the loaded
 	/// data. The attrib_count and attrib_types fields should already be set up
@@ -200,7 +203,7 @@ namespace xen{
 	/// occur if the arena if not large enough to fully contain the meshes vertex
 	/// data
 	/////////////////////////////////////////////////////////////////////
-  bool loadMeshObjFile(MeshData* result, ArenaLinear& arena, const char* path);
+	bool loadMeshFile(MeshData* result, ArenaLinear& arena, const char* path);
 }
 
 #endif

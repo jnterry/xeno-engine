@@ -121,15 +121,9 @@ namespace {
 
 			XenAssert(slot < MESH_STORE_SIZE, "Mesh store full, cannot create new mesh");
 
-			mesh_store[slot] = xen::gl::createMesh(mesh_header_arena,
-			                                       mesh_data.attrib_count,
-			                                       mesh_data.attrib_types,
-			                                       (const void**)mesh_data.attrib_data,
-			                                       mesh_data.vertex_count
-			                                      );
+			mesh_store[slot] = xen::gl::createMesh(mesh_header_arena, mesh_data);
 
 			return makeHandle<xen::Mesh::HANDLE_ID>(slot, 0);
-
 		}
 
 		void destroyMesh(xen::Mesh mesh) {
