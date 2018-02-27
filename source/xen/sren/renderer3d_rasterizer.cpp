@@ -188,44 +188,63 @@ namespace {
 	}
 	// Bresenham Triangle Algorithm, inspired by
 	// http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html#algo3
+	// :NOTE: tri.p1 becomes the bottom most vertice & tri.p3 is top most, as (0,0) is bottom left
+	//                     . tri.p3
+	//                    /
+	//     tri.p2 .      /
+	//            |     /
+	//            |    /
+	//            |   / a
+	//          b |  /
+	//            | /
+	//            |/
+	//            .
+	//          tri.p1
 	void doRenderTriangle2d(xen::sren::RenderTarget& target,
 		                    const xen::Aabb2r& viewport,
 												const Mat4f& mvp_matrix,
 	                      xen::Color color, xen::Triangle2r& tri){
-		// :TODO: determine which vertex of triangle is on top, as per link above.
-		// :NOTE: tri.p1 in the following code should be the bottom most vertice & tri.p3 is top most,
-		//        as (0,0) is bottom left
-
-		//                     . tri.p3
-		//                    /
-		//     tri.p2 .      /
-		//            |     /
-		//            |    /
-		//            |   / a
-		//          b |  /
-		//            | /
-		//            |/
-		//            .
-		//          tri.p1
-		// :TODO: current code works until we hit tri.p2, alter code such that once
-		//        this point is hit we instead step over c not b
+		// Sort Points
+		// :TODO: Double check these swaps
+		Vec2r temp;
+		if (tri.p1.y > tri.p2.y){
+			temp = tri.p1;
+			tri.p1 = tri.p2;
+			tri.p2 = temp;
+		}
+		if (tri.p2.y > tri.p3.y){
+			temp = tri.p2;
+			tri.p2 = tri.p3;
+			tri.p3 = temp;
+		}
+		if (tri.p1.y > tri.p2.y){
+			temp = tri.p1;
+			tri.p1 = tri.p2;
+			tri.p2 = temp;
+		}
+		// Create line for each of a, b, & c for drawing purposes
 		xen::LineSegment2r line_a = {tri.p1, tri.p3};
 		xen::LineSegment2r line_b = {tri.p1, tri.p2};
 		xen::LineSegment2r line_c = {tri.p2, tri.p3};
-
+		// Find step vector for line_a as well as start position
 		real num_pixels_a = xen::max(abs(line_a.p1.x - line_a.p2.x), abs(line_a.p1.y - line_a.p2.y));
 		Vec2r delta_a = (line_a.p2 - line_a.p1) / num_pixels_a;
 		Vec2r curr_a  = line_a.p1;
 		Vec2r prev_a;
 		bool stepped_y_a = false;
-
+		// Find step vector for line_b as well as start position
 		real num_pixels_b = xen::max(abs(line_b.p1.x - line_b.p2.x), abs(line_b.p1.y - line_b.p2.y));
 		Vec2r delta_b = (line_b.p2 - line_b.p1) / num_pixels_b;
 		Vec2r curr_b  = line_b.p1;
 		Vec2r prev_b;
 		bool stepped_y_b = false;
+		// Find step vector for line_b, no start position as c is drawn after b is finished
+		// (line_c.start == line_b.end)
+		real num_pixels_c = xen::max(abs(line_c.p1.x - line_c.p2.x), abs(line_c.p1.y - line_c.p2.y));
+		Vec2r delta_c = (line_c.p2 - line_c.p1) / num_pixels_c;
+
 		// :TODO: This may need to be just < or != etc, idek
-		while (curr_b.y <= tri.p3.y){
+		while ((curr_b.x <= line_a.p2.x) && (curr_b.y <= line_a.p2.y)){
 			if (!stepped_y_a){
 				target[curr_a.x][curr_a.y] = color;
 				prev_a = curr_a;
@@ -240,9 +259,14 @@ namespace {
 				// Equiv: stepped_y_b = ((u32)curr_b.y != (u32)prev_b.y) ? true : false;
 				stepped_y_b = !((u32)curr_b.y - (u32)prev_b.y);
 			}
+			// :TODO: This if may need to go inside, or above, the above while
+			// If b has reached end point then begin drawing line c by changing vector
+			// that represents a single step from that of b to that of c
+			if (curr_b == line_b.p1){
+				delta_b = delta_c;
+			}
 			if (stepped_y_a && stepped_y_b){
 				// draw horizontal line
-				// :TODO: May be a smarter way to do this
 				if (curr_a.x < curr_b.x){
 					for (int x=curr_a.x; x<=curr_b.x; ++x){
 						target[x][curr_a.y] = color;
@@ -252,7 +276,6 @@ namespace {
 						target[x][curr_a.y] = color;
 					}
 				}
-
 				stepped_y_a = false;
 				stepped_y_b = false;
 			}
