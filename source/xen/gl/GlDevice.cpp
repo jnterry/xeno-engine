@@ -88,8 +88,7 @@ namespace {
 		}
 
 		GlDevice()
-			: GraphicsDevice(xen::GraphicsDeviceType::OpenGL),
-			  main_allocator(new xen::AllocatorCounter<xen::AllocatorMalloc>()),
+			: main_allocator(new xen::AllocatorCounter<xen::AllocatorMalloc>()),
 			  mesh_header_arena(xen::createArenaLinear(*main_allocator, xen::megabytes(1)))
 		{
 

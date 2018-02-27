@@ -19,11 +19,8 @@
 namespace xen {
 	struct MeshData;
 
-	enum class GraphicsDeviceType {
-		Null,
-		Software,
-		OpenGL,
-	};
+	// :TODO: do we really need the whole graphics device id system and
+	// getting devices by id?
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Defines the interface for interacting with a GraphicsDevice
@@ -31,14 +28,12 @@ namespace xen {
 	/////////////////////////////////////////////////////////////////////
 	class GraphicsDevice {
 	private:
-		/// \brief The type of this GraphicsDevice
-		GraphicsDeviceType type;
 		u08                id;
 	protected:
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Creates a new GraphicsDevice
 		/////////////////////////////////////////////////////////////////////
-		GraphicsDevice(GraphicsDeviceType type);
+		GraphicsDevice();
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Creates a new GraphicsHandle for an object owned by this
@@ -53,11 +48,6 @@ namespace xen {
 			return result;
 		}
 	public:
-		/////////////////////////////////////////////////////////////////////
-		/// \brief Retreives the GraphicsDeviceType of this GraphicsDevice
-		/////////////////////////////////////////////////////////////////////
-		GraphicsDeviceType getDeviceType();
-
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Destroys a GraphicsDevice and all associated resources
 		/////////////////////////////////////////////////////////////////////

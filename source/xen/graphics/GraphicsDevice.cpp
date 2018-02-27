@@ -22,8 +22,8 @@ namespace {
 }
 
 namespace xen {
-	GraphicsDevice::GraphicsDevice(GraphicsDeviceType type)
-		: type(type), id(next_device_id) {
+	GraphicsDevice::GraphicsDevice()
+		: id(next_device_id) {
 
 		// :TODO: next_device_id should be incremented atomically user tries
 		// creating a device per thread
@@ -43,10 +43,6 @@ namespace xen {
 
 	GraphicsDevice* getGraphicsDevice(u08 id){
 		return created_devices[id];
-	}
-
-	GraphicsDeviceType GraphicsDevice::getDeviceType(){
-		return this->type;
 	}
 }
 
