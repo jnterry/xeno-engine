@@ -11,6 +11,7 @@
 
 #include <xen/math/quaternion.hpp>
 #include <xen/math/geometry.hpp>
+#include <xen/math/vertex_group.hpp>
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
@@ -24,7 +25,7 @@ namespace {
 	void doRenderPoints(xen::sren::RenderTarget& target,
 	                    const xen::Aabb2r& viewport,
 	                    const Mat4f& mvp_matrix,
-	                    xen::Color color,
+	                    xen::Color4f color,
 	                    Vec3r* points, u32 count){
 
 		for(u32 i = 0; i < count; ++i){
@@ -48,7 +49,7 @@ namespace {
 			screen_space += Vec2r{1,1};                  // convert to [0, 2] space
 			screen_space /= 2.0_r;                       // convert to [0. 1] space
 			screen_space *= viewport.max - viewport.min; // convert to screen space
-			screen_space += viewport.min;
+			screen_space += viewport.min;                // move to correct part of screen
 			///////////////////////////////////////////////////////////////////
 
 			if(screen_space.x < viewport.min.x ||
@@ -62,7 +63,7 @@ namespace {
 		}
 	}
 
-	void doRenderLine2d(xen::sren::RenderTarget& target, xen::LineSegment2r line, xen::Color color){
+	void doRenderLine2d(xen::sren::RenderTarget& target, xen::LineSegment2r line, xen::Color4f color){
 		//https://www.cs.virginia.edu/luther/blog/posts/492.html
 		if(line.p1 != line.p2){
 			//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
@@ -127,10 +128,10 @@ namespace {
 	void doRenderLine3d(xen::sren::RenderTarget& target,
 	                    const xen::Aabb2r& viewport,
 	                    const Mat4f& mvp_matrix,
-	                    xen::Color color,
+	                    xen::Color4f color,
 	                    const xen::LineSegment3r& line){
 
-		xen::LineSegment4r line_clip  = xen::getTransformed(xen::toHomo(line), mvp_matrix);
+		xen::LineSegment4r line_clip  = xen::toHomo(line) * mvp_matrix;
 
 		///////////////////////////////////////////////////////////////////
 		// Do line clipping
@@ -160,23 +161,17 @@ namespace {
 		///////////////////////////////////////////////////////////////////
 		// Transform into screen space
 		xen::LineSegment2r  line_screen;
+
+		// :TODO:COMP:ISSUE_15: swizzle function
+		// Once we can do generic swizzles, we could make transform to screen space
+		// a template function and use same code for this and points and triangles, etc
 		line_screen.p1 = line_clip.p1.xy;
 		line_screen.p2 = line_clip.p2.xy;
 
-		// :TODO:COMP:ISSUE_5: define operators on line_segment, triangle etc (treat them as
-		// multiple rows of row vectors and do matrix multiply, IE, line segment is:
-		// [ x1 y1 z1 w1 ]   [ a b c d ]   [ x1' y1' z1' w1' ]
-		// [ x2 y2 z2 w2 ] * [ e f g h ] = [ x2' y2' z2' w2' ]
-		//                   [ i j k l ]
-		//                   [ m n o p ]
-		line_screen.p1 += Vec2r{1,1};                  // convert to [0, 2] space
-		line_screen.p1 /= 2.0_r;                       // convert to [0. 1] space
-		line_screen.p1 *= viewport.max - viewport.min; // convert to screen space
-		line_screen.p1 += viewport.min;
-		line_screen.p2 += Vec2r{1,1};                  // convert to [0, 2] space
-		line_screen.p2 /= 2.0_r;                       // convert to [0. 1] space
-		line_screen.p2 *= viewport.max - viewport.min; // convert to screen space
-		line_screen.p2 += viewport.min;
+		line_screen += Vec2r{1,1};                  // convert to [0, 2] space
+		line_screen /= 2.0_r;                       // convert to [0, 1] space
+		line_screen *= viewport.max - viewport.min; // convert to screen space
+		line_screen += viewport.min;                // move to correct part of screen
 		///////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////////////////////////////////////
@@ -201,11 +196,32 @@ namespace {
 	//            .
 	//          tri.p1
 	void doRenderTriangle2d(xen::sren::RenderTarget& target,
-		                    const xen::Aabb2r& viewport,
-												const Mat4f& mvp_matrix,
-	                      xen::Color color, xen::Triangle2r& tri){
+		                      const xen::Aabb2r& viewport,
+	                        xen::Color4f color, xen::Triangle2r& tri){
+		// If any two points are equal draw a line and bail out
+		if (tri.p1 == tri.p2){
+			xen::LineSegment2r line = {tri.p1, tri.p3};
+			// Clip to the viewport
+			if(xen::intersect(line, viewport)){
+				doRenderLine2d(target, line, color);
+			}
+			return;
+		} else if (tri.p1 == tri.p3){
+			xen::LineSegment2r line = {tri.p1, tri.p2};
+			// Clip to the viewport
+			if(xen::intersect(line, viewport)){
+				doRenderLine2d(target, line, color);
+			}
+			return;
+		} else if (tri.p2 == tri.p3){
+			xen::LineSegment2r line = {tri.p1, tri.p3};
+			// Clip to the viewport
+			if(xen::intersect(line, viewport)){
+				doRenderLine2d(target, line, color);
+			}
+			return;
+		}
 		// Sort Points
-		// :TODO: Double check these swaps
 		Vec2r temp;
 		if (tri.p1.y > tri.p2.y){
 			temp = tri.p1;
@@ -222,18 +238,21 @@ namespace {
 			tri.p1 = tri.p2;
 			tri.p2 = temp;
 		}
+		//printf("Points of triangle: (%f,%f), (%f,%f), (%f,%f)\n", tri.p1.x, tri.p1.y,tri.p2.x, tri.p2.y,tri.p3.x, tri.p3.y);
 		// Create line for each of a, b, & c for drawing purposes
 		xen::LineSegment2r line_a = {tri.p1, tri.p3};
 		xen::LineSegment2r line_b = {tri.p1, tri.p2};
 		xen::LineSegment2r line_c = {tri.p2, tri.p3};
 		// Find step vector for line_a as well as start position
 		real num_pixels_a = xen::max(abs(line_a.p1.x - line_a.p2.x), abs(line_a.p1.y - line_a.p2.y));
+		printf("Number of pixels in line_a: %f\n", num_pixels_a);
 		Vec2r delta_a = (line_a.p2 - line_a.p1) / num_pixels_a;
 		Vec2r curr_a  = line_a.p1;
 		Vec2r prev_a;
 		bool stepped_y_a = false;
 		// Find step vector for line_b as well as start position
 		real num_pixels_b = xen::max(abs(line_b.p1.x - line_b.p2.x), abs(line_b.p1.y - line_b.p2.y));
+		printf("Number of pixels in line_b: %f\n", num_pixels_b);
 		Vec2r delta_b = (line_b.p2 - line_b.p1) / num_pixels_b;
 		Vec2r curr_b  = line_b.p1;
 		Vec2r prev_b;
@@ -241,19 +260,25 @@ namespace {
 		// Find step vector for line_b, no start position as c is drawn after b is finished
 		// (line_c.start == line_b.end)
 		real num_pixels_c = xen::max(abs(line_c.p1.x - line_c.p2.x), abs(line_c.p1.y - line_c.p2.y));
+		printf("Number of pixels in line_c: %f\n", num_pixels_c);
 		Vec2r delta_c = (line_c.p2 - line_c.p1) / num_pixels_c;
-
 		// :TODO: This may need to be just < or != etc, idek
-		while ((curr_b.x <= line_a.p2.x) && (curr_b.y <= line_a.p2.y)){
+		for(u32 i = 0; i < (u32)num_pixels_a;){
+		//while ((curr_b.x <= line_a.p2.x) && (curr_b.y <= line_a.p2.y)){
 			if (!stepped_y_a){
-				target[curr_a.x][curr_a.y] = color;
+				if (xen::contains(viewport, curr_a)){
+					target[curr_a.x][curr_a.y] = color;
+				}
 				prev_a = curr_a;
 				curr_a += delta_a;
 				// Equiv: stepped_y_a = ((u32)curr_a.y != (u32)prev_a.y) ? true : false;
 				stepped_y_a = !((u32)curr_a.y - (u32)prev_a.y);
+				++i;
 			}
 			while (!stepped_y_b){
-				target[curr_b.x][curr_b.y] = color;
+				if (xen::contains(viewport, curr_b)){
+					target[curr_b.x][curr_b.y] = color;
+				}
 				prev_b = curr_b;
 				curr_b += delta_b;
 				// Equiv: stepped_y_b = ((u32)curr_b.y != (u32)prev_b.y) ? true : false;
@@ -266,14 +291,22 @@ namespace {
 				delta_b = delta_c;
 			}
 			if (stepped_y_a && stepped_y_b){
+				//printf("Stuck in the connecting loop\n");
+				//printf("Val of curr_a: %f, Val of curr_b: %f\n", curr_a.x, curr_b.x);
 				// draw horizontal line
 				if (curr_a.x < curr_b.x){
-					for (int x=curr_a.x; x<=curr_b.x; ++x){
-						target[x][curr_a.y] = color;
+					for (int x=curr_a.x; x<curr_b.x; ++x){
+						//printf("Val of x: %i\n", x);
+						if (xen::contains(viewport, xen::mkVec((real)x,curr_a.y))){
+							target[x][curr_a.y] = color;
+						}
 					}
 				}else{
-					for (int x=curr_b.x; x<=curr_a.x; ++x){
-						target[x][curr_a.y] = color;
+					for (int x=curr_b.x; x<curr_a.x; ++x){
+						//printf("Val of x: %i\n", x);
+						if (xen::contains(viewport, xen::mkVec((real)x,curr_a.y))){
+							target[x][curr_a.y] = color;
+						}
 					}
 				}
 				stepped_y_a = false;
@@ -285,10 +318,38 @@ namespace {
 	// :TODO: Write doRenderTriangle3d which takes a 3D triangle, put into clip
 	// space, clip it (maybe), and then convert into screen space and call doRenderTriangle2d
 	void doRenderTriangle3d(xen::sren::RenderTarget& target,
-		                    const xen::Aabb2r& viewport,
-												const Mat4f& mvp_matrix,
-	                      xen::Color color, xen::Triangle3r& tri){
-		//:TODO:
+		                      const xen::Aabb2r& viewport,
+												  const Mat4f& mvp_matrix,
+	                        xen::Color4f color, xen::Triangle3r& tri){
+		xen::Triangle4r tri_clip  = xen::toHomo(tri) * mvp_matrix;
+		///////////////////////////////////////////////////////////////////
+		// Do perspective divide (into normalized device coordinates -> [-1, 1]
+		// We only care about x and y coordinates at this point
+		tri_clip.p1.xy /= (tri_clip.p1.w);
+		tri_clip.p2.xy /= (tri_clip.p2.w);
+		tri_clip.p3.xy /= (tri_clip.p3.w);
+		///////////////////////////////////////////////////////////////////
+
+		///////////////////////////////////////////////////////////////////
+		// Transform into screen space
+		xen::Triangle2r  tri_screen;
+
+		// :TODO:COMP:ISSUE_15: swizzle function
+		// Once we can do generic swizzles, we could make transform to screen space
+		// a template function and use same code for this and points and triangles, etc
+		tri_screen.p1 = tri_clip.p1.xy;
+		tri_screen.p2 = tri_clip.p2.xy;
+		tri_screen.p3 = tri_clip.p3.xy;
+
+		tri_screen += Vec2r{1,1};                  // convert to [0, 2] space
+		tri_screen /= 2.0_r;                       // convert to [0, 1] space
+		tri_screen *= viewport.max - viewport.min; // convert to screen space
+		tri_screen += viewport.min;                // move to correct part of screen
+		///////////////////////////////////////////////////////////////////
+		//printf("Points of triangle in model space: (%f,%f,%f), (%f,%f,%f), (%f,%f,%f)\n", tri.p1.x, tri.p1.y, tri.p1.z,tri.p2.x, tri.p2.y, tri.p2.z,tri.p3.x, tri.p3.y, tri.p3.z);
+		//printf("Points of triangle in clip space: (%f,%f,%f), (%f,%f,%f), (%f,%f,%f)\n", tri_clip.p1.x, tri_clip.p1.y, tri_clip.p1.z,tri_clip.p2.x, tri_clip.p2.y, tri_clip.p2.z,tri_clip.p3.x, tri_clip.p3.y, tri_clip.p3.z);
+		//printf("Points of triangle in screen space: (%f,%f), (%f,%f), (%f,%f)\n", tri_screen.p1.x, tri_screen.p1.y,tri_screen.p2.x, tri_screen.p2.y,tri_screen.p3.x, tri_screen.p3.y);
+		doRenderTriangle2d(target, viewport, color, tri_screen);
 	}
 }
 
@@ -312,26 +373,31 @@ namespace xen{
 		}
 
 		void renderRasterize(RenderTarget& target, const xen::Aabb2u& viewport,
-		                     const Camera3d& camera,
-		                     RenderCommand3d* commands, u32 command_count){
+		                     const RenderParameters3d& params,
+		                     const xen::Array<RenderCommand3d>& commands){
 
 			// Find the actual view_region we wish to draw to. This is the
 			// intersection of the actual target, and the user specified viewport
 			xen::Aabb2u screen_rect = { Vec2u::Origin, target.size - Vec2u{1,1} };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 
-			Mat4r mat_vp = xen::getViewProjectionMatrix(camera, view_region.max - view_region.min);
+			Mat4r mat_vp = xen::getViewProjectionMatrix(params.camera, view_region.max - view_region.min);
 			Mat4r mat_mvp;
 
 			int stride = 0;
 
-			RenderCommand3d* cmd = commands;
-			for(u32 cmd_index = 0; cmd_index < command_count; ++cmd_index){
+			const RenderCommand3d* cmd;
+			for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 				cmd = &commands[cmd_index];
+
 				mat_mvp = cmd->model_matrix * mat_vp;
+
+				Color4f base_color = cmd->color;
+				base_color.rgb *= params.ambient_light;
+
 				switch(cmd->type){
 				case RenderCommand3d::POINTS:
-					doRenderPoints(target, view_region, mat_mvp, cmd->color, cmd->verticies.verticies, cmd->verticies.count);
+					doRenderPoints(target, view_region, mat_mvp, base_color, cmd->verticies.verticies, cmd->verticies.count);
 					break;
 				case RenderCommand3d::LINES:
 					stride = 2;
@@ -350,11 +416,11 @@ namespace xen{
 						//printf("Doing vertex %i / %i\n", i, cmd->verticies.count);
 						LineSegment3r* line_world = (LineSegment3r*)(&cmd->verticies.verticies[i]);
 
-						doRenderLine3d(target, view_region, mat_mvp, cmd->color, *line_world);
+						doRenderLine3d(target, view_region, mat_mvp, base_color, *line_world);
 					}
 					break;
 				default:
-					XenInvalidCodePath();
+					XenInvalidCodePath("Unhandled render command type in software rasterizer");
 					break;
 				}
 			}

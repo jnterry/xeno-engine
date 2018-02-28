@@ -50,6 +50,8 @@ set(XEN_HEADERS_MATH
   ${CMAKE_CURRENT_LIST_DIR}/xen/math/quaternion.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/math/geometry_types.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/math/geometry.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/math/vertex_group_types.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/math/vertex_group.hpp
 )
 
 
@@ -60,6 +62,9 @@ set(XEN_SOURCES_GRAPHICS
   ${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Image.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Camera3d.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Color.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/RenderCommand3d.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Mesh.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/GraphicsDevice.cpp
 )
 
 set(XEN_HEADERS_GRAPHICS
@@ -67,6 +72,9 @@ set(XEN_HEADERS_GRAPHICS
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Camera3d.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Color.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/RenderCommand3d.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Mesh.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/GraphicsDevice_types.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/GraphicsDevice.hpp
 )
 
 ##################################################
@@ -88,13 +96,15 @@ set(XEN_SOURCES_GL
   ${CMAKE_CURRENT_LIST_DIR}/xen/gl/Mesh.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/gl/Shader.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/gl/Texture.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/gl/GlDevice.cpp
 )
 
 set(XEN_HEADERS_GL
-	${CMAKE_CURRENT_LIST_DIR}/xen/gl/Shader.hpp
-  ${CMAKE_CURRENT_LIST_DIR}/xen/gl/Mesh.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/gl/Shader.hxx
+  ${CMAKE_CURRENT_LIST_DIR}/xen/gl/Mesh.hxx
 	${CMAKE_CURRENT_LIST_DIR}/xen/gl/Texture.hpp
   ${CMAKE_CURRENT_LIST_DIR}/xen/gl/gl_header.hxx
+	${CMAKE_CURRENT_LIST_DIR}/xen/gl/GlDevice.hpp
 )
 
 ##################################################

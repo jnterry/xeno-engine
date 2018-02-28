@@ -21,24 +21,85 @@
 #include <cstring>
 #include <cstdlib>
 
+
+namespace {
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents the results from casting a ray out into the
+	/// scene to be rendered
+	/////////////////////////////////////////////////////////////////////
+	struct SceneRayCastResult {
+		/// \brief The position of the intersection in world space
+		Vec3r intersection;
+
+		/// \brief The index of the object with which the intersection occurred
+		u32 object_index;
+
+		/// \brief Which triangle of the target object the ray intersected
+		u32 triangle_index;
+	};
+
+  bool castRayIntoScene(const xen::Ray3r& ray,
+	                      const xen::Array<xen::RenderCommand3d>& commands,
+	                      SceneRayCastResult& result){
+
+		real closest_intersection_length_sq = std::numeric_limits<real>::max();
+		bool found_intersection = false;
+
+		// Loop over all objects in scene
+		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
+			const xen::RenderCommand3d* cmd = &commands[cmd_index];
+			if(cmd->type != xen::RenderCommand3d::TRIANGLES){
+				continue;
+			}
+
+			// :TODO:OPT: we recompute the inverse model matrix for every ray we cast
+			// into the scene -> matrix inverse isn't cheap -> cache on per command
+			// basis
+			Mat4r mat_model_inv = xen::getInverse(cmd->model_matrix);
+
+			xen::Ray3r ray_model_space = xen::getTransformed(ray, mat_model_inv);
+
+			const xen::Triangle3r* tri;
+
+			Vec3r intersection;
+			real intersection_length_sq;
+
+			// Loop over all triangles of object
+			for(u32 i = 0; i < cmd->verticies.count; i += 3){
+				tri = (const xen::Triangle3r*)&cmd->verticies.verticies[i];
+
+				if(xen::getIntersection(ray_model_space, *tri, intersection)){
+					intersection_length_sq = distanceSq(ray.origin, intersection);
+					if(intersection_length_sq < closest_intersection_length_sq){
+						closest_intersection_length_sq = intersection_length_sq;
+
+						result.intersection   = intersection * cmd->model_matrix;
+						result.object_index   = cmd_index;
+						result.triangle_index = i/3;
+					  found_intersection = true;
+					}
+				}
+			}
+		}
+
+		return found_intersection;
+	}
+}
+
 namespace xen {
 	namespace sren {
 		void renderRaytrace (RenderTarget& target,
 		                     const xen::Aabb2u& viewport,
-		                     const Camera3d& camera,
-		                     RenderCommand3d* commands, u32 command_count){
+		                     const RenderParameters3d& params,
+		                     const xen::Array<RenderCommand3d>& commands){
 
-			// :TODO:COMP: view region calc duplicated with rasterizer
-			// Find the actual view_region we wish to draw to. This is the
-			// intersection of the actual target, and the user specified viewport
 			xen::Aabb2u screen_rect = { Vec2u::Origin, target.size - Vec2u{1,1} };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
+			Vec2s       target_size = (Vec2s)xen::getSize(view_region);
 
-			Vec2s target_size = (Vec2s)xen::getSize(view_region);
-
-			Angle fov_y = camera.fov_y;
-			Angle fov_x = camera.fov_y * ((real)target_size.y / (real)target_size.x);
-
+			Angle fov_y = params.camera.fov_y;
+			Angle fov_x = params.camera.fov_y * ((real)target_size.y / (real)target_size.x);
 
 			// Compute distance between pixels on the image plane in world space using
 			// a bit of trig
@@ -50,80 +111,100 @@ namespace xen {
 			//         |  /
 			//         | /
 			//         |/ angle = fov_x / target_width
-			float image_plane_pixel_offset_x_distance = xen::tan(fov_x / (real)target_size.x) * camera.z_near;
-			float image_plane_pixel_offset_y_distance = xen::tan(fov_y / (real)target_size.y) * camera.z_near;
-
-			Vec3r image_plane_center = camera.position - camera.look_dir * camera.z_near;
-
+			Vec3r image_plane_center = params.camera.position
+				                       + params.camera.look_dir * params.camera.z_near;
 			Vec3r image_plane_pixel_offset_x =
 				xen::normalized(
-				                xen::cross(camera.up_dir, camera.look_dir)
-				                ) * image_plane_pixel_offset_x_distance;
-
+				                xen::cross(params.camera.up_dir, params.camera.look_dir)
+				                ) * xen::tan(fov_x / (real)target_size.x) * params.camera.z_near;
 			Vec3r image_plane_pixel_offset_y =
 				-xen::normalized(
-				                 xen::cross(image_plane_pixel_offset_x, camera.look_dir)
-				                 ) * image_plane_pixel_offset_y_distance;
+				                 xen::cross(image_plane_pixel_offset_x, params.camera.look_dir)
+				                 ) * xen::tan(fov_y / (real)target_size.y) * params.camera.z_near;
 
+			//////////////////////////////////////////////////////////////////////////
+			// Loop over all pixels
 			Vec2s target_pos;
+			SceneRayCastResult intersection;
+			SceneRayCastResult shadow_intersection;
 			for(target_pos.x = 0; target_pos.x < target_size.x; ++target_pos.x) {
 				for(target_pos.y = 0; target_pos.y < target_size.y; ++target_pos.y) {
-
-					Vec2r center_offset = (Vec2r)target_pos - ((Vec2r)target_size / 2.0_r);
-
+					/////////////////////////////////////////////////////////////////////
 					// Compute where the ray would intersect the image plane
+					Vec2r center_offset = ((Vec2r)target_size / 2.0_r) - (Vec2r)target_pos;
 					Vec3r image_plane_position =
 						image_plane_center +
 						center_offset.x * image_plane_pixel_offset_x +
 						center_offset.y * image_plane_pixel_offset_y;
 
+					/////////////////////////////////////////////////////////////////////
+					// Construct the primary ray
 					Ray3r primary_ray;
-					primary_ray.origin    = camera.position;
-					primary_ray.direction = xen::normalized(camera.position - image_plane_position);
+					primary_ray.origin    = image_plane_position;;
+					primary_ray.direction = xen::normalized(params.camera.position - image_plane_position);
 
-					Vec3r closest_intersection = Vec3r::Origin;
-					real closest_intersection_length = std::numeric_limits<real>::max();
-					xen::Color closest_intersection_color;
-					bool found_intersection    = false;
+					/////////////////////////////////////////////////////////////////////
+					// Cast the ray into the scene
+					if(!castRayIntoScene(primary_ray, commands, intersection)){
+						continue;
+					}
 
-					// Do ray cast
-					for(u32 cmd_index = 0; cmd_index < command_count; ++cmd_index){
-						RenderCommand3d* cmd = &commands[cmd_index];
-						if(cmd->type != RenderCommand3d::TRIANGLES){
-							continue;
-						}
+					Color4f pixel_color = commands[intersection.object_index].color;
+					Color3f total_light = params.ambient_light;
 
-						Mat4r mat_model_inv = xen::getInverse(cmd->model_matrix);
+					/////////////////////////////////////////////////////////////////////
+					// Cast shadow ray
+					for(int i = 0; i < params.lights.size; ++i){
+						//printf("%i, %i :::::: Casting shadow ray for light %i\n",
+						//       target_pos.x, target_pos.y, i);
+						Ray3r shadow_ray;
 
-						Ray3r primary_ray_model_space = xen::getTransformed(primary_ray, mat_model_inv);
+						switch(params.lights[i].type){
+						case xen::LightSource3d::POINT: {
+							shadow_ray.origin    = intersection.intersection;
+							shadow_ray.direction = xen::normalized(params.lights[i].point.position -
+							                                       intersection.intersection
+							                                      );
 
-						//printf("Rendering a triangle mesh with: %i triangles\n", cmd->verticies.count / 3);
+							real light_dist_sq = xen::distanceSq(params.lights[i].point.position,
+							                                     intersection.intersection
+							                                    );
 
-						const Triangle3r* tri;
+							if(castRayIntoScene(shadow_ray, commands, shadow_intersection)){
+								real geom_dist_sq  = xen::distanceSq(shadow_intersection.intersection,
+								                                     intersection.intersection
+								                                    );
 
-						for(u32 i = 0; i < cmd->verticies.count; i += 3){
-							tri = (const Triangle3r*)&cmd->verticies.verticies[i];
-
-							Vec3r intersection;
-							real intersection_length;
-
-							if(xen::getIntersection(primary_ray_model_space, *tri, intersection)){
-								intersection_length = distanceSq(camera.position, intersection);
-								if(closest_intersection_length > intersection_length){
-									closest_intersection_length = intersection_length;
-									closest_intersection = intersection;
-									closest_intersection_color = cmd->color;
+								if(light_dist_sq > geom_dist_sq) {
+									// Then light source if blocked by geometry
+									break;
 								}
-								found_intersection = true;
 							}
+
+							real attenuation = (params.lights[i].attenuation.x * 1.0+
+							                    params.lights[i].attenuation.y * xen::sqrt(light_dist_sq) +
+							                    params.lights[i].attenuation.z * light_dist_sq
+							                    );
+
+							//printf("Attenuation: %f, distance: %f\n", attenuation, light_dist_sq);
+
+							total_light += (params.lights[i].color / attenuation).rgb * params.lights[i].color.w;
+
+							break;
+						}
+						default:
+							printf("WARN: Unhandled light type in raytracer, type: %i\n",
+							       params.lights[i].type);
+							break;
 						}
 					}
-					if(found_intersection){
-						// :TODO: target_size.y - target_pos.y is a hack because everything is reflected in y currently
-						Vec2s pixel_coord { target_pos.x, target_size.y - target_pos.y };
-						pixel_coord += (Vec2s)view_region.min;
-						target[pixel_coord.x][pixel_coord.y] = closest_intersection_color;
-					}
+
+					pixel_color.rgb *= total_light;
+
+					/////////////////////////////////////////////////////////////////////
+					// Color the pixel
+					Vec2s pixel_coord = target_pos + (Vec2s)view_region.min;
+					target[pixel_coord.x][pixel_coord.y] = pixel_color;
 				}
 			}
 		}
@@ -158,7 +239,7 @@ namespace xen {
 			};
 
 
-			////////////////////////////////////////////////////////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////
 
 			// :TODO:COMP: view region calc duplicated with rasterizer
 			// Find the actual view_region we wish to draw to. This is the
@@ -171,17 +252,21 @@ namespace xen {
 			Angle fov_y = camera.fov_y;
 			Angle fov_x = camera.fov_y * ((real)target_size.y / (real)target_size.x);
 
-			// Compute the image plane center, and offset between each pixel
-			// Start with doing this in camera space (so easy conceptually),
-			// then transform into world space by lining up z axis with
-			// camera's look_dir
-			Vec3r image_plane_center = camera.position - camera.look_dir * camera.z_near;
-
+			// Compute distance between pixels on the image plane in world space using
+			// a bit of trig
+			//            x
+			//         _______
+			//         |     /
+			//         |    /
+			//  z_near |   /
+			//         |  /
+			//         | /
+			//         |/ angle = fov_x / target_width
+			Vec3r image_plane_center = camera.position + camera.look_dir * camera.z_near;
 			Vec3r image_plane_pixel_offset_x =
-				-xen::normalized(
-				                 xen::cross(camera.up_dir, camera.look_dir)
-				                 ) * xen::tan(fov_x / (real)target_size.x) * camera.z_near;
-
+				xen::normalized(
+				                xen::cross(camera.up_dir, camera.look_dir)
+				                ) * xen::tan(fov_x / (real)target_size.x) * camera.z_near;
 			Vec3r image_plane_pixel_offset_y =
 				-xen::normalized(
 				                 xen::cross(image_plane_pixel_offset_x, camera.look_dir)
@@ -210,34 +295,31 @@ namespace xen {
 				}
 			}
 
-			////////////////////////////////////////////////////////////////////////////////////////
+			//////////////////////////////////////////////////////////////////////////
 
-			xen::RenderCommand3d render_commands[3];
+			xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
 			render_commands[0].type                = xen::RenderCommand3d::LINES;
-			render_commands[0].color               = xen::Color::MAGENTA;
+			render_commands[0].color               = xen::Color::MAGENTA4f;
 			render_commands[0].model_matrix        = Mat4r::Identity;
-			// :TODO:COMP:ISSUE_5: nasty hack, make line segment an array of row vectors
-			render_commands[0].verticies.verticies = &camera_primary_axis.p1;
+			render_commands[0].verticies.verticies = &camera_primary_axis.vertices[0];
 			render_commands[0].verticies.count     = 2;
 
 			render_commands[1].type                = xen::RenderCommand3d::LINES;
-			render_commands[1].color               = xen::Color::GREEN;
+			render_commands[1].color               = xen::Color::GREEN4f;
 			render_commands[1].model_matrix        = Mat4r::Identity;
-			// :TODO:COMP:ISSUE_5: nasty hack, make line segment an array of row vectors
-			render_commands[1].verticies.verticies = &camera_up_dir.p1;
+			render_commands[1].verticies.verticies = &camera_up_dir.vertices[0];
 			render_commands[1].verticies.count     = 2;
 
 			render_commands[2].type                = xen::RenderCommand3d::LINES;
-			render_commands[2].color               = xen::Color::WHITE;
+			render_commands[2].color               = xen::Color::WHITE4f;
 			render_commands[2].model_matrix        = Mat4r::Identity;
-			// :TODO:COMP:ISSUE_5: nasty hack, make line segment an array of row vectors
 			render_commands[2].verticies.verticies = &camera_corner_rays[0];
 			render_commands[2].verticies.count     = 8;
 
-			xen::sren::renderRasterize(target, viewport,
-			                           view_camera,
-			                           render_commands, XenArrayLength(render_commands)
-			                           );
+			xen::RenderParameters3d params;
+			params.camera = view_camera;
+
+			xen::sren::renderRasterize(target, viewport, params, render_commands );
 		}
 	}
 }

@@ -10,6 +10,7 @@
 #define XEN_MATH_VECTOR_TYPES_HPP
 
 #include <xen/core/intrinsics.hpp>
+#include <limits>
 
 ////////////////////////////////////////////////////////////////////////////////
 // Define the types
@@ -73,6 +74,7 @@ namespace xen{
 		};
 		static const Vec<2, T> UnitX, UnitY, Origin;
 		static const Vec<2, T> UnitAxes[2];
+		static const Vec<2, T> Min, Max;
 
 		template<typename T2>
 		explicit operator Vec<2, T2>() const {
@@ -86,6 +88,14 @@ namespace xen{
 	template<typename T> const Vec<2, T> Vec<2, T>::UnitY       = {0,1};
 	template<typename T> const Vec<2, T> Vec<2, T>::Origin      = {0,0};
 	template<typename T> const Vec<2, T> Vec<2, T>::UnitAxes[2] = {{1,0}, {0,1}};
+	template<typename T> const Vec<2, T> Vec<2, T>::Min         = {
+		std::numeric_limits<T>::min(),
+		std::numeric_limits<T>::min()
+	};
+	template<typename T> const Vec<2, T> Vec<2, T>::Max         = {
+		std::numeric_limits<T>::max(),
+		std::numeric_limits<T>::max()
+	};
 
 	template<typename T>
 	struct Vec<3,T>{
@@ -94,6 +104,7 @@ namespace xen{
 		union{
 			T elements[3];
 			struct{ T x, y, z;                     };
+			struct{ T r, g, b;                     };
 			struct{ T u, v;                        };
 			struct{ Vec<2, T> uv;                  };
 			struct{ Vec<2, T> xy;                  };
@@ -101,6 +112,7 @@ namespace xen{
 		};
 		static const Vec<3, T> UnitX, UnitY, UnitZ, Origin;
 		static const Vec<3, T> UnitAxes[3];
+		static const Vec<3, T> Min, Max;
 
 		template<typename T2>
 		explicit operator Vec<3, T2>() const {
@@ -118,22 +130,36 @@ namespace xen{
 	                                                              ,{0,1,0}
 	                                                              ,{0,0,1}
 	                                                              };
+	template<typename T> const Vec<3, T> Vec<3, T>::Min = {
+		std::numeric_limits<T>::min(),
+		std::numeric_limits<T>::min(),
+		std::numeric_limits<T>::min()
+	};
+	template<typename T> const Vec<3, T> Vec<3, T>::Max = {
+		std::numeric_limits<T>::max(),
+		std::numeric_limits<T>::max(),
+		std::numeric_limits<T>::max(),
+	};
 
 	template<typename T>
 	struct Vec<4,T>{
+		Vec<4,T>(){}
 		Vec<4,T>(T nx, T ny, T nz, T nw) : x(nx), y(ny), z(nz), w(nw){}
 		union{
 		    T elements[4];
 			struct{ T x, y, z, w;                   };
+			struct{ T r, g, b, a;                   };
 			struct{ T u, v;                         };
 			struct{ Vec<2, T> xy, zw;               };
 			struct{ Vec<2, T> uv;                   };
 			struct{ Vec<3, T> xyz;                  };
+			struct{ Vec<3, T> rgb;                  };
 			struct{ T _unused1; Vec<3, T> yzw; };
 			struct{ T _unused2; Vec<2, T> yz;  };
 		};
 		static const Vec<4, T> UnitX, UnitY, UnitZ, UnitW, Origin;
 		static const Vec<4, T> UnitAxes[4];
+		static const Vec<4, T> Min, Max;
 
 		template<typename T2>
 		explicit operator Vec<4, T2>() const {
@@ -153,6 +179,18 @@ namespace xen{
 	                                                              ,{0,0,1,0}
 	                                                              ,{0,0,0,1}
 	                                                              };
+	template<typename T> const Vec<4, T> Vec<4, T>::Min = {
+		std::numeric_limits<T>::min(),
+		std::numeric_limits<T>::min(),
+		std::numeric_limits<T>::min(),
+		std::numeric_limits<T>::min()
+	};
+	template<typename T> const Vec<4, T> Vec<4, T>::Max = {
+		std::numeric_limits<T>::max(),
+		std::numeric_limits<T>::max(),
+		std::numeric_limits<T>::max(),
+		std::numeric_limits<T>::max(),
+	};
 
 	#pragma GCC diagnostic pop // re-enable -Wpedantic
 }

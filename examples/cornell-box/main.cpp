@@ -15,78 +15,44 @@
 #include <xen/sren/renderer3d.hxx>
 
 #include <SDL.h>
-#include "SDLauxilary.h"
+#include "../SDLauxilary.h"
 
 #include "testModel.hpp"
 
-xen::Camera3dOrbit camera;
-xen::Camera3d      camera_x;
-xen::Camera3d      camera_y;
-xen::Camera3d      camera_z;
-real camera_speed = 250;
-xen::Angle camera_rotate_speed = 120_deg;
-xen::Angle camera_pitch = 0_deg;
+xen::Camera3dCylinder camera;
+xen::Camera3d         camera_x;
+xen::Camera3d         camera_y;
+xen::Camera3d         camera_z;
 
-void handleInput(real dt){
-	SDL_PumpEvents();
-
-	const u8* keystate = SDL_GetKeyboardState(NULL);
-
-	if(keystate[SDL_SCANCODE_UP]){
-		camera.radius -= camera_speed * dt;
-	}
-	if(keystate[SDL_SCANCODE_DOWN]){
-		camera.radius += camera_speed * dt;
-	}
-	camera.radius = xen::clamp(camera.radius, 0.01_r, 750_r);
-	//camera_x.position = (camera.radius + 50_r) * Vec3r::UnitX;
-	//camera_y.position = (camera.radius + 50_r) * Vec3r::UnitY;
-	//camera_z.position = (camera.radius + 50_r) * Vec3r::UnitZ;
-
-	if(keystate[SDL_SCANCODE_LEFT]){
-		camera.angle -= camera_rotate_speed * dt;
-	}
-	if(keystate[SDL_SCANCODE_RIGHT]){
-		camera.angle += camera_rotate_speed * dt;
-	}
-	if(keystate[SDL_SCANCODE_A]){
-		camera.height += camera_speed * dt;
-	}
-	if(keystate[SDL_SCANCODE_Z]){
-		camera.height -= camera_speed * dt;
-	}
-
-	if(keystate[SDL_SCANCODE_Q]){
-		camera.up_dir = xen::rotated(camera.up_dir,  Vec3r::UnitZ, 90_deg * dt);
-	}
-	if(keystate[SDL_SCANCODE_E]){
-		camera.up_dir = xen::rotated(camera.up_dir, -Vec3r::UnitZ, 90_deg * dt);
-	}
-}
-
-static const real       Z_NEAR = 0.001_r;
-static const real       Z_FAR  = 1000_r;
-static const xen::Angle FOV_Y  = 70_deg;
+xen::RenderParameters3d render_params;
 
 int main(int argc, char** argv){
+	xen::FixedArray<xen::LightSource3d, 1> scene_lights;
+
+	scene_lights[0].type           = xen::LightSource3d::POINT;
+	scene_lights[0].point.position = {1.0_r, 1.0_r, 1.0_r};
+	scene_lights[0].color          = xen::Color::WHITE4f;
+	scene_lights[0].attenuation    = {0.0f, 0.0f, 1.0f};
+
+	render_params.ambient_light = xen::Color3f(0.3f, 0.3f, 0.3f);
+	render_params.lights        = scene_lights;
+
 	camera.z_near   = 0.001;
 	camera.z_far    = 1000;
 	camera.fov_y    = 70_deg;
 	camera.radius   = 450;
 	camera.height   = 0;
 	camera.up_dir   = Vec3r::UnitY;
+	camera.axis     = Vec3r::UnitY;
 	camera.target   = Vec3r::Origin;
-	//:TODO: breaks if angle is exactly 0deg, never occurs
-	// under user control since don't hit dead on float value, but
-	// broken if set here
 	camera.angle    = 0.0_deg;
 
-	Vec2r window_size = {800, 800};
+	Vec2r window_size = {300, 300};
 	screen* screen = InitializeSDL(window_size.x, window_size.y, false);
 
-	xen::RenderCommand3d render_commands[1];
-	render_commands[0].type                = xen::RenderCommand3d::LINE_STRIP;
-	render_commands[0].color               = xen::Color::RED;
+	xen::FixedArray<xen::RenderCommand3d, 1> render_commands;
+	render_commands[0].type                = xen::RenderCommand3d::TRIANGLES;
+	render_commands[0].color               = xen::Color::RED4f;
 	render_commands[0].model_matrix        = xen::Translation3d(-277_r, -277_r, -277_r);
 	render_commands[0].verticies.verticies = &test_model_geometry[0];
 	render_commands[0].verticies.count     = test_model_num_vertices;
@@ -103,16 +69,15 @@ int main(int argc, char** argv){
 		last_tick = tick;
 
 		printf("dt: %f\n", dt);
-		handleInput(dt);
+		handleCameraInput(camera, dt);
 
 		// Clear buffer
 		xen::sren::clear(screen->buffer, xen::Color::BLACK);
 
 		// Do rendering
-		xen::sren::renderRasterize(screen->buffer, viewport,
-															 xen::generateCamera3d(camera),
-															 render_commands, XenArrayLength(render_commands)
-															);
+		render_params.camera = xen::generateCamera3d(camera);
+		xen::sren::renderRaytrace(screen->buffer, viewport,
+		                           render_params, render_commands);
 
 		SDL_Renderframe(screen);
 	}

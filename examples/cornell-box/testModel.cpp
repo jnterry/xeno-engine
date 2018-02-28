@@ -15,27 +15,27 @@ Vec3r H_room = {   0_r, 555_r, 555_r };
 
 // ---------------------------------------------------------------------------
 // Define short block coordinates
-Vec3r A_short = { 290_r,   0_r, 114_r };
-Vec3r B_short = { 130_r,   0_r,  65_r };
-Vec3r C_short = { 240_r,   0_r, 272_r };
-Vec3r D_short = {  82_r,   0_r, 225_r };
+Vec3r A_short = { 265_r,   0_r, 441_r };
+Vec3r B_short = { 425_r,   0_r, 490_r };
+Vec3r C_short = { 315_r,   0_r, 283_r };
+Vec3r D_short = {  82_r,   0_r, 330_r };
 
-Vec3r E_short = { 290_r, 165_r, 114_r };
-Vec3r F_short = { 130_r, 165_r,  65_r };
-Vec3r G_short = { 240_r, 165_r, 272_r };
-Vec3r H_short = {  82_r, 165_r, 225_r };
+Vec3r E_short = { 265_r, 165_r, 441_r };
+Vec3r F_short = { 425_r, 165_r, 490_r };
+Vec3r G_short = { 315_r, 165_r, 283_r };
+Vec3r H_short = { 473_r, 165_r, 330_r };
 
 // ---------------------------------------------------------------------------
 // Define tall block coordinates
-Vec3r A_tall = { 423_r,   0_r, 247_r };
-Vec3r B_tall = { 265_r,   0_r, 296_r };
-Vec3r C_tall = { 472_r,   0_r, 406_r };
-Vec3r D_tall = { 314_r,   0_r, 456_r };
+Vec3r A_tall = { 132_r,   0_r, 308_r };
+Vec3r B_tall = { 290_r,   0_r, 259_r };
+Vec3r C_tall = {  83_r,   0_r, 149_r };
+Vec3r D_tall = { 241_r,   0_r,  99_r };
 
-Vec3r E_tall = { 423_r, 330_r, 247_r };
-Vec3r F_tall = { 265_r, 330_r, 296_r };
-Vec3r G_tall = { 472_r, 330_r, 406_r };
-Vec3r H_tall = { 314_r, 330_r, 456_r };
+Vec3r E_tall = { 132_r, 330_r, 308_r };
+Vec3r F_tall = { 290_r, 330_r, 259_r };
+Vec3r G_tall = {  83_r, 330_r, 149_r };
+Vec3r H_tall = { 241_r, 330_r,  99_r };
 
 // ---------------------------------------------------------------------------
 // Define colors

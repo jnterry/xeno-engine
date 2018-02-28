@@ -17,32 +17,6 @@
 
 namespace xen {
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Represents some finite line segment
-	/////////////////////////////////////////////////////////////////////
-	template<u32 T_DIM, typename T>
-	struct LineSegment{
-		Vec<T_DIM, T> p1;
-		Vec<T_DIM, T> p2;
-
-		template<typename T2>
-		explicit operator LineSegment<T_DIM, T2>() const {
-			return { (Vec<T_DIM, T2>)p1, (Vec<T_DIM, T2>)p2 };
-		}
-	};
-	template <typename T> using LineSegment2 = LineSegment<2, T>;
-	template <typename T> using LineSegment3 = LineSegment<3, T>;
-	template <typename T> using LineSegment4 = LineSegment<4, T>;
-	typedef LineSegment<2, real> LineSegment2r;
-	typedef LineSegment<2, u32 > LineSegment2u;
-	typedef LineSegment<2, s32 > LineSegment2s;
-	typedef LineSegment<3, real> LineSegment3r;
-	typedef LineSegment<3, u32 > LineSegment3u;
-	typedef LineSegment<3, s32 > LineSegment3s;
-	typedef LineSegment<4, real> LineSegment4r;
-	typedef LineSegment<4, u32 > LineSegment4u;
-	typedef LineSegment<4, s32 > LineSegment4s;
-
-	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents an Axis Aligned Bounding Box
 	/////////////////////////////////////////////////////////////////////
 	template<u32 T_DIM, typename T>
@@ -50,10 +24,19 @@ namespace xen {
 		Vec<T_DIM, T> min;
 		Vec<T_DIM, T> max;
 
+		/// \brief Aabb whose min point is set to a vector of max values for type T,
+		/// and whose max point is set to a vector of min values for type T
+		/// Thus such an Aabb can be built up by repeatedly calling
+		/// addPoint or similar
+		static const Aabb<T_DIM, T> MaxMinBox;
+
 		template<typename T2>
 		explicit operator Aabb<T_DIM, T2>() const {
 			return { (Vec<T_DIM, T2>)min, (Vec<T_DIM, T2>)max };
 		}
+	};
+	template<u32 T_DIM, typename T> const Aabb<T_DIM, T> Aabb<T_DIM, T>::MaxMinBox = {
+		Vec<T_DIM, T>::Max, Vec<T_DIM, T>::Min
 	};
 	template <typename T> using Aabb2 = Aabb<2, T>;
 	template <typename T> using Aabb3 = Aabb<3, T>;
@@ -88,39 +71,6 @@ namespace xen {
 	typedef Sphere<4, u32 > Sphere4u;
 	typedef Sphere<4, s32 > Sphere4s;
 	typedef Sphere<4, real> Sphere4r;
-
-	// gcc doesn't like the anonomous structures inside unions, disable the warning temporarily...
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wpedantic"
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Represents a triangle in some number of dimensions
-	/////////////////////////////////////////////////////////////////////
-	template<u32 T_DIM, typename T>
-	struct Triangle {
-		union {
-			struct {
-				Vec<T_DIM, T> p1;
-				Vec<T_DIM, T> p2;
-				Vec<T_DIM, T> p3;
-			};
-		};
-	};
-
-	#pragma GCC diagnostic pop
-
-	template <typename T> using Triangle2 = Triangle<2, T>;
-	template <typename T> using Triangle3 = Triangle<3, T>;
-	template <typename T> using Triangle4 = Triangle<4, T>;
-	typedef Triangle<2, u32 > Triangle2u;
-	typedef Triangle<2, s32 > Triangle2s;
-	typedef Triangle<2, real> Triangle2r;
-	typedef Triangle<3, u32 > Triangle3u;
-	typedef Triangle<3, s32 > Triangle3s;
-	typedef Triangle<3, real> Triangle3r;
-	typedef Triangle<4, u32 > Triangle4u;
-	typedef Triangle<4, s32 > Triangle4s;
-	typedef Triangle<4, real> Triangle4r;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents a ray (aka half line) with some origin point
@@ -168,16 +118,6 @@ bool operator!=(const xen::Aabb<T_DIM, T>& lhs, const xen::Aabb<T_DIM, T>& rhs){
 }
 
 template<u32 T_DIM, typename T>
-bool operator==(const xen::LineSegment<T_DIM, T>& lhs, const xen::LineSegment<T_DIM, T>& rhs){
-	return lhs.p1 == rhs.p1 && lhs.p2 == rhs.p2;
-}
-
-template<u32 T_DIM, typename T>
-bool operator!=(const xen::LineSegment<T_DIM, T>& lhs, const xen::LineSegment<T_DIM, T>& rhs){
-	return lhs.p1 != rhs.p1 || lhs.p2 != rhs.p2;
-}
-
-template<u32 T_DIM, typename T>
 bool operator==(const xen::Sphere<T_DIM, T>& lhs, const xen::Sphere<T_DIM, T>& rhs){
 	return lhs.center == rhs.center && lhs.radius == rhs.radius;
 }
@@ -185,22 +125,6 @@ bool operator==(const xen::Sphere<T_DIM, T>& lhs, const xen::Sphere<T_DIM, T>& r
 template<u32 T_DIM, typename T>
 bool operator!=(const xen::Sphere<T_DIM, T>& lhs, const xen::Sphere<T_DIM, T>& rhs){
 	return lhs.center != rhs.center || lhs.radius != rhs.radius;
-}
-
-template<u32 T_DIM, typename T>
-bool operator==(const xen::Triangle<T_DIM, T>& lhs, const xen::Triangle<T_DIM, T>& rhs){
-	return (lhs.p1 == rhs.p1 &&
-	        lhs.p2 == rhs.p2 &&
-	        lhs.p3 == rhs.p3
-	       );
-}
-
-template<u32 T_DIM, typename T>
-bool operator!=(const xen::Triangle<T_DIM, T>& lhs, const xen::Triangle<T_DIM, T>& rhs){
-	return (lhs.p1 != rhs.p1 ||
-	        lhs.p2 != rhs.p2 ||
-	        lhs.p3 != rhs.p3
-	       );
 }
 
 template<u32 T_DIM, typename T>
