@@ -83,10 +83,15 @@ set(XEN_HEADERS_GRAPHICS
 set(XEN_SOURCES_SREN
   ${CMAKE_CURRENT_LIST_DIR}/xen/sren/renderer3d_raytracer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/renderer3d_rasterizer.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/SoftwareDeviceBase.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RaytracerDevice.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RasterizerDevice.cpp
 )
 
 set(XEN_HEADERS_SREN
-    ${CMAKE_CURRENT_LIST_DIR}/xen/sren/renderer3d.hxx
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/SoftwareDevice.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/SoftwareDeviceBase.hxx
+  ${CMAKE_CURRENT_LIST_DIR}/xen/sren/renderer3d.hxx
 )
 
 ##################################################
