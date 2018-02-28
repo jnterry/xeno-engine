@@ -21,15 +21,9 @@
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 
-namespace xen {
-	struct Window : public xen::impl::WindowBase{
-		::Window xwindow;
-	};
-}
+#include "Window.unix.hxx"
 
 namespace {
-	Display* display = nullptr;
-
 	xen::Key xenKeyFromKeysym(KeySym symbol){
 		switch(symbol){
 		case XK_Shift_L:      return xen::Key::LShift;
@@ -274,7 +268,7 @@ namespace {
 		bool valid_event = true;
 		switch(xe->type){
 		case ClientMessage:{
-			Atom wm_delete_window = XInternAtom(display, "WM_DELETE_WINDOW", False);
+			Atom wm_delete_window = XInternAtom(xen::impl::unix_display, "WM_DELETE_WINDOW", False);
 			if(xe->xclient.data.l[0] == wm_delete_window){
 				e.type = xen::WindowEvent::Closed;
 			}
@@ -346,12 +340,12 @@ namespace {
 namespace xen {
 	struct Allocator;
 
-
-
 	namespace impl{
+		Display* unix_display = nullptr;
+
 		void dispatchEvents(Window* w){
 			XEvent event;
-			while(XCheckIfEvent(display, &event,
+			while(XCheckIfEvent(xen::impl::unix_display, &event,
 			                    &checkEventMatchesWindow,
 			                    reinterpret_cast< XPointer >( w->xwindow)
 			                    )
@@ -365,10 +359,10 @@ namespace xen {
 	Window* createWindow(xen::ArenaLinear& arena, const char* title){
 		xen::MemoryTransaction transaction(arena);
 
-		if(display == nullptr){
+		if(xen::impl::unix_display == nullptr){
 			//:TODO: error checking
-			display = XOpenDisplay(NULL); // open local display
-			if(display == nullptr){
+			xen::impl::unix_display = XOpenDisplay(NULL); // open local display
+			if(xen::impl::unix_display == nullptr){
 				// :TODO: log error
 				printf("ERROR: Failed to open x display\n");;
 				return nullptr;
@@ -378,17 +372,17 @@ namespace xen {
 			}
 		}
 
-		::Window root  = DefaultRootWindow(display); // Get window representing whole screen
-		Visual* visual = DefaultVisual(display, 0);
-		int    depth   = DefaultDepth(display, 0);
+		::Window root  = DefaultRootWindow(xen::impl::unix_display); // Get window representing whole screen
+		Visual* visual = DefaultVisual(xen::impl::unix_display, 0);
+		int    depth   = DefaultDepth(xen::impl::unix_display, 0);
 
 		XSetWindowAttributes    frame_attributes;
-		frame_attributes.background_pixel = XWhitePixel(display, 0);
+		frame_attributes.background_pixel = XWhitePixel(xen::impl::unix_display, 0);
 
 		Window* result = xen::reserveType<Window>(arena);
 		*result = {};
 
-		result->xwindow = XCreateWindow(display,          // open locally
+		result->xwindow = XCreateWindow(xen::impl::unix_display,          // open locally
 		                                root,             // parent window
 		                                0, 0,             // top left coords
 		                                1024, 768,        // window size
@@ -410,7 +404,7 @@ namespace xen {
 		}
 
 		// Setup what input events we want to capture
-		XSelectInput(display, result->xwindow,
+		XSelectInput(xen::impl::unix_display, result->xwindow,
 		             //ExposureMask        | // Window shown
 		             //StructureNotifyMask | // Resize request, window moved
 		             ResizeRedirectMask  | // Window resized
@@ -423,22 +417,22 @@ namespace xen {
 
 		// Change the close button behaviour so that we can capture event, rather than the window manager
 		// destroying the window by itself
-		Atom wm_delete_window = XInternAtom(display, "WM_DELETE_WINDOW", False);
-		XSetWMProtocols(display, result->xwindow, &wm_delete_window, 1);
+		Atom wm_delete_window = XInternAtom(xen::impl::unix_display, "WM_DELETE_WINDOW", False);
+		XSetWMProtocols(xen::impl::unix_display, result->xwindow, &wm_delete_window, 1);
 
 		// Set proper window title
 		setWindowTitle(result, title);
 
 		// Show the window on screen
-		XMapWindow(display, result->xwindow);
-		XMapRaised(display, result->xwindow);
+		XMapWindow(xen::impl::unix_display, result->xwindow);
+		XMapRaised(xen::impl::unix_display, result->xwindow);
 
 		transaction.commit();
 		return result;
 	}
 
 	void destroyWindow(xen::Window* window){
-		XDestroyWindow(display, window->xwindow);
+		XDestroyWindow(xen::impl::unix_display, window->xwindow);
 		*window = {};
 	}
 
@@ -454,19 +448,19 @@ namespace xen {
 
 	bool isKeyPressed(Key key){
 		KeySym  keysym  = xenKeysymFromKey(key);
-		KeyCode keycode = XKeysymToKeycode(display, keysym);
+		KeyCode keycode = XKeysymToKeycode(xen::impl::unix_display, keysym);
 		if(keycode == 0){ return false; }
 
 		// Get state of all keys - each key corrosponds to a single bit
 		char keys[32];
-		XQueryKeymap(display, keys);
+		XQueryKeymap(xen::impl::unix_display, keys);
 
 		// Check the keycode in question
 		return (keys[keycode / 8] & (1 << (keycode % 8))) != 0;
 	}
 
 	void setWindowTitle(Window* window, const char* title){
-		XStoreName(display, window->xwindow, title);
+		XStoreName(xen::impl::unix_display, window->xwindow, title);
 	}
 }
 
