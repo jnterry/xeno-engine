@@ -10,13 +10,25 @@
 #define XEN_SREN_SOFTWAREDEVICEBASE_HXX
 
 #include <xen/graphics/GraphicsDevice.hpp>
+#include <xen/graphics/Image.hpp>
 
 namespace xen {
 	namespace sren {
-		class SoftwareDeviceBase : public GraphicsDevice {
+		class SoftwareDeviceBase : public xen::GraphicsDevice {
+		protected:
+			// :TODO: hack -> we should obey the render target passed into drawing functions
+			xen::RawImage* diffuse_buffer;
 		public:
-			void clear(RenderTarget target, const xen::Aabb2u& viewport, xen::Color color);
-		}
+
+			/// \brief Constructs a new software render device which will draw to
+			/// specified image -> hack -> should obey the render target passed into
+			/// drawing functions
+			SoftwareDeviceBase(xen::RawImage* image);
+
+			virtual ~SoftwareDeviceBase();
+
+			void clear(xen::RenderTarget target, const xen::Aabb2u& viewport, xen::Color color) override;
+		};
 	}
 }
 

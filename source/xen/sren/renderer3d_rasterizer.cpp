@@ -22,7 +22,7 @@
 #include <cstdlib>
 
 namespace {
-	void doRenderPoints(xen::sren::RenderTarget& target,
+	void doRenderPoints(xen::RawImage& target,
 	                    const xen::Aabb2r& viewport,
 	                    const Mat4f& mvp_matrix,
 	                    xen::Color4f color,
@@ -63,7 +63,7 @@ namespace {
 		}
 	}
 
-	void doRenderLine2d(xen::sren::RenderTarget& target, xen::LineSegment2r line, xen::Color4f color){
+	void doRenderLine2d(xen::RawImage& target, xen::LineSegment2r line, xen::Color4f color){
 		//https://www.cs.virginia.edu/luther/blog/posts/492.html
 		if(line.p1 != line.p2){
 			//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
@@ -78,7 +78,7 @@ namespace {
 		}
 	}
 
-	void doRenderLine3d(xen::sren::RenderTarget& target,
+	void doRenderLine3d(xen::RawImage& target,
 	                    const xen::Aabb2r& viewport,
 	                    const Mat4f& mvp_matrix,
 	                    xen::Color4f color,
@@ -139,13 +139,13 @@ namespace {
 namespace xen{
 
 	namespace sren {
-		void clear(RenderTarget& target, Color color){
+		void clear(RawImage& target, Color color){
 			static_assert(sizeof(Color) == sizeof(int), "Relying on memset which takes int values");
 
 			memset(target.pixels, color.value, target.width * target.height * sizeof(Color));
 		}
 
-		void clear(RenderTarget& target, const xen::Aabb2u& viewport, Color color) {
+		void clear(RawImage& target, const xen::Aabb2u& viewport, Color color) {
 			for(u32 x = viewport.min.x; x < viewport.max.x; ++x){
 				for(u32 y = viewport.min.y; y < viewport.max.y; ++y){
 					target[x][y] = color;
@@ -153,7 +153,7 @@ namespace xen{
 			}
 		}
 
-		void renderRasterize(RenderTarget& target, const xen::Aabb2u& viewport,
+		void renderRasterize(RawImage& target, const xen::Aabb2u& viewport,
 		                     const RenderParameters3d& params,
 		                     const xen::Array<RenderCommand3d>& commands){
 

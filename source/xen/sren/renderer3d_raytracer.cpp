@@ -89,7 +89,7 @@ namespace {
 
 namespace xen {
 	namespace sren {
-		void renderRaytrace (RenderTarget& target,
+		void renderRaytrace (RawImage& target,
 		                     const xen::Aabb2u& viewport,
 		                     const RenderParameters3d& params,
 		                     const xen::Array<RenderCommand3d>& commands){
@@ -217,7 +217,7 @@ namespace xen {
 		/// \param camera          The camera to use as the perspective to draw from
 		/// \param debugged_camera The camera to draw
 		/////////////////////////////////////////////////////////////////////
-		void renderCameraDebug(RenderTarget& target, const xen::Aabb2u& viewport,
+		void renderCameraDebug(RawImage& target, const xen::Aabb2u& viewport,
 		                       const Camera3d& view_camera,
 		                       const Camera3d& camera
 		                       ) {

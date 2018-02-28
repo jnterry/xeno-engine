@@ -14,8 +14,18 @@
 
 namespace xen {
 	namespace sren {
-		void SoftwareDeviceBase::clear(RenderTarget target, const xen::Aabb2u& viewport, xen::Color color){
-			xen::sren::clear(RenderTarget& target, const xen::Aabb2u& viewport, Color color);
+
+		SoftwareDeviceBase::SoftwareDeviceBase(xen::RawImage* image)
+			: diffuse_buffer(image) {
+
+		}
+
+		SoftwareDeviceBase::~SoftwareDeviceBase(){
+			// no-op
+		}
+
+		void SoftwareDeviceBase::clear(xen::RenderTarget target, const xen::Aabb2u& viewport, xen::Color color){
+			xen::sren::clear(*this->diffuse_buffer, viewport, color);
 		}
 	}
 }
