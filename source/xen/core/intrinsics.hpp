@@ -19,7 +19,7 @@
 /// \brief Triggers break in debugger (or crash if no debugger)
 /// \todo :TODO: something better?
 #define XenBreak(...) { \
-	printf("***XEN BREAK***\n"); \
+		printf("*** XEN BREAK %s:%i\n", __FILE__, __LINE__); \
 	(*(char*)nullptr) = 'a'; \
 	}
 
@@ -30,7 +30,7 @@
 		XenBreak(__VAR_ARGS__); \
 	}
 #define XenInvalidCodePath(msg)	  \
-	printf("***XEN INVALID CODE PATH: %s:%i - %s\n", __FILE__, __LINE__, msg); \
+	printf("*** XEN INVALID CODE PATH: %s:%i - %s\n", __FILE__, __LINE__, msg); \
 	XenBreak();
 
 typedef float     r32;
