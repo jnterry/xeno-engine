@@ -197,31 +197,26 @@ namespace {
 	//          tri.p1
 	void doRenderTriangle2d(xen::sren::RenderTarget& target,
 		                      const xen::Aabb2r& viewport,
-	                        xen::Color4f color, xen::Triangle2r& tri){
+	                        xen::Color4f color, xen::Triangle2r tri){
 
-
-		// If any two points are equal draw a line and bail out
-		if (tri.p1 == tri.p2){
-			xen::LineSegment2r line = {tri.p1, tri.p3};
-			// Clip to the viewport
-			if(xen::intersect(line, viewport)){
-				doRenderLine2d(target, line, color);
+		{ // If any two points are equal draw a line and bail out
+			xen::LineSegment2r* line = nullptr;
+			if(tri.p1 == tri.p2){
+				// then draw line connecting p2 and p3
+				line = (xen::LineSegment2r*)&tri.vertices[1];
+			} else if (tri.p1 == tri.p3 || tri.p2 == tri.p3) {
+				// then draw line connecting p1 and p2
+				line = (xen::LineSegment2r*)&tri.vertices[0];
 			}
-			return;
-		} else if (tri.p1 == tri.p3){
-			xen::LineSegment2r line = {tri.p1, tri.p2};
-			// Clip to the viewport
-			if(xen::intersect(line, viewport)){
-				doRenderLine2d(target, line, color);
+			if(line) {
+				// Then the triangle has at least 2 points equal to one another - just
+				// join the line segment and bail out. This isn't an error, eg, could
+				// be a 3d triangle that is edge on when projected
+				if(xen::intersect(*line, viewport)){
+					doRenderLine2d(target, *line, color);
+				}
+				return;
 			}
-			return;
-		} else if (tri.p2 == tri.p3){
-			xen::LineSegment2r line = {tri.p1, tri.p3};
-			// Clip to the viewport
-			if(xen::intersect(line, viewport)){
-				doRenderLine2d(target, line, color);
-			}
-			return;
 		}
 
 		// Sort Points such that p1 has lowest y, p3 has highest y
