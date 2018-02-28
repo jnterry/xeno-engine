@@ -198,6 +198,8 @@ namespace {
 	void doRenderTriangle2d(xen::sren::RenderTarget& target,
 		                      const xen::Aabb2r& viewport,
 	                        xen::Color4f color, xen::Triangle2r& tri){
+
+
 		// If any two points are equal draw a line and bail out
 		if (tri.p1 == tri.p2){
 			xen::LineSegment2r line = {tri.p1, tri.p3};
@@ -221,23 +223,12 @@ namespace {
 			}
 			return;
 		}
-		// Sort Points
-		Vec2r temp;
-		if (tri.p1.y > tri.p2.y){
-			temp = tri.p1;
-			tri.p1 = tri.p2;
-			tri.p2 = temp;
-		}
-		if (tri.p2.y > tri.p3.y){
-			temp = tri.p2;
-			tri.p2 = tri.p3;
-			tri.p3 = temp;
-		}
-		if (tri.p1.y > tri.p2.y){
-			temp = tri.p1;
-			tri.p1 = tri.p2;
-			tri.p2 = temp;
-		}
+
+		// Sort Points such that p1 has lowest y, p3 has highest y
+		if (tri.p1.y > tri.p2.y) { swap(tri.p1, tri.p2); }
+		if (tri.p2.y > tri.p3.y) { swap(tri.p2, tri.p3); }
+		if (tri.p1.y > tri.p2.y) { swap(tri.p1, tri.p2); }
+
 		//printf("Points of triangle: (%f,%f), (%f,%f), (%f,%f)\n", tri.p1.x, tri.p1.y,tri.p2.x, tri.p2.y,tri.p3.x, tri.p3.y);
 		// Create line for each of a, b, & c for drawing purposes
 		xen::LineSegment2r line_a = {tri.p1, tri.p3};
