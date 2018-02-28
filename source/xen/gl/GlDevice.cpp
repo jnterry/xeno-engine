@@ -34,7 +34,7 @@ namespace {
 			xen::resetArena(scratch);
 			const char* errors = xen::gl::getErrors(result, scratch);
 			printf("Shader Errors:\n%s\n", errors);
-			exit(1);
+			XenBreak();
 		} else {
 			printf("Shader compiled successfully\n");
 		}
