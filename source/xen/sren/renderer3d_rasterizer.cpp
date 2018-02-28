@@ -262,7 +262,7 @@ namespace {
 			// :TODO: This if may need to go inside, or above, the above while
 			// If b has reached end point then begin drawing line c by changing vector
 			// that represents a single step from that of b to that of c
-			if (curr_b == line_b.p1){
+			if (curr_b == line_b.p2){
 				delta_b = delta_c;
 			}
 			if (stepped_y_a && stepped_y_b){
