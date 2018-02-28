@@ -9,6 +9,7 @@
 #ifndef XEN_GRAPHICS_SREN_RENDERER3D_RASTERIZER_CPP
 #define XEN_GRAPHICS_SREN_RENDERER3D_RASTERIZER_CPP
 
+#include <xen/core/intrinsics.hpp>
 #include <xen/math/quaternion.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/math/vertex_group.hpp>
@@ -224,7 +225,23 @@ namespace {
 		if (tri.p2.y > tri.p3.y) { swap(tri.p2, tri.p3); }
 		if (tri.p1.y > tri.p2.y) { swap(tri.p1, tri.p2); }
 
-		//printf("Points of triangle: (%f,%f), (%f,%f), (%f,%f)\n", tri.p1.x, tri.p1.y,tri.p2.x, tri.p2.y,tri.p3.x, tri.p3.y);
+		// :TODO: this is nasty hack to prevent infinite loop since we will
+		// never step up in y if the line is along x - but we still want to
+		// draw triangles
+		// This is case like:
+		//
+		//       /|
+		//      / |
+		//     /  |
+		//     ----   <- problem edge
+		if((u32)tri.p1.y == (u32)tri.p2.y){
+			return;
+		}
+
+		printf("Points of triangle: (%f,%f), (%f,%f), (%f,%f)\n",
+		       tri.p1.x, tri.p1.y,
+		       tri.p2.x, tri.p2.y,
+		       tri.p3.x, tri.p3.y);
 		// Create line for each of a, b, & c for drawing purposes
 		xen::LineSegment2r line_a = {tri.p1, tri.p3};
 		xen::LineSegment2r line_b = {tri.p1, tri.p2};
@@ -233,6 +250,9 @@ namespace {
 		real num_pixels_a = xen::max(abs(line_a.p1.x - line_a.p2.x), abs(line_a.p1.y - line_a.p2.y));
 		printf("Number of pixels in line_a: %f\n", num_pixels_a);
 		Vec2r delta_a = (line_a.p2 - line_a.p1) / num_pixels_a;
+		if(delta_a.y > 1.0f){ // ensure we never step up by multiple y
+			delta_a /= delta_a.y;
+		}
 		Vec2r curr_a  = line_a.p1;
 		Vec2r prev_a;
 		bool stepped_y_a = false;
@@ -240,6 +260,9 @@ namespace {
 		real num_pixels_b = xen::max(abs(line_b.p1.x - line_b.p2.x), abs(line_b.p1.y - line_b.p2.y));
 		printf("Number of pixels in line_b: %f\n", num_pixels_b);
 		Vec2r delta_b = (line_b.p2 - line_b.p1) / num_pixels_b;
+		if(delta_b.y > 1.0f){ // ensure we never step up by multiple y
+			delta_b /= delta_b.y;
+		}
 		Vec2r curr_b  = line_b.p1;
 		Vec2r prev_b;
 		bool stepped_y_b = false;
@@ -248,56 +271,59 @@ namespace {
 		real num_pixels_c = xen::max(abs(line_c.p1.x - line_c.p2.x), abs(line_c.p1.y - line_c.p2.y));
 		printf("Number of pixels in line_c: %f\n", num_pixels_c);
 		Vec2r delta_c = (line_c.p2 - line_c.p1) / num_pixels_c;
-		// :TODO: This may need to be just < or != etc, idek
-		for(u32 i = 0; i < (u32)num_pixels_a;){
-		//while ((curr_b.x <= line_a.p2.x) && (curr_b.y <= line_a.p2.y)){
-			if (!stepped_y_a){
+	  if(delta_c.y > 1.0f){ // ensure we never step up by multiple y
+			delta_c /= delta_c.y;
+		}
+
+		u32 line_a_pixels_drawn = 0;
+		while(line_a_pixels_drawn < num_pixels_a){ // :TODO: This may need to be just < or != etc, idek
+			u32 curr_pixel_y = (u32)curr_a.y;
+			XenAssert(curr_pixel_y == (u32)curr_b.y, "Expected current y values to be equal!");
+
+			// Step along line a until we reach next y value
+			while((u32)curr_a.y == curr_pixel_y){
+				printf("Stepping along a, now at: %f, %f\n", curr_a.x, curr_a.y);
 				if (xen::contains(viewport, curr_a)){
 					target[curr_a.x][curr_a.y] = color;
 				}
-				prev_a = curr_a;
 				curr_a += delta_a;
-				// Equiv: stepped_y_a = ((u32)curr_a.y != (u32)prev_a.y) ? true : false;
-				stepped_y_a = !((u32)curr_a.y - (u32)prev_a.y);
-				++i;
+				++line_a_pixels_drawn;
 			}
-			while (!stepped_y_b){
+
+			// Step along line b until we reach next y value
+			while ((u32)curr_b.y == curr_pixel_y){
+				printf("Stepping along b, now at: %f, %f\n", curr_b.x, curr_b.y);
 				if (xen::contains(viewport, curr_b)){
 					target[curr_b.x][curr_b.y] = color;
 				}
 				prev_b = curr_b;
 				curr_b += delta_b;
-				// Equiv: stepped_y_b = ((u32)curr_b.y != (u32)prev_b.y) ? true : false;
-				stepped_y_b = !((u32)curr_b.y - (u32)prev_b.y);
-			}
-			// :TODO: This if may need to go inside, or above, the above while
-			// If b has reached end point then begin drawing line c by changing vector
-			// that represents a single step from that of b to that of c
-			if (curr_b == line_b.p2){
-				delta_b = delta_c;
-			}
-			if (stepped_y_a && stepped_y_b){
-				//printf("Stuck in the connecting loop\n");
-				//printf("Val of curr_a: %f, Val of curr_b: %f\n", curr_a.x, curr_b.x);
-				// draw horizontal line
-				if (curr_a.x < curr_b.x){
-					for (int x=curr_a.x; x<curr_b.x; ++x){
-						//printf("Val of x: %i\n", x);
-						if (xen::contains(viewport, xen::mkVec((real)x,curr_a.y))){
-							target[x][curr_a.y] = color;
-						}
-					}
-				}else{
-					for (int x=curr_b.x; x<curr_a.x; ++x){
-						//printf("Val of x: %i\n", x);
-						if (xen::contains(viewport, xen::mkVec((real)x,curr_a.y))){
-							target[x][curr_a.y] = color;
-						}
-					}
+
+				// If b has reached end point then begin drawing line c by changing vector
+				// that represents a single step from that of b to that of c
+				if (curr_b == line_b.p2){
+					delta_b = delta_c;
 				}
-				stepped_y_a = false;
-				stepped_y_b = false;
+
+				stepped_y_b = ((u32)curr_b.y != (u32)prev_b.y);
 			}
+
+			printf("curr_a.y: %f, curr_b.y: %f\n", curr_a.y, curr_b.y);
+			XenAssert((u32)curr_a.y == (u32)curr_b.y, "Expected y of both currents to be equivalent");
+
+			//printf("Val of curr_a: %f, Val of curr_b: %f\n", curr_a.x, curr_b.x);
+
+			// draw horizontal line
+			u32 min_x = xen::min(curr_a.x, curr_b.x);
+			u32 max_x = xen::max(curr_a.x, curr_b.x);
+			for (u32 x = min_x+1; x < max_x; ++x){
+				if (xen::contains(viewport, xen::mkVec((real)x, curr_a.y))){
+					target[x][curr_a.y] = color;
+				}
+			}
+
+			stepped_y_a = false;
+			stepped_y_b = false;
 		}
 
 	}
