@@ -18,6 +18,7 @@
 
 namespace xen {
 	struct MeshData;
+	struct Window;
 
 	// :TODO: do we really need the whole graphics device id system and
 	// getting devices by id?
@@ -55,6 +56,9 @@ namespace xen {
 
 		// :TODO: create render target
 		// :TDOO: create window
+
+		virtual Window* createWindow();
+		virtual void    destroyWindow(Window* window);
 
 		/// \defgroup Mesh
 		/// @{

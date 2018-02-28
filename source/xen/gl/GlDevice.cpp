@@ -18,6 +18,7 @@
 #include "gl_header.hxx"
 #include "Mesh.hxx"
 #include "Shader.hxx"
+#include "../graphics/Window.hxx"
 
 namespace {
 	xen::gl::ShaderProgram* loadShader(xen::ArenaLinear& arena){
@@ -79,17 +80,21 @@ namespace {
 		xen::FixedArray<xen::gl::MeshHeader*, MESH_STORE_SIZE> mesh_store;
 		xen::ArenaLinear mesh_header_arena;
 
+		xen::ArenaLinear misc_arena;
+
 		xen::gl::ShaderProgram* prog;
 	public:
 		~GlDevice(){
 			// :TODO: free all GPU resources (eg, mesh data buffers)
 			xen::destroyArenaLinear(*main_allocator, mesh_header_arena);
+			xen::destroyArenaLinear(*main_allocator, misc_arena);
 			delete main_allocator;
 		}
 
 		GlDevice()
 			: main_allocator(new xen::AllocatorCounter<xen::AllocatorMalloc>()),
-			  mesh_header_arena(xen::createArenaLinear(*main_allocator, xen::megabytes(1)))
+			  mesh_header_arena(xen::createArenaLinear(*main_allocator, xen::megabytes(1))),
+			  misc_arena       (xen::createArenaLinear(*main_allocator, xen::megabytes(1)))
 		{
 
 			// :TODO: better way of managing mesh headers:
@@ -100,7 +105,13 @@ namespace {
 			for(u32 i = 0; i < MESH_STORE_SIZE; ++i){
 				mesh_store[i] = nullptr;
 			}
+		}
 
+		xen::Window* createWindow(){
+			printf("About to create window\n");
+			xen::createWindow(misc_arena, "Test GL Window");
+
+			printf("Doing GL setup\n");
 			// :TODO: something better with shaders
 			this->prog = loadShader(mesh_header_arena);
 
@@ -108,6 +119,11 @@ namespace {
 			// Do GL setup
 			XEN_CHECK_GL(glEnable(GL_DEPTH_TEST));
 			XEN_CHECK_GL(glDepthFunc(GL_LESS));
+
+			printf("Done GL setup\n");
+		}
+		void destroyWindow(xen::Window* window){
+			xen::destroyWindow(window);
 		}
 
 		xen::Mesh createMesh(const xen::MeshData& mesh_data){

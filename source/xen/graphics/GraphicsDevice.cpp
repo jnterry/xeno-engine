@@ -44,6 +44,15 @@ namespace xen {
 	GraphicsDevice* getGraphicsDevice(u08 id){
 		return created_devices[id];
 	}
+
+	Window* GraphicsDevice::createWindow(){
+		// :TODO: remove this -> this just makes it compile since not virutal void
+		// until we define in all derived classes
+		XenBreak();
+	}
+	void GraphicsDevice::destroyWindow(Window* window){
+		XenBreak();
+	}
 }
 
 #endif

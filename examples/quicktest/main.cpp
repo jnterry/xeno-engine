@@ -21,6 +21,7 @@
 #include <xen/graphics/Mesh.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/Light3d.hpp>
+#include <xen/graphics/Window.hpp>
 
 #include <xen/gl/gl_header.hxx>
 #include <xen/gl/GlDevice.hpp>
@@ -163,6 +164,37 @@ int main(int argc, char** argv){
 
 	render_params.lights = light_sources;
 
+	xen::Allocator* alloc  = new xen::AllocatorCounter<xen::AllocatorMalloc>();
+	xen::ArenaLinear arena = xen::createArenaLinear(*alloc, xen::megabytes(32));
+
+	printf("Initialized main arena\n");
+
+	xen::GraphicsDevice* device = xen::createGlDevice(arena);
+
+	printf("Created gl device\n");
+
+	xen::Window* xen_app = device->createWindow();
+
+	printf("Created window\n");
+
+	while(xen::isWindowOpen(xen_app)){
+		//printf("Window is still open\n");
+
+		xen::WindowEvent* e;
+		while(e = xen::pollEvent(xen_app)){
+			switch(e->type){
+			case xen::WindowEvent::Closed:
+				device->destroyWindow(xen_app);
+				break;
+			default:
+				break;
+			}
+			printf("Got event\n");
+		}
+
+		//xen::swapBuffers(xen_app);
+	}
+
 	sf::ContextSettings context_settings;
 	context_settings.depthBits = 24;
 	context_settings.stencilBits = 8;
@@ -177,16 +209,11 @@ int main(int argc, char** argv){
 	context_settings = app.getSettings();
 	printf("Initialized window, GL version: %i.%i\n", context_settings.majorVersion, context_settings.minorVersion);
 
-	xen::Allocator* alloc  = new xen::AllocatorCounter<xen::AllocatorMalloc>();
-	xen::ArenaLinear arena = xen::createArenaLinear(*alloc, xen::megabytes(32));
-
 	app.setActive(true);
 	glewInit();
 
 	Mat4r model_mat;
 	Vec4r point_light_color = Vec4r(1,0,0,1);
-
-	xen::GraphicsDevice* device = xen::createGlDevice(arena);
 
 	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
 	vertex_spec[0] = xen::VertexAttribute::Position3r;
