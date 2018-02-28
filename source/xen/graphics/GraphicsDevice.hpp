@@ -80,7 +80,7 @@ namespace xen {
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Clears a region of a render target to some color
 		/////////////////////////////////////////////////////////////////////
-		virtual void clear(  RenderTarget target,
+		virtual void clear(RenderTarget target,
 		                   const xen::Aabb2u& viewport,
 		                   xen::Color color
 		                  ) = 0;

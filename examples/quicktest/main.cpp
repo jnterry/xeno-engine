@@ -22,8 +22,7 @@
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/Light3d.hpp>
 
-#include <xen/gl/Mesh.hxx>
-#include <xen/gl/Shader.hxx>
+#include <xen/gl/gl_header.hxx>
 #include <xen/gl/GlDevice.hpp>
 #include <xen/gl/Texture.hpp>
 
@@ -372,6 +371,7 @@ int main(int argc, char** argv){
 	printf("Exiting main loop\n");
 
 	xen::destroyArenaLinear(*alloc, arena);
+	delete alloc;
 
 	return 0;
 }

@@ -6,13 +6,14 @@
 #include <xen/util/File.hpp>
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
+#include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/math/utilities.hpp>
 #include <xen/math/vector.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/math/quaternion.hpp>
 #include <xen/math/matrix.hpp>
 #include <xen/math/angle.hpp>
-#include <xen/sren/renderer3d.hxx>
+#include <xen/sren/SoftwareDevice.hpp>
 
 #include <SDL.h>
 #include "../SDLauxilary.h"
@@ -20,9 +21,6 @@
 #include "testModel.hpp"
 
 xen::Camera3dCylinder camera;
-xen::Camera3d         camera_x;
-xen::Camera3d         camera_y;
-xen::Camera3d         camera_z;
 
 xen::RenderParameters3d render_params;
 
@@ -50,6 +48,10 @@ int main(int argc, char** argv){
 	Vec2r window_size = {300, 300};
 	screen* screen = InitializeSDL(window_size.x, window_size.y, false);
 
+	xen::Allocator*      alloc  = new xen::AllocatorCounter<xen::AllocatorMalloc>();
+	xen::ArenaLinear     arena  = xen::createArenaLinear(*alloc, xen::megabytes(32));
+	xen::GraphicsDevice* device = xen::createRasterizerDevice(arena, screen->buffer);
+
 	xen::FixedArray<xen::RenderCommand3d, 1> render_commands;
 	render_commands[0].type                = xen::RenderCommand3d::TRIANGLES;
 	render_commands[0].color               = xen::Color::RED4f;
@@ -59,8 +61,7 @@ int main(int argc, char** argv){
 
 	int last_tick = SDL_GetTicks();
 
-	// make it stupidly big so we always render to the entire screen
-	xen::Aabb2u viewport = { 0, 0, 100000, 100000 };
+	xen::Aabb2u viewport = { 0, 0, (u32)window_size.x, (u32)window_size.y };
 
 	printf("Entering main loop\n");
 	while(NoQuitMessageSDL()) {
@@ -72,12 +73,11 @@ int main(int argc, char** argv){
 		handleCameraInput(camera, dt);
 
 		// Clear buffer
-		xen::sren::clear(screen->buffer, xen::Color::BLACK);
+		device->clear(xen::makeNullHandle<xen::RenderTarget>(), viewport, xen::Color::BLACK);
 
 		// Do rendering
 		render_params.camera = xen::generateCamera3d(camera);
-		xen::sren::renderRaytrace(screen->buffer, viewport,
-		                           render_params, render_commands);
+	  device->render(xen::makeNullHandle<xen::RenderTarget>(), viewport, render_params, render_commands);
 
 		SDL_Renderframe(screen);
 	}
@@ -85,6 +85,9 @@ int main(int argc, char** argv){
 
 	SDL_SaveImage(screen, "screenshot.bmp");
 	KillSDL(screen);
+
+	xen::destroyArenaLinear(*alloc, arena);
+	delete alloc;
 
 	return 0;
 }
