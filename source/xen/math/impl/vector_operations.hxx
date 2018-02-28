@@ -181,6 +181,27 @@ namespace xen{
 		}
 		return result;
 	}
+
+	//////////////////////////////////////////////////////////////////////////////
+	// Swizzles
+
+	// Any dimension to 2d
+	template<typename T_S1, typename T_S2, u32 T_DIM, typename T>
+	Vec<2, T> swizzle(const Vec<T_DIM, T>& v){
+		return { v[T_S1::INDEX], v[T_S2::INDEX] };
+	}
+
+	// Any dimension to 3d
+	template<typename T_S1, typename T_S2, typename T_S3, u32 T_DIM, typename T>
+	Vec<3, T> swizzle(const Vec<T_DIM, T>& v){
+		return { v[T_S1::INDEX], v[T_S2::INDEX], v[T_S3::INDEX] };
+	}
+
+	// Any dimension to 4d
+	template<typename T_S1, typename T_S2, typename T_S3, typename T_S4, u32 T_DIM, typename T>
+	Vec<3, T> swizzle(const Vec<T_DIM, T>& v){
+		return { v[T_S1::INDEX], v[T_S2::INDEX], v[T_S3::INDEX], v[T_S4::INDEX] };
+	}
 }
 
 #endif

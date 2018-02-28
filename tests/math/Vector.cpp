@@ -174,3 +174,9 @@ TEST_CASE("Elementwise min-max", "[math][minmax][Vector]"){
 	//	CHECK(xen::max(Vec3r{1, 10, 5}, Vec3r{3, 3, 7}, Vec3r{8, 20, 2}) == Vec3r{8, 20, 7});
 	//}
 }
+
+TEST_CASE("Swizzles", "[math][Vector][swizzle]"){
+	SECTION("To 2d"){
+		CHECK(xen::swizzle<xen::Y, xen::X>(Vec2r{1, 2}) == Vec2r{2, 1});
+	}
+}
