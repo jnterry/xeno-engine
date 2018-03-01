@@ -70,8 +70,10 @@ namespace xen {
 
 			target->elements =
 				(RenderTargetPixel*)main_allocator->allocate(sizeof(RenderTargetPixel) * size.x * size.y);
-			target->width  = size.x;
-			target->height = size.y;
+			// Note: while x is really a column rather than row, access is [r][c],
+			// and we want to access as [x][y], hence swapping here
+			target->rows = size.x;
+			target->cols = size.y;
 
 			if(old_pixels){
 				main_allocator->deallocate(target->elements);
@@ -95,6 +97,7 @@ namespace xen {
 		void SoftwareDeviceBase::destroyWindow(Window* window) {
 			destroyRenderTarget(window->render_target);
 			xen::impl::destroyWindow(window);
+			window->is_open = false;
 		}
 
 		void SoftwareDeviceBase::swapBuffers(Window* window) {
