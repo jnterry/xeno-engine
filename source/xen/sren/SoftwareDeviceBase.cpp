@@ -35,21 +35,22 @@ namespace xen {
 			xen::sren::clear(*this->getRenderTargetImpl(target), viewport, color);
 		}
 
-		RenderTarget SoftwareDeviceBase::createRenderTarget (Vec2u size){
+		RenderTarget SoftwareDeviceBase::createRenderTarget (Vec2u size, Window* window){
 			u32 slot;
 			for(slot = 0; slot < xen::size(this->render_targets); ++slot){
 				if(this->render_targets[slot].elements == nullptr){
 					break;
 				}
 			}
-
-			RenderTargetImpl* target = &this->render_targets[slot];
-
 			// :TODO: re-sizeable pool
 			XenAssert(slot <= xen::size(this->render_targets), "No space for new render target");
 
+			RenderTargetImpl* target = &this->render_targets[slot];
+
 			xen::clearToZero<RenderTargetImpl>(target);
 			this->resizeRenderTarget(target, size);
+
+			xen::sren::doPlatformRenderTargetInitialization(target, window);
 
 			return this->makeHandle<RenderTarget::HANDLE_ID>(slot, 0);
 		}
@@ -85,7 +86,7 @@ namespace xen {
 
 			xen::Window* window = xen::impl::createWindow(misc_arena, size, title);
 
-			window->render_target    = this->createRenderTarget(size);
+			window->render_target    = this->createRenderTarget(size, window);
 			RenderTargetImpl* target = this->getRenderTargetImpl(window->render_target);
 
 			target->window = window;
@@ -101,7 +102,7 @@ namespace xen {
 		}
 
 		void SoftwareDeviceBase::swapBuffers(Window* window) {
-
+			RenderTargetImpl* target = this->getRenderTargetImpl(window->render_target);
 		}
 	}
 }

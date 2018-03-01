@@ -28,7 +28,7 @@ namespace xen {
 			xen::FixedArray<RenderTargetImpl, 128> render_targets;
 
 			/// \brief Creates a new RenderTarget with the specified size
-			RenderTarget      createRenderTarget (Vec2u size);
+			RenderTarget      createRenderTarget (Vec2u size, Window* window);
 
 			/// \brief Destroys a RenderTarget freeing all associated resources
 			void              destroyRenderTarget(RenderTarget target);
