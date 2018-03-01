@@ -39,7 +39,7 @@ namespace xen {
 		RenderTarget SoftwareDeviceBase::createRenderTarget (Vec2u size){
 			u32 slot;
 			for(slot = 0; slot < xen::size(this->render_targets); ++slot){
-				if(this->render_targets[slot].pixels.elements == nullptr){
+				if(this->render_targets[slot].elements == nullptr){
 					break;
 				}
 			}
@@ -58,8 +58,8 @@ namespace xen {
 		void SoftwareDeviceBase::destroyRenderTarget(RenderTarget render_target){
 			RenderTargetImpl* target = getRenderTargetImpl(render_target);
 
-			this->main_allocator->deallocate(target->pixels.elements);
-			target->pixels.elements = nullptr;
+			this->main_allocator->deallocate(target->elements);
+			target->elements = nullptr;
 		}
 
 		RenderTargetImpl* SoftwareDeviceBase::getRenderTargetImpl(RenderTarget target){
@@ -67,15 +67,15 @@ namespace xen {
 		}
 
 		void SoftwareDeviceBase::resizeRenderTarget(RenderTargetImpl* target, Vec2u size){
-			RenderTargetPixel* old_pixels = target->pixels.elements;
+			RenderTargetPixel* old_pixels = target->elements;
 
-			target->pixels.elements =
+			target->elements =
 				(RenderTargetPixel*)main_allocator->allocate(sizeof(RenderTargetPixel) * size.x * size.y);
-			target->pixels.width = size.x;
-			target->pixels.width = size.y;
+			target->width  = size.x;
+			target->height = size.y;
 
 			if(old_pixels){
-				main_allocator->deallocate(target->pixels.elements);
+				main_allocator->deallocate(target->elements);
 			}
 		}
 

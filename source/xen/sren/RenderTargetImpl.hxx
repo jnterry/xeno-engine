@@ -21,10 +21,7 @@ namespace xen {
 			float   depth;
 		};
 
-		struct RenderTargetImpl {
-			/// \brief The values of the pixels making up this render buffer
-			Array2d<RenderTargetPixel> pixels;
-
+		struct RenderTargetImpl : public Array2d<RenderTargetPixel> {
 			/// \brief The window this render target is for (or nullptr if an
 			/// off screen render buffer)
 			Window* window;
