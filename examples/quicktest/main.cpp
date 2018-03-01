@@ -253,40 +253,27 @@ int main(int argc, char** argv){
 		real dt = 0.001_r;
 		time += dt;
 
-		xen::WindowEvent* e;
-		while(e = xen::pollEvent(xen_app)){
-			switch(e->type){
+		xen::WindowEvent* event;
+		while(event = xen::pollEvent(xen_app)){
+			switch(event->type){
 			case xen::WindowEvent::Closed:
 				device->destroyWindow(xen_app);
 				break;
-			default:
+			case xen::WindowEvent::Resized:
+				viewport.max = event->resize.new_size;
 				break;
-			}
-			printf("Got event\n");
-		}
-
-		/*sf::Event event;
-		while(app.pollEvent(event)){
-			switch(event.type){
-			case sf::Event::Closed:
-				app.close();
-				break;
-			case sf::Event::Resized:
-				XEN_CHECK_GL(glViewport(0,0,event.size.width, event.size.height));
-				viewport.max = {event.size.width, event.size.height};
-				break;
-			case sf::Event::KeyReleased:
-				switch(event.key.code){
-				case sf::Keyboard::R:
+			case xen::WindowEvent::KeyReleased:
+				switch(event->key.key){
+				case xen::Key::R:
 					point_light_color.xyz = Vec3r(1,0,0);
 					break;
-				case sf::Keyboard::G:
+				case xen::Key::G:
 					point_light_color.xyz = Vec3r(0,1,0);
 					break;
-				case sf::Keyboard::B:
+				case xen::Key::B:
 					point_light_color.xyz = Vec3r(0,0,1);
 					break;
-				case sf::Keyboard::W:
+				case xen::Key::W:
 					point_light_color.xyz = Vec3r(1,1,1);
 					break;
 				default: break;
@@ -296,31 +283,31 @@ int main(int argc, char** argv){
 			}
 		}
 
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
+		if(xen::isKeyPressed(xen::Key::ArrowUp)){
 			camera.radius -= camera_speed * dt;
 		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down)){
+		if(xen::isKeyPressed(xen::Key::ArrowDown)){
 			camera.radius += camera_speed * dt;
 		}
 		camera.radius = xen::clamp(camera.radius, 0.01_r, 100_r);
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
+		if(xen::isKeyPressed(xen::Key::ArrowLeft)){
 			camera.angle -= camera_rotate_speed * dt;
 		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
+		if(xen::isKeyPressed(xen::Key::ArrowRight)){
 			camera.angle += camera_rotate_speed * dt;
 		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
+		if(xen::isKeyPressed(xen::Key::A)){
 			camera.height += camera_speed * dt;
 		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Z)){
+		if(xen::isKeyPressed(xen::Key::Z)){
 			camera.height -= camera_speed * dt;
 		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q)){
+		if(xen::isKeyPressed(xen::Key::Q)){
 			camera.up_dir = xen::rotated(camera.up_dir,  Vec3r::UnitZ, 90_deg * dt);
 		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::E)){
+		if(xen::isKeyPressed(xen::Key::E)){
 			camera.up_dir = xen::rotated(camera.up_dir, -Vec3r::UnitZ, 90_deg * dt);
-		}*/
+		}
 
 		Vec3r light_pos = xen::rotated(Vec3r{4, 3, 0}, Vec3r::UnitY, xen::Degrees(time*90_r));
 		point_light_color.w = (1_r + sin(time*9)) / 2.0_r;

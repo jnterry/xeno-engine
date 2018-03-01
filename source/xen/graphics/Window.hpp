@@ -87,7 +87,7 @@ namespace xen {
 
 		Comma, Period, ForwardSlash, Backslash,
 		Semicolon, Quote, Tilde, Return,
-	   Minus, Equals,
+		Minus, Equals,
 		Tab, LBracket, RBracket,
 		Space,
 		Menu, // between altgr and ctrl on qwerty keyboard
