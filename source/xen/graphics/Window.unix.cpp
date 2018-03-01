@@ -355,7 +355,7 @@ namespace xen {
 			}
 		}
 
-		Window* createWindow(xen::ArenaLinear& arena, const char* title){
+		Window* createWindow(xen::ArenaLinear& arena, Vec2u size, const char* title){
 				xen::MemoryTransaction transaction(arena);
 
 				if(xen::impl::unix_display == nullptr){
@@ -384,7 +384,7 @@ namespace xen {
 				result->xwindow = XCreateWindow(xen::impl::unix_display, // open locally
 				                                root,                    // parent window
 				                                0, 0,                    // top left coords
-				                                1024, 768,               // window size
+				                                size.x, size.y,          // window size
 				                                0,                       // border width
 				                                depth,                   // color depth
 				                                InputOutput,             // window type

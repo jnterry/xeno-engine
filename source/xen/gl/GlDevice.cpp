@@ -129,10 +129,10 @@ namespace {
 			}
 		}
 
-		xen::Window* createWindow(){
+		xen::Window* createWindow(Vec2u size, const char* title){
 			xen::MemoryTransaction transaction(misc_arena);
 			printf("About to create window\n");
-			xen::Window* window = xen::impl::createWindow(misc_arena, "Test GL Window");
+			xen::Window* window = xen::impl::createWindow(misc_arena, size, title);
 
 			xen::gl::RenderTargetImpl* render_target = xen::gl::createWindowRenderTarget(misc_arena, window);
 

@@ -57,7 +57,7 @@ namespace xen {
 		// :TODO: create render target
 		// :TDOO: create window
 
-		virtual Window* createWindow();
+		virtual Window* createWindow(Vec2u size, const char* title = "XenoEngine");
 		virtual void    destroyWindow(Window* window);
 		virtual void    swapBuffers(Window* window);
 

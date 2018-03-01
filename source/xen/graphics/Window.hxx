@@ -10,6 +10,7 @@
 #define XEN_GRAPHICS_WINDOW_HXX
 
 #include <xen/graphics/Window.hpp>
+#include <xen/math/vector_types.hpp>
 #include <xen/config.hpp>
 
 namespace xen {
@@ -58,7 +59,7 @@ namespace xen {
 		void dispatchEvents(Window* window);
 
 
-		Window* createWindow (xen::ArenaLinear& arena, const char* title);
+		Window* createWindow (xen::ArenaLinear& arena, Vec2u size, const char* title);
 
 		void destroyWindow(xen::Window* window);
 	}

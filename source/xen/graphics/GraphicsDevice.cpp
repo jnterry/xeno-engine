@@ -62,7 +62,7 @@ namespace xen {
 		render(window->render_target, viewport, params, commands);
 	}
 
-	Window* GraphicsDevice::createWindow(){
+	Window* GraphicsDevice::createWindow(Vec2u size, const char* title){
 		// :TODO: remove this -> this just makes it compile since not virutal void
 		// until we define in all derived classes
 		XenBreak();
