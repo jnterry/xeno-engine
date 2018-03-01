@@ -17,7 +17,7 @@
 #include <xen/config.hpp>
 
 #ifdef XEN_OS_WINDOWS
-	// Error here?
+	// Got an error here?
 	// Go grab this file from old version of xeno engine and wrangle it into place
 	// shouldn't be too much wrangling required :)
 	#include "Window.win.cpp"

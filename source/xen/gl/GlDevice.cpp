@@ -9,6 +9,7 @@
 #ifndef XEN_GL_GLDEVICE_CPP
 #define XEN_GL_GLDEVICE_CPP
 
+#include <xen/config.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
@@ -19,6 +20,17 @@
 #include "Mesh.hxx"
 #include "Shader.hxx"
 #include "../graphics/Window.hxx"
+
+#include <GL/glew.h>
+
+#if defined XEN_OS_UNIX
+	#include "RenderTarget.unix.cpp"
+// #elif defined XEN_OS_WINDOWS
+// :TODO:
+#else
+	// :TODO: add dummy implementation
+	#error "GlDevice is not implemented on this platform!"
+#endif
 
 namespace {
 	xen::gl::ShaderProgram* loadShader(xen::ArenaLinear& arena){
@@ -109,21 +121,47 @@ namespace {
 
 		xen::Window* createWindow(){
 			printf("About to create window\n");
-			xen::createWindow(misc_arena, "Test GL Window");
+			xen::Window* window = xen::impl::createWindow(misc_arena, "Test GL Window");
+
+			xen::gl::RenderTargetImpl* render_target = xen::gl::createWindowRenderTarget(misc_arena, window);
+
+			printf("Making render target current\n");
+			xen::gl::makeCurrent(render_target);
+
+			// Initialize glew to get GL extensions
+			if(glewInit() != GLEW_OK){
+				// :TODO: log
+				printf("ERROR: GlEW Init failed\n");
+				XenBreak();
+			}
+
+			// :TODO: log
+			int major = 0;
+			int minor = 0;
+			glGetIntegerv(GL_MAJOR_VERSION, &major);
+			glGetIntegerv(GL_MINOR_VERSION, &minor);
+			printf("OpenGL context created:\n - Version %d.%d\n - Vendor %s\n - Renderer %s\n",
+			       major, minor,
+			       glGetString(GL_VENDOR),
+			       glGetString(GL_RENDERER));
 
 			printf("Doing GL setup\n");
-			// :TODO: something better with shaders
-			this->prog = loadShader(mesh_header_arena);
-
 			///////////////////////////////////////////////////
 			// Do GL setup
+			// :TODO: something better with shaders -> ideally expose them to user of xenogin
+			// but how do "programable pipeline" in software / other devices?
+			this->prog = loadShader(mesh_header_arena);
+
+			XEN_CHECK_GL(glViewport(10, 10, 100, 100));
 			XEN_CHECK_GL(glEnable(GL_DEPTH_TEST));
 			XEN_CHECK_GL(glDepthFunc(GL_LESS));
 
 			printf("Done GL setup\n");
+
+			return window;
 		}
 		void destroyWindow(xen::Window* window){
-			xen::destroyWindow(window);
+			xen::impl::destroyWindow(window);
 		}
 
 		xen::Mesh createMesh(const xen::MeshData& mesh_data){
@@ -162,7 +200,8 @@ namespace {
 		            const xen::Array<xen::RenderCommand3d> commands
 		            ) {
 
-
+			Vec2u viewport_size = viewport.max - viewport.min;
+			glViewport(viewport.min.x, viewport.min.y, viewport_size.x, viewport_size.y);
 
 			xen::gl::useShader(prog);
 

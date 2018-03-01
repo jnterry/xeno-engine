@@ -56,11 +56,11 @@ namespace xen {
 		/////////////////////////////////////////////////////////////////////
 		void dispatchEvents(Window* window);
 
+
+		Window* createWindow (xen::ArenaLinear& arena, const char* title);
+
+		void destroyWindow(xen::Window* window);
 	}
-
-	Window* createWindow (xen::ArenaLinear& arena, const char* title);
-  void    destroyWindow(xen::Window* window);
-
 }
 
 #endif

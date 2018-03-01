@@ -1,11 +1,5 @@
 #include <stdio.h>
 
-#include <SFML/Window/Window.hpp>
-#include <SFML/Window/Event.hpp>
-
-#include <GL/glew.h>
-#include <GL/gl.h>
-
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/memory.hpp>
 
@@ -175,42 +169,9 @@ int main(int argc, char** argv){
 
 	xen::Window* xen_app = device->createWindow();
 
-	printf("Created window\n");
-
-	while(xen::isWindowOpen(xen_app)){
-		//printf("Window is still open\n");
-
-		xen::WindowEvent* e;
-		while(e = xen::pollEvent(xen_app)){
-			switch(e->type){
-			case xen::WindowEvent::Closed:
-				device->destroyWindow(xen_app);
-				break;
-			default:
-				break;
-			}
-			printf("Got event\n");
-		}
-
-		//xen::swapBuffers(xen_app);
-	}
-
-	sf::ContextSettings context_settings;
-	context_settings.depthBits = 24;
-	context_settings.stencilBits = 8;
-	context_settings.antialiasingLevel = 4;
-	context_settings.majorVersion = 3;
-	context_settings.minorVersion = 0;
+	printf("Created window: %p\n", xen_app);
 
 	xen::Aabb2u viewport = { 0, 0, 800, 600 };
-
-	sf::Window app(sf::VideoMode(viewport.max.x, viewport.max.y, 32), "Window Title", sf::Style::Default, context_settings);
-
-	context_settings = app.getSettings();
-	printf("Initialized window, GL version: %i.%i\n", context_settings.majorVersion, context_settings.minorVersion);
-
-	app.setActive(true);
-	glewInit();
 
 	Mat4r model_mat;
 	Vec4r point_light_color = Vec4r(1,0,0,1);
@@ -238,9 +199,6 @@ int main(int argc, char** argv){
 
 	xen::RawImage          test_image   = xen::loadImage(arena, "test.bmp");
 	xen::gl::TextureHandle test_texture = xen::gl::createTexture(&test_image);
-
-	sf::Clock timer;
-	real last_time = 0;
 
 	int CMD_BUNNY  = 0;
 	int CMD_FLOOR  = 1;
@@ -284,13 +242,30 @@ int main(int argc, char** argv){
 	render_cmds[CMD_AXIS_Z].model_matrix        = xen::Translation3d(0,0,1) * xen::Scale3d(0.05, 0.05, 5);
 	render_cmds[CMD_AXIS_Z].mesh                = mesh_cube;
 
+	// :TODO: timer helper
+	//real last_time = 0;
+	real time = 0;
 	printf("Entering main loop\n");
-	while(app.isOpen()){
-		float time = timer.getElapsedTime().asSeconds();
-		real dt = time - last_time;
-		last_time = time;
+	while(xen::isWindowOpen(xen_app)){
+		//float time = timer.getElapsedTime().asSeconds();
+		//real dt = time - last_time;
+		//last_time = time;
+		real dt = 0.001_r;
+		time += dt;
 
-		sf::Event event;
+		xen::WindowEvent* e;
+		while(e = xen::pollEvent(xen_app)){
+			switch(e->type){
+			case xen::WindowEvent::Closed:
+				device->destroyWindow(xen_app);
+				break;
+			default:
+				break;
+			}
+			printf("Got event\n");
+		}
+
+		/*sf::Event event;
 		while(app.pollEvent(event)){
 			switch(event.type){
 			case sf::Event::Closed:
@@ -345,9 +320,7 @@ int main(int argc, char** argv){
 		}
 		if(sf::Keyboard::isKeyPressed(sf::Keyboard::E)){
 			camera.up_dir = xen::rotated(camera.up_dir, -Vec3r::UnitZ, 90_deg * dt);
-		}
-
-		app.setActive(true);
+		}*/
 
 		Vec3r light_pos = xen::rotated(Vec3r{4, 3, 0}, Vec3r::UnitY, xen::Degrees(time*90_r));
 		point_light_color.w = (1_r + sin(time*9)) / 2.0_r;
@@ -393,7 +366,6 @@ int main(int argc, char** argv){
 		device->render(xen::makeNullHandle<xen::RenderTarget>(), viewport,
 		               render_params, render_cmds
 		              );
-		app.display();
 	}
 	printf("Exiting main loop\n");
 

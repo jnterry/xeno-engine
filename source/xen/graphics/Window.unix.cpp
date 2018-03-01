@@ -354,87 +354,87 @@ namespace xen {
 				processEvent(w, &event);
 			}
 		}
-	} //end of namespace xen::impl::
 
-	Window* createWindow(xen::ArenaLinear& arena, const char* title){
-		xen::MemoryTransaction transaction(arena);
+		Window* createWindow(xen::ArenaLinear& arena, const char* title){
+				xen::MemoryTransaction transaction(arena);
 
-		if(xen::impl::unix_display == nullptr){
-			//:TODO: error checking
-			xen::impl::unix_display = XOpenDisplay(NULL); // open local display
-			if(xen::impl::unix_display == nullptr){
-				// :TODO: log error
-				printf("ERROR: Failed to open x display\n");;
-				return nullptr;
-			} else {
-				// :TODO: log
-				printf("INFO: Opened x display successfully\n");
+				if(xen::impl::unix_display == nullptr){
+					//:TODO: error checking
+					xen::impl::unix_display = XOpenDisplay(NULL); // open local display
+					if(xen::impl::unix_display == nullptr){
+						// :TODO: log error
+						printf("ERROR: Failed to open x display\n");;
+						return nullptr;
+					} else {
+						// :TODO: log
+						printf("INFO: Opened x display successfully\n");
+					}
+				}
+
+				::Window root  = DefaultRootWindow(xen::impl::unix_display); // Get window representing whole screen
+				Visual* visual = DefaultVisual(xen::impl::unix_display, 0);
+				int    depth   = DefaultDepth(xen::impl::unix_display, 0);
+
+				XSetWindowAttributes    frame_attributes;
+				frame_attributes.background_pixel = XWhitePixel(xen::impl::unix_display, 0);
+
+				Window* result = xen::reserveType<Window>(arena);
+				*result = {};
+
+				result->xwindow = XCreateWindow(xen::impl::unix_display, // open locally
+				                                root,                    // parent window
+				                                0, 0,                    // top left coords
+				                                1024, 768,               // window size
+				                                0,                       // border width
+				                                depth,                   // color depth
+				                                InputOutput,             // window type
+				                                visual,                  // Visual
+				                                CWBackPixel,             // Value mask
+				                                &frame_attributes        // Attributes
+				                                );
+
+				if(result->xwindow){
+					// :TODO: log
+					printf("INFO: Created x window %lu\n", result->xwindow);
+				} else {
+					// :TODO: log
+					printf("ERROR: Failed to create x window\n");
+					return nullptr;
+				}
+
+				// Setup what input events we want to capture
+				XSelectInput(xen::impl::unix_display, result->xwindow,
+				             //ExposureMask        | // Window shown
+				             //StructureNotifyMask | // Resize request, window moved
+				             ResizeRedirectMask  | // Window resized
+				             ButtonPressMask     | // Mouse
+				             ButtonReleaseMask   |
+				             KeyPressMask        | // Keyboard
+				             KeyReleaseMask      |
+				             0
+				             );
+
+				// Change the close button behaviour so that we can capture event,
+				// rather than the window manager destroying the window by itself
+				Atom wm_delete_window = XInternAtom(xen::impl::unix_display, "WM_DELETE_WINDOW", False);
+				XSetWMProtocols(xen::impl::unix_display, result->xwindow, &wm_delete_window, 1);
+
+				// Set proper window title
+				setWindowTitle(result, title);
+
+				// Show the window on screen
+				XMapWindow(xen::impl::unix_display, result->xwindow);
+				XMapRaised(xen::impl::unix_display, result->xwindow);
+
+				transaction.commit();
+				return result;
 			}
+
+		void destroyWindow(xen::Window* window){
+			XDestroyWindow(xen::impl::unix_display, window->xwindow);
+			*window = {};
 		}
-
-		::Window root  = DefaultRootWindow(xen::impl::unix_display); // Get window representing whole screen
-		Visual* visual = DefaultVisual(xen::impl::unix_display, 0);
-		int    depth   = DefaultDepth(xen::impl::unix_display, 0);
-
-		XSetWindowAttributes    frame_attributes;
-		frame_attributes.background_pixel = XWhitePixel(xen::impl::unix_display, 0);
-
-		Window* result = xen::reserveType<Window>(arena);
-		*result = {};
-
-		result->xwindow = XCreateWindow(xen::impl::unix_display,          // open locally
-		                                root,             // parent window
-		                                0, 0,             // top left coords
-		                                1024, 768,        // window size
-		                                0,                // border width
-		                                depth,            // color depth
-		                                InputOutput,      // window type
-		                                visual,           // Visual
-		                                CWBackPixel,      // Value mask
-		                                &frame_attributes // Attributes
-		                                );
-
-		if(result->xwindow){
-			// :TODO: log
-			printf("INFO: Created x window %lu\n", result->xwindow);
-		} else {
-			// :TODO: log
-			printf("ERROR: Failed to create x window\n");
-			return nullptr;
-		}
-
-		// Setup what input events we want to capture
-		XSelectInput(xen::impl::unix_display, result->xwindow,
-		             //ExposureMask        | // Window shown
-		             //StructureNotifyMask | // Resize request, window moved
-		             ResizeRedirectMask  | // Window resized
-		             ButtonPressMask     | // Mouse
-		             ButtonReleaseMask   |
-		             KeyPressMask        | // Keyboard
-		             KeyReleaseMask      |
-		             0
-		             );
-
-		// Change the close button behaviour so that we can capture event, rather than the window manager
-		// destroying the window by itself
-		Atom wm_delete_window = XInternAtom(xen::impl::unix_display, "WM_DELETE_WINDOW", False);
-		XSetWMProtocols(xen::impl::unix_display, result->xwindow, &wm_delete_window, 1);
-
-		// Set proper window title
-		setWindowTitle(result, title);
-
-		// Show the window on screen
-		XMapWindow(xen::impl::unix_display, result->xwindow);
-		XMapRaised(xen::impl::unix_display, result->xwindow);
-
-		transaction.commit();
-		return result;
-	}
-
-	void destroyWindow(xen::Window* window){
-		XDestroyWindow(xen::impl::unix_display, window->xwindow);
-		*window = {};
-	}
+	} //end of namespace xen::impl::
 
 	bool isWindowOpen(const xen::Window* window){
 		return window->xwindow != 0;
