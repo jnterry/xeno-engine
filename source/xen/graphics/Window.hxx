@@ -10,6 +10,7 @@
 #define XEN_GRAPHICS_WINDOW_HXX
 
 #include <xen/graphics/Window.hpp>
+#include <xen/config.hpp>
 
 namespace xen {
 	struct Window;
@@ -62,5 +63,9 @@ namespace xen {
 		void destroyWindow(xen::Window* window);
 	}
 }
+
+#if defined XEN_OS_UNIX
+	#include "Window.unix.hxx"
+#endif
 
 #endif

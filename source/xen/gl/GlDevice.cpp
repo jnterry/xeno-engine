@@ -96,6 +96,12 @@ namespace {
 		xen::ArenaLinear misc_arena;
 
 		xen::gl::ShaderProgram* prog;
+
+		xen::gl::RenderTargetImpl* getRenderTargetImpl(xen::RenderTarget target){
+			xen::gl::RenderTargetImpl* result = render_targets[target._id];
+			XenAssert(result != nullptr, "Target must be valid");
+			return result;
+		}
 	public:
 		~GlDevice(){
 			// :TODO: free all GPU resources (eg, mesh data buffers)
@@ -172,6 +178,13 @@ namespace {
 			XEN_CHECK_GL(glEnable(GL_DEPTH_TEST));
 			XEN_CHECK_GL(glDepthFunc(GL_LESS));
 
+			// :TODO: -> needed to use vertex array in core context, but don't know anything
+			// more about this than that fact. See:
+			// https://stackoverflow.com/a/13405205
+			GLuint vao;
+			glGenVertexArrays(1, &vao);
+			glBindVertexArray(vao);
+
 			printf("Done GL setup\n");
 
 			transaction.commit();
@@ -182,9 +195,7 @@ namespace {
 			xen::impl::destroyWindow(window);
 		}
 		void swapBuffers(xen::Window* window){
-			xen::gl::RenderTargetImpl* target = render_targets[window->render_target._id];
-			XenAssert(target != nullptr, "Target must be valid");
-			xen::gl::swapBuffers(target);
+			xen::gl::swapBuffers(this->getRenderTargetImpl(window->render_target));
 		}
 
 		xen::Mesh createMesh(const xen::MeshData& mesh_data){
@@ -216,11 +227,14 @@ namespace {
 			XEN_CHECK_GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 		}
 
-		void render(xen::RenderTarget target,
+		void render(xen::RenderTarget render_target,
 		            const xen::Aabb2u& viewport,
 		            const xen::RenderParameters3d& params,
 		            const xen::Array<xen::RenderCommand3d> commands
 		            ) {
+
+			xen::gl::RenderTargetImpl* target = getRenderTargetImpl(render_target);
+			xen::gl::makeCurrent(target);
 
 			Vec2u viewport_size = viewport.max - viewport.min;
 			glViewport(viewport.min.x, viewport.min.y, viewport_size.x, viewport_size.y);
@@ -246,6 +260,7 @@ namespace {
 			                                     (Vec2r)(viewport.max - viewport.min));
 			Mat4r vp_mat   = view_mat * proj_mat;
 
+			xen::impl::checkGl(__LINE__, __FILE__);
 			for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 				const xen::RenderCommand3d* cmd = &commands[cmd_index];
 

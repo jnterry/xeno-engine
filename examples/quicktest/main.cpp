@@ -248,14 +248,18 @@ int main(int argc, char** argv){
 		//float time = timer.getElapsedTime().asSeconds();
 		//real dt = time - last_time;
 		//last_time = time;
-		real dt = 0.001_r;
+		real dt = 0.01_r;
 		time += dt;
+		printf("Time %f\n", time);
 
 		xen::WindowEvent* event;
 		while(event = xen::pollEvent(app)){
 			switch(event->type){
 			case xen::WindowEvent::Closed:
 				device->destroyWindow(app);
+				// :TODO: why needed?
+				//printf("Force exiting application\n");
+				//XenBreak();
 				break;
 			case xen::WindowEvent::Resized:
 				viewport.max = event->resize.new_size;
@@ -345,12 +349,8 @@ int main(int argc, char** argv){
 		model_mat *= xen::Translation3d(0, -0.5, 0);
 		render_cmds[CMD_FLOOR].model_matrix = model_mat;
 
-		device->clear (xen::makeNullHandle<xen::RenderTarget>(), viewport,
-		               xen::Color::BLACK
-		              );
-		device->render(xen::makeNullHandle<xen::RenderTarget>(), viewport,
-		               render_params, render_cmds
-		              );
+		device->clear (app, viewport, xen::Color::BLACK);
+		device->render(app, viewport, render_params, render_cmds);
 		device->swapBuffers(app);
 	}
 	printf("Exiting main loop\n");

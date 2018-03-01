@@ -13,6 +13,8 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
 
+#include "Window.hxx"
+
 namespace {
 	/// \brief Map from device id to a pointer to the device
 	xen::GraphicsDevice* created_devices[256] = {0};
@@ -45,10 +47,26 @@ namespace xen {
 		return created_devices[id];
 	}
 
+	void GraphicsDevice::clear(Window* window,
+	           const xen::Aabb2u& viewport,
+	           xen::Color color
+	          ){
+		clear(window->render_target, viewport, color);
+	}
+
+	void GraphicsDevice::render(Window* window,
+	            const xen::Aabb2u& viewport,
+	            const RenderParameters3d& params,
+	            const xen::Array<RenderCommand3d> commands
+	            ){
+		render(window->render_target, viewport, params, commands);
+	}
+
 	Window* GraphicsDevice::createWindow(){
 		// :TODO: remove this -> this just makes it compile since not virutal void
 		// until we define in all derived classes
 		XenBreak();
+		return nullptr;
 	}
 	void GraphicsDevice::destroyWindow(Window* window){
 		XenBreak();

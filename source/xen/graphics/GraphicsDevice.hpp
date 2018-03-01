@@ -89,6 +89,10 @@ namespace xen {
 		                   const xen::Aabb2u& viewport,
 		                   xen::Color color
 		                  ) = 0;
+		void clear(Window* window,
+		            const xen::Aabb2u& viewport,
+		            xen::Color color
+		           );
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Renders a series of render commands to some viewport of
@@ -99,6 +103,11 @@ namespace xen {
 		                    const RenderParameters3d& params,
 		                    const xen::Array<RenderCommand3d> commands
 		                   ) = 0;
+		void render(Window* window,
+		            const xen::Aabb2u& viewport,
+		            const RenderParameters3d& params,
+		            const xen::Array<RenderCommand3d> commands
+		            );
 		/// @}
 	};
 

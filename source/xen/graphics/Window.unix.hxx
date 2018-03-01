@@ -11,9 +11,7 @@
 
 #include "Window.hxx"
 
-#include <X11/X.h>
 #include <X11/Xlib.h>
-#include <X11/keysym.h>
 
 namespace xen {
 	struct ArenaLinear;
@@ -24,12 +22,7 @@ namespace xen {
 
 	namespace impl {
 		extern Display* unix_display;
-
-		/// \brief Initializes the unix_display if it has not been yet
-		void initUnixDisplay();
 	}
-
-
 }
 
 #endif
