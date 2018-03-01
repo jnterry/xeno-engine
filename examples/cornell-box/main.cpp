@@ -3,6 +3,7 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/memory.hpp>
 #include <xen/core/random.hpp>
+#include <xen/core/time.hpp>
 #include <xen/util/File.hpp>
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
@@ -63,11 +64,13 @@ int main(int argc, char** argv){
 
 	xen::Aabb2u viewport = { 0, 0, (u32)window_size.x, (u32)window_size.y };
 
+	xen::Stopwatch timer;
+	real last_time = 0;
 	printf("Entering main loop\n");
 	while(NoQuitMessageSDL()) {
-		int tick = SDL_GetTicks();
-		float dt = ((float)(tick - last_tick)) / 1000.0f;
-		last_tick = tick;
+		real time = xen::asSeconds<real>(timer.getElapsedTime());
+		real dt = time - last_time;
+		last_time = time;
 
 		printf("dt: %f\n", dt);
 		handleCameraInput(camera, dt);
