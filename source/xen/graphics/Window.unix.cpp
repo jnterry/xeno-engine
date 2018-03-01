@@ -405,7 +405,7 @@ namespace xen {
 				// Setup what input events we want to capture
 				XSelectInput(xen::impl::unix_display, result->xwindow,
 				             //ExposureMask        | // Window shown
-				             //StructureNotifyMask | // Resize request, window moved
+				             StructureNotifyMask | // Resize request, window moved
 				             ResizeRedirectMask  | // Window resized
 				             ButtonPressMask     | // Mouse
 				             ButtonReleaseMask   |
@@ -427,6 +427,15 @@ namespace xen {
 				XMapRaised(xen::impl::unix_display, result->xwindow);
 
 				result->is_open = true;
+
+				// :TODO: don't really want to have to wait here, but need to do it
+				// before we can draw
+				// https://tronche.com/gui/x/xlib-tutorial/
+				while(true){
+					XEvent e;
+					XNextEvent(xen::impl::unix_display, &e);
+					if(e.type == MapNotify){ break; }
+				}
 
 				transaction.commit();
 				return result;

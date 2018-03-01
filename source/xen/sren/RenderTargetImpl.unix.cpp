@@ -46,6 +46,8 @@ namespace xen {
 			XSetForeground(xen::impl::unix_display, gc, red.pixel);
 			XDrawRectangle(xen::impl::unix_display, window->xwindow, gc,
 			               10, 10, 100, 100);
+
+			XFlush(xen::impl::unix_display);
 		}
 	}
 }
