@@ -14,8 +14,7 @@
 #include <GL/glx.h>
 #include <X11/Xlib.h>
 
-typedef GLXContext (*glXCreateContextAttribsARBProc)
-(Display*, GLXFBConfig, GLXContext, Bool, const int*);
+typedef GLXContext (*glXCreateContextAttribsARBProc) (Display*, GLXFBConfig, GLXContext, Bool, const int*);
 
 namespace xen {
 	namespace gl {
@@ -23,6 +22,8 @@ namespace xen {
 			GLXContext gl_context;
 
 			GLXDrawable drawable;
+
+			xen::Window* window;
 		};
 
 		RenderTargetImpl* createWindowRenderTarget(xen::ArenaLinear& arena, xen::Window* window){
@@ -32,6 +33,7 @@ namespace xen {
 
 			RenderTargetImpl* result = xen::reserveType<RenderTargetImpl>(arena);
 			result->drawable = window->xwindow;
+			result->window   = window;
 
 			int gl_attribs[] = {
 				GLX_RENDER_TYPE,   GLX_RGBA_BIT,
@@ -112,6 +114,10 @@ namespace xen {
 			               target->drawable,
 			               target->gl_context
 			              );
+		}
+
+		void swapBuffers(RenderTargetImpl* target){
+			glXSwapBuffers(xen::impl::unix_display, target->drawable);
 		}
 	}
 

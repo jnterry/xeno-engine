@@ -59,6 +59,7 @@ namespace xen {
 
 		virtual Window* createWindow();
 		virtual void    destroyWindow(Window* window);
+		virtual void    swapBuffers(Window* window);
 
 		/// \defgroup Mesh
 		/// @{

@@ -12,6 +12,7 @@
 #include <xen/config.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/memory/Allocator.hpp>
+#include <xen/core/array.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/graphics/Mesh.hpp>
 #include <xen/util/File.hpp>
@@ -83,14 +84,14 @@ namespace {
 		XEN_CHECK_GL(glDrawArrays(GL_TRIANGLES, 0, mesh->num_triangles * 3));
 	}
 
-	static const constexpr u32 MESH_STORE_SIZE = 128;
-
 	class GlDevice : public xen::GraphicsDevice {
 	private:
 		xen::Allocator* main_allocator;
 
-		xen::FixedArray<xen::gl::MeshHeader*, MESH_STORE_SIZE> mesh_store;
+		xen::FixedArray<xen::gl::MeshHeader*, 256> mesh_store;
 		xen::ArenaLinear mesh_header_arena;
+
+		xen::FixedArray<xen::gl::RenderTargetImpl*, 128> render_targets;
 
 		xen::ArenaLinear misc_arena;
 
@@ -114,16 +115,32 @@ namespace {
 			// - deal with mesh generations (IE: re-using a mesh id)
 			// - mesh_header_arena will currently just slowly fill up, need way to
 			//   reclaim space when a mesh is deleted
-			for(u32 i = 0; i < MESH_STORE_SIZE; ++i){
+			for(u32 i = 0; i < xen::size(mesh_store); ++i){
 				mesh_store[i] = nullptr;
+			}
+			for(u32 i = 0; i < xen::size(render_targets); ++i){
+				render_targets[i] = nullptr;
 			}
 		}
 
 		xen::Window* createWindow(){
+			xen::MemoryTransaction transaction(misc_arena);
 			printf("About to create window\n");
 			xen::Window* window = xen::impl::createWindow(misc_arena, "Test GL Window");
 
 			xen::gl::RenderTargetImpl* render_target = xen::gl::createWindowRenderTarget(misc_arena, window);
+
+			u32 slot;
+			for(slot = 0; slot < xen::size(mesh_store); ++slot){
+				if(render_targets[slot] == nullptr){
+					break;
+				}
+			}
+			XenAssert(slot < xen::size(mesh_store), "Render target store full");
+
+			render_targets[slot] = render_target;
+			xen::RenderTarget result = makeHandle<xen::RenderTarget::HANDLE_ID>(slot, 0);
+			window->render_target = result;
 
 			printf("Making render target current\n");
 			xen::gl::makeCurrent(render_target);
@@ -131,8 +148,8 @@ namespace {
 			// Initialize glew to get GL extensions
 			if(glewInit() != GLEW_OK){
 				// :TODO: log
-				printf("ERROR: GlEW Init failed\n");
-				XenBreak();
+				printf("ERROR: GLEW Init failed\n");
+				return nullptr;
 			}
 
 			// :TODO: log
@@ -152,27 +169,32 @@ namespace {
 			// but how do "programable pipeline" in software / other devices?
 			this->prog = loadShader(mesh_header_arena);
 
-			XEN_CHECK_GL(glViewport(10, 10, 100, 100));
 			XEN_CHECK_GL(glEnable(GL_DEPTH_TEST));
 			XEN_CHECK_GL(glDepthFunc(GL_LESS));
 
 			printf("Done GL setup\n");
 
+			transaction.commit();
 			return window;
 		}
 		void destroyWindow(xen::Window* window){
+			// :TODO: destroy gl context
 			xen::impl::destroyWindow(window);
+		}
+		void swapBuffers(xen::Window* window){
+			xen::gl::RenderTargetImpl* target = render_targets[window->render_target._id];
+			XenAssert(target != nullptr, "Target must be valid");
+			xen::gl::swapBuffers(target);
 		}
 
 		xen::Mesh createMesh(const xen::MeshData& mesh_data){
 			u32 slot;
-			for(slot = 0; slot < MESH_STORE_SIZE; ++slot){
+			for(slot = 0; slot < xen::size(mesh_store); ++slot){
 				if(mesh_store[slot] == nullptr){
 					break;
 				}
 			}
-
-			XenAssert(slot < MESH_STORE_SIZE, "Mesh store full, cannot create new mesh");
+			XenAssert(slot < xen::size(mesh_store), "Mesh store full, cannot create new mesh");
 
 			mesh_store[slot] = xen::gl::createMesh(mesh_header_arena, mesh_data);
 

@@ -167,9 +167,7 @@ int main(int argc, char** argv){
 
 	printf("Created gl device\n");
 
-	xen::Window* xen_app = device->createWindow();
-
-	printf("Created window: %p\n", xen_app);
+	xen::Window* app = device->createWindow();
 
 	xen::Aabb2u viewport = { 0, 0, 800, 600 };
 
@@ -246,7 +244,7 @@ int main(int argc, char** argv){
 	//real last_time = 0;
 	real time = 0;
 	printf("Entering main loop\n");
-	while(xen::isWindowOpen(xen_app)){
+	while(xen::isWindowOpen(app)){
 		//float time = timer.getElapsedTime().asSeconds();
 		//real dt = time - last_time;
 		//last_time = time;
@@ -254,10 +252,10 @@ int main(int argc, char** argv){
 		time += dt;
 
 		xen::WindowEvent* event;
-		while(event = xen::pollEvent(xen_app)){
+		while(event = xen::pollEvent(app)){
 			switch(event->type){
 			case xen::WindowEvent::Closed:
-				device->destroyWindow(xen_app);
+				device->destroyWindow(app);
 				break;
 			case xen::WindowEvent::Resized:
 				viewport.max = event->resize.new_size;
@@ -353,6 +351,7 @@ int main(int argc, char** argv){
 		device->render(xen::makeNullHandle<xen::RenderTarget>(), viewport,
 		               render_params, render_cmds
 		              );
+		device->swapBuffers(app);
 	}
 	printf("Exiting main loop\n");
 

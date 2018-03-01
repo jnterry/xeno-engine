@@ -53,6 +53,9 @@ namespace xen {
 	void GraphicsDevice::destroyWindow(Window* window){
 		XenBreak();
 	}
+	void GraphicsDevice::swapBuffers(Window* window){
+		XenBreak();
+	}
 }
 
 #endif
