@@ -51,7 +51,9 @@ namespace xen {
 	           const xen::Aabb2u& viewport,
 	           xen::Color color
 	          ){
-		clear(window->render_target, viewport, color);
+		if(window->is_open){
+			clear(window->render_target, viewport, color);
+		}
 	}
 
 	void GraphicsDevice::render(Window* window,
@@ -59,7 +61,9 @@ namespace xen {
 	            const RenderParameters3d& params,
 	            const xen::Array<RenderCommand3d> commands
 	            ){
-		render(window->render_target, viewport, params, commands);
+		if(window->is_open){
+			render(window->render_target, viewport, params, commands);
+		}
 	}
 
 	Window* GraphicsDevice::createWindow(Vec2u size, const char* title){

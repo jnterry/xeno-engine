@@ -123,6 +123,10 @@ namespace xen {
 			return result;
 		}
 
+		void destroyRenderTarget(RenderTargetImpl* target){
+			glXDestroyContext(xen::impl::unix_display, target->gl_context);
+		}
+
 		void makeCurrent(RenderTargetImpl* target){
 			glXMakeCurrent(xen::impl::unix_display,
 			               target->drawable,

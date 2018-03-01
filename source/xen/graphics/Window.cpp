@@ -45,6 +45,10 @@ namespace xen {
 		}
 	}
 
+	bool isWindowOpen(const Window* win){
+		return win->is_open;
+	}
+
 	namespace impl {
 		bool pushEvent(xen::Window* win, const xen::WindowEvent& event){
 			win->events[win->event_first_free] = event;

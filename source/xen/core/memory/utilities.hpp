@@ -38,10 +38,15 @@ namespace xen{
 	}
 
 	/// \brief Clears some number of bytes to 0. Returns param `bytes`
-	inline void* clearBytes(void* const bytes, size_t num_bytes){
+	inline void* clearToZero(void* const bytes, size_t num_bytes){
 		u8* cur = (u8*)bytes;
 		while(num_bytes--) { *cur++ = 0; }
 		return bytes;
+	}
+
+	template<typename T>
+	inline void* clearToZero(T* object){
+		return clearToZero(object, sizeof(T));
 	}
 
 	/// \brief Advances the pointer ptr such that its address mod align is 0,

@@ -426,6 +426,8 @@ namespace xen {
 				XMapWindow(xen::impl::unix_display, result->xwindow);
 				XMapRaised(xen::impl::unix_display, result->xwindow);
 
+				result->is_open = true;
+
 				transaction.commit();
 				return result;
 			}
@@ -435,10 +437,6 @@ namespace xen {
 			*window = {};
 		}
 	} //end of namespace xen::impl::
-
-	bool isWindowOpen(const xen::Window* window){
-		return window->xwindow != 0;
-	}
 
 	/// \brief Retrieves the size of the client area (ie, part that may be renderered on) of some window
 	Vec2u getClientAreaSize(Window* window){

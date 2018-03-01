@@ -248,15 +248,13 @@ int main(int argc, char** argv){
 	  real time = xen::asSeconds<real>(timer.getElapsedTime());
 		real dt = time - last_time;
 		last_time = time;
+		printf("dt: %f\n", dt);
 
 		xen::WindowEvent* event;
 		while(event = xen::pollEvent(app)){
 			switch(event->type){
 			case xen::WindowEvent::Closed:
 				device->destroyWindow(app);
-				// :TODO: why needed?
-				printf("Force exiting application\n");
-				XenBreak();
 				break;
 			case xen::WindowEvent::Resized:
 				viewport.max = event->resize.new_size;

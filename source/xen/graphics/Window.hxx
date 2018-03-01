@@ -24,6 +24,8 @@ namespace xen {
 			/// generated when this value changes
 			bool mouse_over_window;
 
+			/// \brief Specifies whether a window is currently open
+			bool is_open;
 
 			// :TODO:COMP: circular queue type and related functions
 

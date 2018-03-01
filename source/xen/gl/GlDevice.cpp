@@ -191,11 +191,17 @@ namespace {
 			return window;
 		}
 		void destroyWindow(xen::Window* window){
-			// :TODO: destroy gl context
+			xen::gl::RenderTargetImpl* target = getRenderTargetImpl(window->render_target);
+			xen::gl::destroyRenderTarget(target);
+			render_targets[window->render_target._id] = nullptr;
+
 			xen::impl::destroyWindow(window);
+			xen::clearToZero<xen::Window>(window);
 		}
 		void swapBuffers(xen::Window* window){
-			xen::gl::swapBuffers(this->getRenderTargetImpl(window->render_target));
+			if(window->is_open){
+				xen::gl::swapBuffers(this->getRenderTargetImpl(window->render_target));
+			}
 		}
 
 		xen::Mesh createMesh(const xen::MeshData& mesh_data){
@@ -217,10 +223,13 @@ namespace {
 			mesh_store[mesh._id] = nullptr;
 		}
 
-		void clear(xen::RenderTarget target,
+		void clear(xen::RenderTarget render_target,
 		           const xen::Aabb2u& viewport,
 		           xen::Color color
 		           ) override {
+			xen::gl::RenderTargetImpl* target = getRenderTargetImpl(render_target);
+			xen::gl::makeCurrent(target);
+
 			// :TODO: obey the viewport
 			xen::Color4f color01 = (xen::Color4f)color;
 			XEN_CHECK_GL(glClearColor(color01.r, color01.g, color01.b, 1));
