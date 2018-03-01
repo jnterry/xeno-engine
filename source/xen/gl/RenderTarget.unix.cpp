@@ -36,13 +36,26 @@ namespace xen {
 			result->window   = window;
 
 			int gl_attribs[] = {
+				// Ensure we render using RGBA color space rather than palette
 				GLX_RENDER_TYPE,   GLX_RGBA_BIT,
+
+				// Ensure we can use the context to draw to an x window
+				GLX_X_RENDERABLE,  True,
 				GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+
+				// Enable double buffering
 				GLX_DOUBLEBUFFER,  true,
-				GLX_RED_SIZE,      1,
-				GLX_GREEN_SIZE,    1,
-				GLX_BLUE_SIZE,     1,
-				GLX_DEPTH_SIZE,    16,
+
+				// These are minimum values for depth of various buffers GL will pick
+				// the max available -> so we just set to 1 to make sure that we don't
+				// get a context without a buffer for any of these
+				GLX_RED_SIZE,         1,
+				GLX_GREEN_SIZE,       1,
+				GLX_BLUE_SIZE,        1,
+				GLX_ACCUM_RED_SIZE,   1,
+				GLX_ACCUM_GREEN_SIZE, 1,
+				GLX_ACCUM_BLUE_SIZE,  1,
+				GLX_DEPTH_SIZE,       1,
 				None
 			};
 
