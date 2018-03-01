@@ -2,6 +2,7 @@
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/memory.hpp>
+#include <xen/core/time.hpp>
 
 #include <xen/math/utilities.hpp>
 #include <xen/math/vector.hpp>
@@ -240,17 +241,13 @@ int main(int argc, char** argv){
 	render_cmds[CMD_AXIS_Z].model_matrix        = xen::Translation3d(0,0,1) * xen::Scale3d(0.05, 0.05, 5);
 	render_cmds[CMD_AXIS_Z].mesh                = mesh_cube;
 
-	// :TODO: timer helper
-	//real last_time = 0;
-	real time = 0;
+	xen::Stopwatch timer;
+	real last_time = 0;
 	printf("Entering main loop\n");
 	while(xen::isWindowOpen(app)){
-		//float time = timer.getElapsedTime().asSeconds();
-		//real dt = time - last_time;
-		//last_time = time;
-		real dt = 0.01_r;
-		time += dt;
-		printf("Time %f\n", time);
+	  real time = xen::asSeconds<real>(timer.getElapsedTime());
+		real dt = time - last_time;
+		last_time = time;
 
 		xen::WindowEvent* event;
 		while(event = xen::pollEvent(app)){
@@ -258,8 +255,8 @@ int main(int argc, char** argv){
 			case xen::WindowEvent::Closed:
 				device->destroyWindow(app);
 				// :TODO: why needed?
-				//printf("Force exiting application\n");
-				//XenBreak();
+				printf("Force exiting application\n");
+				XenBreak();
 				break;
 			case xen::WindowEvent::Resized:
 				viewport.max = event->resize.new_size;
