@@ -23,13 +23,11 @@
 #include <xen/gl/Texture.hpp>
 
 #include "utilities.hpp"
+#include "../common.cpp"
 
 xen::RenderParameters3d render_params;
 xen::FixedArray<xen::LightSource3d, 1> light_sources;
 xen::Camera3dCylinder camera;
-real camera_speed = 50;
-xen::Angle camera_rotate_speed = 120_deg;
-xen::Angle camera_pitch = 0_deg;
 
 static GLfloat cube_buffer_data[] = {
     -1.0f,-1.0f,-1.0f, // triangle 1 : begin
@@ -279,32 +277,7 @@ int main(int argc, char** argv){
 			default: break;
 			}
 		}
-
-		if(xen::isKeyPressed(xen::Key::ArrowUp)){
-			camera.radius -= camera_speed * dt;
-		}
-		if(xen::isKeyPressed(xen::Key::ArrowDown)){
-			camera.radius += camera_speed * dt;
-		}
-		camera.radius = xen::clamp(camera.radius, 0.01_r, 100_r);
-		if(xen::isKeyPressed(xen::Key::ArrowLeft)){
-			camera.angle -= camera_rotate_speed * dt;
-		}
-		if(xen::isKeyPressed(xen::Key::ArrowRight)){
-			camera.angle += camera_rotate_speed * dt;
-		}
-		if(xen::isKeyPressed(xen::Key::A)){
-			camera.height += camera_speed * dt;
-		}
-		if(xen::isKeyPressed(xen::Key::Z)){
-			camera.height -= camera_speed * dt;
-		}
-		if(xen::isKeyPressed(xen::Key::Q)){
-			camera.up_dir = xen::rotated(camera.up_dir,  Vec3r::UnitZ, 90_deg * dt);
-		}
-		if(xen::isKeyPressed(xen::Key::E)){
-			camera.up_dir = xen::rotated(camera.up_dir, -Vec3r::UnitZ, 90_deg * dt);
-		}
+		handleCameraInput(camera, dt);
 
 		Vec3r light_pos = xen::rotated(Vec3r{4, 3, 0}, Vec3r::UnitY, xen::Degrees(time*90_r));
 		point_light_color.w = (1_r + sin(time*9)) / 2.0_r;

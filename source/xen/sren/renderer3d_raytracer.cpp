@@ -17,6 +17,7 @@
 #include <xen/graphics/RenderCommand3d.hpp>
 
 #include "renderer3d.hxx"
+#include "RenderTargetImpl.hxx"
 
 #include <cstring>
 #include <cstdlib>
@@ -89,12 +90,12 @@ namespace {
 
 namespace xen {
 	namespace sren {
-		void renderRaytrace (RawImage& target,
+		void renderRaytrace (xen::sren::RenderTargetImpl& target,
 		                     const xen::Aabb2u& viewport,
 		                     const RenderParameters3d& params,
 		                     const xen::Array<RenderCommand3d>& commands){
 
-			xen::Aabb2u screen_rect = { Vec2u::Origin, target.size - Vec2u{1,1} };
+			xen::Aabb2u screen_rect = { 0, 0, target.width - 1, target.height - 1 };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 			Vec2s       target_size = (Vec2s)xen::getSize(view_region);
 
@@ -204,7 +205,7 @@ namespace xen {
 					/////////////////////////////////////////////////////////////////////
 					// Color the pixel
 					Vec2s pixel_coord = target_pos + (Vec2s)view_region.min;
-					target[pixel_coord.x][pixel_coord.y] = pixel_color;
+					target[pixel_coord.x][pixel_coord.y].color = pixel_color;
 				}
 			}
 		}
@@ -217,7 +218,7 @@ namespace xen {
 		/// \param camera          The camera to use as the perspective to draw from
 		/// \param debugged_camera The camera to draw
 		/////////////////////////////////////////////////////////////////////
-		void renderCameraDebug(RawImage& target, const xen::Aabb2u& viewport,
+		void renderCameraDebug(xen::sren::RenderTargetImpl& target, const xen::Aabb2u& viewport,
 		                       const Camera3d& view_camera,
 		                       const Camera3d& camera
 		                       ) {
@@ -244,7 +245,7 @@ namespace xen {
 			// :TODO:COMP: view region calc duplicated with rasterizer
 			// Find the actual view_region we wish to draw to. This is the
 			// intersection of the actual target, and the user specified viewport
-			xen::Aabb2u screen_rect = { Vec2u::Origin, target.size - Vec2u{1,1} };
+			xen::Aabb2u screen_rect = { 0, 0, target.width - 1, target.height - 1 };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 
 			Vec2s target_size = (Vec2s)xen::getSize(view_region);

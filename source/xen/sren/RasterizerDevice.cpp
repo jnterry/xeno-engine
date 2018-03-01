@@ -24,8 +24,7 @@ public:
 
 	}
 
-	RasterizerDevice(xen::RawImage* raw_image)
-		: SoftwareDeviceBase(raw_image) {
+	RasterizerDevice() {
 		// no-op
 	}
 
@@ -42,13 +41,13 @@ public:
 	            const xen::RenderParameters3d& params,
 	            const xen::Array<xen::RenderCommand3d> commands
 	            ) override {
-		xen::sren::renderRasterize(*diffuse_buffer, viewport, params, commands);
+		xen::sren::renderRasterize(*this->getRenderTargetImpl(target), viewport, params, commands);
 	}
 };
 
 namespace xen {
-	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena, RawImage& image){
-		return xen::emplace<RasterizerDevice>(arena, &image);
+	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena){
+		return xen::emplace<RasterizerDevice>(arena);
 	}
 }
 

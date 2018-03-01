@@ -21,9 +21,6 @@ namespace xen {
 	namespace sren {
 		class SoftwareDeviceBase : public xen::GraphicsDevice {
 		protected:
-			// :TODO: hack -> we should obey the render target passed into drawing functions
-			xen::RawImage* diffuse_buffer;
-
 			xen::Allocator*  main_allocator;
 			xen::ArenaLinear misc_arena;
 
@@ -48,10 +45,7 @@ namespace xen {
 			void              resizeRenderTarget (RenderTargetImpl* target, Vec2u new_size);
 		public:
 
-			/// \brief Constructs a new software render device which will draw to
-			/// specified image -> hack -> should obey the render target passed into
-			/// drawing functions
-			SoftwareDeviceBase(xen::RawImage* image);
+			SoftwareDeviceBase();
 
 			virtual ~SoftwareDeviceBase();
 

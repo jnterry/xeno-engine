@@ -12,12 +12,14 @@
 #include <xen/core/array_types.hpp>
 
 namespace xen {
+	struct Window;
+
 	namespace sren {
 
 		/// \brief The values of a single pixel of the various buffers in the
 		/// render target
 		struct RenderTargetPixel {
-			Color3f color;
+			Color4f color;
 			float   depth;
 		};
 

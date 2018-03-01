@@ -21,13 +21,13 @@ namespace xen {
 	/// \brief Creates a new GraphicsDevice which will perform rendering
 	/// using a software raytracer
 	/////////////////////////////////////////////////////////////////////
-	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena, RawImage& image);
+	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Creates a new GraphicsDevice which will perform rendering
 	/// using a software rasterizer
 	/////////////////////////////////////////////////////////////////////
-	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena, RawImage& image);
+	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena);
 }
 
 #endif

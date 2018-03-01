@@ -20,9 +20,8 @@
 namespace xen {
 	namespace sren {
 
-		SoftwareDeviceBase::SoftwareDeviceBase(xen::RawImage* image)
-			: diffuse_buffer(image),
-			  main_allocator(new xen::AllocatorCounter<xen::AllocatorMalloc>()),
+		SoftwareDeviceBase::SoftwareDeviceBase()
+			: main_allocator(new xen::AllocatorCounter<xen::AllocatorMalloc>()),
 			  misc_arena       (xen::createArenaLinear(*main_allocator, xen::megabytes(1))) {
 
 		}
@@ -33,7 +32,7 @@ namespace xen {
 		}
 
 		void SoftwareDeviceBase::clear(xen::RenderTarget target, const xen::Aabb2u& viewport, xen::Color color){
-			xen::sren::clear(*this->diffuse_buffer, viewport, color);
+			xen::sren::clear(*this->getRenderTargetImpl(target), viewport, color);
 		}
 
 		RenderTarget SoftwareDeviceBase::createRenderTarget (Vec2u size){

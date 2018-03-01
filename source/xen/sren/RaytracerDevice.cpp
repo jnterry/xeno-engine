@@ -24,8 +24,7 @@ public:
 
 	}
 
-	RaytracerDevice(xen::RawImage* raw_image)
-		: SoftwareDeviceBase(raw_image) {
+	RaytracerDevice() {
 		// no-op
 	}
 
@@ -42,13 +41,13 @@ public:
 	            const xen::RenderParameters3d& params,
 	            const xen::Array<xen::RenderCommand3d> commands
 	            ) override {
-		xen::sren::renderRaytrace(*diffuse_buffer, viewport, params, commands);
+		xen::sren::renderRaytrace(*this->getRenderTargetImpl(target), viewport, params, commands);
 	}
 };
 
 namespace xen {
-	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena, RawImage& image){
-		return xen::emplace<RaytracerDevice>(arena, &image);
+	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena){
+		return xen::emplace<RaytracerDevice>(arena);
 	}
 }
 
