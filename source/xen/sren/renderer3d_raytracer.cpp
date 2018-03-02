@@ -239,7 +239,6 @@ namespace xen {
 				camera.position, camera.position
 			};
 
-
 			//////////////////////////////////////////////////////////////////////////
 
 			// :TODO:COMP: view region calc duplicated with rasterizer
@@ -275,6 +274,7 @@ namespace xen {
 
 			Vec2s target_pos;
 			int ray_index = 0;
+
 			for(target_pos.x = 0; target_pos.x < target_size.x; target_pos.x += target_size.x-1) {
 				for(target_pos.y = 0; target_pos.y < target_size.y; target_pos.y += target_size.y-1) {
 
@@ -317,10 +317,10 @@ namespace xen {
 			render_commands[2].verticies.verticies = &camera_corner_rays[0];
 			render_commands[2].verticies.count     = 8;
 
-			xen::RenderParameters3d params;
+			xen::RenderParameters3d params = {};
 			params.camera = view_camera;
 
-			xen::sren::renderRasterize(target, viewport, params, render_commands );
+			xen::sren::renderRasterize(target, viewport, params, render_commands);
 		}
 	}
 }

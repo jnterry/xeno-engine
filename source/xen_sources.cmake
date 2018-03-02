@@ -92,6 +92,7 @@ set(XEN_SOURCES_SREN
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/renderer3d_rasterizer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/SoftwareDeviceBase.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RaytracerDevice.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RaytracerDebugDevice.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RasterizerDevice.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RenderTargetImpl.cpp
 )
