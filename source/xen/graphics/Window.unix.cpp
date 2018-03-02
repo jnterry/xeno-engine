@@ -446,6 +446,17 @@ namespace xen {
 					printf("ERROR: Using unsupported visual type!\n");
 					return nullptr;
 				}
+				printf("INFO: Visual info bit per channel %i: Masks: (%p, %p, %p)\n",
+				       visual_info->bits_per_rgb,
+				       visual_info->red_mask,
+				       visual_info->green_mask,
+				       visual_info->blue_mask
+				      );
+				if(visual_info->bits_per_rgb != 8){
+					printf("ERROR: Expected 8 bits per color channel\n");
+					return nullptr;
+				}
+
 				XFree(visual_info);
 			  ////////////////////////////////////////////////////////////////////////
 
@@ -463,8 +474,7 @@ namespace xen {
 				             ButtonReleaseMask   |
 				             KeyPressMask        | // Keyboard
 				             KeyReleaseMask      |
-				             0
-				             );
+				             0);
 
 				// Change the close button behaviour so that we can capture event,
 				// rather than the window manager destroying the window by itself

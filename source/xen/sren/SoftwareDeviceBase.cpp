@@ -102,30 +102,31 @@ namespace xen {
 		}
 
 		void SoftwareDeviceBase::swapBuffers(Window* window) {
-			RenderTargetImpl* target = this->getRenderTargetImpl(window->render_target);
+			RenderTargetImpl& target = *this->getRenderTargetImpl(window->render_target);
 
 			// https://www.linuxquestions.org/questions/programming-9/how-to-draw-a-bitmap-in-the-window-using-xlib-615349/
 
-			Pixmap pm = XCreatePixmapFromBitmapData(xen::impl::unix_display,
-			                                        window->xwindow,
-			                                        target->bitmap_pixels,
-			                                        target->rows, target->cols,
-			                                        0,
-			                                        0,
-			                                        window->depth
-			                                       );
+			// :TODO: this works but is slow...
+			// SDL use a shared memory region between the xserver and client, so can
+			// just set pixels in that region
 
-			for(int i = 100; i < 1000; ++i){
-				target->bitmap_pixels[i] = 0xFF;
+			Color color;
+			for(u64 x = 0; x < target.rows; ++x){
+				for(u64 y = 0; y < target.cols; ++y){
+					color = (Color)(target[x][y].color);
+
+					XSetForeground(xen::impl::unix_display,
+					               target.graphics_context,
+					               color.value
+					               );
+					XDrawPoint(xen::impl::unix_display,
+					           window->xwindow,
+					           target.graphics_context,
+					           x, target.cols - y);
+				}
 			}
-			XCopyArea(xen::impl::unix_display,
-			          pm,
-			          window->xwindow,
-			          target->graphics_context,
-			          0, 0, target->rows, target->cols,
-			          0, 0
-			         );
 
+			XFlush(xen::impl::unix_display);
 		}
 	}
 }
