@@ -102,8 +102,8 @@ namespace xen {
 		}
 
 		void SoftwareDeviceBase::swapBuffers(Window* window) {
+			if(!window->is_open){ return; }
 			RenderTargetImpl& target = *this->getRenderTargetImpl(window->render_target);
-
 			xen::sren::presentRenderTarget(window, target);
 		}
 	}
