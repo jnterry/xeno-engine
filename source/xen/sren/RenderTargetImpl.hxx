@@ -35,11 +35,11 @@ namespace xen {
 			Window* window;
 		};
 
-		// https://stackoverflow.com/questions/6609281/how-to-draw-an-image-from-file-on-window-with-xlib
-
 		void doPlatformRenderTargetInitialization(xen::Allocator* alloc,
 		                                          RenderTargetImpl* target,
 		                                          Window* window);
+
+		void presentRenderTarget(Window* window, RenderTargetImpl& target);
 	}
 }
 
