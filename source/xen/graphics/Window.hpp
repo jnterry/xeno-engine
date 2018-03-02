@@ -13,9 +13,14 @@
 #include <xen/graphics/GraphicsDevice_types.hpp>
 
 namespace xen {
+	struct ArenaLinear;
 
 	/// \brief Opaque type representing a Window - actual type depends on platform
 	struct Window;
+
+	Window* createWindow (xen::ArenaLinear& arena, Vec2u size, const char* title);
+
+	void    destroyWindow(xen::Window* window);
 
 	/// \brief Retrieves the size of the client area (IE: part that may
 	// be rendered to) of some window

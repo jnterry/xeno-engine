@@ -15,7 +15,6 @@
 
 namespace xen {
 	struct Window;
-	struct ArenaLinear;
 
 	namespace impl {
 		struct WindowBase {
@@ -59,11 +58,6 @@ namespace xen {
 		/// is not responding.
 		/////////////////////////////////////////////////////////////////////
 		void dispatchEvents(Window* window);
-
-
-		Window* createWindow (xen::ArenaLinear& arena, Vec2u size, const char* title);
-
-		void destroyWindow(xen::Window* window);
 	}
 }
 
