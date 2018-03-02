@@ -20,6 +20,7 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
+#include <X11/Xutil.h>
 
 #include "Window.unix.hxx"
 
@@ -337,6 +338,24 @@ namespace {
 	}
 }
 
+bool doOpenXDisplayConnection(){
+	if(xen::impl::unix_display != nullptr){
+		return true;
+	}
+
+	//:TODO: error checking
+	xen::impl::unix_display = XOpenDisplay(NULL); // open local display
+	if(xen::impl::unix_display == nullptr){
+		// :TODO: log error
+		printf("ERROR: Failed to open x display\n");;
+		return false;
+	} else {
+		// :TODO: log
+		printf("INFO: Opened x display successfully\n");
+		return true;
+	}
+}
+
 namespace xen {
 	struct Allocator;
 
@@ -357,30 +376,27 @@ namespace xen {
 
 		Window* createWindow(xen::ArenaLinear& arena, Vec2u size, const char* title){
 				xen::MemoryTransaction transaction(arena);
-
-				if(xen::impl::unix_display == nullptr){
-					//:TODO: error checking
-					xen::impl::unix_display = XOpenDisplay(NULL); // open local display
-					if(xen::impl::unix_display == nullptr){
-						// :TODO: log error
-						printf("ERROR: Failed to open x display\n");;
-						return nullptr;
-					} else {
-						// :TODO: log
-						printf("INFO: Opened x display successfully\n");
-					}
-				}
-
-				::Window root  = DefaultRootWindow(xen::impl::unix_display); // Get window representing whole screen
-				Visual* visual = DefaultVisual(xen::impl::unix_display, 0);
-				int    depth   = DefaultDepth(xen::impl::unix_display, 0);
-
-				XSetWindowAttributes    frame_attributes;
-				frame_attributes.background_pixel = XWhitePixel(xen::impl::unix_display, 0);
-
 				Window* result = xen::reserveType<Window>(arena);
 				*result = {};
 
+				////////////////////////////////////////////////////////////////////////
+				// Establish connection to x server, setup some parameters
+				if(!doOpenXDisplayConnection()){
+					return nullptr;
+				}
+
+				// Get window representing whole screen
+				::Window root   = DefaultRootWindow(xen::impl::unix_display);
+				Visual*  visual = DefaultVisual(xen::impl::unix_display, 0);
+				int      depth  = DefaultDepth(xen::impl::unix_display, 0);
+
+				XSetWindowAttributes    frame_attributes;
+				frame_attributes.background_pixel = XWhitePixel(xen::impl::unix_display, 0);
+				////////////////////////////////////////////////////////////////////////
+
+
+				////////////////////////////////////////////////////////////////////////
+				// Create the X Window
 				result->xwindow = XCreateWindow(xen::impl::unix_display, // open locally
 				                                root,                    // parent window
 				                                0, 0,                    // top left coords
@@ -392,9 +408,6 @@ namespace xen {
 				                                CWBackPixel,             // Value mask
 				                                &frame_attributes        // Attributes
 				                               );
-				result->visual = visual;
-				result->depth  = depth;
-
 				if(result->xwindow){
 					// :TODO: log
 					printf("INFO: Created x window %lu\n", result->xwindow);
@@ -403,8 +416,45 @@ namespace xen {
 					printf("ERROR: Failed to create x window\n");
 					return nullptr;
 				}
+				////////////////////////////////////////////////////////////////////////
 
-				// Setup what input events we want to capture
+
+				////////////////////////////////////////////////////////////////////////
+				// Determine the XVisualInfo that is in use (contains data about
+				// color channels, etc)
+				int num_visual_info      = 0;
+				XVisualInfo visual_info_template;
+				visual_info_template.visualid = XVisualIDFromVisual(visual);
+
+				XVisualInfo* visual_info = XGetVisualInfo(xen::impl::unix_display,
+				                                          VisualIDMask,
+				                                          &visual_info_template,
+				                                          &num_visual_info
+				                                         );
+				if(visual_info == nullptr){
+					// :TODO: log
+					printf("ERROR: Failed to determine visual info for window!\n");
+					return nullptr;
+				}
+
+				// :TODO: log
+				if(visual_info->c_class == TrueColor){
+					printf("INFO: Using TrueColor visual\n");
+				} else if (visual_info->c_class == DirectColor){
+					printf("INFO: Using DirectColor visual\n");
+				} else {
+					printf("ERROR: Using unsupported visual type!\n");
+					return nullptr;
+				}
+				XFree(visual_info);
+			  ////////////////////////////////////////////////////////////////////////
+
+				result->visual_info = *visual_info;
+				result->visual      = visual;
+				result->depth       = depth;
+
+				////////////////////////////////////////////////////////////////////////
+				// Setup what input events we want to capture for the window
 				XSelectInput(xen::impl::unix_display, result->xwindow,
 				             //ExposureMask        | // Window shown
 				             StructureNotifyMask | // Resize request, window moved
@@ -420,15 +470,15 @@ namespace xen {
 				// rather than the window manager destroying the window by itself
 				Atom wm_delete_window = XInternAtom(xen::impl::unix_display, "WM_DELETE_WINDOW", False);
 				XSetWMProtocols(xen::impl::unix_display, result->xwindow, &wm_delete_window, 1);
+				////////////////////////////////////////////////////////////////////////
 
-				// Set proper window title
-				setWindowTitle(result, title);
-
+				////////////////////////////////////////////////////////////////////////
 				// Show the window on screen
+				setWindowTitle(result, title); // Set proper window title
 				XMapWindow(xen::impl::unix_display, result->xwindow);
 				XMapRaised(xen::impl::unix_display, result->xwindow);
-
 				result->is_open = true;
+				////////////////////////////////////////////////////////////////////////
 
 				// :TODO: don't really want to have to wait here, but need to do it
 				// before we can draw

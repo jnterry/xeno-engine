@@ -12,6 +12,7 @@
 #include "Window.hxx"
 
 #include <X11/Xlib.h>
+#include <X11/Xutil.h>
 
 namespace xen {
 	struct ArenaLinear;
@@ -20,6 +21,8 @@ namespace xen {
 		::Window xwindow;
 
 		::Visual* visual;
+
+		::XVisualInfo visual_info;
 
 		int depth;
 	};
