@@ -457,6 +457,34 @@ namespace xen {
 					return nullptr;
 				}
 
+				switch(visual_info->red_mask) {
+				case 0xff000000: result->shift_r = 24; break;
+				case 0x00ff0000: result->shift_r = 16; break;
+				case 0x0000ff00: result->shift_r =  8; break;
+				case 0x000000ff: result->shift_r =  0; break;
+				default:
+					printf("ERROR: Invalid red mask in visual info\n");
+					return nullptr;
+				}
+				switch(visual_info->green_mask) {
+				case 0xff000000: result->shift_g = 24; break;
+				case 0x00ff0000: result->shift_g = 16; break;
+				case 0x0000ff00: result->shift_g =  8; break;
+				case 0x000000ff: result->shift_g =  0; break;
+				default:
+					printf("ERROR: Invalid green mask in visual info\n");
+					return nullptr;
+				}
+				switch(visual_info->blue_mask) {
+				case 0xff000000: result->shift_b = 24; break;
+				case 0x00ff0000: result->shift_b = 16; break;
+				case 0x0000ff00: result->shift_b =  8; break;
+				case 0x000000ff: result->shift_b =  0; break;
+				default:
+					printf("ERROR: Invalid blue mask in visual info\n");
+					return nullptr;
+				}
+
 				XFree(visual_info);
 			  ////////////////////////////////////////////////////////////////////////
 

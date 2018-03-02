@@ -15,6 +15,7 @@
 
 #include "../graphics/Window.hxx"
 
+#include <xen/math/utilities.hpp>
 #include <xen/core/array.hpp>
 
 namespace xen {
@@ -110,14 +111,20 @@ namespace xen {
 			// SDL use a shared memory region between the xserver and client, so can
 			// just set pixels in that region
 
-			Color color;
+			Color4f color;
+			u32     color_bits;
 			for(u64 x = 0; x < target.rows; ++x){
 				for(u64 y = 0; y < target.cols; ++y){
-					color = (Color)(target[x][y].color);
+					color = (target[x][y].color);
+
+					color_bits = (xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.r) << window->shift_r |
+					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.g) << window->shift_g |
+					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.b) << window->shift_b
+					             );
 
 					XSetForeground(xen::impl::unix_display,
 					               target.graphics_context,
-					               color.value
+					               color_bits
 					               );
 					XDrawPoint(xen::impl::unix_display,
 					           window->xwindow,
