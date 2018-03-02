@@ -23,8 +23,6 @@ namespace xen {
 		::Visual* visual;
 
 		::XVisualInfo visual_info;
-
-		int depth;
 	};
 
 	namespace impl {

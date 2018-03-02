@@ -462,7 +462,6 @@ namespace xen {
 
 				result->visual_info = *visual_info;
 				result->visual      = visual;
-				result->depth       = depth;
 
 				////////////////////////////////////////////////////////////////////////
 				// Setup what input events we want to capture for the window
