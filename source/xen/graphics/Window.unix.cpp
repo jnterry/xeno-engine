@@ -391,7 +391,9 @@ namespace xen {
 				                                visual,                  // Visual
 				                                CWBackPixel,             // Value mask
 				                                &frame_attributes        // Attributes
-				                                );
+				                               );
+				result->visual = visual;
+				result->depth  = depth;
 
 				if(result->xwindow){
 					// :TODO: log

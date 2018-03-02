@@ -12,10 +12,14 @@
 #include "RenderTargetImpl.hxx"
 #include "../graphics/Window.hxx"
 
+#include <xen/core/memory/Allocator.hpp>
+
 namespace xen {
 	namespace sren {
 
-		void doPlatformRenderTargetInitialization(RenderTargetImpl* target, Window* window) {
+		void doPlatformRenderTargetInitialization(xen::Allocator* alloc,
+		                                          RenderTargetImpl* target,
+		                                          Window* window) {
 			if(window == nullptr){
 				// offscreen render targets don't need an associated graphics context
 				return;
@@ -34,6 +38,8 @@ namespace xen {
 
 			target->graphics_context = gc;
 
+			// :TODO: deallocate/resize?
+			target->bitmap_pixels    = (char*)alloc->allocate(sizeof(u32) * target->width * target->height);
 
 			Colormap screen_colormap = DefaultColormap(xen::impl::unix_display,
 			                                           DefaultScreen(xen::impl::unix_display));

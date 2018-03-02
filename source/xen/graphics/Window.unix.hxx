@@ -18,6 +18,10 @@ namespace xen {
 
 	struct Window : public xen::impl::WindowBase{
 		::Window xwindow;
+
+		::Visual* visual;
+
+		int depth;
 	};
 
 	namespace impl {

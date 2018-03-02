@@ -17,9 +17,11 @@ namespace xen {
 		struct RenderTargetImpl : public RenderTargetImplBase {
 			// https://tronche.com/gui/x/xlib/GC/XCreateGC.html
 			GC graphics_context;
-		};
 
-		// https://stackoverflow.com/questions/6609281/how-to-draw-an-image-from-file-on-window-with-xlib
+			XImage image;
+
+			char* bitmap_pixels;
+		};
 	}
 }
 

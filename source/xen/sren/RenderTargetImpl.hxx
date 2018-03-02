@@ -16,6 +16,7 @@
 
 namespace xen {
 	struct Window;
+	struct Allocator;
 
 	namespace sren {
 
@@ -36,7 +37,9 @@ namespace xen {
 
 		// https://stackoverflow.com/questions/6609281/how-to-draw-an-image-from-file-on-window-with-xlib
 
-		void doPlatformRenderTargetInitialization(RenderTargetImpl* target, Window* window);
+		void doPlatformRenderTargetInitialization(xen::Allocator* alloc,
+		                                          RenderTargetImpl* target,
+		                                          Window* window);
 	}
 }
 

@@ -50,7 +50,7 @@ namespace xen {
 			xen::clearToZero<RenderTargetImpl>(target);
 			this->resizeRenderTarget(target, size);
 
-			xen::sren::doPlatformRenderTargetInitialization(target, window);
+			xen::sren::doPlatformRenderTargetInitialization(main_allocator, target, window);
 
 			return this->makeHandle<RenderTarget::HANDLE_ID>(slot, 0);
 		}
@@ -103,6 +103,29 @@ namespace xen {
 
 		void SoftwareDeviceBase::swapBuffers(Window* window) {
 			RenderTargetImpl* target = this->getRenderTargetImpl(window->render_target);
+
+			// https://www.linuxquestions.org/questions/programming-9/how-to-draw-a-bitmap-in-the-window-using-xlib-615349/
+
+			Pixmap pm = XCreatePixmapFromBitmapData(xen::impl::unix_display,
+			                                        window->xwindow,
+			                                        target->bitmap_pixels,
+			                                        target->rows, target->cols,
+			                                        0,
+			                                        0,
+			                                        window->depth
+			                                       );
+
+			for(int i = 100; i < 1000; ++i){
+				target->bitmap_pixels[i] = 0xFF;
+			}
+			XCopyArea(xen::impl::unix_display,
+			          pm,
+			          window->xwindow,
+			          target->graphics_context,
+			          0, 0, target->rows, target->cols,
+			          0, 0
+			         );
+
 		}
 	}
 }
