@@ -159,7 +159,7 @@ int main(int argc, char** argv){
 		scene_lights[0].point.position.y = xen::mapToRange(-1.f, 1.f, 0.01f, 20.0f, xen::sin(time * 90_deg));
 
 		xen::WindowEvent* event;
-		while(event = xen::pollEvent(app)){
+		while((event = xen::pollEvent(app)) != nullptr){
 			switch(event->type){
 			case xen::WindowEvent::Closed:
 				device->destroyWindow(app);

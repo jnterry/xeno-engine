@@ -31,13 +31,13 @@ namespace xen{
 		} else {
 			// :TODO: log
 			// xen::log::write(XenFatal("OS does not support MONTONIC_RAW clock, errno: %i", errno, "xen.time"));
-			return Duration { .nanoseconds = (s64)0x7FFFFFFFFFFFFFFF };
+			return Duration { (s64)0x7FFFFFFFFFFFFFFF };
 		}
 	}
 
 
 	DateTime getLocalTime(){
-	   timespec time;
+		timespec time;
 		if(clock_gettime(CLOCK_REALTIME, &time) == 0){
 			DateTime dt;
 			dt._data = (xen::seconds(time.tv_sec) + xen::nanoseconds(time.tv_nsec)).nanoseconds;
@@ -51,7 +51,7 @@ namespace xen{
 }
 
 xen::Duration operator-(const xen::DateTime& lhs, const xen::DateTime& rhs){
-	return xen::Duration { .nanoseconds = lhs._data - rhs._data };
+	return xen::Duration { (s64)(lhs._data - rhs._data) };
 }
 
 xen::DateTime& operator+=(xen::DateTime& lhs, const xen::Duration& rhs){

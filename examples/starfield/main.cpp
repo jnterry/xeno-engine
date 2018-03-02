@@ -135,7 +135,7 @@ int main(int argc, char** argv){
 		printf("dt: %f\n", dt);
 
 		xen::WindowEvent* event;
-		while(event = xen::pollEvent(app)){
+		while((event = xen::pollEvent(app)) != nullptr){
 			switch(event->type){
 			case xen::WindowEvent::Closed:
 				device->destroyWindow(app);

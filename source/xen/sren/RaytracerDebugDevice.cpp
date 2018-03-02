@@ -97,6 +97,7 @@ public:
 
 	xen::Mesh createMesh(const xen::MeshData& mesh_data) override {
 		// :TODO: implement
+		return xen::makeNullHandle<xen::Mesh>();
 	}
 
 	void destroyMesh(xen::Mesh mesh) override {

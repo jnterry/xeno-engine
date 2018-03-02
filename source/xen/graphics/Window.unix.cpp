@@ -270,7 +270,7 @@ namespace {
 		switch(xe->type){
 		case ClientMessage:{
 			Atom wm_delete_window = XInternAtom(xen::impl::unix_display, "WM_DELETE_WINDOW", False);
-			if(xe->xclient.data.l[0] == wm_delete_window){
+                        if((Atom)xe->xclient.data.l[0] == wm_delete_window){
 				e.type = xen::WindowEvent::Closed;
 			}
 			break;
@@ -446,12 +446,6 @@ namespace xen {
 					printf("ERROR: Using unsupported visual type!\n");
 					return nullptr;
 				}
-				printf("INFO: Visual info bit per channel %i: Masks: (%p, %p, %p)\n",
-				       visual_info->bits_per_rgb,
-				       visual_info->red_mask,
-				       visual_info->green_mask,
-				       visual_info->blue_mask
-				      );
 				if(visual_info->bits_per_rgb != 8){
 					printf("ERROR: Expected 8 bits per color channel\n");
 					return nullptr;

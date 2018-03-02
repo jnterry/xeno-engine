@@ -95,7 +95,7 @@ namespace xen {
 		                     const RenderParameters3d& params,
 		                     const xen::Array<RenderCommand3d>& commands){
 
-			xen::Aabb2u screen_rect = { 0, 0, target.width - 1, target.height - 1 };
+            xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 			Vec2s       target_size = (Vec2s)xen::getSize(view_region);
 
@@ -155,7 +155,7 @@ namespace xen {
 
 					/////////////////////////////////////////////////////////////////////
 					// Cast shadow ray
-					for(int i = 0; i < params.lights.size; ++i){
+                    for(u64 i = 0; i < params.lights.size; ++i){
 						//printf("%i, %i :::::: Casting shadow ray for light %i\n",
 						//       target_pos.x, target_pos.y, i);
 						Ray3r shadow_ray;
@@ -244,7 +244,7 @@ namespace xen {
 			// :TODO:COMP: view region calc duplicated with rasterizer
 			// Find the actual view_region we wish to draw to. This is the
 			// intersection of the actual target, and the user specified viewport
-			xen::Aabb2u screen_rect = { 0, 0, target.width - 1, target.height - 1 };
+            xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 
 			Vec2s target_size = (Vec2s)xen::getSize(view_region);
