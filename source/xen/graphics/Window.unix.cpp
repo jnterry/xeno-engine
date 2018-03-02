@@ -373,168 +373,168 @@ namespace xen {
 				processEvent(w, &event);
 			}
 		}
+
+		Window* createWindow(xen::ArenaLinear& arena, Vec2u size, const char* title){
+				xen::MemoryTransaction transaction(arena);
+				Window* result = xen::reserveType<Window>(arena);
+				*result = {};
+
+				////////////////////////////////////////////////////////////////////////
+				// Establish connection to x server, setup some parameters
+				if(!doOpenXDisplayConnection()){
+					return nullptr;
+				}
+
+				// Get window representing whole screen
+				::Window root   = DefaultRootWindow(xen::impl::unix_display);
+				Visual*  visual = DefaultVisual(xen::impl::unix_display, 0);
+				int      depth  = DefaultDepth(xen::impl::unix_display, 0);
+
+				XSetWindowAttributes    frame_attributes;
+				frame_attributes.background_pixel = XWhitePixel(xen::impl::unix_display, 0);
+				////////////////////////////////////////////////////////////////////////
+
+
+				////////////////////////////////////////////////////////////////////////
+				// Create the X Window
+				result->xwindow = XCreateWindow(xen::impl::unix_display, // open locally
+				                                root,                    // parent window
+				                                0, 0,                    // top left coords
+				                                size.x, size.y,          // window size
+				                                0,                       // border width
+				                                depth,                   // color depth
+				                                InputOutput,             // window type
+				                                visual,                  // Visual
+				                                CWBackPixel,             // Value mask
+				                                &frame_attributes        // Attributes
+				                               );
+				if(result->xwindow){
+					// :TODO: log
+					printf("INFO: Created x window %lu\n", result->xwindow);
+				} else {
+					// :TODO: log
+					printf("ERROR: Failed to create x window\n");
+					return nullptr;
+				}
+				////////////////////////////////////////////////////////////////////////
+
+
+				////////////////////////////////////////////////////////////////////////
+				// Determine the XVisualInfo that is in use (contains data about
+				// color channels, etc)
+				int num_visual_info      = 0;
+				XVisualInfo visual_info_template;
+				visual_info_template.visualid = XVisualIDFromVisual(visual);
+
+				XVisualInfo* visual_info = XGetVisualInfo(xen::impl::unix_display,
+				                                          VisualIDMask,
+				                                          &visual_info_template,
+				                                          &num_visual_info
+				                                         );
+				if(visual_info == nullptr){
+					// :TODO: log
+					printf("ERROR: Failed to determine visual info for window!\n");
+					return nullptr;
+				}
+
+				// :TODO: log
+				if(visual_info->c_class == TrueColor){
+					printf("INFO: Using TrueColor visual\n");
+				} else if (visual_info->c_class == DirectColor){
+					printf("INFO: Using DirectColor visual\n");
+				} else {
+					printf("ERROR: Using unsupported visual type!\n");
+					return nullptr;
+				}
+				printf("INFO: Visual info bit per channel %i: Masks: (%p, %p, %p)\n",
+				       visual_info->bits_per_rgb,
+				       visual_info->red_mask,
+				       visual_info->green_mask,
+				       visual_info->blue_mask
+				      );
+				if(visual_info->bits_per_rgb != 8){
+					printf("ERROR: Expected 8 bits per color channel\n");
+					return nullptr;
+				}
+
+				switch(visual_info->red_mask) {
+				case 0xff000000: result->shift_r = 24; break;
+				case 0x00ff0000: result->shift_r = 16; break;
+				case 0x0000ff00: result->shift_r =  8; break;
+				case 0x000000ff: result->shift_r =  0; break;
+				default:
+					printf("ERROR: Invalid red mask in visual info\n");
+					return nullptr;
+				}
+				switch(visual_info->green_mask) {
+				case 0xff000000: result->shift_g = 24; break;
+				case 0x00ff0000: result->shift_g = 16; break;
+				case 0x0000ff00: result->shift_g =  8; break;
+				case 0x000000ff: result->shift_g =  0; break;
+				default:
+					printf("ERROR: Invalid green mask in visual info\n");
+					return nullptr;
+				}
+				switch(visual_info->blue_mask) {
+				case 0xff000000: result->shift_b = 24; break;
+				case 0x00ff0000: result->shift_b = 16; break;
+				case 0x0000ff00: result->shift_b =  8; break;
+				case 0x000000ff: result->shift_b =  0; break;
+				default:
+					printf("ERROR: Invalid blue mask in visual info\n");
+					return nullptr;
+				}
+
+				XFree(visual_info);
+			  ////////////////////////////////////////////////////////////////////////
+
+				result->visual_info = *visual_info;
+				result->visual      = visual;
+
+				////////////////////////////////////////////////////////////////////////
+				// Setup what input events we want to capture for the window
+				XSelectInput(xen::impl::unix_display, result->xwindow,
+				             //ExposureMask        | // Window shown
+				             StructureNotifyMask | // Resize request, window moved
+				             ResizeRedirectMask  | // Window resized
+				             ButtonPressMask     | // Mouse
+				             ButtonReleaseMask   |
+				             KeyPressMask        | // Keyboard
+				             KeyReleaseMask      |
+				             0);
+
+				// Change the close button behaviour so that we can capture event,
+				// rather than the window manager destroying the window by itself
+				Atom wm_delete_window = XInternAtom(xen::impl::unix_display, "WM_DELETE_WINDOW", False);
+				XSetWMProtocols(xen::impl::unix_display, result->xwindow, &wm_delete_window, 1);
+				////////////////////////////////////////////////////////////////////////
+
+				////////////////////////////////////////////////////////////////////////
+				// Show the window on screen
+				setWindowTitle(result, title); // Set proper window title
+				XMapWindow(xen::impl::unix_display, result->xwindow);
+				XMapRaised(xen::impl::unix_display, result->xwindow);
+				result->is_open = true;
+				////////////////////////////////////////////////////////////////////////
+
+				// :TODO: don't really want to have to wait here, but need to do it
+				// before we can draw
+				// https://tronche.com/gui/x/xlib-tutorial/
+				while(true){
+					XEvent e;
+					XNextEvent(xen::impl::unix_display, &e);
+					if(e.type == MapNotify){ break; }
+				}
+
+				transaction.commit();
+				return result;
+			}
+
+		void destroyWindow(xen::Window* window){
+			XDestroyWindow(xen::impl::unix_display, window->xwindow);
+			*window = {};
+		}
 	} //end of namespace xen::impl::
-
-	Window* createWindow(xen::ArenaLinear& arena, Vec2u size, const char* title){
-		xen::MemoryTransaction transaction(arena);
-		Window* result = xen::reserveType<Window>(arena);
-		*result = {};
-
-		////////////////////////////////////////////////////////////////////////
-		// Establish connection to x server, setup some parameters
-		if(!doOpenXDisplayConnection()){
-			return nullptr;
-		}
-
-		// Get window representing whole screen
-		::Window root   = DefaultRootWindow(xen::impl::unix_display);
-		Visual*  visual = DefaultVisual(xen::impl::unix_display, 0);
-		int      depth  = DefaultDepth(xen::impl::unix_display, 0);
-
-		XSetWindowAttributes    frame_attributes;
-		frame_attributes.background_pixel = XWhitePixel(xen::impl::unix_display, 0);
-		////////////////////////////////////////////////////////////////////////
-
-
-		////////////////////////////////////////////////////////////////////////
-		// Create the X Window
-		result->xwindow = XCreateWindow(xen::impl::unix_display, // open locally
-		                                root,                    // parent window
-		                                0, 0,                    // top left coords
-		                                size.x, size.y,          // window size
-		                                0,                       // border width
-		                                depth,                   // color depth
-		                                InputOutput,             // window type
-		                                visual,                  // Visual
-		                                CWBackPixel,             // Value mask
-		                                &frame_attributes        // Attributes
-		                                );
-		if(result->xwindow){
-			// :TODO: log
-			printf("INFO: Created x window %lu\n", result->xwindow);
-		} else {
-			// :TODO: log
-			printf("ERROR: Failed to create x window\n");
-			return nullptr;
-		}
-		////////////////////////////////////////////////////////////////////////
-
-
-		////////////////////////////////////////////////////////////////////////
-		// Determine the XVisualInfo that is in use (contains data about
-		// color channels, etc)
-		int num_visual_info      = 0;
-		XVisualInfo visual_info_template;
-		visual_info_template.visualid = XVisualIDFromVisual(visual);
-
-		XVisualInfo* visual_info = XGetVisualInfo(xen::impl::unix_display,
-		                                          VisualIDMask,
-		                                          &visual_info_template,
-		                                          &num_visual_info
-		                                          );
-		if(visual_info == nullptr){
-			// :TODO: log
-			printf("ERROR: Failed to determine visual info for window!\n");
-			return nullptr;
-		}
-
-		// :TODO: log
-		if(visual_info->c_class == TrueColor){
-			printf("INFO: Using TrueColor visual\n");
-		} else if (visual_info->c_class == DirectColor){
-			printf("INFO: Using DirectColor visual\n");
-		} else {
-			printf("ERROR: Using unsupported visual type!\n");
-			return nullptr;
-		}
-		printf("INFO: Visual info bit per channel %i: Masks: (%p, %p, %p)\n",
-		       visual_info->bits_per_rgb,
-		       visual_info->red_mask,
-		       visual_info->green_mask,
-		       visual_info->blue_mask
-		       );
-		if(visual_info->bits_per_rgb != 8){
-			printf("ERROR: Expected 8 bits per color channel\n");
-			return nullptr;
-		}
-
-		switch(visual_info->red_mask) {
-		case 0xff000000: result->shift_r = 24; break;
-		case 0x00ff0000: result->shift_r = 16; break;
-		case 0x0000ff00: result->shift_r =  8; break;
-		case 0x000000ff: result->shift_r =  0; break;
-		default:
-			printf("ERROR: Invalid red mask in visual info\n");
-			return nullptr;
-		}
-		switch(visual_info->green_mask) {
-		case 0xff000000: result->shift_g = 24; break;
-		case 0x00ff0000: result->shift_g = 16; break;
-		case 0x0000ff00: result->shift_g =  8; break;
-		case 0x000000ff: result->shift_g =  0; break;
-		default:
-			printf("ERROR: Invalid green mask in visual info\n");
-			return nullptr;
-		}
-		switch(visual_info->blue_mask) {
-		case 0xff000000: result->shift_b = 24; break;
-		case 0x00ff0000: result->shift_b = 16; break;
-		case 0x0000ff00: result->shift_b =  8; break;
-		case 0x000000ff: result->shift_b =  0; break;
-		default:
-			printf("ERROR: Invalid blue mask in visual info\n");
-			return nullptr;
-		}
-
-		XFree(visual_info);
-		////////////////////////////////////////////////////////////////////////
-
-		result->visual_info = *visual_info;
-		result->visual      = visual;
-
-		////////////////////////////////////////////////////////////////////////
-		// Setup what input events we want to capture for the window
-		XSelectInput(xen::impl::unix_display, result->xwindow,
-		             //ExposureMask        | // Window shown
-		             StructureNotifyMask | // Resize request, window moved
-		             ResizeRedirectMask  | // Window resized
-		             ButtonPressMask     | // Mouse
-		             ButtonReleaseMask   |
-		             KeyPressMask        | // Keyboard
-		             KeyReleaseMask      |
-		             0);
-
-		// Change the close button behaviour so that we can capture event,
-		// rather than the window manager destroying the window by itself
-		Atom wm_delete_window = XInternAtom(xen::impl::unix_display, "WM_DELETE_WINDOW", False);
-		XSetWMProtocols(xen::impl::unix_display, result->xwindow, &wm_delete_window, 1);
-		////////////////////////////////////////////////////////////////////////
-
-		////////////////////////////////////////////////////////////////////////
-		// Show the window on screen
-		setWindowTitle(result, title); // Set proper window title
-		XMapWindow(xen::impl::unix_display, result->xwindow);
-		XMapRaised(xen::impl::unix_display, result->xwindow);
-		result->is_open = true;
-		////////////////////////////////////////////////////////////////////////
-
-		// :TODO: don't really want to have to wait here, but need to do it
-		// before we can draw
-		// https://tronche.com/gui/x/xlib-tutorial/
-		while(true){
-			XEvent e;
-			XNextEvent(xen::impl::unix_display, &e);
-			if(e.type == MapNotify){ break; }
-		}
-
-		transaction.commit();
-		return result;
-	}
-
-	void destroyWindow(xen::Window* window){
-		XDestroyWindow(xen::impl::unix_display, window->xwindow);
-		*window = {};
-	}
 
 	/// \brief Retrieves the size of the client area (ie, part that may be renderered on) of some window
 	Vec2u getClientAreaSize(Window* window){

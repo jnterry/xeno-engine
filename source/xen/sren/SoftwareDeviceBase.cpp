@@ -84,7 +84,7 @@ namespace xen {
 		Window* SoftwareDeviceBase::createWindow(Vec2u size, const char* title) {
 		  xen::MemoryTransaction transaction(misc_arena);
 
-			xen::Window* window = xen::createWindow(misc_arena, size, title);
+			xen::Window* window = xen::impl::createWindow(misc_arena, size, title);
 
 			window->render_target    = this->createRenderTarget(size, window);
 			RenderTargetImpl* target = this->getRenderTargetImpl(window->render_target);
@@ -97,7 +97,8 @@ namespace xen {
 
 		void SoftwareDeviceBase::destroyWindow(Window* window) {
 			destroyRenderTarget(window->render_target);
-			xen::destroyWindow(window);
+			xen::impl::destroyWindow(window);
+			window->is_open = false;
 		}
 
 		void SoftwareDeviceBase::swapBuffers(Window* window) {

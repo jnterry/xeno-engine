@@ -132,7 +132,7 @@ namespace {
 		xen::Window* createWindow(Vec2u size, const char* title){
 			xen::MemoryTransaction transaction(misc_arena);
 			printf("About to create window\n");
-			xen::Window* window = xen::createWindow(misc_arena, size, title);
+			xen::Window* window = xen::impl::createWindow(misc_arena, size, title);
 
 			xen::gl::RenderTargetImpl* render_target = xen::gl::createWindowRenderTarget(misc_arena, window);
 
@@ -195,7 +195,7 @@ namespace {
 			xen::gl::destroyRenderTarget(target);
 			render_targets[window->render_target._id] = nullptr;
 
-			xen::destroyWindow(window);
+			xen::impl::destroyWindow(window);
 			xen::clearToZero<xen::Window>(window);
 		}
 		void swapBuffers(xen::Window* window){
