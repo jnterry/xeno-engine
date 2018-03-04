@@ -387,11 +387,28 @@ namespace xen {
 
 				// Get window representing whole screen
 				::Window root   = DefaultRootWindow(xen::impl::unix_display);
-				Visual*  visual = DefaultVisual(xen::impl::unix_display, 0);
-				int      depth  = DefaultDepth(xen::impl::unix_display, 0);
+
+				// Find an appropriate visual
+				int color_depth  = 32;
+
+				XVisualInfo vinfo;
+				if(!XMatchVisualInfo(xen::impl::unix_display,
+				                     XDefaultScreen(xen::impl::unix_display),
+				                     color_depth,
+				                     TrueColor,
+				                     &vinfo)){
+					printf("Cannot find 32bit truecolor visual\n");
+					return nullptr;
+				}
+				Visual*  visual = vinfo.visual;
 
 				XSetWindowAttributes    frame_attributes;
-				frame_attributes.background_pixel = XWhitePixel(xen::impl::unix_display, 0);
+				frame_attributes.colormap = XCreateColormap(xen::impl::unix_display,
+				                                            root,
+				                                            visual,
+				                                            AllocNone);
+				frame_attributes.background_pixel = 0; //XWhitePixel(xen::impl::unix_display, 0);
+				frame_attributes.border_pixel = 0;
 				////////////////////////////////////////////////////////////////////////
 
 
@@ -400,14 +417,18 @@ namespace xen {
 				result->xwindow = XCreateWindow(xen::impl::unix_display, // open locally
 				                                root,                    // parent window
 				                                0, 0,                    // top left coords
-				                                size.x, size.y,          // window size
+				                                size.x, size.y,
 				                                0,                       // border width
-				                                depth,                   // color depth
+				                                color_depth,
 				                                InputOutput,             // window type
-				                                visual,                  // Visual
-				                                CWBackPixel,             // Value mask
+				                                visual,
+				                                CWBackPixel |            // Attribute mask
+				                                CWColormap |
+				                                CWBorderPixel,
 				                                &frame_attributes        // Attributes
 				                               );
+				XSync(xen::impl::unix_display, True);
+
 				if(result->xwindow){
 					// :TODO: log
 					printf("INFO: Created x window %lu\n", result->xwindow);

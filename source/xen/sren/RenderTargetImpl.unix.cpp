@@ -15,6 +15,8 @@
 #include <xen/math/utilities.hpp>
 #include <xen/core/memory/Allocator.hpp>
 
+#include <cstring>
+
 namespace xen {
 	namespace sren {
 
@@ -40,39 +42,56 @@ namespace xen {
 			// :TODO: deallocate/resize?
 			target->bitmap_pixels    = (char*)alloc->allocate(sizeof(u32) * target->width * target->height);
 
+			// :TODO: free on render target destruction/resize
+			target->ximage = XCreateImage(xen::impl::unix_display,
+			                              window->visual,
+			                              32,
+			                              ZPixmap,
+			                              0,
+			                              (char*)target->bitmap_pixels,
+			                              target->rows,
+			                              target->cols,
+			                              32,
+			                              0
+			                              );
+			if(!target->ximage){
+				printf("Failed to create ximage for render target\n");
+			}
+
 			XFlush(xen::impl::unix_display);
 		}
 
 		void presentRenderTarget(Window* window, RenderTargetImpl& target){
-			// https://www.linuxquestions.org/questions/programming-9/how-to-draw-a-bitmap-in-the-window-using-xlib-615349/
-
 			// :TODO: this works but is slow...
 			// SDL use a shared memory region between the xserver and client, so can
 			// just set pixels in that region
 
 			Color4f color;
 			u32     color_bits;
+			u32* pixels = (u32*)target.bitmap_pixels;
 			for(u64 x = 0; x < target.rows; ++x){
 				for(u64 y = 0; y < target.cols; ++y){
 					color = (target[x][y].color);
 
-					color_bits = (xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.r) << window->shift_r |
-					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.g) << window->shift_g |
-					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.b) << window->shift_b
-					              );
+					color_bits = (xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.a) << 24 |
+					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.r) << 16 |
+					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.g) <<  8 |
+					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.b) <<  0);
 
-					XSetForeground(xen::impl::unix_display,
-					               target.graphics_context,
-					               color_bits
-					               );
-					XDrawPoint(xen::impl::unix_display,
-					           window->xwindow,
-					           target.graphics_context,
-					           x, target.cols - y);
+					pixels[y * target.rows + x] = color_bits;
 				}
 			}
 
+			XPutImage(xen::impl::unix_display,
+			          window->xwindow,
+			          target.graphics_context,
+			          target.ximage,
+			          0, 0,
+			          0, 0,
+			          target.rows, target.cols
+			          );
 			XFlush(xen::impl::unix_display);
+			return;
 		}
 
 	}

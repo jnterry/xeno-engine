@@ -18,7 +18,7 @@ namespace xen {
 			// https://tronche.com/gui/x/xlib/GC/XCreateGC.html
 			GC graphics_context;
 
-			XImage image;
+			XImage* ximage;
 
 			char* bitmap_pixels;
 		};
