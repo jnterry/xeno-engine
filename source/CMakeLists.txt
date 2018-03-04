@@ -1,6 +1,16 @@
 message(STATUS "Generation Xeno Engine Build System")
 
+link_directories(${XEN_LIB_DIR})
+
 include(xen_sources.cmake)
+
+add_library(xen-all ${XEN_HEADERS_ALL} ${XEN_SOURCES_ALL})
+target_include_directories(xen-all PRIVATE "${XEN_EXTLIBS_DIR}/stb/")
+target_include_directories(xen-all PRIVATE "${XEN_EXTLIBS_DIR}/assimp-3.3.1/include/")
+target_include_directories(xen-all PRIVATE "${XEN_EXTLIBS_DIR}/glew-2.1.0/include/")
+target_include_directories(xen-all PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+target_link_libraries     (xen-all libglew_shared)
+target_link_libraries     (xen-all assimp)
 
 add_library(xen-core ${XEN_HEADERS_CORE} ${XEN_SOURCES_CORE})
 target_include_directories(xen-core PUBLIC ${CMAKE_CURRENT_LIST_DIR})
@@ -28,4 +38,5 @@ target_link_libraries     (xen-sren xen-graphics)
 add_library(xen-gl ${XEN_HEADERS_GL} ${XEN_SOURCES_GL})
 target_include_directories(xen-gl PRIVATE "${XEN_EXTLIBS_DIR}/glew-2.1.0/include/")
 target_include_directories(xen-gl PUBLIC  ${CMAKE_CURRENT_LIST_DIR})
+target_link_libraries     (xen-gl libglew_shared)
 target_link_libraries     (xen-gl xen-graphics)

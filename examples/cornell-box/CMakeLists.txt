@@ -11,4 +11,4 @@ target_link_libraries(cornell-box SDL2)
 target_link_libraries(cornell-box SDL2main)
 
 target_include_directories(cornell-box PRIVATE "${XEN_EXTLIBS_DIR}/glew-2.1.0/include/")
-target_link_libraries(cornell-box glew)
+target_link_libraries(cornell-box libglew_shared)
