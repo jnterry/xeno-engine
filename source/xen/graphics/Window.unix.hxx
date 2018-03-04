@@ -22,7 +22,7 @@ namespace xen {
 
 		::Visual* visual;
 
-		::XVisualInfo visual_info;
+		/*::XVisualInfo visual_info;
 
 		/// \brief Number of bits to left shift an 8bit red value by to get it
 		/// in the correct location in a 32bit int for display on this window
@@ -34,7 +34,7 @@ namespace xen {
 
 		/// \brief Number of bits to left shift an 8bit blue value by to get it
 		/// in the correct location in a 32bit int for display on this window
-		u32 shift_b;
+		u32 shift_b;*/
 	};
 
 	namespace impl {

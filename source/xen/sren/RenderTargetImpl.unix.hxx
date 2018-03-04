@@ -15,12 +15,16 @@ namespace xen {
 	namespace sren {
 
 		struct RenderTargetImpl : public RenderTargetImplBase {
-			// https://tronche.com/gui/x/xlib/GC/XCreateGC.html
+			// These values need only be set for a render target for a window
+
+			///< \brief The graphics context that may be used to draw to the window
 			GC graphics_context;
 
+			///< \brief Meta data about the image format
 			XImage* ximage;
 
-			char* bitmap_pixels;
+			///< \brief Buffer of RGBA pixel values for the window
+		  u32*   ximage_pixels;
 		};
 	}
 }

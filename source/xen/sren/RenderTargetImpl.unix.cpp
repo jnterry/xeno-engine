@@ -40,7 +40,7 @@ namespace xen {
 			target->graphics_context = gc;
 
 			// :TODO: deallocate/resize?
-			target->bitmap_pixels    = (char*)alloc->allocate(sizeof(u32) * target->width * target->height);
+			target->ximage_pixels    = (u32*)alloc->allocate(sizeof(u32) * target->width * target->height);
 
 			// :TODO: free on render target destruction/resize
 			target->ximage = XCreateImage(xen::impl::unix_display,
@@ -48,7 +48,7 @@ namespace xen {
 			                              32,
 			                              ZPixmap,
 			                              0,
-			                              (char*)target->bitmap_pixels,
+			                              (char*)target->ximage_pixels,
 			                              target->rows,
 			                              target->cols,
 			                              32,
@@ -68,15 +68,15 @@ namespace xen {
 
 			Color4f color;
 			u32     color_bits;
-			u32* pixels = (u32*)target.bitmap_pixels;
+			u32* pixels = (u32*)target.ximage_pixels;
 			for(u64 x = 0; x < target.rows; ++x){
 				for(u64 y = 0; y < target.cols; ++y){
 					color = (target[x][y].color);
 
-					color_bits = (xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.a) << 24 |
-					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.r) << 16 |
-					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.g) <<  8 |
-					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.b) <<  0);
+					color_bits = (xen::mapToRange<float, u32>(0.0f, 1.0f, 0, 255, color.a) << 24 |
+					              xen::mapToRange<float, u32>(0.0f, 1.0f, 0, 255, color.r) << 16 |
+					              xen::mapToRange<float, u32>(0.0f, 1.0f, 0, 255, color.g) <<  8 |
+					              xen::mapToRange<float, u32>(0.0f, 1.0f, 0, 255, color.b) <<  0);
 
 					pixels[y * target.rows + x] = color_bits;
 				}

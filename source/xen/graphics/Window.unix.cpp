@@ -443,7 +443,7 @@ namespace xen {
 				////////////////////////////////////////////////////////////////////////
 				// Determine the XVisualInfo that is in use (contains data about
 				// color channels, etc)
-				int num_visual_info      = 0;
+				/*int num_visual_info      = 0;
 				XVisualInfo visual_info_template;
 				visual_info_template.visualid = XVisualIDFromVisual(visual);
 
@@ -500,10 +500,11 @@ namespace xen {
 					return nullptr;
 				}
 
-				XFree(visual_info);
+				result->visual_info = *visual_info;
+
+				XFree(visual_info);*/
 			  ////////////////////////////////////////////////////////////////////////
 
-				result->visual_info = *visual_info;
 				result->visual      = visual;
 
 				////////////////////////////////////////////////////////////////////////
