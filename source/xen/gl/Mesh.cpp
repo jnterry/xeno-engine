@@ -45,7 +45,8 @@ namespace{
 	/// the vertex attribute type's aspect
 	/////////////////////////////////////////////////////////////////////
 	xen::gl::VertexAttributeSource getDefaultVertexAttributeSource(xen::VertexAttribute::Type type) {
-		xen::gl::VertexAttributeSource source = {0};
+		xen::gl::VertexAttributeSource source;
+		xen::clearBytes(&source, sizeof(source));
 
 		switch(type){
 		case xen::VertexAttribute::Position3r:

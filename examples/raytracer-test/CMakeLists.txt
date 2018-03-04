@@ -9,5 +9,5 @@ target_link_libraries(raytracer-test xen-all)
 target_link_libraries(raytracer-test SDL2)
 target_link_libraries(raytracer-test SDL2main)
 
-find_package(GLEW REQUIRED)
-target_link_libraries(raytracer-test GLEW)
+target_include_directories(raytracer-test PRIVATE "${XEN_EXTLIBS_DIR}/glew-2.1.0/include/")
+target_link_libraries(raytracer-test glew)

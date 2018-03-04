@@ -9,5 +9,5 @@ target_link_libraries(starfield xen-all)
 target_link_libraries(starfield SDL2)
 target_link_libraries(starfield SDL2main)
 
-find_package(GLEW REQUIRED)
-target_link_libraries(starfield GLEW)
+target_include_directories(starfield PRIVATE "${XEN_EXTLIBS_DIR}/glew-2.1.0/include/")
+target_link_libraries(starfield glew)

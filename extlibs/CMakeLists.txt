@@ -26,3 +26,11 @@ set(ASSIMP_BUILD_SAMPLES      OFF)
 set(ASSIMP_BUILD_TESTS        OFF)
 add_subdirectory(assimp-3.3.1)
 target_compile_definitions(assimp PRIVATE ASSIMP_BUILD_BOOST_WORKAROUND=1)
+
+##########################################
+# GLEW
+##########################################
+# Extract archive
+execute_process(COMMAND cmake -E tar xf glew-2.1.0.zip WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR})
+# Build librares
+add_subdirectory(glew-2.1.0)

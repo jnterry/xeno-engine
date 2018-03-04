@@ -6,7 +6,7 @@
 
 #include <catch.hpp>
 
-#define COS_45 0.70710678118
+#define COS_45 0.70710678118_r
 
 TEST_CASE("Making Quaternion from AxisAngle",
           "[math][Quaternion][AxisAngle]"){
@@ -36,26 +36,26 @@ TEST_CASE("Making Quaternion from AxisAngle",
 	}
 
 	SECTION("Other Rotations"){
-		CHECK(Quat(Vec3r::UnitX,- 80_deg) == (Quat{-0.64279,0,0,0.76604}));
-		CHECK(Quat(Vec3r::UnitY,  30_deg) == (Quat{0,0.25882,0,0.96593}));
-		CHECK(Quat(Vec3r::UnitZ, 130_deg) == (Quat{0,0,0.90631,0.42262}));
+		CHECK(Quat(Vec3r::UnitX,- 80_deg) == (Quat{-0.64279_r,0,0,0.76604_r}));
+		CHECK(Quat(Vec3r::UnitY,  30_deg) == (Quat{0,0.25882_r,0,0.96593_r}));
+		CHECK(Quat(Vec3r::UnitZ, 130_deg) == (Quat{0,0,0.90631_r,0.42262_r}));
 
-		CHECK(Quat(Vec3r(1,2,3), 40_deg) == (Quat{0.09140876583562257
-					                             ,0.18281753167124515
-					                             ,0.2742262975068677
-					                             ,0.9396925696192965}));
-
-
-		CHECK(Quat(Vec3r(5,4,1),-60_deg) == (Quat{-0.38575852483991335
-					                             ,-0.3086068198719307
-					                             ,-0.07715170496798268
-					                             , 0.8660252915835662}));
+		CHECK(Quat(Vec3r(1,2,3), 40_deg) == (Quat{0.09140876583562257_r
+					                                   ,0.18281753167124515_r
+					                                   ,0.2742262975068677_r
+					                                   ,0.9396925696192965_r}));
 
 
-		CHECK(Quat(Vec3r(-1,2,5), 90_deg) == (Quat{-0.12909948832877582
-					                              , 0.25819897665755165
-					                              , 0.6454974416438791
-					                              , 0.7071065431725605}));
+		CHECK(Quat(Vec3r(5,4,1),-60_deg) == (Quat{-0.38575852483991335_r
+					                                   ,-0.3086068198719307_r
+					                                   ,-0.07715170496798268_r
+					                                   , 0.8660252915835662_r}));
+
+
+		CHECK(Quat(Vec3r(-1,2,5), 90_deg) == (Quat{-0.12909948832877582_r
+					                                    , 0.25819897665755165_r
+					                                    , 0.6454974416438791_r
+					                                    , 0.7071065431725605_r}));
 	}
 }
 

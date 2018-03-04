@@ -51,9 +51,9 @@ TEST_CASE("Ray Triangle Intersection 3d", "[math][Ray][Triangle]"){
 		ray.direction = Vec3r{0, 0, -1};
 
 		result = Vec3r{5,7,8};
-		ray.origin = Vec3r{0.2, 0.2, 1};
+		ray.origin = Vec3r{0.2_r, 0.2_r, 1};
 		CHECK(xen::getIntersection(ray, tri, result) == true);
-		CHECK(result == Vec3r{0.2, 0.2, 0});
+		CHECK(result == Vec3r{0.2_r, 0.2_r, 0});
 
 		result = Vec3r{5,7,8};
 		ray.origin = Vec3r{0, 0, 1};
@@ -80,7 +80,7 @@ TEST_CASE("Ray Triangle Intersection 3d", "[math][Ray][Triangle]"){
 		ray.direction = Vec3r{0, 0, 1};
 
 		result = Vec3r{5,7,8};
-		ray.origin = Vec3r{0.2, 0.2, 1};
+		ray.origin = Vec3r{0.2_r, 0.2_r, 1};
 		CHECK(xen::getIntersection(ray, tri, result) == false);
 		CHECK(result == Vec3r{5,7,8});
 

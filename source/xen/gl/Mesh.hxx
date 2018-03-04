@@ -27,6 +27,8 @@ namespace xen{
 		/// attribute of a mesh
 		/////////////////////////////////////////////////////////////////////
 		struct VertexAttributeSource {
+			VertexAttributeSource(){}
+
 			/// \brief The buffer that the vertex attribute data is stored in
 			/// If 0 then it is assumed all vertices have the same value
 			/// for this attribute

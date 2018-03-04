@@ -6,11 +6,11 @@ TEST_CASE("Vec3r, Comparison Operators", "[math][Vector]"){
 	CHECK(operator==(Vec3r{1,1,1}, Vec3r{1,1,1}) == true );
 	CHECK(operator!=(Vec3r{1,1,1}, Vec3r{1,1,1}) == false);
 
-	CHECK(operator==(Vec3r{1,1, 1.1}, Vec3r{1,1, 0.9 + 0.2}) == true );
-	CHECK(operator!=(Vec3r{1,1, 1.1}, Vec3r{1,1, 0.9 + 0.2}) == false);
+	CHECK(operator==(Vec3r{1,1, 1.1_r}, Vec3r{1,1, 0.9_r + 0.2_r}) == true );
+	CHECK(operator!=(Vec3r{1,1, 1.1_r}, Vec3r{1,1, 0.9_r + 0.2_r}) == false);
 
-	CHECK(operator==(Vec3r{1,1,1.001}, Vec3r{1,1,1}) == false);
-	CHECK(operator!=(Vec3r{1,1,1.001}, Vec3r{1,1,1}) == true );
+	CHECK(operator==(Vec3r{1,1,1.001_r}, Vec3r{1,1,1}) == false);
+	CHECK(operator!=(Vec3r{1,1,1.001_r}, Vec3r{1,1,1}) == true );
 }
 
 TEST_CASE("Vec3r Length/Magnitude/Distance/Squared", "[math][Vector]"){

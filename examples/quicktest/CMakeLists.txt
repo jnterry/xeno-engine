@@ -10,5 +10,5 @@ target_link_libraries(quicktest sfml-window)
 target_include_directories(quicktest PRIVATE ${XEN_INCLUDE_DIR})
 target_link_libraries(quicktest xen-all)
 
-find_package(GLEW REQUIRED)
-target_link_libraries(quicktest GLEW)
+target_include_directories(quicktest PRIVATE "${XEN_EXTLIBS_DIR}/glew-2.1.0/include/")
+target_link_libraries(quicktest glew)

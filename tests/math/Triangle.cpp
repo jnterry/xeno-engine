@@ -79,29 +79,29 @@ TEST_CASE("Triangle toHomo", "[math][Triangle]"){
 
 	TEST_CASE("Triangle getBarycentric", "[math][Triangle]"){
 		CHECK(xen::getBarycentricCoordinates(xen::Triangle3r{Vec3r{0,0,0}, Vec3r{1,0,0}, Vec3r{0,1,0}},
-		                                     Vec3r{0.5,0.2,0}
+		                                     Vec3r{0.5_r, 0.2_r, 0}
 																			  )
 		      ==
-		      Vec3r{0.3,0.5,0.2}
+		      Vec3r{0.3_r, 0.5_r, 0.2_r}
 		     );
 
 		CHECK(xen::getBarycentricCoordinates(xen::Triangle3r{Vec3r{0,0,0}, Vec3r{1,0,0}, Vec3r{0,1,0}},
 		                                     Vec3r{0,0,0}
 																				)
 					==
-					Vec3r{1.0,0.0,0.0}
+					Vec3r{1.0_r, 0.0, 0.0}
 				 );
 		CHECK(xen::getBarycentricCoordinates(xen::Triangle3r{Vec3r{0,0,0}, Vec3r{1,0,0}, Vec3r{0,1,0}},
 		                                     Vec3r{1,0,0}
 																				)
 					==
-					Vec3r{0.0,1.0,0.0}
+					Vec3r{0.0_r, 1.0_r, 0.0_r}
 				 );
 
 		CHECK(xen::getBarycentricCoordinates(xen::Triangle3r{Vec3r{0,0,0}, Vec3r{1,0,0}, Vec3r{0,1,0}},
 		                                     Vec3r{0,1,0}
 																				)
 					==
-					Vec3r{0.0,0.0,1.0}
+					Vec3r{0.0_r, 0.0_r, 1.0_r}
 				 );
 }
