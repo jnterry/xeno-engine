@@ -13,6 +13,8 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
 
+#include "Window.hxx"
+
 namespace {
 	/// \brief Map from device id to a pointer to the device
 	xen::GraphicsDevice* created_devices[256] = {0};
@@ -43,6 +45,22 @@ namespace xen {
 
 	GraphicsDevice* getGraphicsDevice(u08 id){
 		return created_devices[id];
+	}
+
+	void GraphicsDevice::clear(Window* window, xen::Color color){
+		if(window->is_open){
+			clear(window->render_target, color);
+		}
+	}
+
+	void GraphicsDevice::render(Window* window,
+	                            const xen::Aabb2u& viewport,
+	                            const RenderParameters3d& params,
+	                            const xen::Array<RenderCommand3d> commands
+	                            ){
+		if(window->is_open){
+			render(window->render_target, viewport, params, commands);
+		}
 	}
 }
 

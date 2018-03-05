@@ -18,6 +18,7 @@
 
 namespace xen {
 	struct MeshData;
+	struct Window;
 
 	// :TODO: do we really need the whole graphics device id system and
 	// getting devices by id?
@@ -56,6 +57,10 @@ namespace xen {
 		// :TODO: create render target
 		// :TDOO: create window
 
+		virtual Window* createWindow(Vec2u size, const char* title = "XenoEngine") = 0;
+		virtual void    destroyWindow(Window* window) = 0;
+		virtual void    swapBuffers(Window* window) = 0;
+
 		/// \defgroup Mesh
 		/// @{
 		/////////////////////////////////////////////////////////////////////
@@ -78,12 +83,11 @@ namespace xen {
 		/// \defgroup Drawing Operations
 		/// @{
 		/////////////////////////////////////////////////////////////////////
-		/// \brief Clears a region of a render target to some color
+		/// \brief Clears a render target to some color
+		/// \todo :TODO: parameters such as do we clear the depth buffer?
 		/////////////////////////////////////////////////////////////////////
-		virtual void clear(RenderTarget target,
-		                   const xen::Aabb2u& viewport,
-		                   xen::Color color
-		                  ) = 0;
+		virtual void clear(RenderTarget& target, xen::Color color) = 0;
+		virtual void clear(Window* window, xen::Color color);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Renders a series of render commands to some viewport of
@@ -94,6 +98,11 @@ namespace xen {
 		                    const RenderParameters3d& params,
 		                    const xen::Array<RenderCommand3d> commands
 		                   ) = 0;
+		void render(Window* window,
+		            const xen::Aabb2u& viewport,
+		            const RenderParameters3d& params,
+		            const xen::Array<RenderCommand3d> commands
+		            );
 		/// @}
 	};
 

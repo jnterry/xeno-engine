@@ -18,12 +18,14 @@
 #include <xen/graphics/RenderCommand3d.hpp>
 
 #include "renderer3d.hxx"
+#include "RenderTargetImpl.hxx"
 
 #include <cstring>
 #include <cstdlib>
+#include <limits>
 
 namespace {
-	void doRenderPoints(xen::sren::RenderTarget& target,
+	void doRenderPoints(xen::sren::RenderTargetImpl& target,
 	                    const xen::Aabb2r& viewport,
 	                    const Mat4f& mvp_matrix,
 	                    xen::Color4f color,
@@ -60,11 +62,12 @@ namespace {
 				continue;
 			}
 
-			target[screen_space.x][screen_space.y] = color;
+			// :TODO: depth buffer read/write
+			target[screen_space.x][screen_space.y].color = color;
 		}
 	}
 
-	void doRenderLine2d(xen::sren::RenderTarget& target, xen::LineSegment2r line, xen::Color4f color){
+	void doRenderLine2d(xen::sren::RenderTargetImpl& target, xen::LineSegment2r line, xen::Color4f color){
 		//https://www.cs.virginia.edu/luther/blog/posts/492.html
 		if(line.p1 != line.p2){
 			//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
@@ -73,7 +76,9 @@ namespace {
 			Vec2r delta = (line.p1 - line.p2) / num_pixels;
 			Vec2r cur   = line.p2;
 			for(u32 i = 0; i < (u32)num_pixels; ++i){
-				target[cur.x][cur.y] = color;
+
+				// :TODO: depth buffer read/check
+				target[cur.x][cur.y].color = color;
 				cur += delta;
 			}
 			/*
@@ -126,7 +131,7 @@ namespace {
 		}
 	}
 
-	void doRenderLine3d(xen::sren::RenderTarget& target,
+	void doRenderLine3d(xen::sren::RenderTargetImpl& target,
 	                    const xen::Aabb2r& viewport,
 	                    const Mat4f& mvp_matrix,
 	                    xen::Color4f color,
@@ -196,7 +201,7 @@ namespace {
 	//            |/
 	//            .
 	//          tri.p1
-	void doRenderTriangle2d(xen::sren::RenderTarget& target,
+	void doRenderTriangle2d(xen::sren::RenderTargetImpl& target,
 		                      const xen::Aabb2r& viewport,
 	                        xen::Color4f color, xen::Triangle2r tri){
 
@@ -289,7 +294,7 @@ namespace {
 			while((u32)curr_a.y == curr_pixel_y){
 				//printf("Stepping along a, now at: %f, %f\n", curr_a.x, curr_a.y);
 				if (xen::contains(viewport, curr_a)){
-					target[curr_a.x][curr_a.y] = color;
+					target[curr_a.x][curr_a.y].color = color;
 				}
 				curr_a += delta_a;
 				++line_a_pixels_drawn;
@@ -299,7 +304,7 @@ namespace {
 			while ((u32)curr_b.y == curr_pixel_y){
 				//printf("Stepping along b, now at: %f, %f\n", curr_b.x, curr_b.y);
 				if (xen::contains(viewport, curr_b)){
-					target[curr_b.x][curr_b.y] = color;
+					target[curr_b.x][curr_b.y].color = color;
 				}
 				curr_b += delta_b;
 				// If b has reached end point then begin drawing line c by changing
@@ -319,7 +324,7 @@ namespace {
 			u32 max_x = xen::max(curr_a.x, curr_b.x);
 			for (u32 x = min_x+1; x < max_x; ++x){
 				if (xen::contains(viewport, xen::mkVec((real)x, curr_a.y))){
-					target[x][curr_a.y] = color;
+					target[x][curr_a.y].color = color;
 				}
 			}
 		}
@@ -327,7 +332,7 @@ namespace {
 	}
 	// :TODO: Write doRenderTriangle3d which takes a 3D triangle, put into clip
 	// space, clip it (maybe), and then convert into screen space and call doRenderTriangle2d
-	void doRenderTriangle3d(xen::sren::RenderTarget& target,
+	void doRenderTriangle3d(xen::sren::RenderTargetImpl& target,
 		                      const xen::Aabb2r& viewport,
 												  const Mat4f& mvp_matrix,
 	                        xen::Color4f color, xen::Triangle3r& tri){
@@ -368,27 +373,31 @@ namespace {
 namespace xen{
 
 	namespace sren {
-		void clear(RenderTarget& target, Color color){
-			static_assert(sizeof(Color) == sizeof(int), "Relying on memset which takes int values");
-
-			memset(target.pixels, color.value, target.width * target.height * sizeof(Color));
-		}
-
-		void clear(RenderTarget& target, const xen::Aabb2u& viewport, Color color) {
-			for(u32 x = viewport.min.x; x < viewport.max.x; ++x){
-				for(u32 y = viewport.min.y; y < viewport.max.y; ++y){
-					target[x][y] = color;
+		void clear(xen::sren::RenderTargetImpl& target, Color color) {
+			for(u32 x = 0; x < target.rows; ++x){
+				for(u32 y = 0; y < target.cols; ++y){
+					target[x][y].color = (Color4f)color;
+					target[x][y].depth = std::numeric_limits<float>::max();
 				}
 			}
 		}
 
-		void renderRasterize(RenderTarget& target, const xen::Aabb2u& viewport,
+		void clear(RenderTargetImpl& target, const xen::Aabb2u& viewport, Color color){
+			for(u32 x = viewport.min.x; x < viewport.max.x; ++x){
+				for(u32 y = viewport.min.y; y < viewport.max.y; ++y){
+					target[x][y].color = (Color4f)color;
+					target[x][y].depth = std::numeric_limits<float>::max();
+				}
+			}
+		}
+
+		void renderRasterize(xen::sren::RenderTargetImpl& target, const xen::Aabb2u& viewport,
 		                     const RenderParameters3d& params,
 		                     const xen::Array<RenderCommand3d>& commands){
 
 			// Find the actual view_region we wish to draw to. This is the
 			// intersection of the actual target, and the user specified viewport
-			xen::Aabb2u screen_rect = { Vec2u::Origin, target.size - Vec2u{1,1} };
+			xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 
 			Mat4r mat_vp = xen::getViewProjectionMatrix(params.camera, view_region.max - view_region.min);

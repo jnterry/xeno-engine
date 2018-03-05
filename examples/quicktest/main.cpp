@@ -1,13 +1,8 @@
 #include <stdio.h>
 
-#include <SFML/Window/Window.hpp>
-#include <SFML/Window/Event.hpp>
-
-#include <GL/glew.h>
-#include <GL/gl.h>
-
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/memory.hpp>
+#include <xen/core/time.hpp>
 
 #include <xen/math/utilities.hpp>
 #include <xen/math/vector.hpp>
@@ -21,20 +16,18 @@
 #include <xen/graphics/Mesh.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/Light3d.hpp>
+#include <xen/graphics/Window.hpp>
 
-#include <xen/gl/Mesh.hxx>
-#include <xen/gl/Shader.hxx>
+#include <xen/gl/gl_header.hxx>
 #include <xen/gl/GlDevice.hpp>
 #include <xen/gl/Texture.hpp>
 
 #include "utilities.hpp"
+#include "../common.cpp"
 
 xen::RenderParameters3d render_params;
 xen::FixedArray<xen::LightSource3d, 1> light_sources;
 xen::Camera3dCylinder camera;
-real camera_speed = 50;
-xen::Angle camera_rotate_speed = 120_deg;
-xen::Angle camera_pitch = 0_deg;
 
 static GLfloat cube_buffer_data[] = {
     -1.0f,-1.0f,-1.0f, // triangle 1 : begin
@@ -164,30 +157,21 @@ int main(int argc, char** argv){
 
 	render_params.lights = light_sources;
 
-	sf::ContextSettings context_settings;
-	context_settings.depthBits = 24;
-	context_settings.stencilBits = 8;
-	context_settings.antialiasingLevel = 4;
-	context_settings.majorVersion = 3;
-	context_settings.minorVersion = 0;
-
 	xen::Aabb2u viewport = { 0, 0, 800, 600 };
-
-	sf::Window app(sf::VideoMode(viewport.max.x, viewport.max.y, 32), "Window Title", sf::Style::Default, context_settings);
-
-	context_settings = app.getSettings();
-	printf("Initialized window, GL version: %i.%i\n", context_settings.majorVersion, context_settings.minorVersion);
 
 	xen::Allocator* alloc  = new xen::AllocatorCounter<xen::AllocatorMalloc>();
 	xen::ArenaLinear arena = xen::createArenaLinear(*alloc, xen::megabytes(32));
 
-	app.setActive(true);
-	glewInit();
+	printf("Initialized main arena\n");
+
+	xen::GraphicsDevice* device = xen::createGlDevice(arena);
+
+	printf("Created gl device\n");
+
+	xen::Window* app = device->createWindow(viewport.max, "Quicktest");
 
 	Mat4r model_mat;
 	Vec4r point_light_color = Vec4r(1,0,0,1);
-
-	xen::GraphicsDevice* device = xen::createGlDevice(arena);
 
 	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
 	vertex_spec[0] = xen::VertexAttribute::Position3r;
@@ -212,9 +196,6 @@ int main(int argc, char** argv){
 
 	xen::RawImage          test_image   = xen::loadImage(arena, "test.bmp");
 	xen::gl::TextureHandle test_texture = xen::gl::createTexture(&test_image);
-
-	sf::Clock timer;
-	real last_time = 0;
 
 	int CMD_BUNNY  = 0;
 	int CMD_FLOOR  = 1;
@@ -258,34 +239,36 @@ int main(int argc, char** argv){
 	render_cmds[CMD_AXIS_Z].model_matrix        = xen::Translation3d(0,0,1) * xen::Scale3d(0.05, 0.05, 5);
 	render_cmds[CMD_AXIS_Z].mesh                = mesh_cube;
 
+	xen::Stopwatch timer;
+	real last_time = 0;
 	printf("Entering main loop\n");
-	while(app.isOpen()){
-		float time = timer.getElapsedTime().asSeconds();
+	while(xen::isWindowOpen(app)){
+	  real time = xen::asSeconds<real>(timer.getElapsedTime());
 		real dt = time - last_time;
 		last_time = time;
+		printf("dt: %f\n", dt);
 
-		sf::Event event;
-		while(app.pollEvent(event)){
-			switch(event.type){
-			case sf::Event::Closed:
-				app.close();
+		xen::WindowEvent* event;
+		while((event = xen::pollEvent(app)) != nullptr){
+			switch(event->type){
+			case xen::WindowEvent::Closed:
+				device->destroyWindow(app);
 				break;
-			case sf::Event::Resized:
-				XEN_CHECK_GL(glViewport(0,0,event.size.width, event.size.height));
-				viewport.max = {event.size.width, event.size.height};
+			case xen::WindowEvent::Resized:
+				viewport.max = event->resize.new_size;
 				break;
-			case sf::Event::KeyReleased:
-				switch(event.key.code){
-				case sf::Keyboard::R:
+			case xen::WindowEvent::KeyReleased:
+				switch(event->key.key){
+				case xen::Key::R:
 					point_light_color.xyz = Vec3r(1,0,0);
 					break;
-				case sf::Keyboard::G:
+				case xen::Key::G:
 					point_light_color.xyz = Vec3r(0,1,0);
 					break;
-				case sf::Keyboard::B:
+				case xen::Key::B:
 					point_light_color.xyz = Vec3r(0,0,1);
 					break;
-				case sf::Keyboard::W:
+				case xen::Key::W:
 					point_light_color.xyz = Vec3r(1,1,1);
 					break;
 				default: break;
@@ -294,34 +277,7 @@ int main(int argc, char** argv){
 			default: break;
 			}
 		}
-
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Up)){
-			camera.radius -= camera_speed * dt;
-		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Down)){
-			camera.radius += camera_speed * dt;
-		}
-		camera.radius = xen::clamp(camera.radius, 0.01_r, 100_r);
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Left)){
-			camera.angle -= camera_rotate_speed * dt;
-		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Right)){
-			camera.angle += camera_rotate_speed * dt;
-		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::A)){
-			camera.height += camera_speed * dt;
-		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Z)){
-			camera.height -= camera_speed * dt;
-		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::Q)){
-			camera.up_dir = xen::rotated(camera.up_dir,  Vec3r::UnitZ, 90_deg * dt);
-		}
-		if(sf::Keyboard::isKeyPressed(sf::Keyboard::E)){
-			camera.up_dir = xen::rotated(camera.up_dir, -Vec3r::UnitZ, 90_deg * dt);
-		}
-
-		app.setActive(true);
+		handleCameraInput(camera, dt);
 
 		Vec3r light_pos = xen::rotated(Vec3r{4, 3, 0}, Vec3r::UnitY, xen::Degrees(time*90_r));
 		point_light_color.w = (1_r + sin(time*9)) / 2.0_r;
@@ -361,17 +317,14 @@ int main(int argc, char** argv){
 		model_mat *= xen::Translation3d(0, -0.5, 0);
 		render_cmds[CMD_FLOOR].model_matrix = model_mat;
 
-		device->clear (xen::makeNullHandle<xen::RenderTarget>(), viewport,
-		               xen::Color::BLACK
-		              );
-		device->render(xen::makeNullHandle<xen::RenderTarget>(), viewport,
-		               render_params, render_cmds
-		              );
-		app.display();
+		device->clear (app, xen::Color::BLACK);
+		device->render(app, viewport, render_params, render_cmds);
+		device->swapBuffers(app);
 	}
 	printf("Exiting main loop\n");
 
 	xen::destroyArenaLinear(*alloc, arena);
+	delete alloc;
 
 	return 0;
 }

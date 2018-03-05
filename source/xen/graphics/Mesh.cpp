@@ -233,7 +233,7 @@ namespace xen {
 		if(!xen::isValid(arena)){ return nullptr; }
 
 		xen::copyArray<xen::VertexAttribute::Type>(&spec[0], result->attrib_types, spec.size);
-		xen::clearBytes(result->attrib_data, spec.size * sizeof(void*));
+		xen::clearToZero(result->attrib_data, spec.size * sizeof(void*));
 
 		transaction.commit();
 		return result;
