@@ -197,7 +197,7 @@ namespace xen {
 					              xen::mapToRange<float, u32>(0.0f, 1.0f, 0, 255, color.g) <<  8 |
 					              xen::mapToRange<float, u32>(0.0f, 1.0f, 0, 255, color.b) <<  0);
 
-					pixels[y * target.rows + x] = color_bits;
+					pixels[(target.cols - y - 1) * target.rows + x] = color_bits;
 				}
 			}
 
