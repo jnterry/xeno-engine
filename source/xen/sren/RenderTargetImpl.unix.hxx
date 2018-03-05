@@ -11,6 +11,11 @@
 
 #include <X11/Xlib.h>
 
+#ifndef XEN_NO_XSHM_EXTENSION
+	#include <sys/shm.h>
+	#include <X11/extensions/XShm.h>
+#endif
+
 namespace xen {
 	namespace sren {
 
@@ -25,6 +30,15 @@ namespace xen {
 
 			///< \brief Buffer of RGBA pixel values for the window
 		  u32*   ximage_pixels;
+
+			#ifndef XEN_NO_XSHM_EXTENSION
+			/// \brief If set true then ximage_pixels is a shared memory segment
+			/// between the process and x server
+			bool using_shared_memory;
+
+			/// \brief Info about the shared memory segment in use
+			XShmSegmentInfo shminfo;
+			#endif
 		};
 	}
 }
