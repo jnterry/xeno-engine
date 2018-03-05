@@ -192,10 +192,10 @@ namespace xen {
 				for(u64 y = 0; y < target.cols; ++y){
 					color = (target[x][y].color);
 
-					color_bits = (xen::mapToRange<float, u32>(0.0f, 1.0f, 0, 255, color.a) << 24 |
-					              xen::mapToRange<float, u32>(0.0f, 1.0f, 0, 255, color.r) << 16 |
-					              xen::mapToRange<float, u32>(0.0f, 1.0f, 0, 255, color.g) <<  8 |
-					              xen::mapToRange<float, u32>(0.0f, 1.0f, 0, 255, color.b) <<  0);
+					color_bits = (xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.a) << 24 |
+					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.r) << 16 |
+					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.g) <<  8 |
+					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.b) <<  0);
 
 					pixels[(target.cols - y - 1) * target.rows + x] = color_bits;
 				}
