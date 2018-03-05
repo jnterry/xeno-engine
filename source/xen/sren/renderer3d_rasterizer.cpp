@@ -413,7 +413,7 @@ namespace xen{
 					stride = 2;
 					goto do_render_lines;
 					break;
-				case RenderCommand3d::TRIANGLES: // :TODO: rasterize this
+				case RenderCommand3d::TRIANGLES:
 					for(u32 i = 0; i < cmd->verticies.count - 1; i += 3){
 						Triangle3r* tri_world = (Triangle3r*)(&cmd->verticies.verticies[i]);
 						doRenderTriangle3d(target,view_region, mat_mvp, cmd->color, *tri_world);
