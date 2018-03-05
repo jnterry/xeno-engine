@@ -15,6 +15,7 @@ starfield
 xen_unit_tests
 raytracer-test
 cornell-box
+triangle-test
 
 # Ignore program output
 screenshot.bmp
