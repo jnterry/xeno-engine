@@ -84,7 +84,7 @@ int main(int argc, char** argv){
 		handleCameraInput(camera, dt);
 		render_params.camera = xen::generateCamera3d(camera);
 
-		device->clear      (app, viewport, xen::Color::BLACK);
+		device->clear      (app, xen::Color::BLACK);
 	  device->render     (app, viewport, render_params, render_commands);
 	  device->swapBuffers(app);
 	}

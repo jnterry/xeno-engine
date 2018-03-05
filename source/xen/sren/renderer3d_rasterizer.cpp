@@ -144,7 +144,16 @@ namespace {
 namespace xen{
 
 	namespace sren {
-		void clear(xen::sren::RenderTargetImpl& target, const xen::Aabb2u& viewport, Color color) {
+		void clear(xen::sren::RenderTargetImpl& target, Color color) {
+			for(u32 x = 0; x < target.rows; ++x){
+				for(u32 y = 0; y < target.cols; ++y){
+					target[x][y].color = (Color4f)color;
+					target[x][y].depth = std::numeric_limits<float>::max();
+				}
+			}
+		}
+
+		void clear(RenderTargetImpl& target, const xen::Aabb2u& viewport, Color color){
 			for(u32 x = viewport.min.x; x < viewport.max.x; ++x){
 				for(u32 y = viewport.min.y; y < viewport.max.y; ++y){
 					target[x][y].color = (Color4f)color;

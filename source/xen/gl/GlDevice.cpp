@@ -223,14 +223,10 @@ namespace {
 			mesh_store[mesh._id] = nullptr;
 		}
 
-		void clear(xen::RenderTarget render_target,
-		           const xen::Aabb2u& viewport,
-		           xen::Color color
-		           ) override {
+		void clear(xen::RenderTarget& render_target, xen::Color color) override {
 			xen::gl::RenderTargetImpl* target = getRenderTargetImpl(render_target);
 			xen::gl::makeCurrent(target);
 
-			// :TODO: obey the viewport
 			xen::Color4f color01 = (xen::Color4f)color;
 			XEN_CHECK_GL(glClearColor(color01.r, color01.g, color01.b, 1));
 			XEN_CHECK_GL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));

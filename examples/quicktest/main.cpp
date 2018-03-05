@@ -317,7 +317,7 @@ int main(int argc, char** argv){
 		model_mat *= xen::Translation3d(0, -0.5, 0);
 		render_cmds[CMD_FLOOR].model_matrix = model_mat;
 
-		device->clear (app, viewport, xen::Color::BLACK);
+		device->clear (app, xen::Color::BLACK);
 		device->render(app, viewport, render_params, render_cmds);
 		device->swapBuffers(app);
 	}

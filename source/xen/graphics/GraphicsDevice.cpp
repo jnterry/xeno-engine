@@ -47,20 +47,17 @@ namespace xen {
 		return created_devices[id];
 	}
 
-	void GraphicsDevice::clear(Window* window,
-	           const xen::Aabb2u& viewport,
-	           xen::Color color
-	          ){
+	void GraphicsDevice::clear(Window* window, xen::Color color){
 		if(window->is_open){
-			clear(window->render_target, viewport, color);
+			clear(window->render_target, color);
 		}
 	}
 
 	void GraphicsDevice::render(Window* window,
-	            const xen::Aabb2u& viewport,
-	            const RenderParameters3d& params,
-	            const xen::Array<RenderCommand3d> commands
-	            ){
+	                            const xen::Aabb2u& viewport,
+	                            const RenderParameters3d& params,
+	                            const xen::Array<RenderCommand3d> commands
+	                            ){
 		if(window->is_open){
 			render(window->render_target, viewport, params, commands);
 		}

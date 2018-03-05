@@ -31,8 +31,8 @@ namespace xen {
 			delete main_allocator;
 		}
 
-		void SoftwareDeviceBase::clear(xen::RenderTarget target, const xen::Aabb2u& viewport, xen::Color color){
-			xen::sren::clear(*this->getRenderTargetImpl(target), viewport, color);
+		void SoftwareDeviceBase::clear(xen::RenderTarget& target, xen::Color color){
+			xen::sren::clear(*this->getRenderTargetImpl(target), color);
 		}
 
 		RenderTarget SoftwareDeviceBase::createRenderTarget (Vec2u size, Window* window){

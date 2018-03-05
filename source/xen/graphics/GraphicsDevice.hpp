@@ -83,16 +83,11 @@ namespace xen {
 		/// \defgroup Drawing Operations
 		/// @{
 		/////////////////////////////////////////////////////////////////////
-		/// \brief Clears a region of a render target to some color
+		/// \brief Clears a render target to some color
+		/// \todo :TODO: parameters such as do we clear the depth buffer?
 		/////////////////////////////////////////////////////////////////////
-		virtual void clear(RenderTarget target,
-		                   const xen::Aabb2u& viewport,
-		                   xen::Color color
-		                  ) = 0;
-		void clear(Window* window,
-		            const xen::Aabb2u& viewport,
-		            xen::Color color
-		           );
+		virtual void clear(RenderTarget& target, xen::Color color) = 0;
+		virtual void clear(Window* window, xen::Color color);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Renders a series of render commands to some viewport of

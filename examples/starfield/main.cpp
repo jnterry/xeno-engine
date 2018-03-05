@@ -153,7 +153,7 @@ int main(int argc, char** argv){
 			}
 		}
 
-	  device->clear(app, viewport, xen::Color::BLACK);
+	  device->clear(app, xen::Color::BLACK);
 		device->render(app, viewport, render_params, render_commands);
 		device->swapBuffers(app);
 	}

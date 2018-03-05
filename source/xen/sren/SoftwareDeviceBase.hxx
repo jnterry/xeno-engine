@@ -49,7 +49,7 @@ namespace xen {
 
 			virtual ~SoftwareDeviceBase();
 
-			void clear(xen::RenderTarget target, const xen::Aabb2u& viewport, xen::Color color) override;
+			void clear(xen::RenderTarget& target, xen::Color color) override;
 
 			Window* createWindow(Vec2u size, const char* title) override;
 			void    destroyWindow(Window* window) override;
