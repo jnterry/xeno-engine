@@ -42,7 +42,7 @@ int main(int argc, char** argv){
 	render_params.camera.z_far    =  1000;
 	render_params.camera.fov_y    =  70_deg;
 	render_params.camera.look_dir = -Vec3r::UnitZ;
-	render_params.camera.position =  Vec3r{0, 0, 50};
+	render_params.camera.position =  Vec3r{0, 0, 10};
 
 	Vec2r window_size = {800, 600};
 
@@ -83,7 +83,7 @@ int main(int argc, char** argv){
 
 	render_commands[3].type                = xen::RenderCommand3d::TRIANGLES;
 	render_commands[3].color               = xen::Color::YELLOW4f;
-	render_commands[3].model_matrix        = xen::Scale3d(50, 50, 50);
+	render_commands[3].model_matrix        = xen::Scale3d(1, 1, 1);
 	render_commands[3].verticies.verticies = &test_triangle.vertices[0];
 	render_commands[3].verticies.count     = 3;
 

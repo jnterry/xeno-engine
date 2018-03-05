@@ -22,7 +22,7 @@ namespace xen {
 		// Compute axes relative to the camera
 
 		// camera looks down z axis
-		Vec3r zaxis = camera.look_dir;
+		Vec3r zaxis = -camera.look_dir;
 
 		// up_dir and look_dir are two vectors within the plane containing camera's
 		// local z and y axis, hence the camera's "right" vector is orthogonal to
@@ -59,7 +59,7 @@ namespace xen {
 
 		result.position = getCameraPosition(cam);
 
-		result.look_dir = xen::normalized(result.position - cam.target);
+		result.look_dir = xen::normalized(cam.target - result.position);
 
 		return result;
 	}
