@@ -21,7 +21,7 @@
 
 #include <cstring>
 #include <cstdlib>
-#include <limits>
+#include <float.h>
 
 namespace {
 	void doRenderPoints(xen::sren::RenderTargetImpl& target,
@@ -62,7 +62,7 @@ namespace {
 			}
 
 			// :TODO: depth buffer read/write
-			target[screen_space.x][screen_space.y].color = color;
+			target.color[(u32)screen_space.y*target.width + (u32)screen_space.x] = color;
 		}
 	}
 
@@ -77,7 +77,7 @@ namespace {
 			for(u32 i = 0; i < (u32)num_pixels; ++i){
 
 				// :TODO: depth buffer read/check
-				target[cur.x][cur.y].color = color;
+				target.color[(u32)cur.y*target.width + (u32)cur.x] = color;
 				cur += delta;
 			}
 		}
@@ -145,19 +145,23 @@ namespace xen{
 
 	namespace sren {
 		void clear(xen::sren::RenderTargetImpl& target, Color color) {
-			for(u32 x = 0; x < target.rows; ++x){
-				for(u32 y = 0; y < target.cols; ++y){
-					target[x][y].color = (Color4f)color;
-					target[x][y].depth = std::numeric_limits<float>::max();
-				}
+			Color4f color01 = (Color4f)color;
+			for(u32 i = 0; i < target.width * target.height; ++i){
+				target.color[i] = color01;
+			}
+			for(u32 i = 0; i < target.width * target.height; ++i){
+				target.depth[i] = FLT_MAX;
 			}
 		}
 
 		void clear(RenderTargetImpl& target, const xen::Aabb2u& viewport, Color color){
-			for(u32 x = viewport.min.x; x < viewport.max.x; ++x){
-				for(u32 y = viewport.min.y; y < viewport.max.y; ++y){
-					target[x][y].color = (Color4f)color;
-					target[x][y].depth = std::numeric_limits<float>::max();
+			Color4f color01 = (Color4f)color;
+
+			for(u32 y = viewport.min.y; y < viewport.max.y; ++y){
+				u32 base = y * (viewport.max.x - viewport.min.x);
+				for(u32 x = viewport.min.x; x < viewport.max.x; ++x){
+					target.color[base + x] = color01;
+					target.depth[base + x] = FLT_MAX;
 				}
 			}
 		}

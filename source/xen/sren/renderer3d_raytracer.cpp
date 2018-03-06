@@ -95,7 +95,7 @@ namespace xen {
 		                     const RenderParameters3d& params,
 		                     const xen::Array<RenderCommand3d>& commands){
 
-            xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
+			xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 			Vec2s       target_size = (Vec2s)xen::getSize(view_region);
 
@@ -205,7 +205,7 @@ namespace xen {
 					/////////////////////////////////////////////////////////////////////
 					// Color the pixel
 					Vec2s pixel_coord = target_pos + (Vec2s)view_region.min;
-					target[pixel_coord.x][pixel_coord.y].color = pixel_color;
+					target.color[pixel_coord.y*target.width + pixel_coord.x] = pixel_color;
 				}
 			}
 		}

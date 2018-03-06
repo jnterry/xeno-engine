@@ -38,7 +38,7 @@ namespace xen {
 		RenderTarget SoftwareDeviceBase::createRenderTarget (Vec2u size, Window* window){
 			u32 slot;
 			for(slot = 0; slot < xen::size(this->render_targets); ++slot){
-				if(this->render_targets[slot].elements == nullptr){
+				if(this->render_targets[slot].color == nullptr){
 					break;
 				}
 			}
@@ -50,7 +50,8 @@ namespace xen {
 			xen::clearToZero<RenderTargetImpl>(target);
 			this->resizeRenderTarget(target, size);
 
-			xen::sren::doPlatformRenderTargetInitialization(main_allocator, target, window);
+			target->window = window;
+			xen::sren::doPlatformRenderTargetInit(this->main_allocator, *target, target->window);
 
 			return this->makeHandle<RenderTarget::HANDLE_ID>(slot, 0);
 		}
@@ -58,8 +59,13 @@ namespace xen {
 		void SoftwareDeviceBase::destroyRenderTarget(RenderTarget render_target){
 			RenderTargetImpl* target = getRenderTargetImpl(render_target);
 
-			this->main_allocator->deallocate(target->elements);
-			target->elements = nullptr;
+			this->main_allocator->deallocate(target->color);
+			this->main_allocator->deallocate(target->depth);
+
+			target->color = nullptr;
+			target->depth = nullptr;
+
+			xen::sren::doPlatformRenderTargetDestruction(this->main_allocator, *target, target->window);
 		}
 
 		RenderTargetImpl* SoftwareDeviceBase::getRenderTargetImpl(RenderTarget target){
@@ -67,18 +73,17 @@ namespace xen {
 		}
 
 		void SoftwareDeviceBase::resizeRenderTarget(RenderTargetImpl* target, Vec2u size){
-			RenderTargetPixel* old_pixels = target->elements;
+			target->size = size;
 
-			target->elements =
-				(RenderTargetPixel*)main_allocator->allocate(sizeof(RenderTargetPixel) * size.x * size.y);
-			// Note: while x is really a column rather than row, access is [r][c],
-			// and we want to access as [x][y], hence swapping here
-			target->rows = size.x;
-			target->cols = size.y;
+			main_allocator->deallocate(target->color);
+			main_allocator->deallocate(target->depth);
 
-			if(old_pixels){
-				main_allocator->deallocate(target->elements);
-			}
+			u32 num_pixels = size.x * size.y;
+
+			target->color = (Color4f*)main_allocator->allocate(sizeof(Color4f) * num_pixels);
+			target->depth = (float*  )main_allocator->allocate(sizeof(float  ) * num_pixels);
+
+			xen::sren::doPlatformRenderTargetResize(main_allocator, *target, target->window);
 		}
 
 		Window* SoftwareDeviceBase::createWindow(Vec2u size, const char* title) {

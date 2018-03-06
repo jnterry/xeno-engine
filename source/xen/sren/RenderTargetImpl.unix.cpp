@@ -17,130 +17,158 @@
 
 #include <cstring>
 
+namespace {
+
+	void createXImageNonShared(xen::Allocator* alloc,
+	                           xen::sren::RenderTargetImpl& target,
+	                           xen::Window* window){
+
+		void* image_data = (u32*)alloc->allocate(sizeof(u32) * target.width * target.height);
+
+		if(!image_data){
+			printf("Failed to allocate storage for image pixels\n");
+			return;
+		}
+
+		target.ximage = XCreateImage(xen::impl::unix_display,
+		                             window->visual,
+		                             32,
+		                             ZPixmap,
+		                             0, // data offset
+		                             (char*)image_data,
+		                             target.width, target.height,
+		                             32, // padding between scanlines :TODO: -> should be 0?
+		                             0 // bytes per line
+		                            );
+
+		if(!target.ximage){
+			printf("Failed to create x image\n");
+			alloc->deallocate(image_data);
+			return;
+		} else {
+			printf("Successfully created non-shared ximage %p, pixels at: %p\n",
+			       (void*)target.ximage, image_data);
+		}
+	}
+
+	void destroyXImageNonShared(xen::Allocator* alloc,
+	                            xen::sren::RenderTargetImpl& target,
+	                            xen::Window* window){
+
+		// XDestroyImage want's to deallocate the image struct and its data, but
+		// we alloced the data with our some xen::Allocator, so shouldn't use free
+
+		// ...so deallocate it ourselves
+		alloc->deallocate(target.ximage->data);
+
+		// Prevent XDestroyImage calling free on data
+		target.ximage->data = nullptr;
+		XDestroyImage(target.ximage);
+	}
+
+	#ifndef XEN_NO_XSHM_EXTENSION
+	bool canUseSharedMemory(){
+		const char* display_name = XDisplayName(NULL);
+		return ((strncmp(display_name, ":",     1) == 0 ||
+		         strncmp(display_name, "unix:", 5) == 0
+		         ) &&
+		        XShmQueryExtension(xen::impl::unix_display)
+		        );
+	}
+
+	void createXImageShared(xen::sren::RenderTargetImpl& target, xen::Window* window){
+
+		// The XShmSegmentInfo struct (target.shminfo) is not created by the
+		// XServer, it is really a pack of parameters describing some shared
+		// segment which we pass to the XShmXXX functions, hence we can just
+		// set the values as we please in this function
+
+		///////////////////////////////////////////////////////////////////
+		// Allocate shared memory segment
+		target.shminfo.readOnly = False;
+		target.shminfo.shmid    = shmget(IPC_PRIVATE,
+		                                 sizeof(u32) * target.width * target.height,
+		                                 IPC_CREAT | 0777
+		                                 );
+		if(target.shminfo.shmid < 0){
+			// :TODO: log
+			printf("Failed to create shared memory segment\n");
+			return;
+		}
+
+		///////////////////////////////////////////////////////////////////
+		// Attach the shared memory segment to this process's address space
+		target.shminfo.shmaddr = (char*)shmat(target.shminfo.shmid, NULL, 0);
+		if(target.shminfo.shmaddr == (char*)-1){
+			printf("Failed to map shared memory segment into process address space\n");
+
+			// mark segment to be destroyed after last process detaches
+			shmctl(target.shminfo.shmid, IPC_RMID, NULL);
+			return;
+		}
+
+		///////////////////////////////////////////////////////////////////
+		// Attach the shared memory segment to the X Server's address space
+		if(!XShmAttach(xen::impl::unix_display, &target.shminfo)){
+			printf("Failed to attach shared memory segment to X Server\n");
+			shmdt(target.shminfo.shmaddr);
+			// mark segment to be destroyed after last process detaches
+			shmctl(target.shminfo.shmid, IPC_RMID, NULL);
+			return;
+		}
+
+		///////////////////////////////////////////////////////////////////
+		// Create the image wrapping the shared memory segment
+		XImage* ximage = XShmCreateImage(xen::impl::unix_display,
+		                                 window->visual,
+		                                 32,                      //depth
+		                                 ZPixmap,                 // format
+		                                 target.shminfo.shmaddr, // data
+		                                 &target.shminfo,        // shared memory info
+		                                 target.width, target.height);
+		if(!ximage){
+			XShmDetach(xen::impl::unix_display, &target.shminfo);
+			shmdt(target.shminfo.shmaddr);
+			// mark segment to be destroyed after last process detaches
+			shmctl(target.shminfo.shmid, IPC_RMID, NULL);
+			printf("Failed to create shm ximage\n");
+			return;
+		}
+
+		// if we've not returned yet then all has gone well, setup the
+		// render target
+		target.using_shared_memory = true;
+		target.ximage              = ximage;
+		printf("INFO: Successfully created shared memory XImage %p, pixels at: %p\n",
+		       (void*)target.ximage, target.ximage->data
+		      );
+	}
+
+	void destroyXImageShared(xen::Allocator* alloc,
+	                         xen::sren::RenderTargetImpl& target,
+	                         xen::Window* window){
+
+		if(!target.using_shared_memory){
+			destroyXImageNonShared(alloc, target, window);
+			return;
+		}
+
+		XDestroyImage(target.ximage);
+
+		XShmDetach(xen::impl::unix_display, &target.shminfo);
+		shmdt(target.shminfo.shmaddr);
+	  shmctl(target.shminfo.shmid, IPC_RMID, NULL);
+
+	  target.ximage = nullptr;
+	}
+	#endif
+}
+
 namespace xen {
 	namespace sren {
-
-		#ifndef XEN_NO_XSHM_EXTENSION
-		bool _canUseSharedMemory(){
-			const char* display_name = XDisplayName(NULL);
-			return ((strncmp(display_name, ":",     1) == 0 ||
-			         strncmp(display_name, "unix:", 5) == 0
-			        ) &&
-			        XShmQueryExtension(xen::impl::unix_display)
-			       );
-		}
-		void _createXImageShared(RenderTargetImpl* target,
-		                         Window* window){
-
-			// The XShmSegmentInfo struct (target->shminfo) is not created by the
-			// XServer, it is really a pack of parameters describing some shared
-			// segment which we pass to the XShmXXX functions, hence we can just
-			// set the values as we please in this function
-
-			///////////////////////////////////////////////////////////////////
-			// Allocate shared memory segment
-			target->shminfo.readOnly = False;
-			target->shminfo.shmid    = shmget(IPC_PRIVATE,
-			                                  sizeof(u32) * target->width * target->height,
-			                                  IPC_CREAT | 0777
-			                                 );
-			if(target->shminfo.shmid < 0){
-				// :TODO: log
-				printf("Failed to create shared memory segment\n");
-				return;
-			}
-
-			///////////////////////////////////////////////////////////////////
-			// Attach the shared memory segment to this process's address space
-			target->shminfo.shmaddr = (char*)shmat(target->shminfo.shmid, NULL, 0);
-			if(target->shminfo.shmaddr == (char*)-1){
-				printf("Failed to map shared memory segment into process address space\n");
-
-				// mark segment to be destroyed after last process detaches
-				shmctl(target->shminfo.shmid, IPC_RMID, NULL);
-				return;
-			}
-
-			///////////////////////////////////////////////////////////////////
-			// Attach the shared memory segment to the X Server's address space
-			if(!XShmAttach(xen::impl::unix_display, &target->shminfo)){
-				printf("Failed to attach shared memory segment to X Server\n");
-				shmdt(target->shminfo.shmaddr);
-				// mark segment to be destroyed after last process detaches
-				shmctl(target->shminfo.shmid, IPC_RMID, NULL);
-				return;
-			}
-
-			///////////////////////////////////////////////////////////////////
-			// Create the image wrapping the shared memory segment
-			XImage* ximage = XShmCreateImage(xen::impl::unix_display,
-			                                 window->visual,
-			                                 32,                      //depth
-			                                 ZPixmap,                 // format
-			                                 target->shminfo.shmaddr, // data
-			                                 &target->shminfo,        // shared memory info
-			                                 target->rows, target->cols);
-			if(!ximage){
-				XShmDetach(xen::impl::unix_display, &target->shminfo);
-				shmdt(target->shminfo.shmaddr);
-				// mark segment to be destroyed after last process detaches
-				shmctl(target->shminfo.shmid, IPC_RMID, NULL);
-				printf("Failed to create shm ximage\n");
-				return;
-			}
-
-			// if we've not returned yet then all has gone well, setup the
-			// render target
-			target->using_shared_memory = true;
-			target->ximage              = ximage;
-			target->ximage_pixels       = (u32*)target->shminfo.shmaddr;
-			printf("INFO: Successfully created shared memory XImage %li, pixels at: %p\n",
-			       target->ximage, target->ximage_pixels
-			      );
-		}
-		#endif
-
-		void _createXImageNonShared(xen::Allocator* alloc,
-		                            RenderTargetImpl* target,
-		                            Window* window){
-
-			// :TODO: deallocate/resize?
-			target->ximage_pixels    = (u32*)alloc->allocate(sizeof(u32) * target->width * target->height);
-
-			if(!target->ximage_pixels){
-				printf("Failed to allocate storage for image pixels\n");
-				return;
-			}
-
-			// :TODO: free on render target destruction/resize
-			target->ximage = XCreateImage(xen::impl::unix_display,
-			                              window->visual,
-			                              32,
-			                              ZPixmap,
-			                              0, // data offset
-			                              (char*)target->ximage_pixels,
-			                              target->rows,
-			                              target->cols,
-			                              32, // padding between scanlines :TODO: -> should be 0?
-			                              0 // bytes per line
-			                             );
-
-			if(!target->ximage){
-				printf("Failed to create x image\n");
-				alloc->deallocate(target->ximage_pixels);
-				return;
-			} else {
-				printf("Successfully created non-shared ximage %li, pixels at: %p\n",
-				       target->ximage, target->ximage_pixels);
-			}
-
-		}
-
-		void doPlatformRenderTargetInitialization(xen::Allocator* alloc,
-		                                          RenderTargetImpl* target,
-		                                          Window* window) {
+		void doPlatformRenderTargetInit(xen::Allocator* alloc, RenderTargetImpl& target, Window* window){
 			if(window == nullptr){
-				// offscreen render targets don't need an associated graphics context
+				// offscreen render targets don't need xlib image/graphics context/etc
 				return;
 			}
 
@@ -153,27 +181,48 @@ namespace xen {
 				return;
 			}
 
-			target->graphics_context = gc;
+			target.graphics_context = gc;
 
-			target->ximage              = 0;
-			target->ximage_pixels       = nullptr;
+			target.ximage        = nullptr;
 
 			#ifndef XEN_NO_XSHM_EXTENSION
-			target->using_shared_memory = false;
-			if(_canUseSharedMemory()){
-				_createXImageShared(target, window);
+			target.using_shared_memory = false;
+			if(canUseSharedMemory()){
+				createXImageShared(target, window);
 			}
 			#endif
 
-			if(target->ximage == 0 && target->ximage_pixels == nullptr){
-				_createXImageNonShared(alloc, target, window);
+			if(target.ximage == nullptr){
+				createXImageNonShared(alloc, target, window);
 			}
 
-			if(!target->ximage || !target->ximage_pixels){
-				printf("Failed to create ximage for render target\n");
+			if(target.ximage == nullptr){
+				// :TODO: log
+				printf("ERROR: Failed to create ximage for render target\n");
+				return;
 			}
 
 			XFlush(xen::impl::unix_display);
+		}
+
+		void doPlatformRenderTargetDestruction(xen::Allocator* alloc,
+		                                       RenderTargetImpl& target,
+		                                       Window* window){
+
+			if(target.ximage == nullptr){ return; }
+
+			#ifndef XEN_NO_XSHM_EXTENSION
+			destroyXImageShared(alloc, target, window);
+			#else
+			destroyXImageNonShared(alloc, target, window);
+			#endif
+		}
+
+		void doPlatformRenderTargetResize(xen::Allocator* alloc,
+		                                  RenderTargetImpl& target,
+		                                  Window* window) {
+			doPlatformRenderTargetDestruction(alloc, target, window);
+			doPlatformRenderTargetInit(alloc, target, window);
 		}
 
 		void presentRenderTarget(Window* window, RenderTargetImpl& target){
@@ -187,17 +236,19 @@ namespace xen {
 			// Set values of pixels - converting from our float colors to 32bit colors
 			Color4f color;
 			u32     color_bits;
-			u32* pixels = (u32*)target.ximage_pixels;
-			for(u64 x = 0; x < target.rows; ++x){
-				for(u64 y = 0; y < target.cols; ++y){
-					color = (target[x][y].color);
+			// :TODO: take target.red_mask etc into account
+			u32* pixels = (u32*)target.ximage->data;
+			for(u32 y = 0; y < target.height; ++y){
+				u32 base = y * target.width;
+				for(u32 x = 0; x < target.width; ++x){
+					color = (target.color[base + x]);
 
 					color_bits = (xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.a) << 24 |
 					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.r) << 16 |
 					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.g) <<  8 |
 					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.b) <<  0);
 
-					pixels[(target.cols - y - 1) * target.rows + x] = color_bits;
+					pixels[target.width*(target.height-y) + x] = color_bits;
 				}
 			}
 
@@ -211,7 +262,7 @@ namespace xen {
 				             target.ximage,
 				             0, 0,
 				             0, 0,
-				             target.rows, target.cols,
+				             target.width, target.height,
 				             False);
 			} else {
 			#else
@@ -223,7 +274,7 @@ namespace xen {
 				          target.ximage,
 				          0, 0,
 				          0, 0,
-				          target.rows, target.cols
+				          target.width, target.height
 				          );
 			}
 			XFlush(xen::impl::unix_display);
