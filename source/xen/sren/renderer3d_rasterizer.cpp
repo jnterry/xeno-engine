@@ -158,7 +158,9 @@ namespace xen{
 			Color4f color01 = (Color4f)color;
 
 			for(u32 y = viewport.min.y; y < viewport.max.y; ++y){
-				u32 base = y * (viewport.max.x - viewport.min.x);
+				// still need to stride by width of whole target to get to next line in
+				// y, not just the width of the viewport
+				u32 base = y * target.width;
 				for(u32 x = viewport.min.x; x < viewport.max.x; ++x){
 					target.color[base + x] = color01;
 					target.depth[base + x] = FLT_MAX;
