@@ -248,7 +248,7 @@ namespace xen {
 					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.g) <<  8 |
 					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.b) <<  0);
 
-					pixels[target.width*(target.height-y) + x] = color_bits;
+					pixels[target.width*(target.height-y-1) + x] = color_bits;
 				}
 			}
 

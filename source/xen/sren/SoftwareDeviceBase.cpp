@@ -31,6 +31,10 @@ namespace xen {
 			delete main_allocator;
 		}
 
+		RenderTargetImpl* SoftwareDeviceBase::getRenderTargetImpl(RenderTarget target){
+			return &this->render_targets[target._id];
+		}
+
 		void SoftwareDeviceBase::clear(xen::RenderTarget& target, xen::Color color){
 			xen::sren::clear(*this->getRenderTargetImpl(target), color);
 		}
@@ -68,15 +72,15 @@ namespace xen {
 			xen::sren::doPlatformRenderTargetDestruction(this->main_allocator, *target, target->window);
 		}
 
-		RenderTargetImpl* SoftwareDeviceBase::getRenderTargetImpl(RenderTarget target){
-			return &this->render_targets[target._id];
-		}
-
 		void SoftwareDeviceBase::resizeRenderTarget(RenderTargetImpl* target, Vec2u size){
 			target->size = size;
 
-			main_allocator->deallocate(target->color);
-			main_allocator->deallocate(target->depth);
+			if(target->color != nullptr){
+				main_allocator->deallocate(target->color);
+			}
+			if(target->depth != nullptr){
+				main_allocator->deallocate(target->depth);
+			}
 
 			u32 num_pixels = size.x * size.y;
 
