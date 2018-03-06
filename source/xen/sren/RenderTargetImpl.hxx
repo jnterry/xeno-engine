@@ -22,22 +22,45 @@ namespace xen {
 
 		struct RenderTargetImpl;
 
-		/// \brief The values of a single pixel of the various buffers in the
-		/// render target
-		struct RenderTargetPixel {
-			Color4f color;
-			float   depth;
-		};
+		// Disable gcc's warning about anonymous structs in unions temporarily...
+		#pragma GCC diagnostic push
+		#pragma GCC diagnostic ignored "-Wpedantic"
 
-		struct RenderTargetImplBase : public Array2d<RenderTargetPixel> {
+		struct RenderTargetImplBase {
 			/// \brief The window this render target is for (or nullptr if an
 			/// off screen render buffer)
 			Window* window;
+
+			/// \brief Pointer to first element of color buffer
+			/// 2d array flattened into 1d as {x0y0, x1y0, y1x0, y1x1}
+			Color4f* color;
+
+			/// \brief Pointer to first element of depth buffer
+			/// 2d array flattened into 1d as {x0y0, x1y0, y1x0, y1x1}
+			float*   depth;
+
+			union {
+				struct {
+					u32 width;
+					u32 height;
+				};
+				Vec2u size;
+			};
 		};
 
-		void doPlatformRenderTargetInitialization(xen::Allocator* alloc,
-		                                          RenderTargetImpl* target,
-		                                          Window* window);
+		#pragma GCC diagnostic pop // re-enable -Wpedantic
+
+		void doPlatformRenderTargetInit(xen::Allocator* alloc,
+		                                RenderTargetImpl& target,
+		                                Window* window);
+
+		void doPlatformRenderTargetResize(xen::Allocator* alloc,
+		                                  RenderTargetImpl& target,
+		                                  Window* window);
+
+		void doPlatformRenderTargetDestruction(xen::Allocator* alloc,
+		                                       RenderTargetImpl& target,
+		                                       Window* window);
 
 		void presentRenderTarget(Window* window, RenderTargetImpl& target);
 	}

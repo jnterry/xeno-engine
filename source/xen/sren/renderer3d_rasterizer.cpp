@@ -22,7 +22,7 @@
 
 #include <cstring>
 #include <cstdlib>
-#include <limits>
+#include <float.h>
 
 namespace {
 	void doRenderPoints(xen::sren::RenderTargetImpl& target,
@@ -63,7 +63,7 @@ namespace {
 			}
 
 			// :TODO: depth buffer read/write
-			target[screen_space.x][screen_space.y].color = color;
+			target.color[(u32)screen_space.y*target.width + (u32)screen_space.x] = color;
 		}
 	}
 
@@ -78,7 +78,7 @@ namespace {
 			for(u32 i = 0; i < (u32)num_pixels; ++i){
 
 				// :TODO: depth buffer read/check
-				target[cur.x][cur.y].color = color;
+				target.color[(u32)cur.y*target.width + (u32)cur.x] = color;
 				cur += delta;
 			}
 			/*
@@ -294,7 +294,7 @@ namespace {
 			while((u32)curr_a.y == curr_pixel_y){
 				//printf("Stepping along a, now at: %f, %f\n", curr_a.x, curr_a.y);
 				if (xen::contains(viewport, curr_a)){
-					target[curr_a.x][curr_a.y].color = color;
+					target.color[(u32)curr_a.y*target.width + (u32)curr_a.x] = color;
 				}
 				curr_a += delta_a;
 				++line_a_pixels_drawn;
@@ -304,7 +304,7 @@ namespace {
 			while ((u32)curr_b.y == curr_pixel_y){
 				//printf("Stepping along b, now at: %f, %f\n", curr_b.x, curr_b.y);
 				if (xen::contains(viewport, curr_b)){
-					target[curr_b.x][curr_b.y].color = color;
+					target.color[(u32)curr_a.y*target.width + (u32)curr_a.x] = color;
 				}
 				curr_b += delta_b;
 				// If b has reached end point then begin drawing line c by changing
@@ -324,7 +324,7 @@ namespace {
 			u32 max_x = xen::max(curr_a.x, curr_b.x);
 			for (u32 x = min_x+1; x < max_x; ++x){
 				if (xen::contains(viewport, xen::mkVec((real)x, curr_a.y))){
-					target[x][curr_a.y].color = color;
+					target.color[(u32)curr_a.y*target.width + x] = color;
 				}
 			}
 		}
@@ -374,20 +374,25 @@ namespace xen{
 
 	namespace sren {
 		void clear(xen::sren::RenderTargetImpl& target, Color color) {
-			/*for(u32 x = 0; x < target.rows; ++x){
-				for(u32 y = 0; y < target.cols; ++y){
-					target[x][y].color = (Color4f)color;
-					target[x][y].depth = std::numeric_limits<float>::max();
-				}
-				}*/
-			memset(target.elements, 0x000000ff, sizeof(RenderTargetPixel) * target.rows * target.cols);
+			Color4f color01 = (Color4f)color;
+			for(u32 i = 0; i < target.width * target.height; ++i){
+				target.color[i] = color01;
+			}
+			for(u32 i = 0; i < target.width * target.height; ++i){
+				target.depth[i] = FLT_MAX;
+			}
 		}
 
 		void clear(RenderTargetImpl& target, const xen::Aabb2u& viewport, Color color){
-			for(u32 x = viewport.min.x; x < viewport.max.x; ++x){
-				for(u32 y = viewport.min.y; y < viewport.max.y; ++y){
-					target[x][y].color = (Color4f)color;
-					target[x][y].depth = std::numeric_limits<float>::max();
+			Color4f color01 = (Color4f)color;
+
+			for(u32 y = viewport.min.y; y < viewport.max.y; ++y){
+				// still need to stride by width of whole target to get to next line in
+				// y, not just the width of the viewport
+				u32 base = y * target.width;
+				for(u32 x = viewport.min.x; x < viewport.max.x; ++x){
+					target.color[base + x] = color01;
+					target.depth[base + x] = FLT_MAX;
 				}
 			}
 		}
