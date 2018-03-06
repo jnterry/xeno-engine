@@ -3,6 +3,7 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/memory.hpp>
 #include <xen/core/random.hpp>
+#include <xen/core/time.hpp>
 #include <xen/util/File.hpp>
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
@@ -14,8 +15,7 @@
 #include <xen/math/angle.hpp>
 #include <xen/sren/SoftwareDevice.hpp>
 
-#include <SDL.h>
-#include "../SDLauxilary.h"
+#include "../common.cpp"
 
 xen::RenderParameters3d render_params;
 xen::Camera3dCylinder camera;
@@ -35,7 +35,11 @@ int main(int argc, char** argv){
 	camera.angle  = 0.0_deg;
 
 	Vec2r window_size = {800, 600};
-	screen* screen = InitializeSDL(window_size.x, window_size.y, false);
+
+	xen::Allocator*      alloc  = new xen::AllocatorCounter<xen::AllocatorMalloc>();
+	xen::ArenaLinear     arena  = xen::createArenaLinear(*alloc, xen::megabytes(32));
+	xen::GraphicsDevice* device = xen::createRasterizerDevice(arena);
+	xen::Window*         app    = device->createWindow((Vec2u)window_size, "starfield");
 
 	for(u32 i = 0; i < STAR_COUNT; ++i){
 		star_positions[i].x = xen::randf(-100, 100);
@@ -87,10 +91,6 @@ int main(int argc, char** argv){
 		{ 1_r,  0_r,  0_r },
 	};
 
-	xen::Allocator*      alloc  = new xen::AllocatorCounter<xen::AllocatorMalloc>();
-	xen::ArenaLinear     arena  = xen::createArenaLinear(*alloc, xen::megabytes(32));
-	xen::GraphicsDevice* device = xen::createRasterizerDevice(arena, screen->buffer);
-
 	xen::FixedArray<xen::RenderCommand3d, 5> render_commands;
 	render_commands[0].type                = xen::RenderCommand3d::LINES;
 	render_commands[0].color               = xen::Color::RED4f;
@@ -122,18 +122,29 @@ int main(int argc, char** argv){
 	render_commands[4].verticies.verticies = &cube_lines[0];
 	render_commands[4].verticies.count     = XenArrayLength(cube_lines);
 
-	int last_tick = SDL_GetTicks();
-
 	xen::Aabb2u viewport = { 0, 0, (u32)window_size.x, (u32)window_size.y };
 
+	xen::Stopwatch timer;
+	real last_time = 0;
 	printf("Entering main loop\n");
-	while(NoQuitMessageSDL()) {
-		int tick = SDL_GetTicks();
-		float dt = ((float)(tick - last_tick)) / 1000.0f;
-		last_tick = tick;
+	while(xen::isWindowOpen(app)) {
+	  real time = xen::asSeconds<real>(timer.getElapsedTime());
+		real dt = time - last_time;
+		last_time = time;
 
 		printf("dt: %f\n", dt);
+
+		xen::WindowEvent* event;
+		while((event = xen::pollEvent(app)) != nullptr){
+			switch(event->type){
+			case xen::WindowEvent::Closed:
+				device->destroyWindow(app);
+				break;
+			default: break;
+			}
+		}
 		handleCameraInput(camera, dt);
+		render_params.camera = xen::generateCamera3d(camera);
 
 		for(u32 i = 0; i < STAR_COUNT; ++i){
 			star_positions[i].z += dt * 75.0f;
@@ -142,24 +153,11 @@ int main(int argc, char** argv){
 			}
 		}
 
-		// Clear buffer
-	  device->clear(xen::makeNullHandle<xen::RenderTarget>(),
-	                viewport,
-	                xen::Color::BLACK);
-
-		// Do rendering
-		render_params.camera = xen::generateCamera3d(camera);
-		device->render(xen::makeNullHandle<xen::RenderTarget>(),
-		               viewport,
-		               render_params, render_commands
-		              );
-
-		SDL_Renderframe(screen);
+	  device->clear(app, xen::Color::BLACK);
+		device->render(app, viewport, render_params, render_commands);
+		device->swapBuffers(app);
 	}
 	printf("Exiting main loop\n");
-
-	SDL_SaveImage(screen, "screenshot.bmp");
-	KillSDL(screen);
 
 	xen::destroyArenaLinear(*alloc, arena);
 	delete alloc;

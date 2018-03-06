@@ -1,0 +1,18 @@
+////////////////////////////////////////////////////////////////////////////
+///                      Part of Xeno Engine                             ///
+////////////////////////////////////////////////////////////////////////////
+/// \brief Includes platform specific implementation for sren::RenderTargetImpl
+///
+/// \ingroup sren
+////////////////////////////////////////////////////////////////////////////
+
+#ifndef XEN_SREN_RENDERTARGETIMPL_CPP
+#define XEN_SREN_RENDERTARGETIMPL_CPP
+
+#include <xen/config.hpp>
+
+#if XEN_OS_UNIX
+	#include "RenderTargetImpl.unix.cpp"
+#endif
+
+#endif

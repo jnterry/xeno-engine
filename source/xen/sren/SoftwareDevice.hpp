@@ -15,19 +15,23 @@ namespace xen {
 	struct ArenaLinear;
 	struct GraphicsDevice;
 
-	// :TODO: taking raw image as args to these is a hack -> should obey RenderTarget handle
-
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Creates a new GraphicsDevice which will perform rendering
 	/// using a software raytracer
 	/////////////////////////////////////////////////////////////////////
-	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena, RawImage& image);
+	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Creates a new GraphicsDevice which will perform rendering
 	/// using a software rasterizer
 	/////////////////////////////////////////////////////////////////////
-	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena, RawImage& image);
+	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Creates a device which will debug the raytracer device by
+	/// drawing the same scene with the rasterizer from multiple angles
+	/////////////////////////////////////////////////////////////////////
+	GraphicsDevice* createRaytracerDebugDevice(ArenaLinear& arena);
 }
 
 #endif

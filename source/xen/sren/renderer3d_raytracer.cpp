@@ -17,6 +17,7 @@
 #include <xen/graphics/RenderCommand3d.hpp>
 
 #include "renderer3d.hxx"
+#include "RenderTargetImpl.hxx"
 
 #include <cstring>
 #include <cstdlib>
@@ -89,12 +90,12 @@ namespace {
 
 namespace xen {
 	namespace sren {
-		void renderRaytrace (RawImage& target,
+		void renderRaytrace (xen::sren::RenderTargetImpl& target,
 		                     const xen::Aabb2u& viewport,
 		                     const RenderParameters3d& params,
 		                     const xen::Array<RenderCommand3d>& commands){
 
-			xen::Aabb2u screen_rect = { Vec2u::Origin, target.size - Vec2u{1,1} };
+			xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 			Vec2s       target_size = (Vec2s)xen::getSize(view_region);
 
@@ -154,7 +155,7 @@ namespace xen {
 
 					/////////////////////////////////////////////////////////////////////
 					// Cast shadow ray
-					for(int i = 0; i < params.lights.size; ++i){
+                    for(u64 i = 0; i < params.lights.size; ++i){
 						//printf("%i, %i :::::: Casting shadow ray for light %i\n",
 						//       target_pos.x, target_pos.y, i);
 						Ray3r shadow_ray;
@@ -204,7 +205,7 @@ namespace xen {
 					/////////////////////////////////////////////////////////////////////
 					// Color the pixel
 					Vec2s pixel_coord = target_pos + (Vec2s)view_region.min;
-					target[pixel_coord.x][pixel_coord.y] = pixel_color;
+					target.color[pixel_coord.y*target.width + pixel_coord.x] = pixel_color;
 				}
 			}
 		}
@@ -217,7 +218,7 @@ namespace xen {
 		/// \param camera          The camera to use as the perspective to draw from
 		/// \param debugged_camera The camera to draw
 		/////////////////////////////////////////////////////////////////////
-		void renderCameraDebug(RawImage& target, const xen::Aabb2u& viewport,
+		void renderCameraDebug(xen::sren::RenderTargetImpl& target, const xen::Aabb2u& viewport,
 		                       const Camera3d& view_camera,
 		                       const Camera3d& camera
 		                       ) {
@@ -238,13 +239,12 @@ namespace xen {
 				camera.position, camera.position
 			};
 
-
 			//////////////////////////////////////////////////////////////////////////
 
 			// :TODO:COMP: view region calc duplicated with rasterizer
 			// Find the actual view_region we wish to draw to. This is the
 			// intersection of the actual target, and the user specified viewport
-			xen::Aabb2u screen_rect = { Vec2u::Origin, target.size - Vec2u{1,1} };
+            xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 
 			Vec2s target_size = (Vec2s)xen::getSize(view_region);
@@ -274,6 +274,7 @@ namespace xen {
 
 			Vec2s target_pos;
 			int ray_index = 0;
+
 			for(target_pos.x = 0; target_pos.x < target_size.x; target_pos.x += target_size.x-1) {
 				for(target_pos.y = 0; target_pos.y < target_size.y; target_pos.y += target_size.y-1) {
 
@@ -316,10 +317,10 @@ namespace xen {
 			render_commands[2].verticies.verticies = &camera_corner_rays[0];
 			render_commands[2].verticies.count     = 8;
 
-			xen::RenderParameters3d params;
+			xen::RenderParameters3d params = {};
 			params.camera = view_camera;
 
-			xen::sren::renderRasterize(target, viewport, params, render_commands );
+			xen::sren::renderRasterize(target, viewport, params, render_commands);
 		}
 	}
 }

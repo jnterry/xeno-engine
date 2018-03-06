@@ -9,6 +9,7 @@
 
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <Windowsx.h>
 //#undef ERROR //conflicts with xen::log::ERROR
 #undef min // conflicts with xen::min
 #undef max // conflicts with xen::max

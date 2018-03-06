@@ -52,12 +52,12 @@ namespace xen{
 			const char* err_str = "Unknown Error";
 
 			switch(err){
-			case GL_INVALID_ENUM:      err_str = "Invalid value passed as enum argument";           break;
-			case GL_INVALID_VALUE:     err_str = "Numeric argument invalid";                        break;
-			case GL_INVALID_OPERATION: err_str = "Operation invalid in current state";              break;
-			case GL_STACK_OVERFLOW:    err_str = "Requested command would cause a stack overflow";  break;
-			case GL_STACK_UNDERFLOW:   err_str = "Requested command would cause a stack underflow"; break;
-			case GL_OUT_OF_MEMORY:     err_str = "Out of memory";                                   break;
+			case GL_INVALID_ENUM:      err_str = "GL_INVALID_ENUM";      break;
+			case GL_INVALID_VALUE:     err_str = "GL_INVALID_VALUE";     break;
+			case GL_INVALID_OPERATION: err_str = "GL_INVALID_OPERATION"; break;
+			case GL_STACK_OVERFLOW:    err_str = "GL_STACK_OVERFLOW";    break;
+			case GL_STACK_UNDERFLOW:   err_str = "GL_STACK_UNDERFLOW";   break;
+			case GL_OUT_OF_MEMORY:     err_str = "GL_OUT_OF_MEMORY";     break;
 			}
 
 			//:TODO: log system

@@ -31,6 +31,10 @@ target_link_libraries     (xen-graphics xen-core)
 target_link_libraries     (xen-graphics xen-math)
 target_link_libraries     (xen-graphics assimp  )
 
+if(UNIX)
+	target_link_libraries(xen-graphics X11)
+endif()
+
 add_library(xen-sren ${XEN_HEADERS_SREN} ${XEN_SOURCES_SREN})
 target_include_directories(xen-sren PUBLIC  ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries     (xen-sren xen-graphics)

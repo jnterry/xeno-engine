@@ -11,7 +11,6 @@
 
 #include <xen/core/array_types.hpp>
 #include <xen/graphics/Color.hpp>
-#include <xen/graphics/Image.hpp>
 #include <xen/math/geometry_types.hpp>
 
 #include <cstdio>
@@ -22,18 +21,19 @@ namespace xen{
 	struct RenderCommand3d;
 
 	namespace sren {
+		struct RenderTargetImpl;
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Clears the diffuse component of a render target to the
 		/// specified color
 		/////////////////////////////////////////////////////////////////////
-		void clear(RawImage& target, Color color);
+		void clear(RenderTargetImpl& target, Color color);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Clears the diffuse component of a section of a render target
 		/// to the specified color
 		/////////////////////////////////////////////////////////////////////
-		void clear(RawImage& target, const xen::Aabb2u& viewport, Color color);
+		void clear(RenderTargetImpl& target, const xen::Aabb2u& viewport, Color color);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Performs a set of render commands using software rasterizer
@@ -44,7 +44,7 @@ namespace xen{
 		/// view the scene
 		/// \param commands Array of render commands to perform
 		/////////////////////////////////////////////////////////////////////
-		void renderRasterize(RawImage& target,
+		void renderRasterize(xen::sren::RenderTargetImpl&,
 		                     const xen::Aabb2u& viewport,
 		                     const RenderParameters3d& params,
 		                     const xen::Array<RenderCommand3d>& commands);
@@ -57,7 +57,7 @@ namespace xen{
 		/// \param camera The 3d camera used to view the scene
 		/// \param commands Array of render commands to perform
 		/////////////////////////////////////////////////////////////////////
-		void renderRaytrace (RawImage& target,
+		void renderRaytrace (xen::sren::RenderTargetImpl&,
 		                     const xen::Aabb2u& viewport,
 		                     const RenderParameters3d& params,
 		                     const xen::Array<RenderCommand3d>& commands);
@@ -70,7 +70,8 @@ namespace xen{
 		/// \param view_camera The camera to use as the perspective to draw from
 		/// \param camera      The camera to draw
 		/////////////////////////////////////////////////////////////////////
-		void renderCameraDebug(RawImage& target, const xen::Aabb2u& viewport,
+		void renderCameraDebug(xen::sren::RenderTargetImpl& target,
+		                       const xen::Aabb2u& viewport,
 		                       const Camera3d& view_camera,
 		                       const Camera3d& camera);
 

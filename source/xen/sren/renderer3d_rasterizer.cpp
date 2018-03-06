@@ -17,12 +17,14 @@
 #include <xen/graphics/RenderCommand3d.hpp>
 
 #include "renderer3d.hxx"
+#include "RenderTargetImpl.hxx"
 
 #include <cstring>
 #include <cstdlib>
+#include <float.h>
 
 namespace {
-	void doRenderPoints(xen::RawImage& target,
+	void doRenderPoints(xen::sren::RenderTargetImpl& target,
 	                    const xen::Aabb2r& viewport,
 	                    const Mat4f& mvp_matrix,
 	                    xen::Color4f color,
@@ -59,11 +61,12 @@ namespace {
 				continue;
 			}
 
-			target[screen_space.x][screen_space.y] = color;
+			// :TODO: depth buffer read/write
+			target.color[(u32)screen_space.y*target.width + (u32)screen_space.x] = color;
 		}
 	}
 
-	void doRenderLine2d(xen::RawImage& target, xen::LineSegment2r line, xen::Color4f color){
+	void doRenderLine2d(xen::sren::RenderTargetImpl& target, xen::LineSegment2r line, xen::Color4f color){
 		//https://www.cs.virginia.edu/luther/blog/posts/492.html
 		if(line.p1 != line.p2){
 			//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
@@ -72,13 +75,15 @@ namespace {
 			Vec2r delta = (line.p1 - line.p2) / num_pixels;
 			Vec2r cur   = line.p2;
 			for(u32 i = 0; i < (u32)num_pixels; ++i){
-				target[cur.x][cur.y] = color;
+
+				// :TODO: depth buffer read/check
+				target.color[(u32)cur.y*target.width + (u32)cur.x] = color;
 				cur += delta;
 			}
 		}
 	}
 
-	void doRenderLine3d(xen::RawImage& target,
+	void doRenderLine3d(xen::sren::RenderTargetImpl& target,
 	                    const xen::Aabb2r& viewport,
 	                    const Mat4f& mvp_matrix,
 	                    xen::Color4f color,
@@ -139,27 +144,37 @@ namespace {
 namespace xen{
 
 	namespace sren {
-		void clear(RawImage& target, Color color){
-			static_assert(sizeof(Color) == sizeof(int), "Relying on memset which takes int values");
-
-			memset(target.pixels, color.value, target.width * target.height * sizeof(Color));
+		void clear(xen::sren::RenderTargetImpl& target, Color color) {
+			Color4f color01 = (Color4f)color;
+			for(u32 i = 0; i < target.width * target.height; ++i){
+				target.color[i] = color01;
+			}
+			for(u32 i = 0; i < target.width * target.height; ++i){
+				target.depth[i] = FLT_MAX;
+			}
 		}
 
-		void clear(RawImage& target, const xen::Aabb2u& viewport, Color color) {
-			for(u32 x = viewport.min.x; x < viewport.max.x; ++x){
-				for(u32 y = viewport.min.y; y < viewport.max.y; ++y){
-					target[x][y] = color;
+		void clear(RenderTargetImpl& target, const xen::Aabb2u& viewport, Color color){
+			Color4f color01 = (Color4f)color;
+
+			for(u32 y = viewport.min.y; y < viewport.max.y; ++y){
+				// still need to stride by width of whole target to get to next line in
+				// y, not just the width of the viewport
+				u32 base = y * target.width;
+				for(u32 x = viewport.min.x; x < viewport.max.x; ++x){
+					target.color[base + x] = color01;
+					target.depth[base + x] = FLT_MAX;
 				}
 			}
 		}
 
-		void renderRasterize(RawImage& target, const xen::Aabb2u& viewport,
+		void renderRasterize(xen::sren::RenderTargetImpl& target, const xen::Aabb2u& viewport,
 		                     const RenderParameters3d& params,
 		                     const xen::Array<RenderCommand3d>& commands){
 
 			// Find the actual view_region we wish to draw to. This is the
 			// intersection of the actual target, and the user specified viewport
-			xen::Aabb2u screen_rect = { Vec2u::Origin, target.size - Vec2u{1,1} };
+			xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 
 			Mat4r mat_vp = xen::getViewProjectionMatrix(params.camera, view_region.max - view_region.min);
