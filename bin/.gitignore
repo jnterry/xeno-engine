@@ -16,6 +16,7 @@ xen_unit_tests
 raytracer-test
 cornell-box
 triangle-test
+line-test
 
 # Ignore program output
 screenshot.bmp
