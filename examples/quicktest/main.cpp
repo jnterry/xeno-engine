@@ -153,7 +153,7 @@ int main(int argc, char** argv){
 	camera.height = 0;
 	camera.up_dir = Vec3r::UnitY;
 	camera.axis   = Vec3r::UnitY;
-	camera.angle  = 90_deg;
+	camera.angle  = 0_deg;
 
 	render_params.lights = light_sources;
 
