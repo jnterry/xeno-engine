@@ -68,67 +68,59 @@ namespace {
 	}
 
 	void doRenderLine2d(xen::sren::RenderTargetImpl& target, xen::LineSegment2r line, xen::Color4f color){
+		if(line.p1 == line.p2){ return; }
+
+		#if 0
 		//https://www.cs.virginia.edu/luther/blog/posts/492.html
-		if(line.p1 != line.p2){
-			//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
-			real num_pixels = xen::max(abs(line.p1.x - line.p2.x), abs(line.p1.y - line.p2.y));
-			//printf("Drawing line with %f (%u) pixels\n", num_pixels, (u32)num_pixels);
-			Vec2r delta = (line.p1 - line.p2) / num_pixels;
-			Vec2r cur   = line.p2;
-			for(u32 i = 0; i < (u32)num_pixels; ++i){
 
-				// :TODO: depth buffer read/check
-				target.color[(u32)cur.y*target.width + (u32)cur.x] = color;
-				cur += delta;
-			}
-			/*
-			// Bresenham Algorithm, taken from:
-			// https://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#C.2B.2B
-			// :NOTE: May be a more efficient implementation available
-			const bool steep = (fabs(line.p2.y - line.p1.y) > fabs(line.p2.x - line.p1.x));
-			if(steep){
-    		// Swap (line.p1.x, line.p1.y)
-				line.p1.x = line.p1.x + line.p1.y;
-				line.p1.y = line.p1.x - line.p1.y;
-				line.p1.x = line.p1.x - line.p1.y;
-				// Swap (line.p2.x, line.p2.y)
-				line.p2.x = line.p2.x + line.p2.y;
-				line.p2.y = line.p2.x - line.p2.y;
-				line.p2.x = line.p2.x - line.p2.y;
-  		}
-			if(line.p1.x > line.p2.x){
-				// Swap (line.p1.x, line.p2.x)
-				line.p1.x = line.p1.x + line.p2.x;
-				line.p2.x = line.p1.x - line.p2.x;
-				line.p1.x = line.p1.x - line.p2.x;
-				// Swap (line.p1.y, line.p2.y)
-				line.p1.y = line.p1.y + line.p2.y;
-				line.p2.y = line.p1.y - line.p2.y;
-				line.p1.y = line.p1.y - line.p2.y;
- 			}
-			const real dx = line.p2.x - line.p1.x;
-  		const real dy = fabs(line.p2.y - line.p1.y);
+		//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
+		real num_pixels = xen::max(abs(line.p1.x - line.p2.x), abs(line.p1.y - line.p2.y));
+		//printf("Drawing line with %f (%u) pixels\n", num_pixels, (u32)num_pixels);
+		Vec2r delta = (line.p1 - line.p2) / num_pixels;
+		Vec2r cur   = line.p2;
+		for(u32 i = 0; i < (u32)num_pixels; ++i){
 
-  		real error = dx / 2.0f;
-  		const int ystep = (line.p1.y < line.p2.y) ? 1 : -1;
-  		int y = (int)line.p1.y;
-			const int maxX = (int)line.p2.x;
-
-			for(int x=(int)line.p1.x; x<maxX; x++){
-    		if(steep){
-						target[y][x] = color;
-    		}else{
-        		target[x][y] = color;
-    		}
-
-    		error -= dy;
-    		if(error < 0){
-        	y += ystep;
-        	error += dx;
-    		}
-  		}
-			*/
+			// :TODO: depth buffer read/check
+			target.color[(u32)cur.y*target.width + (u32)cur.x] = color;
+			cur += delta;
 		}
+
+		#else
+
+		// Bresenham Algorithm, taken from:
+		// https://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#C.2B.2B
+		// :NOTE: May be a more efficient implementation available
+		const bool steep = (fabs(line.p2.y - line.p1.y) > fabs(line.p2.x - line.p1.x));
+		if(steep){
+			xen::swap(line.p1.x, line.p1.y);
+			xen::swap(line.p2.x, line.p2.y);
+		}
+		if(line.p1.x > line.p2.x){
+			xen::swap(line.p1.x, line.p2.x);
+			xen::swap(line.p1.y, line.p2.y);
+		}
+		const real dx = line.p2.x - line.p1.x;
+		const real dy = fabs(line.p2.y - line.p1.y);
+
+		real error = dx / 2.0f;
+		const int ystep = (line.p1.y < line.p2.y) ? 1 : -1;
+		int y = (int)line.p1.y;
+		const int maxX = (int)line.p2.x;
+
+		for(int x=(int)line.p1.x; x<maxX; x++){
+			if(steep){
+				target.color[(u32)x*target.width + y] = color;
+			}else{
+				target.color[(u32)y*target.width + x] = color;
+			}
+
+			error -= dy;
+			if(error < 0){
+				y += ystep;
+				error += dx;
+			}
+		}
+		#endif
 	}
 
 	void doRenderLine3d(xen::sren::RenderTargetImpl& target,
