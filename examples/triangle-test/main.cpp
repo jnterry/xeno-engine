@@ -64,7 +64,7 @@ int main(int argc, char** argv){
 
 	};
 
-	xen::FixedArray<xen::RenderCommand3d, 6> render_commands;
+	xen::FixedArray<xen::RenderCommand3d, 7> render_commands;
 	render_commands[0].type                = xen::RenderCommand3d::LINES;
 	render_commands[0].color               = xen::Color::RED4f;
 	render_commands[0].model_matrix        = xen::Scale3d(100_r);
@@ -100,6 +100,12 @@ int main(int argc, char** argv){
 	render_commands[5].model_matrix        = xen::Scale3d(1, 1, 1);
 	render_commands[5].verticies.verticies = &test_triangles[6];
 	render_commands[5].verticies.count     = 3;
+
+	render_commands[6].type                = xen::RenderCommand3d::LINE_STRIP;
+	render_commands[6].color               = xen::Color::WHITE4f;
+	render_commands[6].model_matrix        = xen::Scale3d(1, 1, 1);
+	render_commands[6].verticies.verticies = &test_triangles[6];
+	render_commands[6].verticies.count     = 3;
 
 	// make it stupidly big so we always render to the entire screen
 	xen::Aabb2u viewport = { 0, 0, 100000, 100000 };
