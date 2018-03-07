@@ -37,6 +37,7 @@ namespace {
 				// Then point is behind the camera
 				continue;
 			}
+			real depth = clip_space.z;
 
 			///////////////////////////////////////////////////////////////////
 			// Do perspective divide (into normalized device coordinates -> [-1, 1]
@@ -61,12 +62,19 @@ namespace {
 				continue;
 			}
 
-			// :TODO: depth buffer read/write
+			if (depth > target.depth[(u32)screen_space.y*target.width + (u32)screen_space.x]){
+				// Then point is behind something else occupying this pixel
+				continue;
+			}
+
+			// :TODO: test depth buffer read/write
+			target.depth[(u32)screen_space.y*target.width + (u32)screen_space.x] = depth;
 			target.color[(u32)screen_space.y*target.width + (u32)screen_space.x] = color;
 		}
 	}
 
-	void doRenderLine2d(xen::sren::RenderTargetImpl& target, xen::LineSegment2r line, xen::Color4f color){
+	void doRenderLine2d(xen::sren::RenderTargetImpl& target, xen::LineSegment2r line,
+		                  xen::Color4f color, real z_start, real z_end){
 		//https://www.cs.virginia.edu/luther/blog/posts/492.html
 		if(line.p1 != line.p2){
 			//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
@@ -76,7 +84,12 @@ namespace {
 			Vec2r cur   = line.p2;
 			for(u32 i = 0; i < (u32)num_pixels; ++i){
 
-				// :TODO: depth buffer read/check
+				// :TODO: test depth buffer read/check
+				// :TODO: Replace lerp with a perspective correct interpolation
+				real depth = xen::lerp(z_start, z_end, (i/num_pixels));
+				if (depth < target.depth[(u32)cur.y*target.width + (u32)cur.x]){
+					target.depth[(u32)cur.y*target.width + (u32)cur.x] = depth;
+				}
 				target.color[(u32)cur.y*target.width + (u32)cur.x] = color;
 				cur += delta;
 			}
@@ -107,6 +120,8 @@ namespace {
 			Vec4r dir = line_clip.p1 - line_clip.p2;
 			line_clip.p2 += dir * ((-line_clip.p2.z) / dir.z);
 		}
+		real z_start = line.p2.z;
+		real z_end = line.p1.z;
 		///////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////////////////////////////////////
@@ -135,7 +150,7 @@ namespace {
 		///////////////////////////////////////////////////////////////////
 		// Clip to the viewport
 		if(xen::intersect(line_screen, viewport)){
-			doRenderLine2d(target, line_screen, color);
+			doRenderLine2d(target, line_screen, color, z_start, z_end);
 		}
 		///////////////////////////////////////////////////////////////////
 	}
