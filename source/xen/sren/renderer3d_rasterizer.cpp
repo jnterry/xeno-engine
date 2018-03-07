@@ -309,7 +309,7 @@ namespace {
 				curr_b += delta_b;
 				// If b has reached end point then begin drawing line c by changing
 				// vector that represents a single step from that of b to that of c
-				if (curr_b == line_b.p2){
+				if ((Vec2u)curr_b == (Vec2u)line_b.p2){
 					delta_b = delta_c;
 				}
 			}
