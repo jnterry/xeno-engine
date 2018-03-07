@@ -46,7 +46,7 @@ namespace{
 	/////////////////////////////////////////////////////////////////////
 	xen::gl::VertexAttributeSource getDefaultVertexAttributeSource(xen::VertexAttribute::Type type) {
 		xen::gl::VertexAttributeSource source;
-		xen::clearBytes(&source, sizeof(source));
+		xen::clearToZero(&source, sizeof(source));
 
 		switch(type){
 		case xen::VertexAttribute::Position3r:
