@@ -89,8 +89,8 @@ namespace {
 				real depth = xen::lerp(z_start, z_end, (i/num_pixels));
 				if (depth < target.depth[(u32)cur.y*target.width + (u32)cur.x]){
 					target.depth[(u32)cur.y*target.width + (u32)cur.x] = depth;
+					target.color[(u32)cur.y*target.width + (u32)cur.x] = color;
 				}
-				target.color[(u32)cur.y*target.width + (u32)cur.x] = color;
 				cur += delta;
 			}
 		}
