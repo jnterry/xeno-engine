@@ -167,7 +167,7 @@ int main(int argc, char** argv){
 			default: break;
 			}
 		}
-		handleCameraInput(camera, dt);
+		handleCameraInputCylinder(camera, dt);
 		render_params.camera = xen::generateCamera3d(camera);
 
 		device->clear      (app, xen::Color::BLACK);

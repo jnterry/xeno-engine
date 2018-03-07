@@ -14,7 +14,7 @@
 const real       camera_speed        = 250;
 const xen::Angle camera_rotate_speed = 120_deg;
 
-void handleCameraInput(xen::Camera3dCylinder& camera, real dt){
+void handleCameraInputCylinder(xen::Camera3dCylinder& camera, real dt){
 
 	if(xen::isKeyPressed(xen::Key::ArrowUp)){
 		camera.radius -= camera_speed * dt;
@@ -46,5 +46,21 @@ void handleCameraInput(xen::Camera3dCylinder& camera, real dt){
 	}
 }
 
+void handleCameraInputPlane(xen::Camera3d& camera, real dt) {
+	const static constexpr real camera_speed = 10.0f;
+
+	if(xen::isKeyPressed(xen::Key::ArrowUp)){
+		camera.position.y += camera_speed * dt;
+	}
+	if(xen::isKeyPressed(xen::Key::ArrowDown)){
+	  camera.position.y -= camera_speed * dt;
+	}
+	if(xen::isKeyPressed(xen::Key::ArrowLeft)){
+		camera.position.x += camera_speed * dt;
+	}
+	if(xen::isKeyPressed(xen::Key::ArrowRight)){
+		camera.position.x -= camera_speed * dt;
+	}
+}
 
 #endif

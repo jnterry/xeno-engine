@@ -277,7 +277,7 @@ int main(int argc, char** argv){
 			default: break;
 			}
 		}
-		handleCameraInput(camera, dt);
+		handleCameraInputCylinder(camera, dt);
 
 		Vec3r light_pos = xen::rotated(Vec3r{4, 3, 0}, Vec3r::UnitY, xen::Degrees(time*90_r));
 		point_light_color.w = (1_r + sin(time*9)) / 2.0_r;

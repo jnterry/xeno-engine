@@ -143,7 +143,7 @@ int main(int argc, char** argv){
 			default: break;
 			}
 		}
-		handleCameraInput(camera, dt);
+		handleCameraInputCylinder(camera, dt);
 		render_params.camera = xen::generateCamera3d(camera);
 
 		for(u32 i = 0; i < STAR_COUNT; ++i){

@@ -17,23 +17,7 @@
 #include <xen/math/vertex_group_types.hpp>
 #include <xen/sren/SoftwareDevice.hpp>
 
-void handleCameraInput(xen::Camera3d& camera, real dt) {
-	const static constexpr real camera_speed = 10.0f;
-
-
-	if(xen::isKeyPressed(xen::Key::ArrowUp)){
-		camera.position.y += camera_speed * dt;
-	}
-	if(xen::isKeyPressed(xen::Key::ArrowDown)){
-	  camera.position.y -= camera_speed * dt;
-	}
-	if(xen::isKeyPressed(xen::Key::ArrowLeft)){
-		camera.position.x += camera_speed * dt;
-	}
-	if(xen::isKeyPressed(xen::Key::ArrowRight)){
-		camera.position.x -= camera_speed * dt;
-	}
-}
+#include "../common.cpp"
 
 xen::RenderParameters3d render_params;
 
@@ -61,7 +45,6 @@ int main(int argc, char** argv){
 		{ 0.0, 0.0, 0.0},   { 1.0, 0.0, 0.0},   { 0.0, 1.0, 0.0 },
 		{ 0.0, 0.0, 5.0},   { 0.3, 0.0, 5.0},   { 0.0, 0.3, 5.0 },
 		{ 0.0, 1.0, 0.0},   { 0.0, 0.3, 5.0},   { 0.0, 2.0, 0.0 },
-
 	};
 
 	xen::FixedArray<xen::RenderCommand3d, 7> render_commands;
@@ -128,7 +111,7 @@ int main(int argc, char** argv){
 			default: break;
 			}
 		}
-		handleCameraInput(render_params.camera, dt);
+		handleCameraInputPlane(render_params.camera, dt);
 
 		// Rendering
 		device->clear(app, xen::Color::BLACK);
