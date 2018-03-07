@@ -67,7 +67,6 @@ namespace {
 				continue;
 			}
 
-			// :TODO: test depth buffer read/write
 			target.depth[(u32)screen_space.y*target.width + (u32)screen_space.x] = depth;
 			target.color[(u32)screen_space.y*target.width + (u32)screen_space.x] = color;
 		}
@@ -84,10 +83,12 @@ namespace {
 			Vec2r cur   = line.p2;
 			for(u32 i = 0; i < (u32)num_pixels; ++i){
 
-				// :TODO: test depth buffer read/check
 				// :TODO: Replace lerp with a perspective correct interpolation
 				real depth = xen::lerp(z_start, z_end, (i/num_pixels));
 				if (depth < target.depth[(u32)cur.y*target.width + (u32)cur.x]){
+					// Then point is behind something else occupying this pixel
+					printf("z_start: %f, z_end: %f\n", z_start, z_end);
+					printf("Depth buffer: %f\n", depth);
 					target.depth[(u32)cur.y*target.width + (u32)cur.x] = depth;
 					target.color[(u32)cur.y*target.width + (u32)cur.x] = color;
 				}
@@ -120,8 +121,8 @@ namespace {
 			Vec4r dir = line_clip.p1 - line_clip.p2;
 			line_clip.p2 += dir * ((-line_clip.p2.z) / dir.z);
 		}
-		real z_start = line.p2.z;
-		real z_end = line.p1.z;
+		real z_start = line_clip.p2.z;
+		real z_end   = line_clip.p1.z;
 		///////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////////////////////////////////////
