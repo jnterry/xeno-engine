@@ -320,10 +320,10 @@ namespace {
 			//printf("Val of curr_a: %f, Val of curr_b: %f\n", curr_a.x, curr_b.x);
 
 			// draw horizontal line
-			u32 min_x = xen::min(curr_a.x, curr_b.x);
-			u32 max_x = xen::max(curr_a.x, curr_b.x);
-			for (u32 x = min_x+1; x < max_x; ++x){
-				if (xen::contains(viewport, xen::mkVec((real)x, curr_a.y))){
+			u32 min_x = xen::max(xen::min(curr_a.x, curr_b.x, viewport.max.x), viewport.min.x);
+			u32 max_x = xen::min(xen::max(curr_a.x, curr_b.x, viewport.min.x), viewport.max.x);
+			if(curr_a.y >= viewport.min.y && curr_a.y <= viewport.max.y){
+				for (u32 x = min_x+1; x < max_x; ++x){
 					target.color[(u32)curr_a.y*target.width + x] = color;
 				}
 			}
