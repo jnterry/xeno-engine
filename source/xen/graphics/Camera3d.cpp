@@ -27,11 +27,11 @@ namespace xen {
 		// up_dir and look_dir are two vectors within the plane containing camera's
 		// local z and y axis, hence the camera's "right" vector is orthogonal to
 		// this plane, so can be computed with a cross product
-		Vec3r xaxis = xen::normalized(xen::cross(camera.up_dir, camera.look_dir));
+		Vec3r xaxis = xen::normalized(xen::cross(camera.look_dir, camera.up_dir));
 
 		// Now we have the camera's x and z axis we can compute the yaxis as being
 		// orthogonal to this plane
-		Vec3r yaxis = xen::normalized(xen::cross(zaxis, xaxis));
+		Vec3r yaxis = xen::normalized(xen::cross(xaxis, zaxis));
 		//////////////////////////////////////////////////////////
 
 		Mat4r orientation = {
