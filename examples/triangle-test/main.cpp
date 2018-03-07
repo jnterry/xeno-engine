@@ -57,12 +57,14 @@ int main(int argc, char** argv){
 		Vec3r::Origin, Vec3r::UnitZ,
 	};
 
-	xen::Triangle3r test_triangle;
-	test_triangle.p1 = Vec3r{0, 0, 0};
-	test_triangle.p2 = Vec3r{0, 1, 0};
-	test_triangle.p3 = Vec3r{1, 0, 0};
+	Vec3r test_triangles[] = {
+		{ 0.0, 0.0, 0.0},   { 1.0, 0.0, 0.0},   { 0.0, 1.0, 0.0 },
+		{ 0.0, 0.0, 5.0},   { 0.3, 0.0, 5.0},   { 0.0, 0.3, 5.0 },
+		{ 0.0, 1.0, 0.0},   { 0.0, 0.3, 5.0},   { 0.0, 2.0, 0.0 },
 
-	xen::FixedArray<xen::RenderCommand3d, 4> render_commands;
+	};
+
+	xen::FixedArray<xen::RenderCommand3d, 6> render_commands;
 	render_commands[0].type                = xen::RenderCommand3d::LINES;
 	render_commands[0].color               = xen::Color::RED4f;
 	render_commands[0].model_matrix        = xen::Scale3d(100_r);
@@ -84,8 +86,20 @@ int main(int argc, char** argv){
 	render_commands[3].type                = xen::RenderCommand3d::TRIANGLES;
 	render_commands[3].color               = xen::Color::YELLOW4f;
 	render_commands[3].model_matrix        = xen::Scale3d(1, 1, 1);
-	render_commands[3].verticies.verticies = &test_triangle.vertices[0];
+	render_commands[3].verticies.verticies = &test_triangles[0];
 	render_commands[3].verticies.count     = 3;
+
+	render_commands[4].type                = xen::RenderCommand3d::TRIANGLES;
+	render_commands[4].color               = xen::Color::MAGENTA4f;
+	render_commands[4].model_matrix        = xen::Scale3d(1, 1, 1);
+	render_commands[4].verticies.verticies = &test_triangles[3];
+	render_commands[4].verticies.count     = 3;
+
+	render_commands[5].type                = xen::RenderCommand3d::TRIANGLES;
+	render_commands[5].color               = xen::Color::CYAN4f;
+	render_commands[5].model_matrix        = xen::Scale3d(1, 1, 1);
+	render_commands[5].verticies.verticies = &test_triangles[6];
+	render_commands[5].verticies.count     = 3;
 
 	// make it stupidly big so we always render to the entire screen
 	xen::Aabb2u viewport = { 0, 0, 100000, 100000 };
