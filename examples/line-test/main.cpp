@@ -36,7 +36,7 @@ int main(int argc, char** argv){
 	xen::Allocator*      alloc  = new xen::AllocatorCounter<xen::AllocatorMalloc>();
 	xen::ArenaLinear     arena  = xen::createArenaLinear(*alloc, xen::megabytes(32));
 	xen::GraphicsDevice* device = xen::createRasterizerDevice(arena);
-	xen::Window*         app    = device->createWindow((Vec2u)window_size, "starfield");
+	xen::Window*         app    = device->createWindow((Vec2u)window_size, "line-test");
 
 	Vec3r axis_line_verts[] = {
 		Vec3r::Origin, Vec3r::UnitX,
