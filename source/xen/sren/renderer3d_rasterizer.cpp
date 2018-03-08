@@ -235,10 +235,10 @@ namespace {
 			return;
 		}
 
-		printf("Points of triangle: (%f,%f), (%f,%f), (%f,%f)\n",
-		       tri.p1.x, tri.p1.y,
-		       tri.p2.x, tri.p2.y,
-		       tri.p3.x, tri.p3.y);
+		//printf("Points of triangle: (%f,%f), (%f,%f), (%f,%f)\n",
+		//       tri.p1.x, tri.p1.y,
+		//       tri.p2.x, tri.p2.y,
+		//       tri.p3.x, tri.p3.y);
 
 		// Create line for each of a, b, & c for drawing purposes
 		xen::LineSegment2r line_a = {tri.p1, tri.p3};
@@ -248,7 +248,7 @@ namespace {
 		//////////////////////////////////////////////////////////
 		// Find step vector for line_a as well as start position
 		real num_pixels_a = xen::max(abs(line_a.p1.x - line_a.p2.x), abs(line_a.p1.y - line_a.p2.y));
-		printf("Number of pixels in line_a: %f\n", num_pixels_a);
+		//printf("Number of pixels in line_a: %f\n", num_pixels_a);
 		Vec2r delta_a = (line_a.p2 - line_a.p1) / num_pixels_a;
 		if(delta_a.y > 1.0f){ // ensure we never step up by multiple y
 			delta_a /= delta_a.y;
@@ -258,7 +258,7 @@ namespace {
 		//////////////////////////////////////////////////////////
 		// Find step vector for line_b as well as start position
 		real num_pixels_b = xen::max(abs(line_b.p1.x - line_b.p2.x), abs(line_b.p1.y - line_b.p2.y));
-		printf("Number of pixels in line_b: %f\n", num_pixels_b);
+		//printf("Number of pixels in line_b: %f\n", num_pixels_b);
 		Vec2r delta_b = (line_b.p2 - line_b.p1) / num_pixels_b;
 		if(delta_b.y > 1.0f){ // ensure we never step up by multiple y
 			delta_b /= delta_b.y;
@@ -269,7 +269,7 @@ namespace {
 		// Find step vector for line_b, no start position as c is drawn after b
 		// is finished -> IE: (line_c.start == line_b.end)
 		real num_pixels_c = xen::max(abs(line_c.p1.x - line_c.p2.x), abs(line_c.p1.y - line_c.p2.y));
-		printf("Number of pixels in line_c: %f\n", num_pixels_c);
+		//printf("Number of pixels in line_c: %f\n", num_pixels_c);
 		Vec2r delta_c = (line_c.p2 - line_c.p1) / num_pixels_c;
 	  if(delta_c.y > 1.0f){ // ensure we never step up by multiple y
 			delta_c /= delta_c.y;
@@ -322,41 +322,102 @@ namespace {
 		}
 
 	}
-	// :TODO: Write doRenderTriangle3d which takes a 3D triangle, put into clip
-	// space, clip it (maybe), and then convert into screen space and call doRenderTriangle2d
+
 	void doRenderTriangle3d(xen::sren::RenderTargetImpl& target,
 		                      const xen::Aabb2r& viewport,
 												  const Mat4f& mvp_matrix,
-	                        xen::Color4f color, xen::Triangle3r& tri){
+	                        xen::Color4f color,
+	                        xen::Triangle3r& tri){
 		xen::Triangle4r tri_clip  = xen::toHomo(tri) * mvp_matrix;
-		///////////////////////////////////////////////////////////////////
-		// Do perspective divide (into normalized device coordinates -> [-1, 1]
-		// We only care about x and y coordinates at this point
-		tri_clip.p1.xy /= (tri_clip.p1.w);
-		tri_clip.p2.xy /= (tri_clip.p2.w);
-		tri_clip.p3.xy /= (tri_clip.p3.w);
-		///////////////////////////////////////////////////////////////////
+
+		// Work out which points are behind the camera
+		u08 points_behind = 0;
+		points_behind |= (tri_clip.p1.z < 0) << 0;
+		points_behind |= (tri_clip.p2.z < 0) << 1;
+		points_behind |= (tri_clip.p3.z < 0) << 2;
+
+		printf("Drawing triangle case %i\n", points_behind);
 
 		///////////////////////////////////////////////////////////////////
-		// Transform into screen space
-		xen::Triangle2r  tri_screen;
+		// Render the triangle(s)
+		// Various cases depending on which of the points are behind the camera
+		switch(points_behind){
+		case 7: // 111 - all points behind camera, do nothing
+			return;
+		case 0: { // 000 - all points in front of camera
+			// Do perspective divide (into normalized device coordinates -> [-1, 1]
+			tri_clip.p1 /= (tri_clip.p1.w);
+			tri_clip.p2 /= (tri_clip.p2.w);
+			tri_clip.p3 /= (tri_clip.p3.w);
 
-		// :TODO:COMP:ISSUE_15: swizzle function
-		// Once we can do generic swizzles, we could make transform to screen space
-		// a template function and use same code for this and points and triangles, etc
-		tri_screen.p1 = tri_clip.p1.xy;
-		tri_screen.p2 = tri_clip.p2.xy;
-		tri_screen.p3 = tri_clip.p3.xy;
+			xen::Triangle2r  tri_screen;
 
-		tri_screen += Vec2r{1,1};                  // convert to [0, 2] space
-		tri_screen /= 2.0_r;                       // convert to [0, 1] space
-		tri_screen *= viewport.max - viewport.min; // convert to screen space
-		tri_screen += viewport.min;                // move to correct part of screen
+			// :TODO:COMP:ISSUE_15: swizzle function
+			// Once we can do generic swizzles, we could make transform to screen space
+			// a template function and use same code for this and points and triangles, etc
+			tri_screen.p1 = tri_clip.p1.xy;
+			tri_screen.p2 = tri_clip.p2.xy;
+			tri_screen.p3 = tri_clip.p3.xy;
+
+			tri_screen += Vec2r{1,1};                  // convert to [0, 2] space
+			tri_screen /= 2.0_r;                       // convert to [0, 1] space
+			tri_screen *= viewport.max - viewport.min; // convert to screen space
+			tri_screen += viewport.min;                // move to correct part of screen
+
+			doRenderTriangle2d(target, viewport, color, tri_screen);
+			return;
+		}
+
+		case 3:   // 011
+			xen::swap(tri_clip.p1, tri_clip.p3);
+			goto do_draw_2_behind;
+		case 5:   // 101
+			xen::swap(tri_clip.p1, tri_clip.p2);
+			goto do_draw_2_behind;
+		case 6:   // 110
+		do_draw_2_behind: {
+				printf("Doing draw 2 behind case\n");
+				// There are two points behind the camera, so just make a new triangle
+				// between the single point in front of the camera, and where the lines
+				// intersect z = 0 plane.
+				//
+				// Move point p2 and p3 along the line connecting them to p1 such that z
+				// component becomes 0
+				Vec4r delta_p2 = (tri_clip.p1 - tri_clip.p2);
+				tri_clip.p2 += (delta_p2 / delta_p2.z) * -tri_clip.p2.z;
+
+				Vec4r delta_p3 = (tri_clip.p1 - tri_clip.p3);
+				tri_clip.p3 += (delta_p3 / delta_p3.z) * -tri_clip.p3.z;
+
+				// Do perspective divide (into normalized device coordinates -> [-1, 1]
+				tri_clip.p1 /= (tri_clip.p1.w);
+				tri_clip.p2 /= (tri_clip.p2.w);
+				tri_clip.p3 /= (tri_clip.p3.w);
+
+				xen::Triangle2r  tri_screen;
+
+				// :TODO:COMP:ISSUE_15: swizzle function
+				// Once we can do generic swizzles, we could make transform to screen space
+				// a template function and use same code for this and points and triangles, etc
+				tri_screen.p1 = tri_clip.p1.xy;
+				tri_screen.p2 = tri_clip.p2.xy;
+				tri_screen.p3 = tri_clip.p3.xy;
+
+				tri_screen += Vec2r{1,1};                  // convert to [0, 2] space
+				tri_screen /= 2.0_r;                       // convert to [0, 1] space
+				tri_screen *= viewport.max - viewport.min; // convert to screen space
+				tri_screen += viewport.min;                // move to correct part of screen
+
+				doRenderTriangle2d(target, viewport, color, tri_screen);
+				return;
+			}
+		case 1: // 001
+		case 2: // 010
+		case 4: // 100
+			// :TODO: implement these cases
+			return;
+		}
 		///////////////////////////////////////////////////////////////////
-		//printf("Points of triangle in model space: (%f,%f,%f), (%f,%f,%f), (%f,%f,%f)\n", tri.p1.x, tri.p1.y, tri.p1.z,tri.p2.x, tri.p2.y, tri.p2.z,tri.p3.x, tri.p3.y, tri.p3.z);
-		//printf("Points of triangle in clip space: (%f,%f,%f), (%f,%f,%f), (%f,%f,%f)\n", tri_clip.p1.x, tri_clip.p1.y, tri_clip.p1.z,tri_clip.p2.x, tri_clip.p2.y, tri_clip.p2.z,tri_clip.p3.x, tri_clip.p3.y, tri_clip.p3.z);
-		//printf("Points of triangle in screen space: (%f,%f), (%f,%f), (%f,%f)\n", tri_screen.p1.x, tri_screen.p1.y,tri_screen.p2.x, tri_screen.p2.y,tri_screen.p3.x, tri_screen.p3.y);
-		doRenderTriangle2d(target, viewport, color, tri_screen);
 	}
 }
 
