@@ -61,6 +61,22 @@ void handleCameraInputPlane(xen::Camera3d& camera, real dt) {
 	if(xen::isKeyPressed(xen::Key::ArrowRight)){
 		camera.position.x -= camera_speed * dt;
 	}
+
+	if(xen::isKeyPressed(xen::Key::A)){
+		camera.position.z -= camera_speed * dt;
+		camera.position.z = xen::max(0.001_r, camera.position.z);
+	}
+	if(xen::isKeyPressed(xen::Key::Z)){
+		camera.position.z += camera_speed * dt;
+	}
+
+	if(xen::isKeyPressed(xen::Key::Q)){
+		camera.up_dir = xen::rotated(camera.up_dir,  Vec3r::UnitZ, 90_deg * dt);
+	}
+  if(xen::isKeyPressed(xen::Key::E)){
+		camera.up_dir = xen::rotated(camera.up_dir, -Vec3r::UnitZ, 90_deg * dt);
+	}
+
 }
 
 #endif
