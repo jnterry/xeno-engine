@@ -412,9 +412,39 @@ namespace {
 				return;
 			}
 		case 1: // 001
+			xen::swap(tri_clip.p1, tri_clip.p3);
+			goto do_draw_1_behind;
 		case 2: // 010
+			xen::swap(tri_clip.p2, tri_clip.p3);
+			goto do_draw_1_behind;
 		case 4: // 100
-			// :TODO: implement these cases
+		do_draw_1_behind: {
+				// If there is a single point behind the camera then we must generate 2
+				// triangles to draw (we chop off a vertex of a triangle, generating a
+				// quadrilateral - which we draw as two triangles)
+				//
+				// p3 is the point behind the camera, slide it to z = 0 along the lines
+				// joining it to p1 and p2
+				Vec4r delta_p1       = (tri_clip.p1 - tri_clip.p3);
+				Vec4r p3_slide_to_p1 = (tri_clip.p3 + ((delta_p1 / delta_p1.z) * -tri_clip.p3.z));
+
+				Vec4r delta_p2       = (tri_clip.p2 - tri_clip.p3);
+				Vec4r p3_slide_to_p2 = (tri_clip.p3 + ((delta_p2 / delta_p2.z) * -tri_clip.p3.z));
+
+				xen::VertexGroup2r<4> quad_screen;
+				quad_screen.vertices[0] = (p3_slide_to_p1 / p3_slide_to_p1.w).xy;
+				quad_screen.vertices[1] = (tri_clip.p1    / tri_clip.p1.w).xy;
+				quad_screen.vertices[2] = (tri_clip.p2    / tri_clip.p2.w).xy;
+				quad_screen.vertices[3] = (p3_slide_to_p2 / p3_slide_to_p2.w).xy;
+
+				quad_screen += Vec2r{1,1};                  // convert to [0, 2] space
+				quad_screen /= 2.0_r;                       // convert to [0, 1] space
+				quad_screen *= viewport.max - viewport.min; // convert to screen space
+				quad_screen += viewport.min;                // move to correct part of screen
+
+				doRenderTriangle2d(target, viewport, color, *(xen::Triangle2r*)&quad_screen.vertices[0]);
+				doRenderTriangle2d(target, viewport, color, *(xen::Triangle2r*)&quad_screen.vertices[1]);
+			}
 			return;
 		}
 		///////////////////////////////////////////////////////////////////

@@ -56,6 +56,28 @@ namespace xen{
 	#pragma GCC diagnostic pop // re-enable -Wpedantic
 
 	/////////////////////////////////////////////////////////////////////
+	/// \brief Typedefs for arbitary size vertex groups
+	/////////////////////////////////////////////////////////////////////
+	template <u32 T_NUM, typename T> using VertexGroup2 = VertexGroup<T_NUM, 2, T>;
+	template <u32 T_NUM, typename T> using VertexGroup3 = VertexGroup<T_NUM, 3, T>;
+	template <u32 T_NUM, typename T> using VertexGroup4 = VertexGroup<T_NUM, 4, T>;
+	template <u32 T_NUM> using VertexGroup2r = VertexGroup2<T_NUM,   real>;
+	template <u32 T_NUM> using VertexGroup2u = VertexGroup2<T_NUM,    u32>;
+	template <u32 T_NUM> using VertexGroup2s = VertexGroup2<T_NUM,    s32>;
+	template <u32 T_NUM> using VertexGroup2f = VertexGroup2<T_NUM,  float>;
+	template <u32 T_NUM> using VertexGroup2d = VertexGroup2<T_NUM, double>;
+	template <u32 T_NUM> using VertexGroup3r = VertexGroup3<T_NUM,   real>;
+	template <u32 T_NUM> using VertexGroup3u = VertexGroup3<T_NUM,    u32>;
+	template <u32 T_NUM> using VertexGroup3s = VertexGroup3<T_NUM,    s32>;
+	template <u32 T_NUM> using VertexGroup3f = VertexGroup3<T_NUM,  float>;
+	template <u32 T_NUM> using VertexGroup3d = VertexGroup3<T_NUM, double>;
+	template <u32 T_NUM> using VertexGroup4r = VertexGroup4<T_NUM,   real>;
+	template <u32 T_NUM> using VertexGroup4u = VertexGroup4<T_NUM,    u32>;
+	template <u32 T_NUM> using VertexGroup4s = VertexGroup4<T_NUM,    s32>;
+	template <u32 T_NUM> using VertexGroup4f = VertexGroup4<T_NUM,  float>;
+	template <u32 T_NUM> using VertexGroup4d = VertexGroup4<T_NUM, double>;
+
+	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents a LineSegment in some number of dimensions
 	/////////////////////////////////////////////////////////////////////
 	template <u32 T_DIM, typename T> using LineSegment  = VertexGroup<2, T_DIM, T>;
