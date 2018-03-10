@@ -296,7 +296,7 @@ namespace {
 			while ((u32)curr_b.y == curr_pixel_y){
 				//printf("Stepping along b, now at: %f, %f\n", curr_b.x, curr_b.y);
 				if (xen::contains(viewport, curr_b)){
-					target.color[(u32)curr_a.y*target.width + (u32)curr_a.x] = color;
+					target.color[(u32)curr_b.y*target.width + (u32)curr_b.x] = color;
 				}
 				curr_b += delta_b;
 				// If b has reached end point then begin drawing line c by changing
