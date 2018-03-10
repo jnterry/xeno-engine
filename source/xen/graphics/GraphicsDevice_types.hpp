@@ -11,7 +11,7 @@
 #ifndef XEN_GRAPHICS_GRAPHICSDEVICE_TYPES_HPP
 #define XEN_GRAPHICS_GRAPHICSDEVICE_TYPES_HPP
 
-#include <xen/math/geometry_types.hpp>
+#include <xen/core/intrinsics.hpp>
 
 namespace xen {
 

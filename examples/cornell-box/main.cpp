@@ -54,11 +54,12 @@ int main(int argc, char** argv){
 	xen::Window* app = device->createWindow((Vec2u)window_size, "Cornell Box");
 
 	xen::FixedArray<xen::RenderCommand3d, 1> render_commands;
-	render_commands[0].type                = xen::RenderCommand3d::TRIANGLES;
-	render_commands[0].color               = xen::Color::RED4f;
-	render_commands[0].model_matrix        = xen::Translation3d(-277_r, -277_r, -277_r);
-	render_commands[0].verticies.verticies = &test_model_geometry[0];
-	render_commands[0].verticies.count     = test_model_num_vertices;
+	render_commands[0].primative_type         = xen::PrimativeType::TRIANGLES;
+	render_commands[0].color                  = xen::Color::RED4f;
+	render_commands[0].model_matrix           = xen::Translation3d(-277_r, -277_r, -277_r);
+	render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
+	render_commands[0].immediate.position     = &test_model_geometry[0];
+	render_commands[0].immediate.vertex_count = test_model_num_vertices;
 
 	xen::Aabb2u viewport = { 0, 0, (u32)window_size.x, (u32)window_size.y };
 

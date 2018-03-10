@@ -503,26 +503,32 @@ namespace xen{
 				Color4f base_color = cmd->color;
 				base_color.rgb *= params.ambient_light;
 
-				switch(cmd->type){
-				case RenderCommand3d::POINTS:
-					doRenderPoints(target, view_region, mat_mvp, base_color, cmd->verticies.verticies, cmd->verticies.count);
+				// :TODO: support meshes
+				if(cmd->geometry_source != xen::RenderCommand3d::IMMEDIATE){
+					continue;
+				}
+
+				switch(cmd->primative_type){
+				case xen::PrimativeType::POINTS:
+					doRenderPoints(target, view_region, mat_mvp, base_color,
+					               cmd->immediate.position, cmd->immediate.vertex_count);
 					break;
-				case RenderCommand3d::LINES:
+				case xen::PrimativeType::LINES:
 					stride = 2;
 					goto do_render_lines;
 					break;
-				case RenderCommand3d::TRIANGLES:
-					for(u32 i = 0; i < cmd->verticies.count - 1; i += 3){
-						Triangle3r* tri_world = (Triangle3r*)(&cmd->verticies.verticies[i]);
+				case xen::PrimativeType::TRIANGLES:
+					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += 3){
+						Triangle3r* tri_world = (Triangle3r*)(&cmd->immediate.position[i]);
 						doRenderTriangle3d(target,view_region, mat_mvp, cmd->color, *tri_world);
 					}
 					break;
-				case RenderCommand3d::LINE_STRIP:
+				case xen::PrimativeType::LINE_STRIP:
 					stride = 1;
 				do_render_lines:
-					for(u32 i = 0; i < cmd->verticies.count - 1; i += stride){
+					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += stride){
 						//printf("Doing vertex %i / %i\n", i, cmd->verticies.count);
-						LineSegment3r* line_world = (LineSegment3r*)(&cmd->verticies.verticies[i]);
+						LineSegment3r* line_world = (LineSegment3r*)(&cmd->immediate.position[i]);
 
 						doRenderLine3d(target, view_region, mat_mvp, base_color, *line_world);
 					}

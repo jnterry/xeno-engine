@@ -6,8 +6,8 @@
 /// \ingroup graphics
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_GRAPHICS_RENDERER3D_HPP
-#define XEN_GRAPHICS_RENDERER3D_HPP
+#ifndef XEN_GRAPHICS_RENDERCOMMANDS3D_HPP
+#define XEN_GRAPHICS_RENDERCOMMANDS3D_HPP
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/array_types.hpp>
@@ -20,36 +20,39 @@
 
 namespace xen{
 
+	enum class PrimativeType {
+		/// \brief Draws geometry as a point cloud
+		POINTS,
+
+		/// \brief Draws geometry by connecting subsequent pairs of points
+	  LINES,
+
+		/// \brief Draws geometry by connecting all adjacent points
+	  LINE_STRIP,
+
+		// LINE_LOOP,
+
+		/// \brief Draws geometry by forming triangles by grouping every 3
+		/// vertices
+	  TRIANGLES,
+
+		// TRIANGLE_FAN
+		// TRIANGLE_STRIP
+	};
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents a single object to be rendered to the scene
 	/////////////////////////////////////////////////////////////////////
 	struct RenderCommand3d {
-		enum Types {
-			/// \brief Draws a set of points defined by `vertices` member
-			POINTS,
+		enum GeometrySource {
+			// Do we really want to support immediate mode rendering?
+			// its slow, but useful for testing
+			IMMEDIATE,
 
-			/// \brief Draws a set of points defined by `vertices` member
-			/// by joining subsequent pairs of points
-			LINES,
-
-			/// \brief Draws a set of points defined by `vertices` member
-			/// by joining adjacent points
-			LINE_STRIP,
-
-			/// \brief Draws a set of triangles defined by `vertices` member
-			/// by grouping every 3 vertices
-			TRIANGLES,
-
-			/// \brief :TODO: temporary, render a mesh handle as triangles
-			/// we really want to be able to render an actual mesh as
-			/// different primitive types
 			MESH,
 
-			COUNT,
+			// :TODO: Implicit surfaces
 		};
-
-		/// \brief Defines the type of render command represented
-		u8 type;
 
 		/// \brief The diffuse color to use
 		Color4f color;
@@ -61,14 +64,25 @@ namespace xen{
 		/// \brief Matrix to transform from world space to model space
 		Mat4r model_matrix;
 
-		/// \brief Extra type dependent data
-		union {
-			struct {
-				Vec3r* verticies;
-				u32    count;
-			} verticies;
+		/// \brief The type of primative to be drawn by this command
+		PrimativeType primative_type;
 
-		  Mesh mesh;
+		/// \brief The source of the geometry for this command
+		GeometrySource geometry_source;
+
+		/// \brief Extra data dependent on the source field
+		union {
+			/// \brief Extra data used if source is Immediate
+			struct {
+				/// \brief Array of vertex positions
+				Vec3r* position;
+
+				/// \brief The number of vertices to draw
+				u32    vertex_count;
+			} immediate;
+
+			/// \brief A handle to a mesh to be drawn, used if source is Mesh
+			xen::Mesh mesh;
 		};
 	};
 
@@ -85,11 +99,18 @@ namespace xen{
 		/// \brief Array of light sources in the scene
 		xen::Array<LightSource3d> lights;
 
-		// delta time for animations (or per animated object?)
+		// delta time for animations (or per animated object?) or should a
+		// GraphicsDevice just keep track of its own time?
+		//  -> probably want to pass it in so game time can be manipulated, eg,
+		//     slow motion, pause screen, etc
+		//
+		// quality selection? (ray tracer faster/more accurate) - or should this
+		// be tracked by the GraphicsDevice?
+		//
 		// skybox? -> useful as parameter to scene for reflections
 		// lens flare?
 		// fog?
-		// quality selection? (ray tracer faster/more accurate)
+
 	};
 
 }

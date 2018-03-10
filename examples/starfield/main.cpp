@@ -92,35 +92,42 @@ int main(int argc, char** argv){
 	};
 
 	xen::FixedArray<xen::RenderCommand3d, 5> render_commands;
-	render_commands[0].type                = xen::RenderCommand3d::LINES;
-	render_commands[0].color               = xen::Color::RED4f;
-	render_commands[0].model_matrix        = xen::Scale3d(100_r);
-	render_commands[0].verticies.verticies = &axis_line_verts[0];
-	render_commands[0].verticies.count     = 2;
+	render_commands[0].primative_type         = xen::PrimativeType::LINES;
+	render_commands[0].color                  = xen::Color::RED4f;
+	render_commands[0].model_matrix           = xen::Scale3d(100_r);
+	render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
+	render_commands[0].immediate.position     = &axis_line_verts[0];
+	render_commands[0].immediate.vertex_count = 2;
 
-	render_commands[1].type                = xen::RenderCommand3d::LINES;
-	render_commands[1].color               = xen::Color::GREEN4f;
-	render_commands[1].model_matrix        = xen::Scale3d(100_r);
-	render_commands[1].verticies.verticies = &axis_line_verts[2];
-	render_commands[1].verticies.count     = 2;
+	render_commands[1].primative_type         = xen::PrimativeType::LINES;
+	render_commands[1].color                  = xen::Color::GREEN4f;
+	render_commands[1].model_matrix           = xen::Scale3d(100_r);
+	render_commands[1].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
+	render_commands[1].immediate.position     = &axis_line_verts[2];
+	render_commands[1].immediate.vertex_count = 2;
 
-	render_commands[2].type                = xen::RenderCommand3d::LINES;
-	render_commands[2].color               = xen::Color::BLUE4f;
-	render_commands[2].model_matrix        = xen::Scale3d(100_r);
-	render_commands[2].verticies.verticies = &axis_line_verts[4];
-	render_commands[2].verticies.count     = 2;
+	render_commands[2].primative_type         = xen::PrimativeType::LINES;
+	render_commands[2].color                  = xen::Color::BLUE4f;
+	render_commands[2].model_matrix           = xen::Scale3d(100_r);
+	render_commands[2].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
+	render_commands[2].immediate.position     = &axis_line_verts[4];
+	render_commands[2].immediate.vertex_count = 2;
 
-	render_commands[3].type                = xen::RenderCommand3d::POINTS;
-	render_commands[3].color               = xen::Color::WHITE4f;
-	render_commands[3].model_matrix        = Mat4r::Identity;
-	render_commands[3].verticies.verticies = star_positions;
-	render_commands[3].verticies.count     = STAR_COUNT;
+	render_commands[3].primative_type         = xen::PrimativeType::POINTS;
+	render_commands[3].color                  = xen::Color::WHITE4f;
+	render_commands[3].model_matrix           = Mat4r::Identity;
+	render_commands[3].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
+	render_commands[3].immediate.position     = star_positions;
+	render_commands[3].immediate.vertex_count = STAR_COUNT;
 
-	render_commands[4].type                = xen::RenderCommand3d::LINES;
-	render_commands[4].color               = xen::Color::CYAN4f;
-	render_commands[4].model_matrix        = xen::Scale3d(200_r) * xen::Translation3d(-100.0_r, -100.0_r, -100.0_r);
-	render_commands[4].verticies.verticies = &cube_lines[0];
-	render_commands[4].verticies.count     = XenArrayLength(cube_lines);
+	render_commands[4].primative_type         = xen::PrimativeType::LINES;
+	render_commands[4].color                  = xen::Color::CYAN4f;
+	render_commands[4].model_matrix           = (xen::Scale3d(200_r) *
+	                                             xen::Translation3d(-100.0_r, -100.0_r, -100.0_r)
+	                                            );
+	render_commands[4].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
+	render_commands[4].immediate.position     = &cube_lines[0];
+	render_commands[4].immediate.vertex_count = XenArrayLength(cube_lines);
 
 	xen::Aabb2u viewport = { 0, 0, (u32)window_size.x, (u32)window_size.y };
 

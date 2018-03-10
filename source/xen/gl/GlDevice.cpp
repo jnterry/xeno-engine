@@ -268,7 +268,8 @@ namespace {
 			for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 				const xen::RenderCommand3d* cmd = &commands[cmd_index];
 
-				if(cmd->type != xen::RenderCommand3d::MESH){ continue; }
+				// :TODO: support immediate rendering
+				if(cmd->geometry_source != xen::RenderCommand3d::MESH){ continue; }
 
 				xen::gl::setUniform(mvp_mat_loc,        cmd->model_matrix * vp_mat);
 				xen::gl::setUniform(model_mat_loc,      cmd->model_matrix);
