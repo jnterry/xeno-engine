@@ -18,24 +18,13 @@
 #include <xen/math/angle.hpp>
 #include <xen/sren/SoftwareDevice.hpp>
 
-#include "testModel.hpp"
 #include "../common.cpp"
+#include "cornell-box.hpp"
 
 xen::Camera3dCylinder camera;
-
 xen::RenderParameters3d render_params;
 
 int main(int argc, char** argv){
-	xen::FixedArray<xen::LightSource3d, 1> scene_lights;
-
-	scene_lights[0].type           = xen::LightSource3d::POINT;
-	scene_lights[0].point.position = {1.0_r, 1.0_r, 1.0_r};
-	scene_lights[0].color          = xen::Color::WHITE4f;
-	scene_lights[0].attenuation    = {0.0f, 0.0f, 1.0f};
-
-	render_params.ambient_light = xen::Color3f(0.3f, 0.3f, 0.3f);
-	render_params.lights        = scene_lights;
-
 	camera.z_near   = 0.001;
 	camera.z_far    = 1000;
 	camera.fov_y    = 70_deg;
@@ -45,6 +34,16 @@ int main(int argc, char** argv){
 	camera.axis     = Vec3r::UnitY;
 	camera.target   = Vec3r::Origin;
 	camera.angle    = 0.0_deg;
+
+	xen::FixedArray<xen::LightSource3d, 1> scene_lights;
+
+	scene_lights[0].type           = xen::LightSource3d::POINT;
+	scene_lights[0].point.position = {1.0_r, 1.0_r, 1.0_r};
+	scene_lights[0].color          = xen::Color::WHITE4f;
+	scene_lights[0].attenuation    = {0.0f, 0.0f, 1.0f};
+
+	render_params.ambient_light = xen::Color3f(0.3f, 0.3f, 0.3f);
+	render_params.lights        = scene_lights;
 
 	Vec2r window_size = {300, 300};
 
@@ -57,12 +56,11 @@ int main(int argc, char** argv){
 	xen::FixedArray<xen::RenderCommand3d, 1> render_commands;
 	xen::clearToZero(render_commands);
 
-	render_commands[0].primative_type         = xen::PrimativeType::TRIANGLES;
-	render_commands[0].color                  = xen::Color::RED4f;
+	render_commands[0].primative_type         = xen::PrimativeType::LINE_STRIP;
+	render_commands[0].color                  = xen::Color::WHITE4f;
 	render_commands[0].model_matrix           = xen::Translation3d(-277_r, -277_r, -277_r);
 	render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[0].immediate.position     = &test_model_geometry[0];
-	render_commands[0].immediate.vertex_count = test_model_num_vertices;
+	render_commands[0].immediate              = MeshGeometry_CornellBox;
 
 	xen::Aabb2u viewport = { 0, 0, (u32)window_size.x, (u32)window_size.y };
 

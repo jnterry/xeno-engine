@@ -1,5 +1,8 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/math/vector_types.hpp>
+#include <xen/graphics/RenderCommand3d.hpp>
+
+#include "cornell-box.hpp"
 
 // ---------------------------------------------------------------------------
 // Define room coordinates
@@ -37,17 +40,7 @@ Vec3r F_tall = { 290_r, 330_r, 259_r };
 Vec3r G_tall = {  83_r, 330_r, 149_r };
 Vec3r H_tall = { 241_r, 330_r,  99_r };
 
-// ---------------------------------------------------------------------------
-// Define colors
-Vec3r red    = { 0.75_r, 0.15_r, 0.15_r };
-Vec3r yellow = { 0.75_r, 0.75_r, 0.15_r };
-Vec3r green  = { 0.15_r, 0.75_r, 0.15_r };
-Vec3r cyan   = { 0.15_r, 0.75_r, 0.75_r };
-Vec3r blue   = { 0.15_r, 0.15_r, 0.75_r };
-Vec3r purple = { 0.75_r, 0.15_r, 0.75_r };
-Vec3r white  = { 0.75_r, 0.75_r, 0.75_r };
-
-Vec3r test_model_geometry_array[] = {
+Vec3r positions[] = {
 	// ---------------------------------------------------------------------------
 	// room coordinates
 	// Floor
@@ -101,7 +94,18 @@ Vec3r test_model_geometry_array[] = {
 	G_tall, H_tall, F_tall,
 };
 
-Vec3r test_model_color_array[] = {
+
+// ---------------------------------------------------------------------------
+// Define colors
+Vec3r red    = { 0.75_r, 0.15_r, 0.15_r };
+Vec3r yellow = { 0.75_r, 0.75_r, 0.15_r };
+Vec3r green  = { 0.15_r, 0.75_r, 0.15_r };
+Vec3r cyan   = { 0.15_r, 0.75_r, 0.75_r };
+Vec3r blue   = { 0.15_r, 0.15_r, 0.75_r };
+Vec3r purple = { 0.75_r, 0.15_r, 0.75_r };
+Vec3r white  = { 0.75_r, 0.75_r, 0.75_r };
+
+Vec3r colors[] = {
 	// ---------------------------------------------------------------------------
 	// Room colors
 	// Floor
@@ -156,7 +160,13 @@ Vec3r test_model_color_array[] = {
 
 };
 
-Vec3r *test_model_geometry = test_model_geometry_array;
-Vec3r *test_model_color = test_model_color_array;
+static_assert(XenArrayLength(positions) == XenArrayLength(colors),
+              "Expected equal number of colors and positions"
+             );
 
-int test_model_num_vertices = XenArrayLength(test_model_geometry_array);
+const xen::ImmediateGeometrySource MeshGeometry_CornellBox = {
+	XenArrayLength(positions),
+  positions,
+	nullptr, // normals
+	nullptr, // colors
+};

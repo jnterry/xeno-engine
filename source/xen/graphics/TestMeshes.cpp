@@ -13,7 +13,6 @@
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/TestMeshes.hpp>
 
-
 namespace {
 
 	//////////////////////////////////////////////////////////////////////////////
@@ -169,7 +168,6 @@ namespace {
 }
 
 namespace xen {
-
 	const ImmediateGeometrySource TestMeshGeometry_UnitCubeLines = {
 		XenArrayLength(UnitCubeLines_Positions),
 		UnitCubeLines_Positions,
@@ -184,7 +182,7 @@ namespace xen {
 		UnitCube_Colors,
 	};
 
-	const extern ImmediateGeometrySource TestMeshGeometry_Axes = {
+	const ImmediateGeometrySource TestMeshGeometry_Axes = {
 		XenArrayLength(Axes_Positions),
 		Axes_Positions,
 		nullptr,
