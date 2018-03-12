@@ -68,6 +68,18 @@ namespace xen{
 		};
 	}
 
+	Color4f makeColor4f(Color color) {
+		return (Color4f)color;
+	}
+	Color4f makeColor4f(Color3f c, float a){
+		return {
+			xen::mapToRangeClamped<u08, float>(0, 255, 0.0f, 1.0f, c.r),
+			xen::mapToRangeClamped<u08, float>(0, 255, 0.0f, 1.0f, c.g),
+			xen::mapToRangeClamped<u08, float>(0, 255, 0.0f, 1.0f, c.b),
+			xen::mapToRangeClamped<u08, float>(0, 255, 0.0f, 1.0f, a)
+		};
+	}
+
 	xen::Color::Color() {
 		// no-op
 	}

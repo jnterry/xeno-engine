@@ -40,6 +40,18 @@ namespace xen{
 		// TRIANGLE_STRIP
 	};
 
+	/// \brief Struct containing data for an immediate geometry source
+	struct ImmediateGeometrySource {
+		/// \brief Number of vertices to draw
+		u32 vertex_count;
+
+		/// \brief The positions of each vertex. Array length = vertex_count
+		Vec3r* position;
+
+		/// \brief The colors of each vertex. Array length = vertex_count
+		Color* color;
+	};
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents a single object to be rendered to the scene
 	/////////////////////////////////////////////////////////////////////
@@ -64,7 +76,7 @@ namespace xen{
 		/// \brief Matrix to transform from world space to model space
 		Mat4r model_matrix;
 
-		/// \brief The type of primative to be drawn by this command
+		/// \brief The type of primitive to be drawn by this command
 		PrimativeType primative_type;
 
 		/// \brief The source of the geometry for this command
@@ -73,13 +85,7 @@ namespace xen{
 		/// \brief Extra data dependent on the source field
 		union {
 			/// \brief Extra data used if source is Immediate
-			struct {
-				/// \brief Array of vertex positions
-				Vec3r* position;
-
-				/// \brief The number of vertices to draw
-				u32    vertex_count;
-			} immediate;
+			ImmediateGeometrySource immediate;
 
 			/// \brief A handle to a mesh to be drawn, used if source is Mesh
 			xen::Mesh mesh;

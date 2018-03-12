@@ -22,7 +22,8 @@ xen::RenderParameters3d render_params;
 xen::Camera3dCylinder camera;
 
 const u32 STAR_COUNT = 1024;
-Vec3r star_positions[STAR_COUNT];
+Vec3r      star_positions[STAR_COUNT];
+xen::Color star_colors   [STAR_COUNT];
 
 int main(int argc, char** argv){
 	camera.z_near = 0.001;
@@ -46,6 +47,13 @@ int main(int argc, char** argv){
 		star_positions[i].x = xen::randf(-100, 100);
 		star_positions[i].y = xen::randf(-100, 100);
 		star_positions[i].z = xen::randf(-100, 100);
+
+		star_colors[i].r = xen::mapToRange<real, u08>(-100, 100, 0, 255, star_positions[i].x);
+		star_colors[i].g = xen::mapToRange<real, u08>(-100, 100, 0, 255, star_positions[i].y);
+		star_colors[i].b = 255; //xen::mapToRange<real, u08>(-100, 100, 0, 255, star_positions[i].z);
+		star_colors[i].a = 255;
+		printf("Star %i: (%i, %i, %i, %i)\n",
+		       i, star_colors[i].r, star_colors[i].g, star_colors[i].b, star_colors[i].a);
 	}
 
 	Vec3r axis_line_verts[] = {
@@ -120,6 +128,7 @@ int main(int argc, char** argv){
 	render_commands[3].model_matrix           = Mat4r::Identity;
 	render_commands[3].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
 	render_commands[3].immediate.position     = star_positions;
+	render_commands[3].immediate.color        = star_colors;
 	render_commands[3].immediate.vertex_count = STAR_COUNT;
 
 	render_commands[4].primative_type         = xen::PrimativeType::LINES;
