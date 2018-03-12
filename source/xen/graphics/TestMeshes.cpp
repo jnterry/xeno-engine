@@ -61,6 +61,93 @@ namespace {
 
 	//////////////////////////////////////////////////////////////////////////////
 
+	Vec3r UnitCube_Positions[] = {
+		// Front Face, z = 0
+		{ 0_r, 0_r, 0_r }, { 1_r, 0_r, 0_r }, { 0_r, 1_r, 0_r },
+		{ 1_r, 0_r, 0_r }, { 0_r, 1_r, 0_r }, { 1_r, 1_r, 0_r },
+
+		// Back Face, z = 1
+		{ 0_r, 0_r, 1_r }, { 1_r, 0_r, 1_r }, { 0_r, 1_r, 1_r },
+		{ 1_r, 0_r, 1_r }, { 0_r, 1_r, 1_r }, { 1_r, 1_r, 1_r },
+
+		// Bottom face, y = 0
+	  { 0_r, 0_r, 0_r }, { 1_r, 0_r, 0_r }, { 0_r, 0_r, 1_r },
+		{ 1_r, 0_r, 0_r }, { 0_r, 0_r, 1_r }, { 1_r, 0_r, 1_r },
+
+		// Top face, y = 1
+	  { 0_r, 1_r, 0_r }, { 1_r, 1_r, 0_r }, { 0_r, 1_r, 1_r },
+		{ 1_r, 1_r, 0_r }, { 0_r, 1_r, 1_r }, { 1_r, 1_r, 1_r },
+
+		// Left face, x = 0
+		{ 0_r, 0_r, 0_r }, { 0_r, 1_r, 0_r }, { 0_r, 0_r, 1_r },
+		{ 0_r, 1_r, 0_r }, { 0_r, 0_r, 1_r }, { 0_r, 1_r, 1_r },
+
+		// Right face, x = 1
+		{ 1_r, 0_r, 0_r }, { 1_r, 1_r, 0_r }, { 1_r, 0_r, 1_r },
+		{ 1_r, 1_r, 0_r }, { 1_r, 0_r, 1_r }, { 1_r, 1_r, 1_r },
+	};
+
+	Vec3r UnitCube_Normals[] = {
+		// Front face, z = 0
+		Vec3r::UnitZ, Vec3r::UnitZ, Vec3r::UnitZ,
+		Vec3r::UnitZ, Vec3r::UnitZ, Vec3r::UnitZ,
+
+		// Back Face, z = 1
+		-Vec3r::UnitZ, -Vec3r::UnitZ, -Vec3r::UnitZ,
+		-Vec3r::UnitZ, -Vec3r::UnitZ, -Vec3r::UnitZ,
+
+		// Bottom face, y = 0
+	  Vec3r::UnitY, Vec3r::UnitY, Vec3r::UnitY,
+		Vec3r::UnitY, Vec3r::UnitY, Vec3r::UnitY,
+
+		// Top face, y = 1
+	  -Vec3r::UnitY, -Vec3r::UnitY, -Vec3r::UnitY,
+		-Vec3r::UnitY, -Vec3r::UnitY, -Vec3r::UnitY,
+
+		// Left face, y = 0
+	  Vec3r::UnitX, Vec3r::UnitX, Vec3r::UnitX,
+		Vec3r::UnitX, Vec3r::UnitX, Vec3r::UnitX,
+
+		// Right face, y = 1
+	  -Vec3r::UnitX, -Vec3r::UnitX, -Vec3r::UnitX,
+		-Vec3r::UnitX, -Vec3r::UnitX, -Vec3r::UnitX,
+	};
+
+	xen::Color UnitCube_Colors[] = {
+		// Front face, z = 0
+		xen::Color::WHITE, xen::Color::WHITE, xen::Color::WHITE,
+		xen::Color::WHITE, xen::Color::WHITE, xen::Color::WHITE,
+
+		// Back Face, z = 1
+		xen::Color::WHITE, xen::Color::WHITE, xen::Color::WHITE,
+		xen::Color::WHITE, xen::Color::WHITE, xen::Color::WHITE,
+
+		// Bottom face, y = 0
+		xen::Color::WHITE, xen::Color::WHITE, xen::Color::WHITE,
+		xen::Color::WHITE, xen::Color::WHITE, xen::Color::WHITE,
+
+		// Top face, y = 1
+		xen::Color::WHITE, xen::Color::WHITE, xen::Color::WHITE,
+		xen::Color::WHITE, xen::Color::WHITE, xen::Color::WHITE,
+
+		// Left face, y = 0
+		xen::Color::WHITE, xen::Color::WHITE, xen::Color::WHITE,
+		xen::Color::WHITE, xen::Color::WHITE, xen::Color::WHITE,
+
+		// Right face, y = 1
+		xen::Color::WHITE, xen::Color::WHITE, xen::Color::WHITE,
+		xen::Color::WHITE, xen::Color::WHITE, xen::Color::WHITE,
+	};
+
+	static_assert(XenArrayLength(UnitCube_Positions) == XenArrayLength(UnitCube_Colors),
+	              "Expected same number of colors and positions"
+	              );
+	static_assert(XenArrayLength(UnitCube_Positions) == XenArrayLength(UnitCube_Normals),
+	              "Expected same number of normals and positions"
+	              );
+
+	//////////////////////////////////////////////////////////////////////////////
+
 	Vec3r Axes_Positions[] = {
 		Vec3r::Origin, Vec3r::UnitX,
 		Vec3r::Origin, Vec3r::UnitY,
@@ -81,13 +168,20 @@ namespace {
 
 }
 
-
 namespace xen {
+
 	const ImmediateGeometrySource TestMeshGeometry_UnitCubeLines = {
 		XenArrayLength(UnitCubeLines_Positions),
 		UnitCubeLines_Positions,
 		nullptr,
 		UnitCubeLines_Colors,
+	};
+
+	const ImmediateGeometrySource TestMeshGeometry_UnitCube = {
+		XenArrayLength(UnitCubeLines_Positions),
+		UnitCube_Positions,
+		UnitCube_Normals,
+		UnitCube_Colors,
 	};
 
 	const extern ImmediateGeometrySource TestMeshGeometry_Axes = {
