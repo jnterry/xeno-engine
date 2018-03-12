@@ -10,6 +10,7 @@
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/graphics/Window.hpp>
+#include <xen/graphics/TestMeshes.hpp>
 #include <xen/math/utilities.hpp>
 #include <xen/math/vector.hpp>
 #include <xen/math/quaternion.hpp>
@@ -39,12 +40,6 @@ int main(int argc, char** argv){
 	xen::GraphicsDevice* device = xen::createRasterizerDevice(arena);
 	xen::Window*         app    = device->createWindow((Vec2u)window_size, "line-test");
 
-	Vec3r axis_line_verts[] = {
-		Vec3r::Origin, Vec3r::UnitX,
-		Vec3r::Origin, Vec3r::UnitY,
-		Vec3r::Origin, Vec3r::UnitZ,
-	};
-
 	Vec3r parallel_lines[LINE_COUNT * 2];
 	for(int xi = 0; xi < LINE_COUNT_SQRT; ++xi){
 		real x = (real)xi / (real)LINE_COUNT_SQRT;
@@ -56,53 +51,34 @@ int main(int argc, char** argv){
 		}
 	}
 
-	printf("LINE COUNT: %i\n", LINE_COUNT);
-
-	xen::FixedArray<xen::RenderCommand3d, 5> render_commands;
+	xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
 	xen::clearToZero(render_commands);
 
 	render_commands[0].primative_type         = xen::PrimativeType::LINES;
-	render_commands[0].color                  = xen::Color::RED4f;
+	render_commands[0].color                  = xen::Color::WHITE4f;
 	render_commands[0].model_matrix           = xen::Scale3d(100_r);
 	render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[0].immediate.position     = &axis_line_verts[0];
-	render_commands[0].immediate.vertex_count = 2;
+	render_commands[0].immediate              = xen::TestMeshGeometry_Axes;
 
 	render_commands[1].primative_type         = xen::PrimativeType::LINES;
-	render_commands[1].color                  = xen::Color::GREEN4f;
-	render_commands[1].model_matrix           = xen::Scale3d(100_r);
-	render_commands[1].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[1].immediate.position     = &axis_line_verts[2];
-	render_commands[1].immediate.vertex_count = 2;
-
-	render_commands[2].primative_type         = xen::PrimativeType::LINES;
-	render_commands[2].color                  = xen::Color::BLUE4f;
-	render_commands[2].model_matrix           = xen::Scale3d(100_r);
-	render_commands[2].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[2].immediate.position     = &axis_line_verts[4];
-	render_commands[2].immediate.vertex_count = 2;
-
-	////////////////////
-
-	render_commands[3].primative_type         = xen::PrimativeType::LINES;
-	render_commands[3].color                  = xen::Color::YELLOW4f;
-	render_commands[3].model_matrix           = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
+	render_commands[1].color                  = xen::Color::YELLOW4f;
+	render_commands[1].model_matrix           = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
 	                                             xen::Scale3d(50_r, 50_r, 10_r) *
 	                                             xen::Rotation3dy( 30_deg)
 	                                            );
-	render_commands[3].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[3].immediate.position     = &parallel_lines[0];
-	render_commands[3].immediate.vertex_count = LINE_COUNT * 2;
+	render_commands[1].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
+	render_commands[1].immediate.position     = &parallel_lines[0];
+	render_commands[1].immediate.vertex_count = LINE_COUNT * 2;
 
-	render_commands[4].primative_type         = xen::PrimativeType::LINES;
-	render_commands[4].color                  = xen::Color::MAGENTA4f;
-	render_commands[4].model_matrix           = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
+	render_commands[2].primative_type         = xen::PrimativeType::LINES;
+	render_commands[2].color                  = xen::Color::MAGENTA4f;
+	render_commands[2].model_matrix           = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
 	                                             xen::Scale3d(50_r, 50_r, 10_r) *
 	                                             xen::Rotation3dy(-30_deg)
 	                                            );
-	render_commands[4].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[4].immediate.position     = &parallel_lines[0];
-	render_commands[4].immediate.vertex_count = LINE_COUNT * 2;
+	render_commands[2].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
+	render_commands[2].immediate.position     = &parallel_lines[0];
+	render_commands[2].immediate.vertex_count = LINE_COUNT * 2;
 
 	// make it stupidly big so we always render to the entire screen
 	xen::Aabb2u viewport = { 0, 0, 100000, 100000 };
