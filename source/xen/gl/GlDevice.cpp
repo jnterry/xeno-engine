@@ -260,9 +260,12 @@ namespace {
 
 			xen::gl::setUniform(emissive_color_loc, Vec4r::Origin);
 
-			Mat4r vp_mat   = getViewProjectionMatrix(params.camera,
-			                                         (Vec2r)(viewport.max - viewport.min)
-			                                        );
+			Mat4r vp_mat = (getViewMatrix(params.camera) *
+
+			                // opengl has (0,0) at bottom left, we expect it to be at top left so flip
+			                xen::Scale3d(1, -1, 1)       *
+			                getProjectionMatrix(params.camera, (Vec2r)(viewport.max - viewport.min))
+			               );
 
 			xen::impl::checkGl(__LINE__, __FILE__);
 			for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
