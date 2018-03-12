@@ -91,6 +91,16 @@ namespace xen{
 	template<typename T, typename ...T_REST> T min(const T a, const T b, const T c, const T_REST... rest){
 		return xen::min(xen::min(a, b), xen::min(c, rest...));
 	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Swaps two values a and b
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	void swap(T& a, T& b){
+		T tmp = a;
+		a     = b;
+		b     = tmp;
+	}
 }
 
 inline constexpr real operator"" _r(long double            val){ return (real)val; }

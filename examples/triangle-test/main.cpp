@@ -8,44 +8,32 @@
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
+#include <xen/graphics/Window.hpp>
 #include <xen/math/utilities.hpp>
 #include <xen/math/vector.hpp>
 #include <xen/math/quaternion.hpp>
 #include <xen/math/matrix.hpp>
 #include <xen/math/angle.hpp>
+#include <xen/math/vertex_group_types.hpp>
 #include <xen/sren/SoftwareDevice.hpp>
 
 #include "../common.cpp"
 
 xen::RenderParameters3d render_params;
-xen::Camera3dCylinder camera;
-
-const u32 STAR_COUNT = 1024;
-Vec3r star_positions[STAR_COUNT];
 
 int main(int argc, char** argv){
-	camera.z_near = 0.001;
-	camera.z_far  = 1000;
-	camera.fov_y  = 70_deg;
-	camera.radius = 450;
-	camera.height = 0;
-	camera.up_dir = Vec3r::UnitY;
-	camera.axis   = Vec3r::UnitY;
-	camera.target = Vec3r::Origin;
-	camera.angle  = 0.0_deg;
+	render_params.camera.z_near   =  0.001;
+	render_params.camera.z_far    =  1000;
+	render_params.camera.fov_y    =  70_deg;
+	render_params.camera.look_dir = -Vec3r::UnitZ;
+	render_params.camera.position =  Vec3r{0, 0, 10};
 
 	Vec2r window_size = {800, 600};
 
 	xen::Allocator*      alloc  = new xen::AllocatorCounter<xen::AllocatorMalloc>();
 	xen::ArenaLinear     arena  = xen::createArenaLinear(*alloc, xen::megabytes(32));
 	xen::GraphicsDevice* device = xen::createRasterizerDevice(arena);
-	xen::Window*         app    = device->createWindow((Vec2u)window_size, "starfield");
-
-	for(u32 i = 0; i < STAR_COUNT; ++i){
-		star_positions[i].x = xen::randf(-100, 100);
-		star_positions[i].y = xen::randf(-100, 100);
-		star_positions[i].z = xen::randf(-100, 100);
-	}
+	xen::Window*         app    = device->createWindow((Vec2u)window_size, "triangle-test");
 
 	Vec3r axis_line_verts[] = {
 		Vec3r::Origin, Vec3r::UnitX,
@@ -53,45 +41,14 @@ int main(int argc, char** argv){
 		Vec3r::Origin, Vec3r::UnitZ,
 	};
 
-	Vec3r cube_lines[] = {
-		{ 0_r,  0_r,  0_r },
-		{ 1_r,  0_r,  0_r },
-
-		{ 1_r,  0_r,  0_r },
-		{ 1_r,  1_r,  0_r },
-
-		{ 1_r,  1_r,  0_r },
-		{ 0_r,  1_r,  0_r },
-
-		{ 0_r,  1_r,  0_r },
-		{ 0_r,  0_r,  0_r },
-
-		{ 0_r,  0_r,  1_r },
-		{ 1_r,  0_r,  1_r },
-
-		{ 1_r,  0_r,  1_r },
-		{ 1_r,  1_r,  1_r },
-
-		{ 1_r,  1_r,  1_r },
-		{ 0_r,  1_r,  1_r },
-
-		{ 0_r,  1_r,  1_r },
-		{ 0_r,  0_r,  1_r },
-
-		{ 1_r,  1_r,  1_r },
-		{ 1_r,  1_r,  0_r },
-
-		{ 0_r,  1_r,  1_r },
-		{ 0_r,  1_r,  0_r },
-
-		{ 0_r,  0_r,  1_r },
-		{ 0_r,  0_r,  0_r },
-
-		{ 1_r,  0_r,  1_r },
-		{ 1_r,  0_r,  0_r },
+	Vec3r test_triangles[] = {
+		{ 0.0, 0.0, 0.0},   { 1.0, 0.0, 0.0},   { 0.0, 1.0, 0.0 },
+		{ 0.0, 0.0, 5.0},   { 0.3, 0.0, 5.0},   { 0.0, 0.3, 5.0 },
+		{ 0.0, 1.0, 0.0},   { 0.0, 0.3, 5.0},   { 0.0, 2.0, 0.0 },
+		{ 0.0, 3.0, 5.0},   { 0.0, 1.0, 5.0},   { 0.0, 1.0, 0.0 },
 	};
 
-	xen::FixedArray<xen::RenderCommand3d, 5> render_commands;
+	xen::FixedArray<xen::RenderCommand3d, 8> render_commands;
 	render_commands[0].primative_type         = xen::PrimativeType::LINES;
 	render_commands[0].color                  = xen::Color::RED4f;
 	render_commands[0].model_matrix           = xen::Scale3d(100_r);
@@ -113,34 +70,53 @@ int main(int argc, char** argv){
 	render_commands[2].immediate.position     = &axis_line_verts[4];
 	render_commands[2].immediate.vertex_count = 2;
 
-	render_commands[3].primative_type         = xen::PrimativeType::POINTS;
-	render_commands[3].color                  = xen::Color::WHITE4f;
-	render_commands[3].model_matrix           = Mat4r::Identity;
+	render_commands[3].primative_type         = xen::PrimativeType::TRIANGLES;
+	render_commands[3].color                  = xen::Color::YELLOW4f;
+	render_commands[3].model_matrix           = xen::Scale3d(1, 1, 1);
 	render_commands[3].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[3].immediate.position     = star_positions;
-	render_commands[3].immediate.vertex_count = STAR_COUNT;
+	render_commands[3].immediate.position     = &test_triangles[0];
+	render_commands[3].immediate.vertex_count = 3;
 
-	render_commands[4].primative_type         = xen::PrimativeType::LINES;
-	render_commands[4].color                  = xen::Color::CYAN4f;
-	render_commands[4].model_matrix           = (xen::Scale3d(200_r) *
-	                                             xen::Translation3d(-100.0_r, -100.0_r, -100.0_r)
-	                                            );
+	render_commands[4].primative_type         = xen::PrimativeType::TRIANGLES;
+	render_commands[4].color                  = xen::Color::MAGENTA4f;
+	render_commands[4].model_matrix           = xen::Scale3d(1, 1, 1);
 	render_commands[4].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[4].immediate.position     = &cube_lines[0];
-	render_commands[4].immediate.vertex_count = XenArrayLength(cube_lines);
+	render_commands[4].immediate.position     = &test_triangles[3];
+	render_commands[4].immediate.vertex_count = 3;
 
-	xen::Aabb2u viewport = { 0, 0, (u32)window_size.x, (u32)window_size.y };
+	render_commands[5].primative_type         = xen::PrimativeType::TRIANGLES;
+	render_commands[5].color                  = xen::Color::CYAN4f;
+	render_commands[5].model_matrix           = xen::Scale3d(1, 1, 1);
+	render_commands[5].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
+	render_commands[5].immediate.position     = &test_triangles[6];
+	render_commands[5].immediate.vertex_count = 3;
+
+	render_commands[6].primative_type         = xen::PrimativeType::LINE_STRIP;
+	render_commands[6].color                  = xen::Color::WHITE4f;
+	render_commands[6].model_matrix           = xen::Scale3d(1, 1, 1);
+	render_commands[6].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
+	render_commands[6].immediate.position     = &test_triangles[6];
+	render_commands[6].immediate.vertex_count = 3;
+
+	render_commands[7].primative_type         = xen::PrimativeType::TRIANGLES;
+	render_commands[7].color                  = xen::Color::GREEN4f;
+	render_commands[7].model_matrix           = xen::Scale3d(1, 1, 1);
+	render_commands[7].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
+	render_commands[7].immediate.position     = &test_triangles[8];
+	render_commands[7].immediate.vertex_count = 3;
+
+	// make it stupidly big so we always render to the entire screen
+	xen::Aabb2u viewport = { 0, 0, 100000, 100000 };
 
 	xen::Stopwatch timer;
 	real last_time = 0;
 	printf("Entering main loop\n");
 	while(xen::isWindowOpen(app)) {
-	  real time = xen::asSeconds<real>(timer.getElapsedTime());
+		real time = xen::asSeconds<real>(timer.getElapsedTime());
 		real dt = time - last_time;
 		last_time = time;
 
 		printf("dt: %f\n", dt);
-
 		xen::WindowEvent* event;
 		while((event = xen::pollEvent(app)) != nullptr){
 			switch(event->type){
@@ -150,17 +126,10 @@ int main(int argc, char** argv){
 			default: break;
 			}
 		}
-		handleCameraInputCylinder(camera, dt);
-		render_params.camera = xen::generateCamera3d(camera);
+		handleCameraInputPlane(render_params.camera, dt);
 
-		for(u32 i = 0; i < STAR_COUNT; ++i){
-			star_positions[i].z += dt * 75.0f;
-			if(star_positions[i].z >= 100.0f){
-				star_positions[i].z -= 200.0f;
-			}
-		}
-
-	  device->clear(app, xen::Color::BLACK);
+		// Rendering
+		device->clear(app, xen::Color::BLACK);
 		device->render(app, viewport, render_params, render_commands);
 		device->swapBuffers(app);
 	}

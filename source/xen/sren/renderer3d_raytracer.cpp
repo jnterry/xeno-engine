@@ -50,7 +50,7 @@ namespace {
 		// Loop over all objects in scene
 		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 			const xen::RenderCommand3d* cmd = &commands[cmd_index];
-			if(cmd->type != xen::RenderCommand3d::TRIANGLES){
+			if(cmd->primative_type != xen::PrimativeType::TRIANGLES){
 				continue;
 			}
 
@@ -67,8 +67,8 @@ namespace {
 			real intersection_length_sq;
 
 			// Loop over all triangles of object
-			for(u32 i = 0; i < cmd->verticies.count; i += 3){
-				tri = (const xen::Triangle3r*)&cmd->verticies.verticies[i];
+			for(u32 i = 0; i < cmd->immediate.vertex_count; i += 3){
+				tri = (const xen::Triangle3r*)&cmd->immediate.position[i];
 
 				if(xen::getIntersection(ray_model_space, *tri, intersection)){
 					intersection_length_sq = distanceSq(ray.origin, intersection);
@@ -299,23 +299,26 @@ namespace xen {
 			//////////////////////////////////////////////////////////////////////////
 
 			xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
-			render_commands[0].type                = xen::RenderCommand3d::LINES;
-			render_commands[0].color               = xen::Color::MAGENTA4f;
-			render_commands[0].model_matrix        = Mat4r::Identity;
-			render_commands[0].verticies.verticies = &camera_primary_axis.vertices[0];
-			render_commands[0].verticies.count     = 2;
+			render_commands[0].primative_type         = xen::PrimativeType::LINES;
+			render_commands[0].color                  = xen::Color::MAGENTA4f;
+			render_commands[0].model_matrix           = Mat4r::Identity;
+			render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
+			render_commands[0].immediate.position     = &camera_primary_axis.vertices[0];
+			render_commands[0].immediate.vertex_count = 2;
 
-			render_commands[1].type                = xen::RenderCommand3d::LINES;
-			render_commands[1].color               = xen::Color::GREEN4f;
-			render_commands[1].model_matrix        = Mat4r::Identity;
-			render_commands[1].verticies.verticies = &camera_up_dir.vertices[0];
-			render_commands[1].verticies.count     = 2;
+		  render_commands[1].primative_type         = xen::PrimativeType::LINES;
+			render_commands[1].color                  = xen::Color::GREEN4f;
+			render_commands[1].model_matrix           = Mat4r::Identity;
+			render_commands[1].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
+			render_commands[1].immediate.position     = &camera_up_dir.vertices[0];
+			render_commands[1].immediate.vertex_count = 2;
 
-			render_commands[2].type                = xen::RenderCommand3d::LINES;
-			render_commands[2].color               = xen::Color::WHITE4f;
-			render_commands[2].model_matrix        = Mat4r::Identity;
-			render_commands[2].verticies.verticies = &camera_corner_rays[0];
-			render_commands[2].verticies.count     = 8;
+			render_commands[2].primative_type         = xen::PrimativeType::LINES;
+			render_commands[2].color                  = xen::Color::WHITE4f;
+			render_commands[2].model_matrix           = Mat4r::Identity;
+			render_commands[2].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
+			render_commands[2].immediate.position     = &camera_corner_rays[0];
+			render_commands[2].immediate.vertex_count = 8;
 
 			xen::RenderParameters3d params = {};
 			params.camera = view_camera;

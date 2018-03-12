@@ -260,16 +260,16 @@ namespace {
 
 			xen::gl::setUniform(emissive_color_loc, Vec4r::Origin);
 
-			Mat4r view_mat = getViewMatrix(params.camera);
-			Mat4r proj_mat = getProjectionMatrix(params.camera,
-			                                     (Vec2r)(viewport.max - viewport.min));
-			Mat4r vp_mat   = view_mat * proj_mat;
+			Mat4r vp_mat   = getViewProjectionMatrix(params.camera,
+			                                         (Vec2r)(viewport.max - viewport.min)
+			                                        );
 
 			xen::impl::checkGl(__LINE__, __FILE__);
 			for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 				const xen::RenderCommand3d* cmd = &commands[cmd_index];
 
-				if(cmd->type != xen::RenderCommand3d::MESH){ continue; }
+				// :TODO: support immediate rendering
+				if(cmd->geometry_source != xen::RenderCommand3d::MESH){ continue; }
 
 				xen::gl::setUniform(mvp_mat_loc,        cmd->model_matrix * vp_mat);
 				xen::gl::setUniform(model_mat_loc,      cmd->model_matrix);

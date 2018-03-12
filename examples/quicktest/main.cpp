@@ -153,7 +153,7 @@ int main(int argc, char** argv){
 	camera.height = 0;
 	camera.up_dir = Vec3r::UnitY;
 	camera.axis   = Vec3r::UnitY;
-	camera.angle  = 90_deg;
+	camera.angle  = 0_deg;
 
 	render_params.lights = light_sources;
 
@@ -205,38 +205,45 @@ int main(int argc, char** argv){
 	int CMD_AXIS_Z = 5;
 
 	xen::FixedArray<xen::RenderCommand3d , 6> render_cmds;
-	render_cmds[CMD_BUNNY ].type                = xen::RenderCommand3d::MESH;
+
+	render_cmds[CMD_BUNNY ].primative_type      = xen::PrimativeType::TRIANGLES;
 	render_cmds[CMD_BUNNY ].color               = xen::Color::RED4f;
 	render_cmds[CMD_BUNNY ].model_matrix        = Mat4r::Identity;
+	render_cmds[CMD_BUNNY ].geometry_source     = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_BUNNY ].mesh                = mesh_bunny;
 
-  render_cmds[CMD_FLOOR ].type                = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_FLOOR ].primative_type      = xen::PrimativeType::TRIANGLES;
 	render_cmds[CMD_FLOOR ].color               = xen::Color::WHITE4f;
 	render_cmds[CMD_FLOOR ].model_matrix        = Mat4r::Identity;
+	render_cmds[CMD_FLOOR ].geometry_source     = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_FLOOR ].mesh                = mesh_cube;
 
-	render_cmds[CMD_LIGHT ].type                = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_LIGHT ].primative_type      = xen::PrimativeType::TRIANGLES;
 	render_cmds[CMD_LIGHT ].color               = xen::Color::RED4f;
 	render_cmds[CMD_LIGHT ].emissive_color      = xen::Color::RED4f;
 	render_cmds[CMD_LIGHT ].model_matrix        = Mat4r::Identity;
+	render_cmds[CMD_LIGHT ].geometry_source     = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_LIGHT ].mesh                = mesh_cube;
 
-	render_cmds[CMD_AXIS_X].type                = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_AXIS_X].primative_type      = xen::PrimativeType::TRIANGLES;
 	render_cmds[CMD_AXIS_X].color               = xen::Color::RED4f;
 	render_cmds[CMD_AXIS_X].emissive_color      = xen::Color::RED4f;
 	render_cmds[CMD_AXIS_X].model_matrix        = xen::Translation3d(1,0,0) * xen::Scale3d(5, 0.05, 0.05);
+	render_cmds[CMD_AXIS_X].geometry_source     = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_AXIS_X].mesh                = mesh_cube;
 
-	render_cmds[CMD_AXIS_Y].type                = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_AXIS_Y].primative_type      = xen::PrimativeType::TRIANGLES;
 	render_cmds[CMD_AXIS_Y].color               = xen::Color::GREEN4f;
 	render_cmds[CMD_AXIS_Y].emissive_color      = xen::Color::GREEN4f;
 	render_cmds[CMD_AXIS_Y].model_matrix        = xen::Translation3d(0,1,0) * xen::Scale3d(0.05, 5, 0.05);
+	render_cmds[CMD_AXIS_Y].geometry_source     = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_AXIS_Y].mesh                = mesh_cube;
 
-	render_cmds[CMD_AXIS_Z].type                = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_AXIS_Z].primative_type      = xen::PrimativeType::TRIANGLES;
 	render_cmds[CMD_AXIS_Z].color               = xen::Color::BLUE4f;
 	render_cmds[CMD_AXIS_Z].emissive_color      = xen::Color::BLUE4f;
 	render_cmds[CMD_AXIS_Z].model_matrix        = xen::Translation3d(0,0,1) * xen::Scale3d(0.05, 0.05, 5);
+	render_cmds[CMD_AXIS_Z].geometry_source     = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_AXIS_Z].mesh                = mesh_cube;
 
 	xen::Stopwatch timer;
@@ -277,7 +284,7 @@ int main(int argc, char** argv){
 			default: break;
 			}
 		}
-		handleCameraInput(camera, dt);
+		handleCameraInputCylinder(camera, dt);
 
 		Vec3r light_pos = xen::rotated(Vec3r{4, 3, 0}, Vec3r::UnitY, xen::Degrees(time*90_r));
 		point_light_color.w = (1_r + sin(time*9)) / 2.0_r;
