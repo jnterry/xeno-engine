@@ -48,6 +48,9 @@ namespace xen{
 		/// \brief The positions of each vertex. Array length = vertex_count
 		Vec3r* position;
 
+		/// \brief The normals of each vertex. Array length = vertex_count
+		Vec3r* normal;
+
 		/// \brief The colors of each vertex. Array length = vertex_count
 		Color* color;
 	};

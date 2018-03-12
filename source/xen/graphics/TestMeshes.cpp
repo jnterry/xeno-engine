@@ -86,12 +86,14 @@ namespace xen {
 	const ImmediateGeometrySource TestMeshGeometry_UnitCubeLines = {
 		XenArrayLength(UnitCubeLines_Positions),
 		UnitCubeLines_Positions,
+		nullptr,
 		UnitCubeLines_Colors,
 	};
 
 	const extern ImmediateGeometrySource TestMeshGeometry_Axes = {
 		XenArrayLength(Axes_Positions),
 		Axes_Positions,
+		nullptr,
 		Axes_Colors,
 	};
 }
