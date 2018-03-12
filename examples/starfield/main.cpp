@@ -53,8 +53,6 @@ int main(int argc, char** argv){
 		star_colors[i].g = xen::mapToRange<real, u08>(-100, 100, 0, 255, star_positions[i].y);
 		star_colors[i].b = 255; //xen::mapToRange<real, u08>(-100, 100, 0, 255, star_positions[i].z);
 		star_colors[i].a = 255;
-		printf("Star %i: (%i, %i, %i, %i)\n",
-		       i, star_colors[i].r, star_colors[i].g, star_colors[i].b, star_colors[i].a);
 	}
 
 	xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
