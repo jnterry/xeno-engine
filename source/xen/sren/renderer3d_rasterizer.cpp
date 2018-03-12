@@ -70,7 +70,7 @@ namespace {
 	void doRenderLine2d(xen::sren::RenderTargetImpl& target, xen::LineSegment2r line, xen::Color4f color){
 		if(line.p1 == line.p2){ return; }
 
-		#if 0
+		#if 1
 		//https://www.cs.virginia.edu/luther/blog/posts/492.html
 
 		//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
