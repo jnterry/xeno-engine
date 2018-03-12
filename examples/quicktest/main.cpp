@@ -3,6 +3,7 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/memory.hpp>
 #include <xen/core/time.hpp>
+#include <xen/core/array.hpp>
 
 #include <xen/math/utilities.hpp>
 #include <xen/math/vector.hpp>
@@ -205,6 +206,7 @@ int main(int argc, char** argv){
 	int CMD_AXIS_Z = 5;
 
 	xen::FixedArray<xen::RenderCommand3d , 6> render_cmds;
+	xen::clearToZero(render_cmds);
 
 	render_cmds[CMD_BUNNY ].primative_type      = xen::PrimativeType::TRIANGLES;
 	render_cmds[CMD_BUNNY ].color               = xen::Color::RED4f;

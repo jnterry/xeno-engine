@@ -4,6 +4,7 @@
 #include <xen/core/memory.hpp>
 #include <xen/core/random.hpp>
 #include <xen/core/time.hpp>
+#include <xen/core/array.hpp>
 #include <xen/util/File.hpp>
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
@@ -58,6 +59,8 @@ int main(int argc, char** argv){
 	printf("LINE COUNT: %i\n", LINE_COUNT);
 
 	xen::FixedArray<xen::RenderCommand3d, 5> render_commands;
+	xen::clearToZero(render_commands);
+
 	render_commands[0].primative_type         = xen::PrimativeType::LINES;
 	render_commands[0].color                  = xen::Color::RED4f;
 	render_commands[0].model_matrix           = xen::Scale3d(100_r);

@@ -4,6 +4,7 @@
 #include <xen/core/memory.hpp>
 #include <xen/core/random.hpp>
 #include <xen/core/time.hpp>
+#include <xen/core/array.hpp>
 #include <xen/util/File.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/graphics/Window.hpp>
@@ -110,6 +111,7 @@ int main(int argc, char** argv){
 	};
 
 	xen::FixedArray<xen::RenderCommand3d, 6> render_commands;
+	xen::clearToZero(render_commands);
 	render_commands[0].primative_type         = xen::PrimativeType::LINES;
 	render_commands[0].color                  = xen::Color::RED4f;
 	render_commands[0].model_matrix           = xen::Scale3d(100_r);
