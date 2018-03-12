@@ -97,15 +97,15 @@ Vec3r positions[] = {
 
 // ---------------------------------------------------------------------------
 // Define colors
-Vec3r red    = { 0.75_r, 0.15_r, 0.15_r };
-Vec3r yellow = { 0.75_r, 0.75_r, 0.15_r };
-Vec3r green  = { 0.15_r, 0.75_r, 0.15_r };
-Vec3r cyan   = { 0.15_r, 0.75_r, 0.75_r };
-Vec3r blue   = { 0.15_r, 0.15_r, 0.75_r };
-Vec3r purple = { 0.75_r, 0.15_r, 0.75_r };
-Vec3r white  = { 0.75_r, 0.75_r, 0.75_r };
+xen::Color red    = { 191,  38,  38, 255 };
+xen::Color yellow = { 191, 191,  38, 255 };
+xen::Color green  = {  38, 191,  38, 255 };
+xen::Color cyan   = {  38, 191, 191, 255 };
+xen::Color blue   = {  38,  38, 191, 255 };
+xen::Color purple = { 191,  38, 191, 255 };
+xen::Color white  = { 191, 191, 191, 255 };
 
-Vec3r colors[] = {
+xen::Color colors[] = {
 	// ---------------------------------------------------------------------------
 	// Room colors
 	// Floor
@@ -168,5 +168,5 @@ const xen::ImmediateGeometrySource MeshGeometry_CornellBox = {
 	XenArrayLength(positions),
   positions,
 	nullptr, // normals
-	nullptr, // colors
+	colors,
 };
