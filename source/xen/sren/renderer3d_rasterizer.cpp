@@ -28,11 +28,15 @@ namespace {
 	void doRenderPoints(xen::sren::RenderTargetImpl& target,
 	                    const xen::Aabb2r& viewport,
 	                    const Mat4f& mvp_matrix,
-	                    xen::Color4f color,
-	                    Vec3r* points, u32 count){
+	                    const xen::ImmediateGeometrySource& geom){
 
-		for(u32 i = 0; i < count; ++i){
-			Vec4f clip_space = xen::mkVec(points[i], 1_r) * mvp_matrix;
+		const xen::Color* color_buffer = geom.color;
+		if(geom.color == nullptr){
+			color_buffer = &xen::Color::WHITE;
+		}
+
+		for(u32 i = 0; i < geom.vertex_count; ++i){
+			Vec4f clip_space = xen::mkVec(geom.position[i], 1_r) * mvp_matrix;
 
 			if(clip_space.z < 0){
 				// Then point is behind the camera
@@ -63,13 +67,14 @@ namespace {
 				continue;
 			}
 
-			if (depth > target.depth[(u32)screen_space.y*target.width + (u32)screen_space.x]){
+			u32 pixel_index = (u32)screen_space.y*target.width + (u32)screen_space.x;
+
+			if (depth > target.depth[pixel_index]){
 				// Then point is behind something else occupying this pixel
 				continue;
 			}
-
-			target.depth[(u32)screen_space.y*target.width + (u32)screen_space.x] = depth;
-			target.color[(u32)screen_space.y*target.width + (u32)screen_space.x] = color;
+			target.depth[pixel_index] = depth;
+			target.color[pixel_index] = xen::makeColor4f(color_buffer[i * (geom.color != nullptr)]);
 		}
 	}
 
@@ -523,8 +528,7 @@ namespace xen{
 
 				switch(cmd->primative_type){
 				case xen::PrimativeType::POINTS:
-					doRenderPoints(target, view_region, mat_mvp, base_color,
-					               cmd->immediate.position, cmd->immediate.vertex_count);
+					doRenderPoints(target, view_region, mat_mvp, cmd->immediate);
 					break;
 				case xen::PrimativeType::LINES:
 					stride = 2;

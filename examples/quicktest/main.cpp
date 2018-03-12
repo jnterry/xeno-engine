@@ -3,6 +3,7 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/memory.hpp>
 #include <xen/core/time.hpp>
+#include <xen/core/array.hpp>
 
 #include <xen/math/utilities.hpp>
 #include <xen/math/vector.hpp>
@@ -14,6 +15,7 @@
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/graphics/Mesh.hpp>
+#include <xen/graphics/TestMeshes.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/Light3d.hpp>
 #include <xen/graphics/Window.hpp>
@@ -28,122 +30,6 @@
 xen::RenderParameters3d render_params;
 xen::FixedArray<xen::LightSource3d, 1> light_sources;
 xen::Camera3dCylinder camera;
-
-static GLfloat cube_buffer_data[] = {
-    -1.0f,-1.0f,-1.0f, // triangle 1 : begin
-    -1.0f,-1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f, // triangle 1 : end
-     1.0f, 1.0f,-1.0f, // triangle 2 : begin
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f,-1.0f, // triangle 2 : end
-     1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f,-1.0f,
-     1.0f,-1.0f,-1.0f,
-     1.0f, 1.0f,-1.0f,
-     1.0f,-1.0f,-1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f,-1.0f,
-     1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f, 1.0f,
-    -1.0f,-1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f,-1.0f, 1.0f,
-     1.0f,-1.0f, 1.0f,
-     1.0f, 1.0f, 1.0f,
-     1.0f,-1.0f,-1.0f,
-     1.0f, 1.0f,-1.0f,
-     1.0f,-1.0f,-1.0f,
-     1.0f, 1.0f, 1.0f,
-     1.0f,-1.0f, 1.0f,
-     1.0f, 1.0f, 1.0f,
-     1.0f, 1.0f,-1.0f,
-    -1.0f, 1.0f,-1.0f,
-     1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f,-1.0f,
-    -1.0f, 1.0f, 1.0f,
-     1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f,
-     1.0f,-1.0f, 1.0f,
-
-
-    // color
-    0.0f, 0.0f, 0.0f, // Face A
-    0.0f, 0.0f, 0.0f,
-    0.0f, 0.0f, 0.0f,
-    1.0f, 0.0f, 1.0f, // Face B
-    1.0f, 0.0f, 1.0f,
-    1.0f, 0.0f, 1.0f,
-    1.0f, 0.0f, 0.0f, // Face C
-    1.0f, 0.0f, 0.0f,
-    1.0f, 0.0f, 0.0f,
-    1.0f, 0.0f, 1.0f, // Face B
-    1.0f, 0.0f, 1.0f,
-    1.0f, 0.0f, 1.0f,
-    0.0f, 0.0f, 0.0f, // Face A
-    0.0f, 0.0f, 0.0f,
-    0.0f, 0.0f, 0.0f,
-    1.0f, 0.0f, 0.0f, // Face C
-    1.0f, 0.0f, 0.0f,
-    1.0f, 0.0f, 0.0f,
-    0.0f, 1.0f, 0.0f, // Face E
-    0.0f, 1.0f, 0.0f,
-    0.0f, 1.0f, 0.0f,
-    0.0f, 0.0f, 1.0f, // Face D
-    0.0f, 0.0f, 1.0f,
-    0.0f, 0.0f, 1.0f,
-    0.0f, 0.0f, 1.0f, // Face D
-    0.0f, 0.0f, 1.0f,
-    0.0f, 0.0f, 1.0f,
-    1.0f, 1.0f, 1.0f, // Face F
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f, // Face F
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    0.0f, 1.0f, 0.0f, // Face E
-    0.0f, 1.0f, 0.0f,
-    0.0f, 1.0f, 0.0f,
-
-    // normals
-    -1.0f, 0.0f, 0.0f, // triangle 1 : begin
-    -1.0f, 0.0f, 0.0f,
-    -1.0f, 0.0f, 0.0f, // triangle 1 : end
-     0.0f, 0.0f,-1.0f, // triangle 2 : begin
-     0.0f, 0.0f,-1.0f,
-     0.0f, 0.0f,-1.0f, // triangle 2 : end
-     0.0f,-1.0f, 0.0f,
-     0.0f,-1.0f, 0.0f,
-     0.0f,-1.0f, 0.0f,
-     0.0f, 0.0f, 1.0f,
-     0.0f, 0.0f, 1.0f,
-     0.0f, 0.0f, 1.0f,
-    -1.0f, 0.0f, 0.0f,
-    -1.0f, 0.0f, 0.0f,
-    -1.0f, 0.0f, 0.0f,
-     0.0f,-1.0f, 0.0f,
-     0.0f,-1.0f, 0.0f,
-     0.0f,-1.0f, 0.0f,
-     0.0f, 0.0f, 1.0f,
-     0.0f, 0.0f, 1.0f,
-     0.0f, 0.0f, 1.0f,
-     1.0f, 0.0f, 0.0f,
-     1.0f, 0.0f, 0.0f,
-     1.0f, 0.0f, 0.0f,
-     1.0f, 0.0f, 0.0f,
-     1.0f, 0.0f, 0.0f,
-     1.0f, 0.0f, 0.0f,
-     0.0f, 1.0f, 0.0f,
-     0.0f, 1.0f, 0.0f,
-     0.0f, 1.0f, 0.0f,
-     0.0f, 1.0f, 0.0f,
-     0.0f, 1.0f, 0.0f,
-     0.0f, 1.0f, 0.0f,
-     0.0f, 0.0f, 1.0f,
-     0.0f, 0.0f, 1.0f,
-     0.0f, 0.0f, 1.0f
-};
 
 int main(int argc, char** argv){
 	camera.z_near = 0.001;
@@ -183,9 +69,9 @@ int main(int argc, char** argv){
 	xen::Mesh mesh_bunny = device->createMesh(*mesh_data_bunny);
 
 	void* mesh_cube_attrib_data[] = {
-		&cube_buffer_data[3*2*6 * 0 * 3],
-		nullptr,//&cube_buffer_data[3*2*6 * 1 * 3],
-		nullptr// &cube_buffer_data[3*2*6 * 2 * 3]
+		xen::TestMeshGeometry_UnitCube.position,
+		nullptr, // xen::TestMeshGeometry_UnitCube.normal,
+		nullptr, // &xen::TestMeshGeometry_UnitCube.normal,
 	};
   xen::MeshData mesh_data_cube;
 	mesh_data_cube.attrib_count = 3;
@@ -205,46 +91,55 @@ int main(int argc, char** argv){
 	int CMD_AXIS_Z = 5;
 
 	xen::FixedArray<xen::RenderCommand3d , 6> render_cmds;
+	xen::clearToZero(render_cmds);
 
-	render_cmds[CMD_BUNNY ].primative_type      = xen::PrimativeType::TRIANGLES;
-	render_cmds[CMD_BUNNY ].color               = xen::Color::RED4f;
-	render_cmds[CMD_BUNNY ].model_matrix        = Mat4r::Identity;
-	render_cmds[CMD_BUNNY ].geometry_source     = xen::RenderCommand3d::MESH;
-	render_cmds[CMD_BUNNY ].mesh                = mesh_bunny;
+	render_cmds[CMD_BUNNY ].primative_type  = xen::PrimativeType::TRIANGLES;
+	render_cmds[CMD_BUNNY ].color           = xen::Color::RED4f;
+	render_cmds[CMD_BUNNY ].model_matrix    = Mat4r::Identity;
+	render_cmds[CMD_BUNNY ].geometry_source = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_BUNNY ].mesh            = mesh_bunny;
 
-	render_cmds[CMD_FLOOR ].primative_type      = xen::PrimativeType::TRIANGLES;
-	render_cmds[CMD_FLOOR ].color               = xen::Color::WHITE4f;
-	render_cmds[CMD_FLOOR ].model_matrix        = Mat4r::Identity;
-	render_cmds[CMD_FLOOR ].geometry_source     = xen::RenderCommand3d::MESH;
-	render_cmds[CMD_FLOOR ].mesh                = mesh_cube;
+	model_mat = Mat4r::Identity;
 
-	render_cmds[CMD_LIGHT ].primative_type      = xen::PrimativeType::TRIANGLES;
-	render_cmds[CMD_LIGHT ].color               = xen::Color::RED4f;
-	render_cmds[CMD_LIGHT ].emissive_color      = xen::Color::RED4f;
-	render_cmds[CMD_LIGHT ].model_matrix        = Mat4r::Identity;
-	render_cmds[CMD_LIGHT ].geometry_source     = xen::RenderCommand3d::MESH;
-	render_cmds[CMD_LIGHT ].mesh                = mesh_cube;
+		model_mat *= xen::Translation3d(0, -0.5, 0);
+		render_cmds[CMD_FLOOR].model_matrix = model_mat;
 
-	render_cmds[CMD_AXIS_X].primative_type      = xen::PrimativeType::TRIANGLES;
-	render_cmds[CMD_AXIS_X].color               = xen::Color::RED4f;
-	render_cmds[CMD_AXIS_X].emissive_color      = xen::Color::RED4f;
-	render_cmds[CMD_AXIS_X].model_matrix        = xen::Translation3d(1,0,0) * xen::Scale3d(5, 0.05, 0.05);
-	render_cmds[CMD_AXIS_X].geometry_source     = xen::RenderCommand3d::MESH;
-	render_cmds[CMD_AXIS_X].mesh                = mesh_cube;
+	render_cmds[CMD_FLOOR ].primative_type  = xen::PrimativeType::TRIANGLES;
+	render_cmds[CMD_FLOOR ].color           = xen::Color::WHITE4f;
+	render_cmds[CMD_FLOOR ].model_matrix    = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
+	                                           xen::Scale3d(60, 0.1, 60) *
+	                                           xen::Translation3d(0, -0.5_r, 0)
+	                                          );
+	render_cmds[CMD_FLOOR ].geometry_source = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_FLOOR ].mesh            = mesh_cube;
 
-	render_cmds[CMD_AXIS_Y].primative_type      = xen::PrimativeType::TRIANGLES;
-	render_cmds[CMD_AXIS_Y].color               = xen::Color::GREEN4f;
-	render_cmds[CMD_AXIS_Y].emissive_color      = xen::Color::GREEN4f;
-	render_cmds[CMD_AXIS_Y].model_matrix        = xen::Translation3d(0,1,0) * xen::Scale3d(0.05, 5, 0.05);
-	render_cmds[CMD_AXIS_Y].geometry_source     = xen::RenderCommand3d::MESH;
-	render_cmds[CMD_AXIS_Y].mesh                = mesh_cube;
+	render_cmds[CMD_LIGHT ].primative_type  = xen::PrimativeType::TRIANGLES;
+	render_cmds[CMD_LIGHT ].color           = xen::Color::RED4f;
+	render_cmds[CMD_LIGHT ].emissive_color  = xen::Color::RED4f;
+	render_cmds[CMD_LIGHT ].model_matrix    = Mat4r::Identity;
+	render_cmds[CMD_LIGHT ].geometry_source = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_LIGHT ].mesh            = mesh_cube;
 
-	render_cmds[CMD_AXIS_Z].primative_type      = xen::PrimativeType::TRIANGLES;
-	render_cmds[CMD_AXIS_Z].color               = xen::Color::BLUE4f;
-	render_cmds[CMD_AXIS_Z].emissive_color      = xen::Color::BLUE4f;
-	render_cmds[CMD_AXIS_Z].model_matrix        = xen::Translation3d(0,0,1) * xen::Scale3d(0.05, 0.05, 5);
-	render_cmds[CMD_AXIS_Z].geometry_source     = xen::RenderCommand3d::MESH;
-	render_cmds[CMD_AXIS_Z].mesh                = mesh_cube;
+	render_cmds[CMD_AXIS_X].primative_type  = xen::PrimativeType::TRIANGLES;
+	render_cmds[CMD_AXIS_X].color           = xen::Color::RED4f;
+	render_cmds[CMD_AXIS_X].emissive_color  = xen::Color::RED4f;
+	render_cmds[CMD_AXIS_X].model_matrix    = xen::Scale3d(15, 0.1, 0.1);
+	render_cmds[CMD_AXIS_X].geometry_source = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_AXIS_X].mesh            = mesh_cube;
+
+	render_cmds[CMD_AXIS_Y].primative_type  = xen::PrimativeType::TRIANGLES;
+	render_cmds[CMD_AXIS_Y].color           = xen::Color::GREEN4f;
+	render_cmds[CMD_AXIS_Y].emissive_color  = xen::Color::GREEN4f;
+	render_cmds[CMD_AXIS_Y].model_matrix    = xen::Scale3d(0.1, 15, 0.1);
+	render_cmds[CMD_AXIS_Y].geometry_source = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_AXIS_Y].mesh            = mesh_cube;
+
+	render_cmds[CMD_AXIS_Z].primative_type  = xen::PrimativeType::TRIANGLES;
+	render_cmds[CMD_AXIS_Z].color           = xen::Color::BLUE4f;
+	render_cmds[CMD_AXIS_Z].emissive_color  = xen::Color::BLUE4f;
+	render_cmds[CMD_AXIS_Z].model_matrix    = xen::Scale3d(0.1, 0.1, 15);
+	render_cmds[CMD_AXIS_Z].geometry_source = xen::RenderCommand3d::MESH;
+	render_cmds[CMD_AXIS_Z].mesh            = mesh_cube;
 
 	xen::Stopwatch timer;
 	real last_time = 0;
@@ -318,12 +213,7 @@ int main(int argc, char** argv){
 		render_cmds[CMD_BUNNY].model_matrix = model_mat;
 
 		////////////////////////////////////////////
-		// Draw Floor
-		model_mat = Mat4r::Identity;
-		model_mat *= xen::Scale3d(30, 0.05, 30);
-		model_mat *= xen::Translation3d(0, -0.5, 0);
-		render_cmds[CMD_FLOOR].model_matrix = model_mat;
-
+		// Do rendering
 		device->clear (app, xen::Color::BLACK);
 		device->render(app, viewport, render_params, render_cmds);
 		device->swapBuffers(app);

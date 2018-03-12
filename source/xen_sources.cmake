@@ -68,6 +68,7 @@ set(XEN_SOURCES_GRAPHICS
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Color.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/RenderCommand3d.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Mesh.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/TestMeshes.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/GraphicsDevice.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Window.hxx
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Window.cpp
@@ -79,6 +80,7 @@ set(XEN_HEADERS_GRAPHICS
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Color.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/RenderCommand3d.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Mesh.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/TestMeshes.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/GraphicsDevice_types.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/GraphicsDevice.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Window.hpp

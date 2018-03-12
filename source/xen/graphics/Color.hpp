@@ -69,7 +69,8 @@ namespace xen {
 
 	#pragma GCC diagnostic pop // re-enable -Wpedantic
 
-
+	Color4f makeColor4f(Color color);
+	Color4f makeColor4f(Color3f, float a);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Color represented as 4 floating values between 0 and 1
