@@ -11,8 +11,16 @@
 
 namespace xen {
 	namespace impl {
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Type which maps from characters to the index of a vector
+		/// containing that component at compile time
+		/////////////////////////////////////////////////////////////////////
 		template<char T_VAL>
-		struct SwizzlePlace { };
+		struct SwizzlePlace {
+			// We do bounds checking, so set to max value so compile errors are
+			// generated if we ever use this non-specialized SwizzlePlace
+			static const constexpr u32 INDEX = 0xFFFFFFFF;
+		};
 
 		template<> struct SwizzlePlace<'x'>{ static const constexpr u32 INDEX = 0; };
 		template<> struct SwizzlePlace<'y'>{ static const constexpr u32 INDEX = 1; };

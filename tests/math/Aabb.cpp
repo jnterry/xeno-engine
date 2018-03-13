@@ -151,6 +151,24 @@ TEST_CASE("Aabb2/Aabb2 Intersection", "[math][Aabb]"){
 	}
 }
 
+TEST_CASE("Aabb Swizzles", "[math][Aabb][swizzle]"){
+	SECTION("To 2d"){
+		CHECK(xen::swizzle<'x', 'y'>(xen::Aabb3r{Vec3r{1,2,3}, Vec3r{4,5,6}}) ==
+		      xen::Aabb2r{Vec2r{1,2}, Vec2r{4,5}}
+		     );
+		CHECK(xen::swizzle<'y', 'x'>(xen::Aabb3r{Vec3r{1,2,3}, Vec3r{4,5,6}}) ==
+		      xen::Aabb2r{Vec2r{2,1}, Vec2r{5,4}}
+		     );
+	}
+
+	SECTION("To 3d"){
+		CHECK(xen::swizzle<'x','y','x'>(xen::Aabb2r{Vec2r{1,2}, Vec2r{3,4}}) ==
+		      xen::Aabb3r{Vec3r{1,2,1}, Vec3r{3,4,3}}
+		     );
+	}
+}
+
+
 // :TODO: aabb3 intersections
 // :TOOD: translations
 // :TODO: area

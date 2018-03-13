@@ -17,6 +17,8 @@
 #include <xen/math/vector.hpp>
 #include <xen/math/utilities.hpp>
 
+#include "impl/swizzles.hxx"
+
 namespace xen{
 	template<u32 T_DIM, typename T>
 	Aabb<T_DIM, T>& translate(Aabb<T_DIM, T>& aabb, Vec<T_DIM, T> delta){
@@ -367,6 +369,67 @@ namespace xen{
 	Aabb3<T> makeAabbFromMinAndSize(T mx, T my, T mz, T sx, T sy, T sz) {
 		return makeAabbFromMinAndSize(xen::mkVec(mx, my, mz), xen::mkVec(sx, sy. sz));
 	}
+
+	//////////////////////////////////////////////////////////////////////////////
+	// Swizzles
+
+	template<char T_S1, char T_S2, u32 T_DIM, typename T>
+  Aabb2<T> swizzle(const Aabb<T_DIM, T>& a){
+		return {
+			xen::swizzle<T_S1, T_S2>(a.min),
+			xen::swizzle<T_S1, T_S2>(a.max),
+		};
+	}
+	template<char T_S1, char T_S2, char T_S3, u32 T_DIM, typename T>
+  Aabb3<T> swizzle(const Aabb<T_DIM, T>& a){
+		return {
+			xen::swizzle<T_S1, T_S2, T_S3>(a.min),
+			xen::swizzle<T_S1, T_S2, T_S3>(a.max),
+		};
+	}
+	template<char T_S1, char T_S2, char T_S3, char T_S4, u32 T_DIM, typename T>
+  Aabb4<T> swizzle(const Aabb<T_DIM, T>& a){
+		return {
+			xen::swizzle<T_S1, T_S2, T_S3, T_S4>(a.min),
+			xen::swizzle<T_S1, T_S2, T_S3, T_S4>(a.max),
+		};
+	}
+
+	template<char T_S1, char T_S2, u32 T_DIM, typename T>
+	Circle<T> swizzle(const Sphere<T_DIM, T>& s){
+		return { xen::swizzle<T_S1, T_S2>(s.center), s.radius };
+	}
+	template<char T_S1, char T_S2, char T_S3, u32 T_DIM, typename T>
+  Sphere3<T> swizzle(const Sphere<T_DIM, T>& s){
+		return { xen::swizzle<T_S1, T_S2, T_S3>(s.center), s.radius };
+	}
+	template<char T_S1, char T_S2, char T_S3, char T_S4, u32 T_DIM, typename T>
+  Sphere4<T> swizzle(const Sphere<T_DIM, T>& s){
+		return { xen::swizzle<T_S1, T_S2, T_S3, T_S4>(s.center), s.radius };
+	}
+
+	template<char T_S1, char T_S2, u32 T_DIM, typename T>
+  Ray2<T> swizzle(const Ray<T_DIM, T>& r){
+		return {
+			xen::swizzle<T_S1, T_S2>(r.origin   ),
+			xen::swizzle<T_S1, T_S2>(r.direction),
+		};
+	}
+	template<char T_S1, char T_S2, char T_S3, u32 T_DIM, typename T>
+  Ray3<T> swizzle(const Ray<T_DIM, T>& r){
+		return {
+			xen::swizzle<T_S1, T_S2, T_S3>(r.origin   ),
+			xen::swizzle<T_S1, T_S2, T_S3>(r.direction),
+		};
+	}
+	template<char T_S1, char T_S2, char T_S3, char T_S4, u32 T_DIM, typename T>
+  Ray4<T> swizzle(const Ray<T_DIM, T>& r){
+		return {
+			xen::swizzle<T_S1, T_S2, T_S3, T_S4>(r.origin   ),
+			xen::swizzle<T_S1, T_S2, T_S3, T_S4>(r.direction),
+		};
+	}
+
 }
 
 #endif

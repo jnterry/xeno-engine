@@ -175,7 +175,7 @@ TEST_CASE("Elementwise min-max", "[math][minmax][Vector]"){
 	//}
 }
 
-TEST_CASE("Swizzles", "[math][Vector][swizzle]"){
+TEST_CASE("Vector Swizzles", "[math][Vector][swizzle]"){
 	SECTION("To 2d"){
 		CHECK(xen::swizzle<'y', 'x'>(Vec2r{1,2  }) == Vec2r{2, 1});
 		CHECK(xen::swizzle<'x', 'x'>(Vec2r{5,6  }) == Vec2r{5, 5});
