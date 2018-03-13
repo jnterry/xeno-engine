@@ -177,14 +177,21 @@ TEST_CASE("Elementwise min-max", "[math][minmax][Vector]"){
 
 TEST_CASE("Swizzles", "[math][Vector][swizzle]"){
 	SECTION("To 2d"){
-		CHECK(xen::swizzle<'y', 'x'>(Vec2r{1, 2   }) == Vec2r{2, 1});
-		CHECK(xen::swizzle<'x', 'x'>(Vec2r{5, 6   }) == Vec2r{5, 5});
-		CHECK(xen::swizzle<'x', 'z'>(Vec3r{3, 2, 1}) == Vec2r{3, 1});
-		CHECK(xen::swizzle<'y', 'x'>(Vec3r{3, 2, 1}) == Vec2r{2, 3});
+		CHECK(xen::swizzle<'y', 'x'>(Vec2r{1,2  }) == Vec2r{2, 1});
+		CHECK(xen::swizzle<'x', 'x'>(Vec2r{5,6  }) == Vec2r{5, 5});
+		CHECK(xen::swizzle<'x', 'z'>(Vec3r{3,2,1}) == Vec2r{3, 1});
+		CHECK(xen::swizzle<'y', 'x'>(Vec3r{3,2,1}) == Vec2r{2, 3});
 	}
 
 	SECTION("To 3d"){
-		CHECK(xen::swizzle<'x', 'y', 'x'>(Vec2r{5, 8   }) == Vec3r(5,8,5));
-		CHECK(xen::swizzle<'x', 'z', 'y'>(Vec3r{1, 2, 3}) == Vec3r(1,3,2));
+		CHECK(xen::swizzle<'x', 'y', 'x'>(Vec2r{5,8    }) == Vec3r(5,8,5));
+		CHECK(xen::swizzle<'x', 'z', 'y'>(Vec3r{1,2,3  }) == Vec3r(1,3,2));
+		CHECK(xen::swizzle<'x', 'y', 'w'>(Vec4r{1,2,3,4}) == Vec3r(1,2,4));
+	}
+
+	SECTION("To 4d"){
+		CHECK(xen::swizzle<'x', 'y', 'y', 'x'>(Vec2r{5,8    }) == Vec4r(5,8,8,5));
+		CHECK(xen::swizzle<'z', 'y', 'x', 'x'>(Vec3r{5,6,7  }) == Vec4r(7,6,5,5));
+		CHECK(xen::swizzle<'y', 'x', 'z', 'w'>(Vec4r{1,2,3,4}) == Vec4r(2,1,3,4));
 	}
 }
