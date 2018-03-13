@@ -136,3 +136,29 @@ TEST_CASE("LineSegment/Aabb2 Intersection", "[math][Aabb][LineSegment]"){
 		CHECK(line == xen::LineSegment2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}});
 	}
 }
+
+TEST_CASE("LineSegment Swizzles", "[math][LineSegment][swizzle]"){
+	SECTION("To 2d"){
+		CHECK(xen::swizzle<'y','x'>(xen::LineSegment2r{Vec2r{1,2}, Vec2r{3,4}}) ==
+		      xen::LineSegment2r{Vec2r{2,1}, Vec2r{4,3}}
+		     );
+		CHECK(xen::swizzle<'z','x'>(xen::LineSegment3r{Vec3r{1,2,3}, Vec3r{4,5,6}}) ==
+		      xen::LineSegment2r{Vec2r{3,1}, Vec2r{6,4}}
+		     );
+	}
+
+	SECTION("To 3d"){
+		CHECK(xen::swizzle<'y','x','x'>(xen::LineSegment2r{Vec2r{1,2}, Vec2r{3,4}}) ==
+		      xen::LineSegment3r{Vec3r{2,1,1}, Vec3r{4,3,3}}
+		     );
+		CHECK(xen::swizzle<'z','x','w'>(xen::LineSegment4r{Vec4r{1,2,3,4}, Vec4r{5,6,7,8}}) ==
+		      xen::LineSegment3r{Vec3r{3,1,4}, Vec3r{7,5,8}}
+		     );
+	}
+
+	SECTION("To 4d"){
+		CHECK(xen::swizzle<'x','y','x','z'>(xen::LineSegment3r{Vec3r{1,2,3}, Vec3r{4,5,6}}) ==
+		      xen::LineSegment4r{Vec4r{1,2,1,3}, Vec4r{4,5,4,6}}
+		     );
+	}
+}

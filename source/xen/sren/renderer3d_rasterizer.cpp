@@ -55,7 +55,7 @@ namespace {
 			Vec2r screen_space = clip_space.xy;
 
 			screen_space += Vec2r{1,1};                  // convert to [0, 2] space
-			screen_space /= 2.0_r;                       // convert to [0. 1] space
+			screen_space /= 2.0_r;                       // convert to [0, 1] space
 			screen_space *= viewport.max - viewport.min; // convert to screen space
 			screen_space += viewport.min;                // move to correct part of screen
 			///////////////////////////////////////////////////////////////////

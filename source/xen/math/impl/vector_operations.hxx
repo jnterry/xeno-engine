@@ -11,6 +11,7 @@
 
 #include <xen/math/vector_types.hpp>
 #include <xen/math/angle.hpp>
+#include "swizzles.hxx"
 
 namespace xen{
 	/// \brief Computes dot product of two vectors
@@ -180,6 +181,70 @@ namespace xen{
 			result[i] = xen::min(a[i], b[i]);
 		}
 		return result;
+	}
+
+	//////////////////////////////////////////////////////////////////////////////
+	// Swizzles
+
+	// Any dimension to 2d
+	template<char T_S1, char T_S2, u32 T_DIM, typename T>
+	Vec<2, T> swizzle(const Vec<T_DIM, T>& v){
+		static_assert(xen::impl::SwizzlePlace<T_S1>::INDEX < T_DIM,
+		              "Invalid swizzle place T_S1"
+		             );
+		static_assert(xen::impl::SwizzlePlace<T_S2>::INDEX < T_DIM,
+		              "Invalid swizzle place T_S2"
+		             );
+
+		return {
+			v[xen::impl::SwizzlePlace<T_S1>::INDEX],
+			v[xen::impl::SwizzlePlace<T_S2>::INDEX],
+		};
+	}
+
+
+	// Any dimension to 3d
+  template<char T_S1, char T_S2, char T_S3, u32 T_DIM, typename T>
+	Vec<3, T> swizzle(const Vec<T_DIM, T>& v){
+		static_assert(xen::impl::SwizzlePlace<T_S1>::INDEX < T_DIM,
+		              "Invalid swizzle place T_S1"
+		             );
+		static_assert(xen::impl::SwizzlePlace<T_S2>::INDEX < T_DIM,
+		              "Invalid swizzle place T_S2"
+		             );
+		static_assert(xen::impl::SwizzlePlace<T_S3>::INDEX < T_DIM,
+		              "Invalid swizzle place T_S3"
+		             );
+
+		return {
+			v[xen::impl::SwizzlePlace<T_S1>::INDEX],
+			v[xen::impl::SwizzlePlace<T_S2>::INDEX],
+			v[xen::impl::SwizzlePlace<T_S3>::INDEX],
+		};
+	}
+
+	// Any dimension to 4d
+	template<char T_S1, char T_S2, char T_S3, char T_S4, u32 T_DIM, typename T>
+	Vec<4, T> swizzle(const Vec<T_DIM, T>& v){
+		static_assert(xen::impl::SwizzlePlace<T_S1>::INDEX < T_DIM,
+		              "Invalid swizzle place T_S1"
+		             );
+		static_assert(xen::impl::SwizzlePlace<T_S2>::INDEX < T_DIM,
+		              "Invalid swizzle place T_S2"
+		             );
+		static_assert(xen::impl::SwizzlePlace<T_S3>::INDEX < T_DIM,
+		              "Invalid swizzle place T_S3"
+		             );
+		static_assert(xen::impl::SwizzlePlace<T_S4>::INDEX < T_DIM,
+		              "Invalid swizzle place T_S4"
+		             );
+
+		return {
+			v[xen::impl::SwizzlePlace<T_S1>::INDEX],
+			v[xen::impl::SwizzlePlace<T_S2>::INDEX],
+			v[xen::impl::SwizzlePlace<T_S3>::INDEX],
+			v[xen::impl::SwizzlePlace<T_S4>::INDEX],
+		};
 	}
 }
 

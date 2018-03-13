@@ -15,6 +15,8 @@
 #include <xen/math/vector.hpp>
 #include <xen/math/utilities.hpp>
 
+#include "impl/swizzles.hxx"
+
 namespace xen {
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Computes the barycentric coordinates for a
@@ -165,6 +167,56 @@ xen::VertexGroup<T_NUM, T_DIM, T> operator/(const xen::VertexGroup <T_NUM, T_DIM
 		result.vertices[i] = lhs.vertices[i] / rhs;
 	}
 	return result;
+}
+
+namespace xen {
+
+	template<char T_S1, char T_S2, u32 T_DIM, typename T>
+	LineSegment2<T> swizzle(const LineSegment<T_DIM, T>& l){
+		return {
+			xen::swizzle<T_S1, T_S2>(l.p1),
+			xen::swizzle<T_S1, T_S2>(l.p2),
+		};
+	}
+	template<char T_S1, char T_S2, char T_S3, u32 T_DIM, typename T>
+  LineSegment3<T> swizzle(const LineSegment<T_DIM, T>& l){
+		return {
+			xen::swizzle<T_S1, T_S2, T_S3>(l.p1),
+			xen::swizzle<T_S1, T_S2, T_S3>(l.p2),
+		};
+	}
+	template<char T_S1, char T_S2, char T_S3, char T_S4, u32 T_DIM, typename T>
+  LineSegment4<T> swizzle(const LineSegment<T_DIM, T>& l){
+			return {
+				xen::swizzle<T_S1, T_S2, T_S3, T_S4>(l.p1),
+				xen::swizzle<T_S1, T_S2, T_S3, T_S4>(l.p2),
+			};
+	}
+
+	template<char T_S1, char T_S2, u32 T_DIM, typename T>
+	Triangle2<T> swizzle(const Triangle<T_DIM, T>& t){
+		return {
+			xen::swizzle<T_S1, T_S2>(t.p1),
+			xen::swizzle<T_S1, T_S2>(t.p2),
+			xen::swizzle<T_S1, T_S2>(t.p3),
+		};
+	}
+	template<char T_S1, char T_S2, char T_S3, u32 T_DIM, typename T>
+  Triangle3<T> swizzle(const Triangle<T_DIM, T>& t){
+		return {
+			xen::swizzle<T_S1, T_S2, T_S3>(t.p1),
+			xen::swizzle<T_S1, T_S2, T_S3>(t.p2),
+			xen::swizzle<T_S1, T_S2, T_S3>(t.p3),
+		};
+	}
+	template<char T_S1, char T_S2, char T_S3, char T_S4, u32 T_DIM, typename T>
+  Triangle4<T> swizzle(const Triangle<T_DIM, T>& t){
+			return {
+				xen::swizzle<T_S1, T_S2, T_S3, T_S4>(t.p1),
+				xen::swizzle<T_S1, T_S2, T_S3, T_S4>(t.p2),
+				xen::swizzle<T_S1, T_S2, T_S3, T_S4>(t.p3),
+			};
+	}
 }
 
 
