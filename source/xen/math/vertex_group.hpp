@@ -217,6 +217,31 @@ namespace xen {
 				xen::swizzle<T_S1, T_S2, T_S3, T_S4>(t.p3),
 			};
 	}
+
+	template<char T_S1, char T_S2, u32 T_COUNT, u32 T_DIM, typename T>
+	VertexGroup<T_COUNT, 2, T> swizzle(const VertexGroup<T_COUNT, T_DIM, T>& vg){
+		VertexGroup<T_COUNT, 2, T> out;
+		for(u32 i = 0; i < T_COUNT; ++i){
+			out.vertices[i] = xen::swizzle<T_S1, T_S2>(vg.vertices[i]);
+		}
+		return out;
+	}
+	template<char T_S1, char T_S2, char T_S3, u32 T_COUNT, u32 T_DIM, typename T>
+	VertexGroup<T_COUNT, 3, T> swizzle(const VertexGroup<T_COUNT, T_DIM, T>& vg){
+		VertexGroup<T_COUNT, 3, T> out;
+		for(u32 i = 0; i < T_COUNT; ++i){
+			out.vertices[i] = xen::swizzle<T_S1, T_S2, T_S3>(vg.vertices[i]);
+		}
+		return out;
+	}
+	template<char T_S1, char T_S2, char T_S3, char T_S4, u32 T_COUNT, u32 T_DIM, typename T>
+	VertexGroup<T_COUNT, 4, T> swizzle(const VertexGroup<T_COUNT, T_DIM, T>& vg){
+		VertexGroup<T_COUNT, 4, T> out;
+		for(u32 i = 0; i < T_COUNT; ++i){
+			out.vertices[i] = xen::swizzle<T_S1, T_S2, T_S3, T_S4>(vg.vertices[i]);
+		}
+		return out;
+	}
 }
 
 

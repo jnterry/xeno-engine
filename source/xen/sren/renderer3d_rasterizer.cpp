@@ -391,19 +391,8 @@ namespace {
 				tri_clip.p2 /= (tri_clip.p2.w);
 				tri_clip.p3 /= (tri_clip.p3.w);
 
-				xen::Triangle2r  tri_screen;
-
-				// :TODO:COMP:ISSUE_15: swizzle function
-				// Once we can do generic swizzles, we could make transform to screen space
-				// a template function and use same code for this and points and triangles, etc
-				tri_screen.p1 = tri_clip.p1.xy;
-				tri_screen.p2 = tri_clip.p2.xy;
-				tri_screen.p3 = tri_clip.p3.xy;
-
-				tri_screen += Vec2r{1,1};                  // convert to [0, 2] space
-				tri_screen /= 2.0_r;                       // convert to [0, 1] space
-				tri_screen *= viewport.max - viewport.min; // convert to screen space
-				tri_screen += viewport.min;                // move to correct part of screen
+				xen::Triangle2r tri_screen =
+					_convertToScreenSpace<xen::Triangle4r, xen::Triangle2r>(tri_clip, viewport);
 
 				doRenderTriangle2d(target, viewport, color, tri_screen);
 				return;
@@ -434,10 +423,8 @@ namespace {
 				quad_screen.vertices[2] = (tri_clip.p2    / tri_clip.p2.w).xy;
 				quad_screen.vertices[3] = (p3_slide_to_p2 / p3_slide_to_p2.w).xy;
 
-				quad_screen += Vec2r{1,1};                  // convert to [0, 2] space
-				quad_screen /= 2.0_r;                       // convert to [0, 1] space
-				quad_screen *= viewport.max - viewport.min; // convert to screen space
-				quad_screen += viewport.min;                // move to correct part of screen
+				quad_screen =
+					_convertToScreenSpace<xen::VertexGroup2r<4>, xen::VertexGroup2r<4>>(quad_screen, viewport);
 
 				doRenderTriangle2d(target, viewport, color, *(xen::Triangle2r*)&quad_screen.vertices[0]);
 				doRenderTriangle2d(target, viewport, color, *(xen::Triangle2r*)&quad_screen.vertices[1]);
