@@ -544,7 +544,6 @@ namespace xen{
 					stride = 1;
 				do_render_lines:
 					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += stride){
-						//printf("Doing vertex %i / %i\n", i, cmd->verticies.count);
 						LineSegment3r* line_world = (LineSegment3r*)(&cmd->immediate.position[i]);
 
 						doRenderLine3d(target, view_region, mat_mvp, base_color, *line_world);

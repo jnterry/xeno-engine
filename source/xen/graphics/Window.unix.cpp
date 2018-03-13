@@ -13,7 +13,6 @@
 #define XEN_GRAPHICS_WINDOW_UNIX_CPP
 
 #include <xen/graphics/Window.hpp>
-#include <xen/graphics/Window.hxx>
 #include <xen/math/vector.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 

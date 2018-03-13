@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief Contains defintions of types used to represented Matricies in the
+/// \brief Contains defintions of types used to represented Matrices in the
 /// mathematical sense
 ///
 /// \ingroup math

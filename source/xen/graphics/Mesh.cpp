@@ -32,7 +32,7 @@ namespace {
 		static const u08 BAD_INDEX = 255;
 	};
 
-	VertexAttributeAspects findVertexAttributeAspectIndicies(xen::VertexAttribute::Type* types,
+	VertexAttributeAspects findVertexAttributeAspectIndices(xen::VertexAttribute::Type* types,
 	                                                         u32 attrib_count){
 		VertexAttributeAspects result = {
 			VertexAttributeAspects::BAD_INDEX,
@@ -74,8 +74,8 @@ namespace {
 		return result;
 	}
 
-	//VertexAttributeAspects findVertexAttributeAspectIndicies(xen::VertexSpec& spec){
-	//	return findVertexAttributeAspectIndicies(&spec[0], spec.size);
+	//VertexAttributeAspects findVertexAttributeAspectIndices(xen::VertexSpec& spec){
+	//	return findVertexAttributeAspectIndices(&spec[0], spec.size);
 	//}
 
 	template<typename T>
@@ -89,7 +89,7 @@ namespace {
 
 	bool processAssimpMesh(xen::MeshData* md, xen::ArenaLinear& arena, const aiMesh* mesh){
 		xen::MemoryTransaction transaction(arena);
-		VertexAttributeAspects aspect = findVertexAttributeAspectIndicies(md->attrib_types,
+		VertexAttributeAspects aspect = findVertexAttributeAspectIndices(md->attrib_types,
 		                                                                  md->attrib_count
 		                                                                 );
 

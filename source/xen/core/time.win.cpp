@@ -9,7 +9,7 @@
 #include "../windows_header.hxx"
 #include <ctime>
 
-#include "time.hpp"
+#include <xen/core/time.hpp>
 
 static_assert(sizeof(xen::DateTime) <= sizeof(FILETIME),
               "Platform specific DateTime type must be able to fit in public type"
