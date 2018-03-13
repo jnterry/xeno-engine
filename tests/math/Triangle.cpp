@@ -105,3 +105,23 @@ TEST_CASE("Triangle toHomo", "[math][Triangle]"){
 					Vec3r{0.0,0.0,1.0}
 				 );
 }
+
+TEST_CASE("Triangle Swizzles", "[math][Triangle][swizzle]"){
+	SECTION("To 2d"){
+		CHECK(xen::swizzle<'y','x'>(xen::Triangle2r{Vec2r{1,2}, Vec2r{3,4}, Vec2r{5,6}}) ==
+		      xen::Triangle2r{Vec2r{2,1}, Vec2r{4,3}, Vec2r{6,5}}
+		     );
+	}
+
+	SECTION("To 3d"){
+		CHECK(xen::swizzle<'y','x','x'>(xen::Triangle2r{Vec2r{1,2}, Vec2r{3,4}, Vec2r{5,6}}) ==
+		      xen::Triangle3r{Vec3r{2,1,1}, Vec3r{4,3,3}, Vec3r{6,5,5}}
+		     );
+	}
+
+	SECTION("To 4d"){
+		CHECK(xen::swizzle<'x','y','x','z'>(xen::Triangle3r{Vec3r{1,2,3}, Vec3r{4,5,6}, Vec3r{7,8,9}}) ==
+		      xen::Triangle4r{Vec4r{1,2,1,3}, Vec4r{4,5,4,6}, Vec4r{7,8,7,9}}
+		     );
+	}
+}
