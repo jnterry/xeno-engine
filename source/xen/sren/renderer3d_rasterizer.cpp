@@ -25,6 +25,18 @@
 #include <float.h>
 
 namespace {
+	template<typename T_IN, typename T_OUT>
+  T_OUT _convertToScreenSpace(const T_IN& in, const xen::Aabb2r& viewport){
+		T_OUT out = xen::swizzle<'x','y'>(in);
+
+		out += Vec2r{1,1};                  // convert to [0, 2] space
+		out /= 2.0_r;                       // convert to [0, 1] space
+		out *= viewport.max - viewport.min; // convert to screen space
+		out += viewport.min;                // move to correct part of screen
+
+		return out;
+	}
+
 	void doRenderPoints(xen::sren::RenderTargetImpl& target,
 	                    const xen::Aabb2r& viewport,
 	                    const Mat4f& mvp_matrix,
@@ -50,16 +62,8 @@ namespace {
 			clip_space.xy /= (clip_space.w);
 			///////////////////////////////////////////////////////////////////
 
-			///////////////////////////////////////////////////////////////////
-			// Transform into screen space
-			Vec2r screen_space = clip_space.xy;
-
-			screen_space += Vec2r{1,1};                  // convert to [0, 2] space
-			screen_space /= 2.0_r;                       // convert to [0, 1] space
-			screen_space *= viewport.max - viewport.min; // convert to screen space
-			screen_space += viewport.min;                // move to correct part of screen
-			///////////////////////////////////////////////////////////////////
-
+			Vec2r screen_space =
+				_convertToScreenSpace<Vec4r, Vec2r>(clip_space, viewport);
 			if(screen_space.x < viewport.min.x ||
 			   screen_space.y < viewport.min.y ||
 			   screen_space.x > viewport.max.x ||
@@ -174,23 +178,9 @@ namespace {
 		///////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////////////////////////////////////
-		// Transform into screen space
-		xen::LineSegment2r  line_screen;
-
-		// :TODO:COMP:ISSUE_15: swizzle function
-		// Once we can do generic swizzles, we could make transform to screen space
-		// a template function and use same code for this and points and triangles, etc
-		line_screen.p1 = line_clip.p1.xy;
-		line_screen.p2 = line_clip.p2.xy;
-
-		line_screen += Vec2r{1,1};                  // convert to [0, 2] space
-		line_screen /= 2.0_r;                       // convert to [0, 1] space
-		line_screen *= viewport.max - viewport.min; // convert to screen space
-		line_screen += viewport.min;                // move to correct part of screen
-		///////////////////////////////////////////////////////////////////
-
-		///////////////////////////////////////////////////////////////////
 		// Clip to the viewport
+		xen::LineSegment2r line_screen =
+			_convertToScreenSpace<xen::LineSegment4r, xen::LineSegment2r>(line_clip, viewport);
 		if(xen::intersect(line_screen, viewport)){
 			doRenderLine2d(target, line_screen, color, z_start, z_end);
 		}
@@ -368,19 +358,8 @@ namespace {
 			tri_clip.p2 /= (tri_clip.p2.w);
 			tri_clip.p3 /= (tri_clip.p3.w);
 
-			xen::Triangle2r  tri_screen;
-
-			// :TODO:COMP:ISSUE_15: swizzle function
-			// Once we can do generic swizzles, we could make transform to screen space
-			// a template function and use same code for this and points and triangles, etc
-			tri_screen.p1 = tri_clip.p1.xy;
-			tri_screen.p2 = tri_clip.p2.xy;
-			tri_screen.p3 = tri_clip.p3.xy;
-
-			tri_screen += Vec2r{1,1};                  // convert to [0, 2] space
-			tri_screen /= 2.0_r;                       // convert to [0, 1] space
-			tri_screen *= viewport.max - viewport.min; // convert to screen space
-			tri_screen += viewport.min;                // move to correct part of screen
+			xen::Triangle2r tri_screen =
+				_convertToScreenSpace<xen::Triangle4r, xen::Triangle2r>(tri_clip, viewport);
 
 			doRenderTriangle2d(target, viewport, color, tri_screen);
 			return;
