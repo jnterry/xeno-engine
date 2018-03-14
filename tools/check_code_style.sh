@@ -53,4 +53,4 @@ check_section "The following files should be included relatively" \
 
 
 check_section "The following spelling mistakes were found" \
-							"egrep --color -R -i 'verticies|indicies|matricies'"
+							"egrep --color -R -i 'verticies|indicies|matricies|primative'"
