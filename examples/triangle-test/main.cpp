@@ -44,6 +44,10 @@ int main(int argc, char** argv){
 		{ 0.0, 3.0, 5.0},   { 0.0, 1.0, 5.0},   { 0.0, 1.0, 0.0 },
 	};
 
+	xen::Color testColors[] = {
+		xen::Color::RED,   xen::Color::GREEN,   xen::Color::BLUE,
+	};
+
 	xen::FixedArray<xen::RenderCommand3d, 7> render_commands;
 	xen::clearToZero(render_commands);
 	render_commands[0].primative_type         = xen::PrimativeType::LINES;
@@ -72,6 +76,7 @@ int main(int argc, char** argv){
 	render_commands[3].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
 	render_commands[3].immediate.position     = &test_triangles[6];
 	render_commands[3].immediate.vertex_count = 3;
+	render_commands[3].immediate.color        = testColors;
 
 	render_commands[4].primative_type         = xen::PrimativeType::LINE_STRIP;
 	render_commands[4].color                  = xen::Color::WHITE4f;
