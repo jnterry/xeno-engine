@@ -48,28 +48,22 @@ namespace {
 		}
 
 		for(u32 i = 0; i < geom.vertex_count; ++i){
-			Vec4f clip_space = xen::mkVec(geom.position[i], 1_r) * mvp_matrix;
+			Vec3f clip_space = geom.position[i] * mvp_matrix;
 
-			if(clip_space.z < 0){
-				// Then point is behind the camera
+			if(clip_space.x < -1 || clip_space.x > 1 ||
+			   clip_space.y < -1 || clip_space.y > 1 ||
+			   clip_space.z < -1 || clip_space.z > 1
+			   ){
+				// Then point is not in view of the camera
 				continue;
 			}
-			real depth = clip_space.z;
 
-			///////////////////////////////////////////////////////////////////
-			// Do perspective divide (into normalized device coordinates -> [-1, 1]
-			// We only care about x and y coordinates at this point
-			clip_space.xy /= (clip_space.w);
-			///////////////////////////////////////////////////////////////////
+			// Do perspective divide ensure xy that are further away are made smaller
+			clip_space.xy /= (clip_space.z);
 
+			// Convert from [-1, 1] clip space to screen space
 			Vec2r screen_space =
-				_convertToScreenSpace<Vec4r, Vec2r>(clip_space, viewport);
-			if(screen_space.x < viewport.min.x ||
-			   screen_space.y < viewport.min.y ||
-			   screen_space.x > viewport.max.x ||
-			   screen_space.y > viewport.max.y){
-				continue;
-			}
+				_convertToScreenSpace<Vec3r, Vec2r>(clip_space, viewport);
 
 			u32 pixel_index = (u32)screen_space.y*target.width + (u32)screen_space.x;
 
@@ -419,8 +413,8 @@ namespace {
 
 				xen::VertexGroup2r<4> quad_screen;
 				quad_screen.vertices[0] = (p3_slide_to_p1 / p3_slide_to_p1.w).xy;
-				quad_screen.vertices[1] = (tri_clip.p1    / tri_clip.p1.w).xy;
-				quad_screen.vertices[2] = (tri_clip.p2    / tri_clip.p2.w).xy;
+				quad_screen.vertices[1] = (tri_clip.p1    / tri_clip.p1.w   ).xy;
+				quad_screen.vertices[2] = (tri_clip.p2    / tri_clip.p2.w   ).xy;
 				quad_screen.vertices[3] = (p3_slide_to_p2 / p3_slide_to_p2.w).xy;
 
 				quad_screen =
