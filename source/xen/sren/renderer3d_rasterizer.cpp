@@ -83,7 +83,8 @@ namespace {
 	}
 
 	void doRenderLine2d(xen::sren::RenderTargetImpl& target, xen::LineSegment2r line,
-	                    xen::Color4f color,
+	                    xen::Color4f color1,
+											xen::Color4f color2,
 	                    real z_start, real z_end){
 		if(line.p1 == line.p2){ return; }
 
@@ -99,6 +100,7 @@ namespace {
 
 			// :TODO: Replace lerp with a perspective correct interpolation
 			real depth = xen::lerp(z_start, z_end, (i/num_pixels));
+			xen::Color4f color = xen::lerp(color1, color2, (i/num_pixels));
 			target.color[(u32)cur.y*target.width + (u32)cur.x] = color;
 			target.depth[(u32)cur.y*target.width + (u32)cur.x] = depth;
 			cur += delta;
@@ -145,7 +147,8 @@ namespace {
 	void doRenderLine3d(xen::sren::RenderTargetImpl& target,
 	                    const xen::Aabb2r& viewport,
 	                    const Mat4f& mvp_matrix,
-	                    xen::Color4f color,
+	                    xen::Color4f color1,
+											xen::Color4f color2,
 	                    const xen::LineSegment3r& line){
 
 		xen::LineSegment4r line_clip  = xen::toHomo(line) * mvp_matrix;
@@ -182,7 +185,7 @@ namespace {
 		xen::LineSegment2r line_screen =
 			_convertToScreenSpace<xen::LineSegment4r, xen::LineSegment2r>(line_clip, viewport);
 		if(xen::intersect(line_screen, viewport)){
-			doRenderLine2d(target, line_screen, color, z_start, z_end);
+			doRenderLine2d(target, line_screen, color1, color2, z_start, z_end);
 		}
 		///////////////////////////////////////////////////////////////////
 	}
@@ -219,7 +222,7 @@ namespace {
 				// be a 3d triangle that is edge on when projected
 				if(xen::intersect(*line, viewport)){
 					// :TODO: correct depth values here... not 0,0
-					doRenderLine2d(target, *line, color, 0, 0);
+					doRenderLine2d(target, *line, color, color, 0, 0);
 				}
 				return;
 			}
@@ -512,7 +515,26 @@ namespace xen{
 					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += stride){
 						LineSegment3r* line_world = (LineSegment3r*)(&cmd->immediate.position[i]);
 
-						doRenderLine3d(target, view_region, mat_mvp, base_color, *line_world);
+						// :TODO: In case where no colour is still specified we still lerp across each value between white and white, we may be able to optimise this
+
+						// If (color is not specified) -> set to white, else -> get color for vertex
+						xen::Color4f color1;
+						if(&cmd->immediate.color == nullptr){
+							color1 = xen::Color::WHITE4f;
+						} else {
+							color1 = makeColor4f(cmd->immediate.color[i]);
+						}
+						xen::Color4f color2;
+						if(&cmd->immediate.color == nullptr){
+							color1 = xen::Color::WHITE4f;
+						} else {
+							color2 = makeColor4f(cmd->immediate.color[i+1]);
+						}
+						// Multiply by cmd color, for case where colour for entire line is specified in command
+						color1 *= cmd->color;
+						color2 *= cmd->color;
+
+						doRenderLine3d(target, view_region, mat_mvp, color1, color2, *line_world);
 					}
 					break;
 				default:
