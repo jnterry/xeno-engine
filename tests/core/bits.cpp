@@ -150,3 +150,122 @@ TEST_CASE("Non-const Bit Reference", "[core][bits]"){
 		CHECK(val  ==    58);
 	}
 }
+
+TEST_CASE("BitField8", "[core][bits]"){
+
+	// 147
+	// bit indices : 7 6 5 4 3 2 1 0
+	// binary      : 1 0 0 1 0 0 1 1
+	xen::BitField<u8, 8> field_a = {{147}};
+
+	REQUIRE(field_a[0] ==  true);
+	REQUIRE(field_a[1] ==  true);
+	REQUIRE(field_a[2] == false);
+	REQUIRE(field_a[3] == false);
+	REQUIRE(field_a[4] ==  true);
+	REQUIRE(field_a[5] == false);
+	REQUIRE(field_a[6] == false);
+	REQUIRE(field_a[7] ==  true);
+
+	SECTION("Bitwise Not"){
+		auto result = ~field_a;
+	  CHECK(result[0] == false);
+	  CHECK(result[1] == false);
+	  CHECK(result[2] ==  true);
+	  CHECK(result[3] ==  true);
+	  CHECK(result[4] == false);
+	  CHECK(result[5] ==  true);
+	  CHECK(result[6] ==  true);
+	  CHECK(result[7] == false);
+	}
+
+	// 66
+	// bit indices : 7 6 5 4 3 2 1 0
+	// binary      : 0 1 0 0 0 0 1 0
+	xen::BitField<u08, 8> field_b = {{66}};
+	REQUIRE(field_b[0] == false);
+	REQUIRE(field_b[1] ==  true);
+	REQUIRE(field_b[2] == false);
+	REQUIRE(field_b[3] == false);
+	REQUIRE(field_b[4] == false);
+	REQUIRE(field_b[5] == false);
+	REQUIRE(field_b[6] ==  true);
+	REQUIRE(field_b[7] == false);
+
+	// bit indices : 7 6 5 4 3 2 1 0
+	// field_a     : 1 0 0 1 0 0 1 1
+	// field_b     : 0 1 0 0 0 0 1 0
+
+	SECTION("Bitwise Or"){
+		auto result = field_a | field_b;
+	  CHECK(result[0] ==  true);
+	  CHECK(result[1] ==  true);
+	  CHECK(result[2] == false);
+	  CHECK(result[3] == false);
+	  CHECK(result[4] ==  true);
+	  CHECK(result[5] == false);
+	  CHECK(result[6] ==  true);
+	  CHECK(result[7] ==  true);
+	}
+
+	SECTION("Bitwise EqOr"){
+	  field_a |= field_b;
+	  CHECK(field_a[0] ==  true);
+	  CHECK(field_a[1] ==  true);
+	  CHECK(field_a[2] == false);
+	  CHECK(field_a[3] == false);
+	  CHECK(field_a[4] ==  true);
+	  CHECK(field_a[5] == false);
+	  CHECK(field_a[6] ==  true);
+	  CHECK(field_a[7] ==  true);
+	}
+
+	SECTION("Bitwise And"){
+		auto result = field_a & field_b;
+	  CHECK(result[0] == false);
+	  CHECK(result[1] ==  true);
+	  CHECK(result[2] == false);
+	  CHECK(result[3] == false);
+	  CHECK(result[4] == false);
+	  CHECK(result[5] == false);
+	  CHECK(result[6] == false);
+	  CHECK(result[7] == false);
+	}
+
+	SECTION("Bitwise EqAnd"){
+	  field_a &= field_b;
+	  CHECK(field_a[0] == false);
+	  CHECK(field_a[1] ==  true);
+	  CHECK(field_a[2] == false);
+	  CHECK(field_a[3] == false);
+	  CHECK(field_a[4] == false);
+	  CHECK(field_a[5] == false);
+	  CHECK(field_a[6] == false);
+	  CHECK(field_a[7] == false);
+	}
+
+	SECTION("Bitwise Xor"){
+		auto result = field_a ^ field_b;
+	  CHECK(result[0] ==  true);
+	  CHECK(result[1] == false);
+	  CHECK(result[2] == false);
+	  CHECK(result[3] == false);
+	  CHECK(result[4] ==  true);
+	  CHECK(result[5] == false);
+	  CHECK(result[6] ==  true);
+	  CHECK(result[7] ==  true);
+	}
+
+	SECTION("Bitwise EqXor"){
+	  field_a ^= field_b;
+	  CHECK(field_a[0] ==  true);
+	  CHECK(field_a[1] == false);
+	  CHECK(field_a[2] == false);
+	  CHECK(field_a[3] == false);
+	  CHECK(field_a[4] ==  true);
+	  CHECK(field_a[5] == false);
+	  CHECK(field_a[6] ==  true);
+	  CHECK(field_a[7] ==  true);
+	}
+
+}

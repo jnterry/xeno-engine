@@ -25,7 +25,7 @@ namespace xen {
 	xen::BitReference<T> makeBitReference(T* primative, u32 index){
 		return {
 			&primative[index / (sizeof(T)*8)],
-			(T)1 <<   (index % (sizeof(T)*8)),
+			(T)(1 <<  (index % (sizeof(T)*8))),
 		};
 	}
 
@@ -66,6 +66,14 @@ xen::BitField<T, T_NUM> operator^(const xen::BitField<T, T_NUM>& a, const xen::B
 	xen::BitField<T, T_NUM> result;
 	for(u32 i = 0; i < xen::BitField<T, T_NUM>::NUM_PRIMATIVES; ++i){
 		result.bits[i] = a.bits[i] ^ b.bits[i];
+	}
+	return result;
+}
+template<typename T, u32 T_NUM>
+xen::BitField<T, T_NUM> operator~(const xen::BitField<T, T_NUM>& a){
+	xen::BitField<T, T_NUM> result;
+	for(u32 i = 0; i < xen::BitField<T, T_NUM>::NUM_PRIMATIVES; ++i){
+		result.bits[i] = ~a.bits[i];
 	}
 	return result;
 }
