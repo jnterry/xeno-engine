@@ -67,11 +67,11 @@ namespace {
 
 			u32 pixel_index = (u32)screen_space.y*target.width + (u32)screen_space.x;
 
-			if (depth > target.depth[pixel_index]){
+			if (clip_space.z > target.depth[pixel_index]){
 				// Then point is behind something else occupying this pixel
 				continue;
 			}
-			target.depth[pixel_index] = depth;
+			target.depth[pixel_index] = clip_space.z;
 			target.color[pixel_index] = xen::makeColor4f(color_buffer[i * (geom.color != nullptr)]);
 		}
 	}
