@@ -1,4 +1,4 @@
-#include <xen/math/geometry.hpp>
+#include <xen/core/intrinsics.hpp>
 #include <catch.hpp>
 
 TEST_CASE("2 way min/max on primitives", "[core][minmax]"){
