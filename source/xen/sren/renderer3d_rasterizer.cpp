@@ -205,10 +205,14 @@ namespace {
 	//          tri.p1
 	void doRenderTriangle2d(xen::sren::RenderTargetImpl& target,
 		                      const xen::Aabb2r& viewport,
-	                        xen::Color4f color, xen::Triangle2r tri){
+	                        xen::Color4f color1,
+													xen::Color4f color2,
+													xen::Color4f color3,
+													xen::Triangle2r tri){
 
 		{ // If any two points are equal draw a line and bail out
 			xen::LineSegment2r* line = nullptr;
+			// :TODO: Need to determine which point is in front when two points are equal in 2D, but can't because of lack of z info
 			if(tri.p1 == tri.p2){
 				// then draw line connecting p2 and p3
 				line = (xen::LineSegment2r*)&tri.vertices[1];
@@ -222,16 +226,26 @@ namespace {
 				// be a 3d triangle that is edge on when projected
 				if(xen::intersect(*line, viewport)){
 					// :TODO: correct depth values here... not 0,0
-					doRenderLine2d(target, *line, color, color, 0, 0);
+					// :TODO: Correct colors here, not just color1 color1. Find them in the above ^
+					doRenderLine2d(target, *line, color1, color1, 0, 0);
 				}
 				return;
 			}
 		}
 
 		// Sort Points such that p1 has lowest y, p3 has highest y
-		if (tri.p1.y > tri.p2.y) { swap(tri.p1, tri.p2); }
-		if (tri.p2.y > tri.p3.y) { swap(tri.p2, tri.p3); }
-		if (tri.p1.y > tri.p2.y) { swap(tri.p1, tri.p2); }
+		if (tri.p1.y > tri.p2.y) {
+			swap(tri.p1, tri.p2);
+			swap(color1, color2);
+		}
+		if (tri.p2.y > tri.p3.y) {
+			swap(tri.p2, tri.p3);
+			swap(color2, color3);
+		}
+		if (tri.p1.y > tri.p2.y) {
+			swap(tri.p1, tri.p2);
+			swap(color1, color2);
+		}
 
 		// :TODO: this is nasty hack to prevent infinite loop since we will
 		// never step up in y if the line is along x - but we still want to
@@ -296,9 +310,6 @@ namespace {
 			// Step along line a until we reach next y value
 			while((u32)curr_a.y == curr_pixel_y){
 				//printf("Stepping along a, now at: %f, %f\n", curr_a.x, curr_a.y);
-				if (xen::contains(viewport, curr_a)){
-					target.color[(u32)curr_a.y*target.width + (u32)curr_a.x] = color;
-				}
 				curr_a += delta_a;
 				++line_a_pixels_drawn;
 			}
@@ -306,9 +317,6 @@ namespace {
 			// Step along line b until we reach next y value
 			while ((u32)curr_b.y == curr_pixel_y){
 				//printf("Stepping along b, now at: %f, %f\n", curr_b.x, curr_b.y);
-				if (xen::contains(viewport, curr_b)){
-					target.color[(u32)curr_b.y*target.width + (u32)curr_b.x] = color;
-				}
 				curr_b += delta_b;
 				// If b has reached end point then begin drawing line c by changing
 				// vector that represents a single step from that of b to that of c
@@ -326,7 +334,11 @@ namespace {
 			u32 min_x = xen::max(xen::min(curr_a.x, curr_b.x, viewport.max.x), viewport.min.x);
 			u32 max_x = xen::min(xen::max(curr_a.x, curr_b.x, viewport.min.x), viewport.max.x);
 			if(curr_a.y >= viewport.min.y && curr_a.y <= viewport.max.y){
-				for (u32 x = min_x+1; x < max_x; ++x){
+				for (u32 x = min_x; x <= max_x; ++x){
+					Vec3r barycentricRatios = getBarycentricCoordinates(tri, xen::mkVec((real)x, curr_a.y));
+					xen::Color4f color = barycentricRatios.x*color1
+					                   + barycentricRatios.y*color2
+														 + barycentricRatios.z*color3;
 					target.color[(u32)curr_a.y*target.width + x] = color;
 				}
 			}
@@ -337,7 +349,9 @@ namespace {
 	void doRenderTriangle3d(xen::sren::RenderTargetImpl& target,
 		                      const xen::Aabb2r& viewport,
 												  const Mat4f& mvp_matrix,
-	                        xen::Color4f color,
+	                        xen::Color4f color1,
+													xen::Color4f color2,
+													xen::Color4f color3,
 	                        xen::Triangle3r& tri){
 		xen::Triangle4r tri_clip  = xen::toHomo(tri) * mvp_matrix;
 
@@ -364,7 +378,7 @@ namespace {
 			xen::Triangle2r tri_screen =
 				_convertToScreenSpace<xen::Triangle4r, xen::Triangle2r>(tri_clip, viewport);
 
-			doRenderTriangle2d(target, viewport, color, tri_screen);
+			doRenderTriangle2d(target, viewport, color1, color2, color3, tri_screen);
 			return;
 		}
 
@@ -397,7 +411,7 @@ namespace {
 				xen::Triangle2r tri_screen =
 					_convertToScreenSpace<xen::Triangle4r, xen::Triangle2r>(tri_clip, viewport);
 
-				doRenderTriangle2d(target, viewport, color, tri_screen);
+				doRenderTriangle2d(target, viewport, color1, color2, color3, tri_screen);
 				return;
 			}
 		case 1: // 001
@@ -429,8 +443,10 @@ namespace {
 				quad_screen =
 					_convertToScreenSpace<xen::VertexGroup2r<4>, xen::VertexGroup2r<4>>(quad_screen, viewport);
 
-				doRenderTriangle2d(target, viewport, color, *(xen::Triangle2r*)&quad_screen.vertices[0]);
-				doRenderTriangle2d(target, viewport, color, *(xen::Triangle2r*)&quad_screen.vertices[1]);
+				doRenderTriangle2d(target, viewport, color1, color2, color3
+					                 , *(xen::Triangle2r*)&quad_screen.vertices[0]);
+				doRenderTriangle2d(target, viewport, color1, color2, color3
+					                 , *(xen::Triangle2r*)&quad_screen.vertices[1]);
 			}
 			return;
 		}
@@ -506,7 +522,34 @@ namespace xen{
 				case xen::PrimativeType::TRIANGLES:
 					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += 3){
 						Triangle3r* tri_world = (Triangle3r*)(&cmd->immediate.position[i]);
-						doRenderTriangle3d(target,view_region, mat_mvp, cmd->color, *tri_world);
+
+						// :TODO: In case where no colour is still specified we still lerp across each value between white and white, we may be able to optimise this
+
+						// If (color is not specified) -> set to white, else -> get color for vertex
+						xen::Color4f color1;
+						if(cmd->immediate.color == nullptr){
+							color1 = xen::Color::WHITE4f;
+						} else {
+							color1 = makeColor4f(cmd->immediate.color[i]);
+						}
+						xen::Color4f color2;
+						if(cmd->immediate.color == nullptr){
+							color2 = xen::Color::WHITE4f;
+						} else {
+							color2 = makeColor4f(cmd->immediate.color[i+1]);
+						}
+						xen::Color4f color3;
+						if(cmd->immediate.color == nullptr){
+							color3 = xen::Color::WHITE4f;
+						} else {
+							color3 = makeColor4f(cmd->immediate.color[i+2]);
+						}
+						// Multiply by cmd color, for case where colour for entire line is specified in command
+						color1 *= cmd->color;
+						color2 *= cmd->color;
+						color3 *= cmd->color;
+
+						doRenderTriangle3d(target,view_region, mat_mvp, color1, color2, color3, *tri_world);
 					}
 					break;
 				case xen::PrimativeType::LINE_STRIP:
@@ -519,14 +562,14 @@ namespace xen{
 
 						// If (color is not specified) -> set to white, else -> get color for vertex
 						xen::Color4f color1;
-						if(&cmd->immediate.color == nullptr){
+						if(cmd->immediate.color == nullptr){
 							color1 = xen::Color::WHITE4f;
 						} else {
 							color1 = makeColor4f(cmd->immediate.color[i]);
 						}
 						xen::Color4f color2;
-						if(&cmd->immediate.color == nullptr){
-							color1 = xen::Color::WHITE4f;
+						if(cmd->immediate.color == nullptr){
+							color2 = xen::Color::WHITE4f;
 						} else {
 							color2 = makeColor4f(cmd->immediate.color[i+1]);
 						}
