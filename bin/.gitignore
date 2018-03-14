@@ -20,3 +20,6 @@ line-test
 
 # Ignore program output
 screenshot.bmp
+
+# Ignore valgrind output files
+callgrind.out.*
