@@ -30,13 +30,8 @@ namespace{
 		result->attribute_types     = xen::reserveTypeArray<xen::VertexAttribute::Type    >(arena, attrib_count);
 		result->attribute_sources   = xen::reserveTypeArray<xen::gl::VertexAttributeSource>(arena, attrib_count);
 
-		// :TODO:COMP: helper function -> return transaction.commitIfValid(arena, result);
-		if(xen::isValid(arena)){
-			transaction.commit();
-			return result;
-		} else {
-			return nullptr;
-		}
+		transaction.commit();
+		return result;
 	}
 
 	/////////////////////////////////////////////////////////////////////
