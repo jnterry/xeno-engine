@@ -154,16 +154,6 @@ namespace xen{
 	}
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Determines if there exists an intersection between some Aabb
-	/// and a line segment
-	/////////////////////////////////////////////////////////////////////
-	//template<typename T>
-	//bool haveIntersection(const LineSegment<T_DIM, T>& l, const Aabb<T_DIM, T>& a){
-		//
-		//		LineSegment<T_DIM, T>& l,
-			 //	}
-
-	/////////////////////////////////////////////////////////////////////
 	/// \brief Clips a line segment such that it is fully contained within the
 	/// specified Aabb. If the line does not intersect the Aabb then sets both
 	/// the line end points to the origin

@@ -21,6 +21,10 @@ namespace xen{
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wpedantic"
 
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents a matrix in the mathematical sense with an arbitrary
+	/// number of rows and columns (fixed at compile time).
+	/////////////////////////////////////////////////////////////////////
 	template<u32 T_Rows, u32 T_Cols, typename T>
 	struct Matrix{
 		/// \brief The elements of this matrix, stored in row-major layout
