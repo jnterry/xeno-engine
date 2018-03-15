@@ -11,3 +11,5 @@ SOURCE_DIR=$(readlink -f "$SCRIPTDIR/../source/xen")
 cd $SOURCE_DIR
 
 grep --color -R ":TODO:"
+
+printf "Found %i todos\n" $(grep -R ":TODO:" | wc -l)
