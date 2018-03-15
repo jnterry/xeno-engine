@@ -9,14 +9,13 @@
 #ifndef XEN_UTIL_FILE_HPP
 #define XEN_UTIL_FILE_HPP
 
+#include <xen/core/array_types.hpp>
+
 namespace xen{
 	struct ArenaLinear;
 
-	// :TODO: create general array type? xen::Array
-	struct FileData{
-		u64   size; /// \brief Size of the file in bytes
-		u08*  data; /// \brief The contents of the file, length of array = size member
-	};
+	/// \brief Represents the contents of some file loaded into memory
+	typedef xen::Array<u08> FileData;
 
 	/// \brief Loads an entire file into memory and null terminates it
 	/// \note size field will be 0 if file couldn't be opened
