@@ -142,44 +142,24 @@ namespace {
 	                    xen::Color4f color,
 	                    const xen::LineSegment3r& line){
 
-		xen::LineSegment4r line_clip  = xen::toHomo(line) * mvp_matrix;
+		xen::LineSegment3r line_clip  = line * mvp_matrix;
 
-		///////////////////////////////////////////////////////////////////
-		// Do line clipping
-		if(line_clip.p1.z < 0 && line_clip.p2.z < 0){
-			// Then line is completely behind the camera
+		// Clip to clip space, bail out if no intersection
+		if(!xen::intersect(line_clip, xen::Aabb3r{Vec3r{-1,-1,-1}, Vec3r{1,1,1}})){
 			return;
 		}
-		if(line_clip.p1.z < 0){
-			// Then just one point is behind the camera, slide it along the direction
-			// of the line until its at same z as camera
-			Vec4r dir = line_clip.p2 - line_clip.p1;
-			line_clip.p1 += dir * ((-line_clip.p1.z) / dir.z);
-		}
-		if(line_clip.p2.z < 0){
-			Vec4r dir = line_clip.p1 - line_clip.p2;
-			line_clip.p2 += dir * ((-line_clip.p2.z) / dir.z);
-		}
-		real z_start = line_clip.p2.z;
-		real z_end   = line_clip.p1.z;
-		///////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////////////////////////////////////
 		// Do perspective divide (into normalized device coordinates -> [-1, 1]
-		// We only care about x and y coordinates at this point
-		line_clip.p1.xy /= (line_clip.p1.w);
-		line_clip.p2.xy /= (line_clip.p2.w);
+		line_clip.p1.xy /= (line_clip.p1.z);
+		line_clip.p2.xy /= (line_clip.p2.z);
 		///////////////////////////////////////////////////////////////////
 
-		///////////////////////////////////////////////////////////////////
-		// Clip to the viewport
 		xen::LineSegment2r line_screen =
-			_convertToScreenSpace<xen::LineSegment4r, xen::LineSegment2r>(line_clip, viewport);
-		if(xen::intersect(line_screen, viewport)){
-			doRenderLine2d(target, line_screen, color, z_start, z_end);
-		}
-		///////////////////////////////////////////////////////////////////
+			_convertToScreenSpace<xen::LineSegment3r, xen::LineSegment2r>(line_clip, viewport);
+		doRenderLine2d(target, line_screen, color, line_clip.p2.z, line_clip.p1.z);
 	}
+
 	// Bresenham Triangle Algorithm, inspired by
 	// http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html#algo3
 	// :NOTE: tri.p1 becomes the bottom most vertice & tri.p3 is top most, as (0,0) is bottom left

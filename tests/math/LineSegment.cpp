@@ -121,19 +121,114 @@ TEST_CASE("LineSegment/Aabb2 Intersection", "[math][Aabb][LineSegment]"){
 		line = xen::LineSegment2r{Vec2r{ 0, 2}, Vec2r{ 0, 4}};
 		//CHECK(xen::haveIntersection(line, aabb) == false);
 		CHECK(xen::intersect       (line, aabb) == false);
-		CHECK(line == xen::LineSegment2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}});
+		CHECK(line == xen::LineSegment2r{Vec2r{ 0, 2}, Vec2r{ 0, 4}});
 
 		aabb = xen::Aabb2r       {Vec2r{ 0, 0}, Vec2r{ 1, 1}};
 		line = xen::LineSegment2r{Vec2r{ 0, 2}, Vec2r{ 2, 1}};
 		//CHECK(xen::haveIntersection(line, aabb) == false);
 		CHECK(xen::intersect       (line, aabb) == false);
-		CHECK(line == xen::LineSegment2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}});
+		CHECK(line == xen::LineSegment2r{Vec2r{ 0, 2}, Vec2r{ 2, 1}});
 
 		aabb = xen::Aabb2r       {Vec2r{  0,  0}, Vec2r{ 10, 10}};
 		line = xen::LineSegment2r{Vec2r{-11, 11}, Vec2r{ 11,-12}};
 		//CHECK(xen::haveIntersection(line, aabb) == false);
 		CHECK(xen::intersect       (line, aabb) == false);
-		CHECK(line == xen::LineSegment2r{Vec2r{ 0, 0}, Vec2r{ 0, 0}});
+		CHECK(line == xen::LineSegment2r{Vec2r{ -11, 11}, Vec2r{11, -12}});
+	}
+}
+
+TEST_CASE("LineSegment/Aabb3 Intersection", "[math][Aabb][LineSegment]"){
+	xen::LineSegment3r line;
+	xen::Aabb3r        aabb;
+
+	SECTION("Fully Contained"){
+		aabb = xen::Aabb3r       {Vec3r{ 0, 0, 0}, Vec3r{ 5, 5, 5}};
+		line = xen::LineSegment3r{Vec3r{ 1, 2, 3}, Vec3r{ 2, 3, 4}};
+		//CHECK(xen::haveIntersection(line, aabb) == true);
+		CHECK(xen::intersect(line, aabb) == true);
+		CHECK(line == xen::LineSegment3r{Vec3r{1, 2, 3}, Vec3r{2, 3, 4}});
+
+		aabb = xen::Aabb3r       {Vec3r{ 0, 0, 0}, Vec3r{ 5, 5, 5}};
+		line = xen::LineSegment3r{Vec3r{ 0, 0, 0}, Vec3r{ 5, 5, 5}};
+		//CHECK(xen::haveIntersection(line, aabb) == true);
+		CHECK(xen::intersect(line, aabb) == true);
+		CHECK(line == xen::LineSegment3r{Vec3r{0, 0, 0}, Vec3r{5, 5, 5}});
+	}
+
+	SECTION("Have intersection"){
+		aabb = xen::Aabb3r       {Vec3r{ 0, 0, 0}, Vec3r{ 5, 5, 5}};
+		line = xen::LineSegment3r{Vec3r{-1,-1,-1}, Vec3r{ 6, 6, 6}};
+		//CHECK(xen::haveIntersection(line, aabb) == true);
+		CHECK(xen::intersect(line, aabb) == true);
+		CHECK(line == xen::LineSegment3r{Vec3r{0, 0, 0}, Vec3r{5, 5, 5}});
+	}
+
+	SECTION("Intersection along face"){
+		aabb = xen::Aabb3r       {Vec3r{ 0, 0, 0}, Vec3r{ 5, 5, 5}};
+		line = xen::LineSegment3r{Vec3r{-1, 0,-1}, Vec3r{ 6, 0, 6}};
+		//CHECK(xen::haveIntersection(line, aabb) == true);
+		CHECK(xen::intersect(line, aabb) == true);
+		CHECK(line == xen::LineSegment3r{Vec3r{0, 0, 0}, Vec3r{5, 0, 5}});
+
+		aabb = xen::Aabb3r       {Vec3r{ 0, 0, 0}, Vec3r{ 5, 5, 5}};
+		line = xen::LineSegment3r{Vec3r{-1,-1, 0}, Vec3r{ 6, 6, 0}};
+		//CHECK(xen::haveIntersection(line, aabb) == true);
+		CHECK(xen::intersect(line, aabb) == true);
+		CHECK(line == xen::LineSegment3r{Vec3r{0, 0, 0}, Vec3r{5, 5, 0}});
+
+		aabb = xen::Aabb3r       {Vec3r{ 0, 0, 5}, Vec3r{ 5, 5, 5}};
+		line = xen::LineSegment3r{Vec3r{-1,-1, 5}, Vec3r{ 6, 6, 5}};
+		//CHECK(xen::haveIntersection(line, aabb) == true);
+		CHECK(xen::intersect(line, aabb) == true);
+		CHECK(line == xen::LineSegment3r{Vec3r{0, 0, 5}, Vec3r{5, 5, 5}});
+	}
+
+	SECTION("Intersection along edge"){
+		aabb = xen::Aabb3r       {Vec3r{ 0, 0, 0}, Vec3r{ 5, 5, 5}};
+		line = xen::LineSegment3r{Vec3r{-2, 0, 0}, Vec3r{10, 0, 0}};
+		//CHECK(xen::haveIntersection(line, aabb) == true);
+		CHECK(xen::intersect(line, aabb) == true);
+		CHECK(line == xen::LineSegment3r{Vec3r{0, 0, 0}, Vec3r{5, 0, 0}});
+
+		aabb = xen::Aabb3r       {Vec3r{ 0, 0, 0}, Vec3r{ 5, 5, 5}};
+		line = xen::LineSegment3r{Vec3r{-2, 0, 0}, Vec3r{10, 0, 0}};
+		//CHECK(xen::haveIntersection(line, aabb) == true);
+		CHECK(xen::intersect(line, aabb) == true);
+		CHECK(line == xen::LineSegment3r{Vec3r{0, 0, 0}, Vec3r{5, 0, 0}});
+	}
+
+	SECTION("Intersection at corner"){
+		aabb = xen::Aabb3r       {Vec3r{ 0, 0, 0}, Vec3r{ 5, 5, 5}};
+		line = xen::LineSegment3r{Vec3r{-1,-1,-1}, Vec3r{ 0, 0, 0}};
+		//CHECK(xen::haveIntersection(line, aabb) == true);
+		CHECK(xen::intersect(line, aabb) == true);
+		CHECK(line == xen::LineSegment3r{Vec3r{0, 0, 0}, Vec3r{0, 0, 0}});
+
+		aabb = xen::Aabb3r       {Vec3r{ 0, 0, 0}, Vec3r{ 5, 5, 5}};
+		line = xen::LineSegment3r{Vec3r{ 5, 5, 0}, Vec3r{ 5, 5,-1}};
+		//CHECK(xen::haveIntersection(line, aabb) == true);
+		CHECK(xen::intersect(line, aabb) == true);
+		CHECK(line == xen::LineSegment3r{Vec3r{5, 5, 0}, Vec3r{5, 5, 0}});
+
+		aabb = xen::Aabb3r       {Vec3r{ 0, 0, 0}, Vec3r{ 1, 1, 1}};
+		line = xen::LineSegment3r{Vec3r{ 0, 2, 0}, Vec3r{ 2, 0, 2}};
+		//CHECK(xen::haveIntersection(line, aabb) == true);
+		CHECK(xen::intersect(line, aabb) == true);
+		CHECK(line == xen::LineSegment3r{Vec3r{1, 1, 1}, Vec3r{1, 1, 1}});
+	}
+
+	SECTION("No intersection"){
+		aabb = xen::Aabb3r       {Vec3r{ 0, 0, 0}, Vec3r{ 1, 1, 1}};
+		line = xen::LineSegment3r{Vec3r{ 0, 0, 6}, Vec3r{ 1, 1, 6}};
+		//CHECK(xen::haveIntersection(line, aabb) == false);
+		CHECK(xen::intersect(line, aabb) == false);
+		CHECK(line == xen::LineSegment3r{Vec3r{0, 0, 6}, Vec3r{1, 1, 6}});
+
+		aabb = xen::Aabb3r       {Vec3r{ 0, 0, 0}, Vec3r{ 2, 2, 2}};
+		line = xen::LineSegment3r{Vec3r{ 1, 5, 1}, Vec3r{ 5, 1, 1}};
+		//CHECK(xen::haveIntersection(line, aabb) == false);
+		CHECK(xen::intersect(line, aabb) == false);
+		CHECK(line == xen::LineSegment3r{Vec3r{1, 5, 1}, Vec3r{5, 1, 1}});
 	}
 }
 
