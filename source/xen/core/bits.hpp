@@ -85,7 +85,7 @@ xen::BitField<T, T_NUM> operator|(const xen::BitField<T, T_NUM>& a, const xen::B
 /// in the case where we try to and together two bit fields
 template<typename T, u32 T_NUM, typename T2>
 typename std::enable_if<std::is_scalar<T2>::value, xen::BitField<T, T_NUM> >::type
-operator|(const xen::BitField<T, T_NUM>& a, T b){
+operator|(const xen::BitField<T, T_NUM>& a, T2 b){
 	xen::BitField<T, T_NUM> result(a);
 	result.bits[0] |= b;
 	return result;
@@ -99,7 +99,7 @@ operator|(const xen::BitField<T, T_NUM>& a, T b){
 /// in the case where we try to and together two bit fields
 template<typename T, u32 T_NUM, typename T2>
 typename std::enable_if<std::is_scalar<T2>::value, xen::BitField<T, T_NUM> >::type
-operator|(T b, const xen::BitField<T, T_NUM>& a){
+operator|(T2 b, const xen::BitField<T, T_NUM>& a){
 	xen::BitField<T, T_NUM> result(a);
 	result.bits[0] |= b;
 	return result;
