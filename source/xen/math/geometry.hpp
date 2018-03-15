@@ -98,59 +98,59 @@ namespace xen{
 				}
 			}
 		}
+	}
 
-		/////////////////////////////////////////////////////////////////////
-		/// \brief Code representing the position of a point compared to an Aabb
-		/// see: https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm
-		/////////////////////////////////////////////////////////////////////
-		enum PointOutCode : u08{
-			/// \brief Point is inside the Aabb
-			INSIDE    = 0,
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Code representing the position of a point compared to an Aabb
+	/// see: https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm
+	/////////////////////////////////////////////////////////////////////
+	enum PointOutCode : u08{
+		/// \brief Point is inside the Aabb
+		INSIDE    = 0,
 
-			/// \brief Point is to the left of the Aabb (x too small)
-			LEFT      = 1,
+		/// \brief Point is to the left of the Aabb (x too small)
+		LEFT      = 1,
 
-			/// \brief Point is to the left of the Aabb (x too big)
-			RIGHT     = 2,
+		/// \brief Point is to the left of the Aabb (x too big)
+		RIGHT     = 2,
 
-			/// \brief Point is below of the Aabb (y too small)
-			DOWN      = 4,
+		/// \brief Point is below of the Aabb (y too small)
+		DOWN      = 4,
 
-			/// \brief Point is above of the Aabb (y too big)
-			UP        = 8,
+		/// \brief Point is above of the Aabb (y too big)
+		UP        = 8,
 
-			/// \brief Point is behind the Aabb (z too small)
-			BACKWARDS = 16,
+		/// \brief Point is behind the Aabb (z too small)
+		BEHIND    = 16,
 
-			/// \brief Point is in front of the Aabb (z too big)
-			FORWARDS  = 32,
-		};
+		/// \brief Point is in front of the Aabb (z too big)
+		INFRONT   = 32,
+	};
 
-		template <typename T>
-		u08 computePointOutCode(Aabb2<T> a, Vec2<T> p){
-			u08 result = PointOutCode::INSIDE;
+	template <typename T>
+	u08 computePointOutCode(Aabb2<T> a, Vec2<T> p){
+		u08 result = PointOutCode::INSIDE;
 
-			if(p.x < a.min.x){ result |= PointOutCode::LEFT;  }
-			if(p.x > a.max.x){ result |= PointOutCode::RIGHT; }
-			if(p.y < a.min.y){ result |= PointOutCode::DOWN;  }
-			if(p.y > a.max.y){ result |= PointOutCode::UP;    }
+		if(p.x < a.min.x){ result |= PointOutCode::LEFT;  }
+		if(p.x > a.max.x){ result |= PointOutCode::RIGHT; }
+		if(p.y < a.min.y){ result |= PointOutCode::DOWN;  }
+		if(p.y > a.max.y){ result |= PointOutCode::UP;    }
 
-			return result;
-		}
+		return result;
+	}
 
-		template <typename T>
-		u08 computePointOutCode(Aabb3<T> a, Vec3<T> p){
-			u08 result = PointOutCode::INSIDE;
+	template <typename T>
+	u08 computePointOutCode(Aabb3<T> a, Vec3<T> p){
+		u08 result = PointOutCode::INSIDE;
 
-			if(p.x < a.min.x){ result |= PointOutCode::LEFT;      }
-			if(p.x > a.max.x){ result |= PointOutCode::RIGHT;     }
-			if(p.y < a.min.y){ result |= PointOutCode::DOWN;      }
-			if(p.y > a.max.y){ result |= PointOutCode::UP;        }
-			if(p.z < a.min.z){ result |= PointOutCode::BACKWARDS; }
-			if(p.z > a.max.z){ result |= PointOutCode::FORWARDS;  }
+		if(p.x < a.min.x){ result |= PointOutCode::LEFT;    }
+		if(p.x > a.max.x){ result |= PointOutCode::RIGHT;   }
+		if(p.y < a.min.y){ result |= PointOutCode::DOWN;    }
+		if(p.y > a.max.y){ result |= PointOutCode::UP;      }
+		if(p.z < a.min.z){ result |= PointOutCode::BEHIND;  }
+		if(p.z > a.max.z){ result |= PointOutCode::INFRONT; }
 
-			return result;
-		}
+		return result;
 	}
 
 	/////////////////////////////////////////////////////////////////////
@@ -174,8 +174,8 @@ namespace xen{
 	bool intersect(LineSegment2<T>& l, Aabb2<T> a){
 		// https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm
 
-		int outcode_p1 = impl::computePointOutCode(a, l.p1);
-		int outcode_p2 = impl::computePointOutCode(a, l.p2);
+		int outcode_p1 = computePointOutCode(a, l.p1);
+		int outcode_p2 = computePointOutCode(a, l.p2);
 
 		bool accept = false;
 
@@ -201,16 +201,16 @@ namespace xen{
 				//   y = y0 + slope * (xm - x0), where xm is xmin or xmax
 				// No need to worry about divide-by-zero because, in each case, the
 				// outcode bit being tested guarantees the denominator is non-zero
-				if (outcode_out & impl::PointOutCode::UP) {
+				if (outcode_out & PointOutCode::UP) {
 					x = r.p1.x + (r.p2.x - r.p1.x) * (a.max.y - r.p1.y) / (r.p2.y - r.p1.y);
 					y = a.max.y;
-				} else if (outcode_out & impl::PointOutCode::DOWN) {
+				} else if (outcode_out & PointOutCode::DOWN) {
 					x = r.p1.x + (r.p2.x - r.p1.x) * (a.min.y - r.p1.y) / (r.p2.y - r.p1.y);
 					y = a.min.y;
-				} else if (outcode_out & impl::PointOutCode::RIGHT) {
+				} else if (outcode_out & PointOutCode::RIGHT) {
 					y = r.p1.y + (r.p2.y - r.p1.y) * (a.max.x - r.p1.x) / (r.p2.x - r.p1.x);
 					x = a.max.x;
-				} else if (outcode_out & impl::PointOutCode::LEFT) {
+				} else if (outcode_out & PointOutCode::LEFT) {
 					y = r.p1.y + (r.p2.y - r.p1.y) * (a.min.x - r.p1.x) / (r.p2.x - r.p1.x);
 					x = a.min.x;
 				}
@@ -220,11 +220,11 @@ namespace xen{
 				if (outcode_out == outcode_p1) {
 					r.p1.x = x;
 					r.p1.y = y;
-					outcode_p1 = impl::computePointOutCode(a, r.p1);
+					outcode_p1 = computePointOutCode(a, r.p1);
 				} else {
 					r.p2.x = x;
 					r.p2.y = y;
-					outcode_p2 = impl::computePointOutCode(a, r.p2);
+					outcode_p2 = computePointOutCode(a, r.p2);
 				}
 			}
 		}
