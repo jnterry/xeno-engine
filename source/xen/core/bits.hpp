@@ -10,6 +10,7 @@
 #define XEN_CORE_BITS_HPP
 
 #include <xen/core/bits_types.hpp>
+#include <type_traits>
 
 namespace xen {
 
@@ -78,26 +79,37 @@ xen::BitField<T, T_NUM> operator|(const xen::BitField<T, T_NUM>& a, const xen::B
 
 /// \brief Computes bitwise or of a bitfield's lower bits and some primitive
 /// \public \memberof xen::BitField
-template<typename T, u32 T_NUM>
-xen::BitField<T, T_NUM> operator|(const xen::BitField<T, T_NUM>& a, T b){
+///
+/// \note This function is enabled iff T2 is a scalar type.
+/// This is to prevent ambiguity with T2 being equal to xen::BitField<T, T_NUM>
+/// in the case where we try to and together two bit fields
+template<typename T, u32 T_NUM, typename T2>
+typename std::enable_if<std::is_scalar<T2>::value, xen::BitField<T, T_NUM> >::type
+operator|(const xen::BitField<T, T_NUM>& a, T b){
 	xen::BitField<T, T_NUM> result(a);
-	result[0].bits |= b;
+	result.bits[0] |= b;
 	return result;
 }
 
 /// \brief Computes bitwise or of a bitfield's lower bits and some primitive
 /// \public \memberof xen::BitField
-template<typename T, u32 T_NUM>
-xen::BitField<T, T_NUM> operator|(T b, const xen::BitField<T, T_NUM>& a){
+///
+/// \note This function is enabled iff T2 is a scalar type.
+/// This is to prevent ambiguity with T2 being equal to xen::BitField<T, T_NUM>
+/// in the case where we try to and together two bit fields
+template<typename T, u32 T_NUM, typename T2>
+typename std::enable_if<std::is_scalar<T2>::value, xen::BitField<T, T_NUM> >::type
+operator|(T b, const xen::BitField<T, T_NUM>& a){
 	xen::BitField<T, T_NUM> result(a);
-	result[0].bits |= b;
+	result.bits[0] |= b;
 	return result;
 }
 
 /// \brief Computes bitwise and of two bit fields
 /// \public \memberof xen::BitField
 template<typename T, u32 T_NUM>
-xen::BitField<T, T_NUM> operator&(const xen::BitField<T, T_NUM>& a, const xen::BitField<T, T_NUM>& b){
+xen::BitField<T, T_NUM> operator&(const xen::BitField<T, T_NUM>& a,
+                                  const xen::BitField<T, T_NUM>& b){
 	xen::BitField<T, T_NUM> result;
 	for(u32 i = 0; i < xen::BitField<T, T_NUM>::NUM_PRIMITIVES; ++i){
 		result.bits[i] = a.bits[i] & b.bits[i];
@@ -107,19 +119,29 @@ xen::BitField<T, T_NUM> operator&(const xen::BitField<T, T_NUM>& a, const xen::B
 
 /// \brief Computes bitwise and of a bitfield's lower bits and some primitive
 /// \public \memberof xen::BitField
-template<typename T, u32 T_NUM>
-xen::BitField<T, T_NUM> operator&(const xen::BitField<T, T_NUM>& a, T b){
+///
+/// \note This function is enabled iff T2 is a scalar type.
+/// This is to prevent ambiguity with T2 being equal to xen::BitField<T, T_NUM>
+/// in the case where we try to and together two bit fields
+template<typename T, u32 T_NUM, typename T2>
+typename std::enable_if<std::is_scalar<T2>::value, xen::BitField<T, T_NUM> >::type
+operator&(const xen::BitField<T, T_NUM>& a, T2 b){
 	xen::BitField<T, T_NUM> result(a);
-	result[0].bits &= b;
+	result.bits[0] &= b;
 	return result;
 }
 
 /// \brief Computes bitwise and of a bitfield's lower bits and some primitive
 /// \public \memberof xen::BitField
-template<typename T, u32 T_NUM>
-xen::BitField<T, T_NUM> operator&(T b, const xen::BitField<T, T_NUM>& a){
+///
+/// \note This function is enabled iff T2 is a scalar type.
+/// This is to prevent ambiguity with T2 being equal to xen::BitField<T, T_NUM>
+/// in the case where we try to and together two bit fields
+template<typename T, u32 T_NUM, typename T2>
+typename std::enable_if<std::is_scalar<T2>::value, xen::BitField<T, T_NUM> >::type
+operator&(T2 b, const xen::BitField<T, T_NUM>& a){
 	xen::BitField<T, T_NUM> result(a);
-	result[0].bits &= b;
+	result.bits[0] &= b;
 	return result;
 }
 
@@ -136,19 +158,29 @@ xen::BitField<T, T_NUM> operator^(const xen::BitField<T, T_NUM>& a, const xen::B
 
 /// \brief Computes bitwise xor of a bitfield's lower bits and some primitive
 /// \public \memberof xen::BitField
+///
+/// \note This function is enabled iff T2 is a scalar type.
+/// This is to prevent ambiguity with T2 being equal to xen::BitField<T, T_NUM>
+/// in the case where we try to and together two bit fields
 template<typename T, u32 T_NUM, typename T2>
-xen::BitField<T, T_NUM> operator^(const xen::BitField<T, T_NUM>& a, T2 b){
+typename std::enable_if<std::is_scalar<T2>::value, xen::BitField<T, T_NUM> >::type
+operator^(const xen::BitField<T, T_NUM>& a, T2 b){
 	xen::BitField<T, T_NUM> result(a);
-	result[0].bits ^= b;
+	result.bits[0] ^= b;
 	return result;
 }
 
 /// \brief Computes bitwise xor of a bitfield's lower bits and some primitive
 /// \public \memberof xen::BitField
+///
+/// \note This function is enabled iff T2 is a scalar type.
+/// This is to prevent ambiguity with T2 being equal to xen::BitField<T, T_NUM>
+/// in the case where we try to and together two bit fields
 template<typename T, u32 T_NUM, typename T2>
-xen::BitField<T, T_NUM> operator^(T2 b, const xen::BitField<T, T_NUM>& a){
+typename std::enable_if<std::is_scalar<T2>::value, xen::BitField<T, T_NUM> >::type
+operator^(T2 b, const xen::BitField<T, T_NUM>& a){
 	xen::BitField<T, T_NUM> result(a);
-	result[0].bits ^= b;
+	result.bits[0] ^= b;
 	return result;
 }
 

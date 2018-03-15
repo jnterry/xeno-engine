@@ -10,12 +10,13 @@
 #ifndef XEN_MATH_GEOMETRY_HPP
 #define XEN_MATH_GEOMETRY_HPP
 
-#include <xen/core/intrinsics.hpp>
 #include <xen/math/geometry_types.hpp>
 #include <xen/math/vertex_group.hpp>
 #include <xen/math/matrix.hpp>
 #include <xen/math/vector.hpp>
 #include <xen/math/utilities.hpp>
+#include <xen/core/bits.hpp>
+#include <xen/core/intrinsics.hpp>
 
 #include "impl/swizzles.hxx"
 
@@ -104,32 +105,36 @@ namespace xen{
 	/// \brief Code representing the position of a point compared to an Aabb
 	/// see: https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm
 	/////////////////////////////////////////////////////////////////////
-	enum PointOutCode : u08{
-		/// \brief Point is inside the Aabb
-		INSIDE    = 0,
+	struct PointOutCode : public xen::BitField<u08, 6> {
+		using BitField::BitField; // use constructors of parent
 
-		/// \brief Point is to the left of the Aabb (x too small)
-		LEFT      = 1,
+		enum Values {
+			/// \brief Point is inside the Aabb
+			INSIDE    = 0,
 
-		/// \brief Point is to the left of the Aabb (x too big)
-		RIGHT     = 2,
+			/// \brief Point is to the left of the Aabb (x too small)
+			LEFT      = 1,
 
-		/// \brief Point is below of the Aabb (y too small)
-		DOWN      = 4,
+			/// \brief Point is to the left of the Aabb (x too big)
+			RIGHT     = 2,
 
-		/// \brief Point is above of the Aabb (y too big)
-		UP        = 8,
+			/// \brief Point is below of the Aabb (y too small)
+			DOWN      = 4,
 
-		/// \brief Point is behind the Aabb (z too small)
-		BEHIND    = 16,
+			/// \brief Point is above of the Aabb (y too big)
+			UP        = 8,
 
-		/// \brief Point is in front of the Aabb (z too big)
-		INFRONT   = 32,
+			/// \brief Point is behind the Aabb (z too small)
+			BEHIND    = 16,
+
+			/// \brief Point is in front of the Aabb (z too big)
+			INFRONT   = 32,
+		};
 	};
 
 	template <typename T>
-	u08 computePointOutCode(Aabb2<T> a, Vec2<T> p){
-		u08 result = PointOutCode::INSIDE;
+	PointOutCode computePointOutCode(Aabb2<T> a, Vec2<T> p){
+	  PointOutCode result = PointOutCode::INSIDE;
 
 		if(p.x < a.min.x){ result |= PointOutCode::LEFT;  }
 		if(p.x > a.max.x){ result |= PointOutCode::RIGHT; }
@@ -140,8 +145,8 @@ namespace xen{
 	}
 
 	template <typename T>
-	u08 computePointOutCode(Aabb3<T> a, Vec3<T> p){
-		u08 result = PointOutCode::INSIDE;
+  PointOutCode computePointOutCode(Aabb3<T> a, Vec3<T> p){
+	  PointOutCode result = PointOutCode::INSIDE;
 
 		if(p.x < a.min.x){ result |= PointOutCode::LEFT;    }
 		if(p.x > a.max.x){ result |= PointOutCode::RIGHT;   }
@@ -174,8 +179,8 @@ namespace xen{
 	bool intersect(LineSegment2<T>& l, Aabb2<T> a){
 		// https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm
 
-		int outcode_p1 = computePointOutCode(a, l.p1);
-		int outcode_p2 = computePointOutCode(a, l.p2);
+		PointOutCode outcode_p1 = computePointOutCode(a, l.p1);
+		PointOutCode outcode_p2 = computePointOutCode(a, l.p2);
 
 		bool accept = false;
 
@@ -192,7 +197,7 @@ namespace xen{
 			} else {
 				T x, y;
 
-				u08 outcode_out = outcode_p1 ? outcode_p1 : outcode_p2;
+				PointOutCode outcode_out = outcode_p1 ? outcode_p1 : outcode_p2;
 
 				// Now find the intersection point;
 				// use formulas:
