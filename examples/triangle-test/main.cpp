@@ -44,8 +44,10 @@ int main(int argc, char** argv){
 		{ 0.0, 3.0, 5.0},   { 0.0, 1.0, 5.0},   { 0.0, 1.0, 0.0 },
 	};
 
-	xen::FixedArray<xen::RenderCommand3d, 7> render_commands;
+	#if 1
+	xen::FixedArray<xen::RenderCommand3d, 6> render_commands;
 	xen::clearToZero(render_commands);
+
 	render_commands[0].primative_type         = xen::PrimativeType::LINES;
 	render_commands[0].color                  = xen::Color::WHITE4f;
 	render_commands[0].model_matrix           = xen::Scale3d(100_r);
@@ -73,25 +75,29 @@ int main(int argc, char** argv){
 	render_commands[3].immediate.position     = &test_triangles[6];
 	render_commands[3].immediate.vertex_count = 3;
 
-	render_commands[4].primative_type         = xen::PrimativeType::LINE_STRIP;
-	render_commands[4].color                  = xen::Color::WHITE4f;
+	render_commands[4].primative_type         = xen::PrimativeType::TRIANGLES;
+	render_commands[4].color                  = xen::Color::GREEN4f;
 	render_commands[4].model_matrix           = xen::Scale3d(1, 1, 1);
 	render_commands[4].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[4].immediate.position     = &test_triangles[6];
+	render_commands[4].immediate.position     = &test_triangles[8];
 	render_commands[4].immediate.vertex_count = 3;
 
 	render_commands[5].primative_type         = xen::PrimativeType::TRIANGLES;
-	render_commands[5].color                  = xen::Color::GREEN4f;
+	render_commands[5].color                  = xen::Color::WHITE4f;
 	render_commands[5].model_matrix           = xen::Scale3d(1, 1, 1);
 	render_commands[5].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[5].immediate.position     = &test_triangles[8];
-	render_commands[5].immediate.vertex_count = 3;
+	render_commands[5].immediate              = xen::TestMeshGeometry_UnitCube;
+	#else
+	xen::FixedArray<xen::RenderCommand3d, 1> render_commands;
+	xen::clearToZero(render_commands);
 
-	render_commands[6].primative_type         = xen::PrimativeType::POINTS;
-	render_commands[6].color                  = xen::Color::WHITE4f;
-	render_commands[6].model_matrix           = xen::Scale3d(1, 1, 1);
-	render_commands[6].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[6].immediate              = xen::TestMeshGeometry_UnitCube;
+	render_commands[0].primative_type         = xen::PrimativeType::TRIANGLES;
+	render_commands[0].color                  = xen::Color::GREEN4f;
+	render_commands[0].model_matrix           = xen::Scale3d(1, 1, 1);
+	render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
+	render_commands[0].immediate.position     = &test_triangles[8];
+	render_commands[0].immediate.vertex_count = 3;
+	#endif
 
 	// make it stupidly big so we always render to the entire screen
 	xen::Aabb2u viewport = { 0, 0, 100000, 100000 };
@@ -116,8 +122,8 @@ int main(int argc, char** argv){
 		}
 		handleCameraInputPlane(render_params.camera, dt);
 
-		render_commands[6].model_matrix = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
-		                                   xen::Rotation3dy(30_deg * time) *
+		render_commands[5].model_matrix = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
+		                                   xen::Rotation3dy(90_deg * time) *
 		                                   xen::Translation3d(0_r, 3_r, 0_r)
 		                                  );
 
