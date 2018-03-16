@@ -69,7 +69,7 @@ namespace xen{
 	static const constexpr real PI = (real)3.14159265358979323846;
 
 	#ifdef XEN_USE_DOUBLE_PRECISION
-	inline double sqrt(double val) { return sqrt(val);  }
+    inline double sqrt(double val) { return ::sqrt(val);  }
 	#else
 	inline float  sqrt(float  val) { return sqrtf(val); }
 	#endif
