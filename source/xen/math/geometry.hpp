@@ -10,12 +10,13 @@
 #ifndef XEN_MATH_GEOMETRY_HPP
 #define XEN_MATH_GEOMETRY_HPP
 
-#include <xen/core/intrinsics.hpp>
 #include <xen/math/geometry_types.hpp>
 #include <xen/math/vertex_group.hpp>
 #include <xen/math/matrix.hpp>
 #include <xen/math/vector.hpp>
 #include <xen/math/utilities.hpp>
+#include <xen/core/bits.hpp>
+#include <xen/core/intrinsics.hpp>
 
 #include "impl/swizzles.hxx"
 
@@ -98,12 +99,16 @@ namespace xen{
 				}
 			}
 		}
+	}
 
-		/////////////////////////////////////////////////////////////////////
-		/// \brief Code representing the position of a point compared to an Aabb
-		/// see: https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm
-		/////////////////////////////////////////////////////////////////////
-		enum PointOutCode : u08{
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Code representing the position of a point compared to an Aabb
+	/// see: https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm
+	/////////////////////////////////////////////////////////////////////
+	struct PointOutCode : public xen::BitField<u08, 6> {
+		using BitField::BitField; // use constructors of parent
+
+		enum Values {
 			/// \brief Point is inside the Aabb
 			INSIDE    = 0,
 
@@ -120,123 +125,193 @@ namespace xen{
 			UP        = 8,
 
 			/// \brief Point is behind the Aabb (z too small)
-			BACKWARDS = 16,
+			BEHIND    = 16,
 
 			/// \brief Point is in front of the Aabb (z too big)
-			FORWARDS  = 32,
+			INFRONT   = 32,
 		};
+	};
 
-		template <typename T>
-		u08 computePointOutCode(Aabb2<T> a, Vec2<T> p){
-			u08 result = PointOutCode::INSIDE;
+	template <typename T>
+	PointOutCode computePointOutCode(Aabb2<T> a, Vec2<T> p){
+	  PointOutCode result = PointOutCode::INSIDE;
 
-			if(p.x < a.min.x){ result |= PointOutCode::LEFT;  }
-			if(p.x > a.max.x){ result |= PointOutCode::RIGHT; }
-			if(p.y < a.min.y){ result |= PointOutCode::DOWN;  }
-			if(p.y > a.max.y){ result |= PointOutCode::UP;    }
+		if(p.x < a.min.x){ result |= PointOutCode::LEFT;  }
+		if(p.x > a.max.x){ result |= PointOutCode::RIGHT; }
+		if(p.y < a.min.y){ result |= PointOutCode::DOWN;  }
+		if(p.y > a.max.y){ result |= PointOutCode::UP;    }
 
-			return result;
-		}
+		return result;
+	}
 
-		template <typename T>
-		u08 computePointOutCode(Aabb3<T> a, Vec3<T> p){
-			u08 result = PointOutCode::INSIDE;
+	template <typename T>
+  PointOutCode computePointOutCode(Aabb3<T> a, Vec3<T> p){
+	  PointOutCode result = PointOutCode::INSIDE;
 
-			if(p.x < a.min.x){ result |= PointOutCode::LEFT;      }
-			if(p.x > a.max.x){ result |= PointOutCode::RIGHT;     }
-			if(p.y < a.min.y){ result |= PointOutCode::DOWN;      }
-			if(p.y > a.max.y){ result |= PointOutCode::UP;        }
-			if(p.z < a.min.z){ result |= PointOutCode::BACKWARDS; }
-			if(p.z > a.max.z){ result |= PointOutCode::FORWARDS;  }
+		if(p.x < a.min.x){ result |= PointOutCode::LEFT;    }
+		if(p.x > a.max.x){ result |= PointOutCode::RIGHT;   }
+		if(p.y < a.min.y){ result |= PointOutCode::DOWN;    }
+		if(p.y > a.max.y){ result |= PointOutCode::UP;      }
+		if(p.z < a.min.z){ result |= PointOutCode::BEHIND;  }
+		if(p.z > a.max.z){ result |= PointOutCode::INFRONT; }
 
-			return result;
-		}
+		return result;
 	}
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Determines if there exists an intersection between some Aabb
-	/// and a line segment
-	/////////////////////////////////////////////////////////////////////
-	//template<typename T>
-	//bool haveIntersection(const LineSegment<T_DIM, T>& l, const Aabb<T_DIM, T>& a){
-		//
-		//		LineSegment<T_DIM, T>& l,
-			 //	}
-
-	/////////////////////////////////////////////////////////////////////
 	/// \brief Clips a line segment such that it is fully contained within the
-	/// specified Aabb. If the line does not intersect the Aabb then sets both
-	/// the line end points to the origin
-	/// \return True if an intersection was found, false if no such
-	/// intersection exists
+	/// specified Aabb.
+	///
+	/// If the line does not intersect the Aabb then returns false without
+	/// modifying the passed in LineSegment2, else modifies the line segment
+	/// such that it is fully contained by the Aabb2 and then returns true
 	/////////////////////////////////////////////////////////////////////
 	template<typename T>
 	bool intersect(LineSegment2<T>& l, Aabb2<T> a){
 		// https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm
 
-		int outcode_p1 = impl::computePointOutCode(a, l.p1);
-		int outcode_p2 = impl::computePointOutCode(a, l.p2);
-
-		bool accept = false;
+		PointOutCode outcode_p1 = computePointOutCode(a, l.p1);
+		PointOutCode outcode_p2 = computePointOutCode(a, l.p2);
 
 		LineSegment2<T> r = l;
 
-		while(true) {
-			if(!(outcode_p1 | outcode_p2)) {
-				accept = true;
-				break;
-			} else if (outcode_p1 & outcode_p2) {
+		while(outcode_p1 | outcode_p2) {
+			if (outcode_p1 & outcode_p2) {
 				// Both points share a common outside zone (left/right/etc)
 				// so line must be outside of window
-				break;
+				return false;
+			}
+
+			T x, y;
+
+			PointOutCode outcode_out = outcode_p1 ? outcode_p1 : outcode_p2;
+
+			// Now find the intersection point;
+			// use formulas:
+			//   slope = (y1 - y0) / (x1 - x0)
+			//   x = x0 + (1 / slope) * (ym - y0), where ym is ymin or ymax
+			//   y = y0 + slope * (xm - x0), where xm is xmin or xmax
+			// No need to worry about divide-by-zero because, in each case, the
+			// outcode bit being tested guarantees the denominator is non-zero
+			if (outcode_out & PointOutCode::UP) {
+				real factor = (a.max.y - r.p1.y) / (r.p2.y - r.p1.y);
+				x = r.p1.x + (r.p2.x - r.p1.x) * factor;
+				y = a.max.y;
+			} else if (outcode_out & PointOutCode::DOWN) {
+				real factor = (a.min.y - r.p1.y) / (r.p2.y - r.p1.y);
+				x = r.p1.x + (r.p2.x - r.p1.x) * factor;
+				y = a.min.y;
+			} else if (outcode_out & PointOutCode::RIGHT) {
+				real factor = (a.max.x - r.p1.x) / (r.p2.x - r.p1.x);
+				x = a.max.x;
+				y = r.p1.y + (r.p2.y - r.p1.y) * factor;
+			} else if (outcode_out & PointOutCode::LEFT) {
+				real factor = (a.min.x - r.p1.x) / (r.p2.x - r.p1.x);
+				x = a.min.x;
+				y = r.p1.y + (r.p2.y - r.p1.y) * factor;
+			}
+
+			// Now we move outside point to intersection point to clip
+			// and get ready for next pass.
+			if (outcode_out == outcode_p1) {
+				r.p1.x = x;
+				r.p1.y = y;
+				outcode_p1 = computePointOutCode(a, r.p1);
 			} else {
-				T x, y;
-
-				u08 outcode_out = outcode_p1 ? outcode_p1 : outcode_p2;
-
-				// Now find the intersection point;
-				// use formulas:
-				//   slope = (y1 - y0) / (x1 - x0)
-				//   x = x0 + (1 / slope) * (ym - y0), where ym is ymin or ymax
-				//   y = y0 + slope * (xm - x0), where xm is xmin or xmax
-				// No need to worry about divide-by-zero because, in each case, the
-				// outcode bit being tested guarantees the denominator is non-zero
-				if (outcode_out & impl::PointOutCode::UP) {
-					x = r.p1.x + (r.p2.x - r.p1.x) * (a.max.y - r.p1.y) / (r.p2.y - r.p1.y);
-					y = a.max.y;
-				} else if (outcode_out & impl::PointOutCode::DOWN) {
-					x = r.p1.x + (r.p2.x - r.p1.x) * (a.min.y - r.p1.y) / (r.p2.y - r.p1.y);
-					y = a.min.y;
-				} else if (outcode_out & impl::PointOutCode::RIGHT) {
-					y = r.p1.y + (r.p2.y - r.p1.y) * (a.max.x - r.p1.x) / (r.p2.x - r.p1.x);
-					x = a.max.x;
-				} else if (outcode_out & impl::PointOutCode::LEFT) {
-					y = r.p1.y + (r.p2.y - r.p1.y) * (a.min.x - r.p1.x) / (r.p2.x - r.p1.x);
-					x = a.min.x;
-				}
-
-				// Now we move outside point to intersection point to clip
-				// and get ready for next pass.
-				if (outcode_out == outcode_p1) {
-					r.p1.x = x;
-					r.p1.y = y;
-					outcode_p1 = impl::computePointOutCode(a, r.p1);
-				} else {
-					r.p2.x = x;
-					r.p2.y = y;
-					outcode_p2 = impl::computePointOutCode(a, r.p2);
-				}
+				r.p2.x = x;
+				r.p2.y = y;
+				outcode_p2 = computePointOutCode(a, r.p2);
 			}
 		}
 
-		if(accept) {
-			l = r;
-			return true;
-		} else {
-			l.p1 = Vec2<T>::Origin;
-			l.p2 = Vec2<T>::Origin;
-			return false;
+		l = r;
+		return true;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Clips a line segment such that it is fully contained within the
+	/// specified Aabb.
+	///
+	/// If the line does not intersect the Aabb then returns false without
+	/// modifying the passed in LineSegment3, else modifies the line segment
+	/// such that it is fully contained by the Aabb3 and then returns true
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	bool intersect(LineSegment3<T>& l, Aabb3<T> a){
+		// https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm
+
+		PointOutCode outcode_p1 = computePointOutCode(a, l.p1);
+		PointOutCode outcode_p2 = computePointOutCode(a, l.p2);
+
+		LineSegment3<T> r = l;
+
+		while(outcode_p1 | outcode_p2) {
+			if (outcode_p1 & outcode_p2) {
+				// Both points share a common outside zone (left/right/etc)
+				// so line must be outside Aabb
+				return false;
+			}
+
+			T x, y, z;
+
+			PointOutCode outcode_out = outcode_p1 ? outcode_p1 : outcode_p2;
+
+			// Now find the intersection point;
+			// use formulas:
+			//   slope = (y1 - y0) / (x1 - x0)
+			//   x = x0 + (1 / slope) * (ym - y0), where ym is ymin or ymax
+			//   y = y0 + slope * (xm - x0), where xm is xmin or xmax
+			// No need to worry about divide-by-zero because, in each case, the
+			// outcode bit being tested guarantees the denominator is non-zero
+			if (outcode_out & PointOutCode::UP) {
+				real factor = (a.max.y - r.p1.y) / (r.p2.y - r.p1.y);
+				x = r.p1.x + (r.p2.x - r.p1.x) * factor;
+				y = a.max.y;
+				z = r.p1.z + (r.p2.z - r.p1.z) * factor;
+			} else if (outcode_out & PointOutCode::DOWN) {
+				real factor = (a.min.y - r.p1.y) / (r.p2.y - r.p1.y);
+				x = r.p1.x + (r.p2.x - r.p1.x) * factor;
+				y = a.min.y;
+				z = r.p1.z + (r.p2.z - r.p1.z) * factor;
+			} else if (outcode_out & PointOutCode::RIGHT) {
+				real factor = (a.max.x - r.p1.x) / (r.p2.x - r.p1.x);
+				x = a.max.x;
+				y = r.p1.y + (r.p2.y - r.p1.y) * factor;
+				z = r.p1.z + (r.p2.z - r.p1.z) * factor;
+			} else if (outcode_out & PointOutCode::LEFT) {
+				real factor = (a.min.x - r.p1.x) / (r.p2.x - r.p1.x);
+				x = a.min.x;
+				y = r.p1.y + (r.p2.y - r.p1.y) * factor;
+				z = r.p1.z + (r.p2.z - r.p1.z) * factor;
+			} else if (outcode_out & PointOutCode::INFRONT) {
+				real factor = (a.max.z - r.p1.z) / (r.p2.z - r.p1.z);
+				x = r.p1.x + (r.p2.x - r.p1.x) * factor;
+				y = r.p1.y + (r.p2.y - r.p1.y) * factor;
+				z = a.max.z;
+			} else if (outcode_out & PointOutCode::BEHIND) {
+				real factor = (a.min.z - r.p1.z) / (r.p2.z - r.p1.z);
+				x = r.p1.x + (r.p2.x - r.p1.x) * factor;
+				y = r.p1.y + (r.p2.y - r.p1.y) * factor;
+				z = a.min.z;
+			}
+
+			// Now we move outside point to intersection point to clip
+			// and get ready for next pass.
+			if (outcode_out == outcode_p1) {
+				r.p1.x = x;
+				r.p1.y = y;
+				r.p1.z = z;
+				outcode_p1 = computePointOutCode(a, r.p1);
+			} else {
+				r.p2.x = x;
+				r.p2.y = y;
+				r.p2.z = z;
+				outcode_p2 = computePointOutCode(a, r.p2);
+			}
 		}
+
+		l = r;
+		return true;
 	}
 
 	template<typename T>

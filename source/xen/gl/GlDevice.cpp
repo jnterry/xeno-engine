@@ -42,7 +42,9 @@ namespace {
 		xen::FileData vertex_src = xen::loadFileAndNullTerminate(scratch, "vertex.glsl");
 		xen::FileData pixel_src  = xen::loadFileAndNullTerminate(scratch, "pixel.glsl");
 
-		auto result = xen::gl::createShaderProgram(arena, (char*)vertex_src.data, (char*)pixel_src.data);
+		auto result = xen::gl::createShaderProgram(arena,
+		                                           (char*)&vertex_src[0],
+		                                           (char*)&pixel_src[0]);
 
 		if(!xen::gl::isOkay(result)){
 			xen::resetArena(scratch);

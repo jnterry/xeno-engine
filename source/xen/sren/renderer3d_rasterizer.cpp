@@ -24,6 +24,8 @@
 #include <cstdlib>
 #include <float.h>
 
+//#define XEN_SREN_DEBUG_RENDER_WIREFRAME 1
+
 namespace {
 	template<typename T_IN, typename T_OUT>
   T_OUT _convertToScreenSpace(const T_IN& in, const xen::Aabb2r& viewport){
@@ -39,7 +41,7 @@ namespace {
 
 	void doRenderPoints(xen::sren::RenderTargetImpl& target,
 	                    const xen::Aabb2r& viewport,
-	                    const Mat4f& mvp_matrix,
+	                    const Mat4r& mvp_matrix,
 	                    const xen::ImmediateGeometrySource& geom){
 
 		const xen::Color* color_buffer = geom.color;
@@ -48,42 +50,39 @@ namespace {
 		}
 
 		for(u32 i = 0; i < geom.vertex_count; ++i){
-			Vec4f clip_space = xen::mkVec(geom.position[i], 1_r) * mvp_matrix;
+			Vec4r clip_space = xen::toHomo(geom.position[i]) * mvp_matrix;
 
-			if(clip_space.z < 0){
-				// Then point is behind the camera
+			if(clip_space.x < -clip_space.w ||
+			   clip_space.x >  clip_space.w ||
+			   clip_space.y < -clip_space.w ||
+			   clip_space.y >  clip_space.w ||
+			   clip_space.z < -clip_space.w ||
+			   clip_space.z >  clip_space.w){
+				// Then point is not in view of the camera
 				continue;
 			}
-			real depth = clip_space.z;
 
-			///////////////////////////////////////////////////////////////////
-			// Do perspective divide (into normalized device coordinates -> [-1, 1]
-			// We only care about x and y coordinates at this point
-			clip_space.xy /= (clip_space.w);
-			///////////////////////////////////////////////////////////////////
+			// Do perspective divide ensure xy that are further away are made smaller
+			clip_space.xy /= (clip_space.z);
 
+			// Convert from [-1, 1] clip space to screen space
 			Vec2r screen_space =
 				_convertToScreenSpace<Vec4r, Vec2r>(clip_space, viewport);
-			if(screen_space.x < viewport.min.x ||
-			   screen_space.y < viewport.min.y ||
-			   screen_space.x > viewport.max.x ||
-			   screen_space.y > viewport.max.y){
-				continue;
-			}
 
 			u32 pixel_index = (u32)screen_space.y*target.width + (u32)screen_space.x;
 
-			if (depth > target.depth[pixel_index]){
+			if (clip_space.z > target.depth[pixel_index]){
 				// Then point is behind something else occupying this pixel
 				continue;
 			}
-			target.depth[pixel_index] = depth;
+			target.depth[pixel_index] = clip_space.z;
 			target.color[pixel_index] = xen::makeColor4f(color_buffer[i * (geom.color != nullptr)]);
 		}
 	}
 
 	void doRenderLine2d(xen::sren::RenderTargetImpl& target, xen::LineSegment2r line,
-	                    xen::Color4f color,
+	                    xen::Color4f color1,
+											xen::Color4f color2,
 	                    real z_start, real z_end){
 		if(line.p1 == line.p2){ return; }
 
@@ -99,6 +98,7 @@ namespace {
 
 			// :TODO: Replace lerp with a perspective correct interpolation
 			real depth = xen::lerp(z_start, z_end, (i/num_pixels));
+			xen::Color4f color = xen::lerp(color1, color2, (i/num_pixels));
 			target.color[(u32)cur.y*target.width + (u32)cur.x] = color;
 			target.depth[(u32)cur.y*target.width + (u32)cur.x] = depth;
 			cur += delta;
@@ -144,11 +144,12 @@ namespace {
 
 	void doRenderLine3d(xen::sren::RenderTargetImpl& target,
 	                    const xen::Aabb2r& viewport,
-	                    const Mat4f& mvp_matrix,
-	                    xen::Color4f color,
+	                    const Mat4r& mvp_matrix,
+	                    xen::Color4f color1,
+	                    xen::Color4f color2,
 	                    const xen::LineSegment3r& line){
 
-		xen::LineSegment4r line_clip  = xen::toHomo(line) * mvp_matrix;
+				xen::LineSegment4r line_clip  = xen::toHomo(line) * mvp_matrix;
 
 		///////////////////////////////////////////////////////////////////
 		// Do line clipping
@@ -182,160 +183,161 @@ namespace {
 		xen::LineSegment2r line_screen =
 			_convertToScreenSpace<xen::LineSegment4r, xen::LineSegment2r>(line_clip, viewport);
 		if(xen::intersect(line_screen, viewport)){
-			doRenderLine2d(target, line_screen, color, z_start, z_end);
+			doRenderLine2d(target, line_screen, color1, color2, z_start, z_end);
 		}
 		///////////////////////////////////////////////////////////////////
+
 	}
-	// Bresenham Triangle Algorithm, inspired by
-	// http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html#algo3
-	// :NOTE: tri.p1 becomes the bottom most vertice & tri.p3 is top most, as (0,0) is bottom left
-	//                     . tri.p3
-	//                    /
-	//     tri.p2 .      /
-	//            |     /
-	//            |    /
-	//            |   / a
-	//          b |  /
-	//            | /
-	//            |/
-	//            .
-	//          tri.p1
+
 	void doRenderTriangle2d(xen::sren::RenderTargetImpl& target,
 		                      const xen::Aabb2r& viewport,
-	                        xen::Color4f color, xen::Triangle2r tri){
+	                        xen::Triangle2r tri,
+	                        xen::Triangle4f colors){
 
-		{ // If any two points are equal draw a line and bail out
-			xen::LineSegment2r* line = nullptr;
-			if(tri.p1 == tri.p2){
-				// then draw line connecting p2 and p3
-				line = (xen::LineSegment2r*)&tri.vertices[1];
-			} else if (tri.p1 == tri.p3 || tri.p2 == tri.p3) {
-				// then draw line connecting p1 and p2
-				line = (xen::LineSegment2r*)&tri.vertices[0];
-			}
-			if(line) {
-				// Then the triangle has at least 2 points equal to one another - just
-				// join the line segment and bail out. This isn't an error, eg, could
-				// be a 3d triangle that is edge on when projected
-				if(xen::intersect(*line, viewport)){
-					// :TODO: correct depth values here... not 0,0
-					doRenderLine2d(target, *line, color, 0, 0);
-				}
-				return;
-			}
+		#if XEN_SREN_DEBUG_RENDER_WIREFRAME
+		xen::LineSegment2r line;
+
+		line.p1 = tri.p1;
+		line.p2 = tri.p2;
+		if(xen::intersect(line, viewport)){
+			doRenderLine2d(target, line, colors.p1, colors.p2, 0, 0);
 		}
 
-		// Sort Points such that p1 has lowest y, p3 has highest y
-		if (tri.p1.y > tri.p2.y) { swap(tri.p1, tri.p2); }
-		if (tri.p2.y > tri.p3.y) { swap(tri.p2, tri.p3); }
-		if (tri.p1.y > tri.p2.y) { swap(tri.p1, tri.p2); }
+		line.p1 = tri.p2;
+		line.p2 = tri.p3;
+		if(xen::intersect(line, viewport)){
+			doRenderLine2d(target, line, colors.p2, colors.p3, 0, 0);
+		}
 
-		// :TODO: this is nasty hack to prevent infinite loop since we will
-		// never step up in y if the line is along x - but we still want to
-		// draw triangles
-		// This is case like:
-		//
-		//       /|
-		//      / |
-		//     /  |
-		//     ----   <- problem edge
-		if((u32)tri.p1.y == (u32)tri.p2.y){
+		line.p1 = tri.p3;
+		line.p2 = tri.p1;
+		if(xen::intersect(line, viewport)){
+			doRenderLine2d(target, line, colors.p3, colors.p1, 0, 0);
+		}
+		return;
+		#endif
+
+		xen::Aabb2r region_r = xen::Aabb2r::MaxMinBox;
+		xen::addPoint(region_r, tri.p1);
+		xen::addPoint(region_r, tri.p2);
+		xen::addPoint(region_r, tri.p3);
+		if(!xen::intersect(region_r, viewport)){
 			return;
 		}
+		xen::Aabb2u region = (xen::Aabb2u)region_r;
 
-		//printf("Points of triangle: (%f,%f), (%f,%f), (%f,%f)\n",
-		//       tri.p1.x, tri.p1.y,
-		//       tri.p2.x, tri.p2.y,
-		//       tri.p3.x, tri.p3.y);
+		// If we call min.x, 0 and max.x, 1 then incr_x is the amount we increase
+		// by when we move 1 pixel
+		real incr_x = 1.0_r / (real)(region.max.x - region.min.x);
+		real incr_y = 1.0_r / (real)(region.max.y - region.min.y);
 
-		// Create line for each of a, b, & c for drawing purposes
-		xen::LineSegment2r line_a = {tri.p1, tri.p3};
-		xen::LineSegment2r line_b = {tri.p1, tri.p2};
-		xen::LineSegment2r line_c = {tri.p2, tri.p3};
+		// Barycentric coordinates vary as a lerp along some axis, hence rather
+		// than computing the barycentric coordinate at each position in the Aabb
+		// of the triangle we can compute it at the corners and then lerp
+		// across
+		Vec3r bary_bottom_left  = xen::getBarycentricCoordinates(tri, Vec2r{
+				(real)region.min.x, (real)region.min.y});
+		Vec3r bary_bottom_right = xen::getBarycentricCoordinates(tri, Vec2r{
+				(real)region.max.x, (real)region.min.y});
+		Vec3r bary_top_left     = xen::getBarycentricCoordinates(tri, Vec2r{
+				(real)region.min.x, (real)region.max.y});
+		Vec3r bary_top_right    = xen::getBarycentricCoordinates(tri, Vec2r{
+				(real)region.max.x, (real)region.max.y});
 
-		//////////////////////////////////////////////////////////
-		// Find step vector for line_a as well as start position
-		real num_pixels_a = xen::max(abs(line_a.p1.x - line_a.p2.x), abs(line_a.p1.y - line_a.p2.y));
-		//printf("Number of pixels in line_a: %f\n", num_pixels_a);
-		Vec2r delta_a = (line_a.p2 - line_a.p1) / num_pixels_a;
-		if(delta_a.y > 1.0f){ // ensure we never step up by multiple y
-			delta_a /= delta_a.y;
-		}
-		Vec2r curr_a  = line_a.p1;
+		float frac_y = 0.0_r;
+		for(u32 y = region.min.y; y <= region.max.y; ++y, frac_y += incr_y){
+			u32 pixel_index_base = y*target.width;
 
-		//////////////////////////////////////////////////////////
-		// Find step vector for line_b as well as start position
-		real num_pixels_b = xen::max(abs(line_b.p1.x - line_b.p2.x), abs(line_b.p1.y - line_b.p2.y));
-		//printf("Number of pixels in line_b: %f\n", num_pixels_b);
-		Vec2r delta_b = (line_b.p2 - line_b.p1) / num_pixels_b;
-		if(delta_b.y > 1.0f){ // ensure we never step up by multiple y
-			delta_b /= delta_b.y;
-		}
-		Vec2r curr_b  = line_b.p1;
+			Vec3r bary_left  = xen::lerp(bary_bottom_left,  bary_top_left,  frac_y);
+			Vec3r bary_right = xen::lerp(bary_bottom_right, bary_top_right, frac_y);
 
-		//////////////////////////////////////////////////////////
-		// Find step vector for line_b, no start position as c is drawn after b
-		// is finished -> IE: (line_c.start == line_b.end)
-		real num_pixels_c = xen::max(abs(line_c.p1.x - line_c.p2.x), abs(line_c.p1.y - line_c.p2.y));
-		//printf("Number of pixels in line_c: %f\n", num_pixels_c);
-		Vec2r delta_c = (line_c.p2 - line_c.p1) / num_pixels_c;
-	  if(delta_c.y > 1.0f){ // ensure we never step up by multiple y
-			delta_c /= delta_c.y;
-		}
+			// A pixel is in the triangle if all components of the barycentric
+			// coordinate is positive. We could loop between region.min.x and
+			// region.max.x, lerp out the bary centric coordinate and compute
+			// if the pixel is "in" on a per pixel basis.
+			// However since each component of the barycentric coordinate varies
+			// linearly with frac_x we can compute the point where the sign
+			// of each component flips, and constrain the range of x values that
+			// we loop over to be just those within the triangle
 
-	  //////////////////////////////////////////////////////////
-		// Step along each line, connecting along x after each step in y
-		u32 line_a_pixels_drawn = 0;
-		while(line_a_pixels_drawn < num_pixels_a){ // :TODO: This may need to be just < or != etc, idek
-			u32 curr_pixel_y = (u32)curr_a.y;
-			XenAssert(curr_pixel_y == (u32)curr_b.y, "Expected current y values to be equal!");
+			real min_x = 0.0_r;
+			real max_x = 1.0_r;
 
-			// Step along line a until we reach next y value
-			while((u32)curr_a.y == curr_pixel_y){
-				//printf("Stepping along a, now at: %f, %f\n", curr_a.x, curr_a.y);
-				if (xen::contains(viewport, curr_a)){
-					target.color[(u32)curr_a.y*target.width + (u32)curr_a.x] = color;
-				}
-				curr_a += delta_a;
-				++line_a_pixels_drawn;
-			}
+			bool valid_row = true;
 
-			// Step along line b until we reach next y value
-			while ((u32)curr_b.y == curr_pixel_y){
-				//printf("Stepping along b, now at: %f, %f\n", curr_b.x, curr_b.y);
-				if (xen::contains(viewport, curr_b)){
-					target.color[(u32)curr_b.y*target.width + (u32)curr_b.x] = color;
-				}
-				curr_b += delta_b;
-				// If b has reached end point then begin drawing line c by changing
-				// vector that represents a single step from that of b to that of c
-				if ((Vec2u)curr_b == (Vec2u)line_b.p2){
-					delta_b = delta_c;
-				}
-			}
+			// :TODO: we are doing these instructions 3 wide (but branching)
+			// can we use simd?
+			for(u32 i = 0; i < 3; ++i){
+				if(bary_left[i] >= 0 && bary_right[i] >= 0){
+					// Then this component is always positive, we do not need to
+					// constrain the x range based on it
+					continue;
+				} else if (bary_left[i] < 0 && bary_right[i] < 0){
+					// Then this component is always negative, there is nothing
+					// to draw on this y
+					//
+					// :TODO: why does this ever happen?
+					//
+					// Current guess (no evidence):
+					// ----------------------------
+					// This probably happens when the bounding box of the triangle has
+					// been clipped to the viewport such that there are no pixels
+					// in the triangle for some y vale
+					//
+					// Can we do clipping to viewport in smarter way to avoid this?
+					valid_row = false;
+					break;
+				} else if(bary_left[i] < 0 && bary_right[i] >= 0) {
+					// Then the first n pixels of the row are not in the triangle (until
+					// we reach the point where the component hits 0).
 
-			//printf("curr_a.y: %f, curr_b.y: %f\n", curr_a.y, curr_b.y);
-			XenAssert((u32)curr_a.y == (u32)curr_b.y, "Expected y of both currents to be equivalent");
+					// Compute where this cross over point is:
+					real sign_flip = -bary_left[i] / (bary_right[i] - bary_left[i]);
 
-			//printf("Val of curr_a: %f, Val of curr_b: %f\n", curr_a.x, curr_b.x);
+					// Update min_x if need be
+					min_x = xen::max(min_x, sign_flip);
+				} else { //(bary_left[i] >= 0 && bary_right[i] < 0)
+					// Then the last n pixels of the row are not in the triangle (after
+					// we reach the point where the component hits 0).
 
-			// draw horizontal line
-			u32 min_x = xen::max(xen::min(curr_a.x, curr_b.x, viewport.max.x), viewport.min.x);
-			u32 max_x = xen::min(xen::max(curr_a.x, curr_b.x, viewport.min.x), viewport.max.x);
-			if(curr_a.y >= viewport.min.y && curr_a.y <= viewport.max.y){
-				for (u32 x = min_x+1; x < max_x; ++x){
-					target.color[(u32)curr_a.y*target.width + x] = color;
+					// Compute where this cross over point is:
+					real sign_flip = bary_left[i] / (bary_left[i] - bary_right[i]);
+
+					// Update max_x if need be
+					max_x = xen::min(max_x, sign_flip);
 				}
 			}
-		}
 
+			if(!valid_row){ continue; }
+
+			// Now fill pixels between min and max
+			real frac_x = min_x;
+			for(u32 x  = xen::lerp(region.min.x, region.max.x, min_x);
+			    x     <= xen::lerp(region.min.x, region.max.x, max_x);
+			    ++x, frac_x += incr_x
+			    ){
+
+				Vec3r bary = xen::lerp(bary_left, bary_right, frac_x);
+
+				u32 pixel_index = pixel_index_base + x;
+				//target.color[pixel_index].rgb = bary;
+				//target.color[pixel_index].a   = 1.0f;
+
+				xen::Color4f color = (bary.x*colors.p1 +
+				                      bary.y*colors.p2 +
+				                      bary.z*colors.p3);
+
+				target.color[pixel_index] = color;
+
+			}
+		}
 	}
 
 	void doRenderTriangle3d(xen::sren::RenderTargetImpl& target,
 		                      const xen::Aabb2r& viewport,
-												  const Mat4f& mvp_matrix,
-	                        xen::Color4f color,
-	                        xen::Triangle3r& tri){
+												  const Mat4r& mvp_matrix,
+	                        xen::Triangle3r& tri,
+	                        xen::Triangle4f  colors){
 		xen::Triangle4r tri_clip  = xen::toHomo(tri) * mvp_matrix;
 
 		// Work out which points are behind the camera
@@ -343,8 +345,6 @@ namespace {
 		points_behind |= (tri_clip.p1.z < 0) << 0;
 		points_behind |= (tri_clip.p2.z < 0) << 1;
 		points_behind |= (tri_clip.p3.z < 0) << 2;
-
-		printf("Drawing triangle case %i\n", points_behind);
 
 		///////////////////////////////////////////////////////////////////
 		// Render the triangle(s)
@@ -361,30 +361,36 @@ namespace {
 			xen::Triangle2r tri_screen =
 				_convertToScreenSpace<xen::Triangle4r, xen::Triangle2r>(tri_clip, viewport);
 
-			doRenderTriangle2d(target, viewport, color, tri_screen);
+			doRenderTriangle2d(target, viewport, tri_screen, colors);
 			return;
 		}
 
 		case 3:   // 011
 			xen::swap(tri_clip.p1, tri_clip.p3);
+			xen::swap(colors.p1,   colors.p3  );
 			goto do_draw_2_behind;
 		case 5:   // 101
 			xen::swap(tri_clip.p1, tri_clip.p2);
+			xen::swap(colors.p1,   colors.p2  );
 			goto do_draw_2_behind;
 		case 6:   // 110
 		do_draw_2_behind: {
-				printf("Doing draw 2 behind case\n");
 				// There are two points behind the camera, so just make a new triangle
 				// between the single point in front of the camera, and where the lines
 				// intersect z = 0 plane.
 				//
 				// Move point p2 and p3 along the line connecting them to p1 such that z
 				// component becomes 0
+
 				Vec4r delta_p2 = (tri_clip.p1 - tri_clip.p2);
-				tri_clip.p2 += (delta_p2 / delta_p2.z) * -tri_clip.p2.z;
+				real  frac_p2  = ((-tri_clip.p2.z / delta_p2.z));
+				tri_clip.p2   += delta_p2 * frac_p2;
+				colors.p2     += (colors.p1 - colors.p2) * frac_p2;
 
 				Vec4r delta_p3 = (tri_clip.p1 - tri_clip.p3);
-				tri_clip.p3 += (delta_p3 / delta_p3.z) * -tri_clip.p3.z;
+				real  frac_p3  = ((-tri_clip.p3.z / delta_p3.z));
+				tri_clip.p3   += delta_p3 * frac_p3;
+				colors.p3     += (colors.p1 - colors.p3) * frac_p3;
 
 				// Do perspective divide (into normalized device coordinates -> [-1, 1]
 				tri_clip.p1 /= (tri_clip.p1.w);
@@ -394,14 +400,17 @@ namespace {
 				xen::Triangle2r tri_screen =
 					_convertToScreenSpace<xen::Triangle4r, xen::Triangle2r>(tri_clip, viewport);
 
-				doRenderTriangle2d(target, viewport, color, tri_screen);
+				// :TODO: compute colors at each vertex
+				doRenderTriangle2d(target, viewport, tri_screen, colors);
 				return;
 			}
 		case 1: // 001
 			xen::swap(tri_clip.p1, tri_clip.p3);
+			xen::swap(colors.p1,   colors.p3  );
 			goto do_draw_1_behind;
 		case 2: // 010
 			xen::swap(tri_clip.p2, tri_clip.p3);
+			xen::swap(colors.p2,   colors.p3  );
 			goto do_draw_1_behind;
 		case 4: // 100
 		do_draw_1_behind: {
@@ -411,31 +420,47 @@ namespace {
 				//
 				// p3 is the point behind the camera, slide it to z = 0 along the lines
 				// joining it to p1 and p2
+				//Vec4r delta_p3 = (tri_clip.p1 - tri_clip.p3);
+				//tri_clip.p3 += delta_p3 * ((-tri_clip.p3.z / delta_p3.z));
+
 				Vec4r delta_p1       = (tri_clip.p1 - tri_clip.p3);
-				Vec4r p3_slide_to_p1 = (tri_clip.p3 + ((delta_p1 / delta_p1.z) * -tri_clip.p3.z));
+				real  frac_p1        = ((-tri_clip.p3.z / delta_p1.z));
+				Vec4r p3_slide_to_p1 = (tri_clip.p3 + (delta_p1 * frac_p1));
 
 				Vec4r delta_p2       = (tri_clip.p2 - tri_clip.p3);
-				Vec4r p3_slide_to_p2 = (tri_clip.p3 + ((delta_p2 / delta_p2.z) * -tri_clip.p3.z));
+				real  frac_p2        = ((-tri_clip.p3.z / delta_p2.z));
+				Vec4r p3_slide_to_p2 = (tri_clip.p3 + (delta_p2 * frac_p2));
 
 				xen::VertexGroup2r<4> quad_screen;
-				quad_screen.vertices[0] = (p3_slide_to_p1 / p3_slide_to_p1.w).xy;
-				quad_screen.vertices[1] = (tri_clip.p1    / tri_clip.p1.w).xy;
-				quad_screen.vertices[2] = (tri_clip.p2    / tri_clip.p2.w).xy;
+				quad_screen.vertices[0] = (tri_clip.p1    / tri_clip.p1.w   ).xy;
+				quad_screen.vertices[1] = (p3_slide_to_p1 / p3_slide_to_p1.w).xy;
+				quad_screen.vertices[2] = (tri_clip.p2    / tri_clip.p2.w   ).xy;
 				quad_screen.vertices[3] = (p3_slide_to_p2 / p3_slide_to_p2.w).xy;
+
+				xen::VertexGroup4f<4> quad_colors;
+				quad_colors.vertices[0] = colors.p1;
+				quad_colors.vertices[1] = colors.p3 + (colors.p1 - colors.p3) * frac_p1;
+				quad_colors.vertices[2] = colors.p2;
+				quad_colors.vertices[3] = colors.p3 + (colors.p2 - colors.p3) * frac_p2;
 
 				quad_screen =
 					_convertToScreenSpace<xen::VertexGroup2r<4>, xen::VertexGroup2r<4>>(quad_screen, viewport);
 
-				doRenderTriangle2d(target, viewport, color, *(xen::Triangle2r*)&quad_screen.vertices[0]);
-				doRenderTriangle2d(target, viewport, color, *(xen::Triangle2r*)&quad_screen.vertices[1]);
+				// :TODO: compute colors at each vertex
+				doRenderTriangle2d(target, viewport,
+				                   *(xen::Triangle2r*)&quad_screen.vertices[0],
+				                   *(xen::Triangle4f*)&quad_colors.vertices[0]
+				                  );
+				doRenderTriangle2d(target, viewport,
+				                   *(xen::Triangle2r*)&quad_screen.vertices[1],
+				                   *(xen::Triangle4f*)&quad_colors.vertices[1]
+				                  );
 			}
 			return;
 		}
 		///////////////////////////////////////////////////////////////////
 	}
 }
-
-
 
 namespace xen{
 
@@ -500,19 +525,51 @@ namespace xen{
 					stride = 2;
 					goto do_render_lines;
 					break;
-				case xen::PrimativeType::TRIANGLES:
+				case xen::PrimativeType::TRIANGLES: {
 					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += 3){
 						Triangle3r* tri_world = (Triangle3r*)(&cmd->immediate.position[i]);
-						doRenderTriangle3d(target,view_region, mat_mvp, cmd->color, *tri_world);
+
+						xen::Triangle4f tri_color;
+						if(cmd->immediate.color == nullptr){
+							tri_color.p1 = xen::Color::WHITE4f;
+							tri_color.p2 = xen::Color::WHITE4f;
+							tri_color.p3 = xen::Color::WHITE4f;
+						} else {
+							tri_color.p1 = makeColor4f(cmd->immediate.color[i+0]);
+							tri_color.p2 = makeColor4f(cmd->immediate.color[i+1]);
+							tri_color.p3 = makeColor4f(cmd->immediate.color[i+2]);
+						}
+						tri_color *= cmd->color;
+
+						doRenderTriangle3d(target,view_region, mat_mvp, *tri_world, tri_color);
 					}
+
 					break;
+				}
 				case xen::PrimativeType::LINE_STRIP:
 					stride = 1;
 				do_render_lines:
 					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += stride){
 						LineSegment3r* line_world = (LineSegment3r*)(&cmd->immediate.position[i]);
 
-						doRenderLine3d(target, view_region, mat_mvp, base_color, *line_world);
+						// If (color is not specified) -> set to white, else -> get color for vertex
+						xen::Color4f color1;
+						if(cmd->immediate.color == nullptr){
+							color1 = xen::Color::WHITE4f;
+						} else {
+							color1 = makeColor4f(cmd->immediate.color[i]);
+						}
+						xen::Color4f color2;
+						if(cmd->immediate.color == nullptr){
+							color2 = xen::Color::WHITE4f;
+						} else {
+							color2 = makeColor4f(cmd->immediate.color[i+1]);
+						}
+						// Multiply by cmd color, for case where colour for entire line is specified in command
+						color1 *= cmd->color;
+						color2 *= cmd->color;
+
+						doRenderLine3d(target, view_region, mat_mvp, color1, color2, *line_world);
 					}
 					break;
 				default:

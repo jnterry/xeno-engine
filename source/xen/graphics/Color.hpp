@@ -14,7 +14,10 @@
 
 namespace xen {
 
+	/// \brief Represents an RGB color as 3 floating point values between 0 and 1
 	typedef Vec3f Color3f;
+
+	/// \brief Represents an RGBA color as 4 floating point values between 0 and 1
 	typedef Vec4f Color4f;
 
 	// gcc doesn't like the anonymous structures inside unions, disable the warning temporarily...
@@ -22,7 +25,7 @@ namespace xen {
 	#pragma GCC diagnostic ignored "-Wpedantic"
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Color represented as 8 bits per channel Rgba
+	/// \brief Represents an RGBA color as 4 bytes, 1 per channel
 	/////////////////////////////////////////////////////////////////////
 	struct Color{
 		union{
@@ -71,13 +74,6 @@ namespace xen {
 
 	Color4f makeColor4f(Color color);
 	Color4f makeColor4f(Color3f, float a);
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Color represented as 4 floating values between 0 and 1
-	/////////////////////////////////////////////////////////////////////
-	//struct Color4f {
-	//	float r, g, b, a;
-	//};
 }
 
 bool operator==(const xen::Color& lhs, const xen::Color& rhs);

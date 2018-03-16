@@ -57,7 +57,7 @@ int main(int argc, char** argv){
 	xen::Window* app = device->createWindow(viewport.max, "Quicktest");
 
 	Mat4r model_mat;
-	Vec4r point_light_color = Vec4r(1,0,0,1);
+	xen::Color4f point_light_color = xen::Color4f(1,0,0,1);
 
 	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
 	vertex_spec[0] = xen::VertexAttribute::Position3r;
@@ -162,16 +162,16 @@ int main(int argc, char** argv){
 			case xen::WindowEvent::KeyReleased:
 				switch(event->key.key){
 				case xen::Key::R:
-					point_light_color.xyz = Vec3r(1,0,0);
+					point_light_color.rgb = xen::Color3f(1,0,0);
 					break;
 				case xen::Key::G:
-					point_light_color.xyz = Vec3r(0,1,0);
+					point_light_color.rgb = xen::Color3f(0,1,0);
 					break;
 				case xen::Key::B:
-					point_light_color.xyz = Vec3r(0,0,1);
+					point_light_color.rgb = xen::Color3f(0,0,1);
 					break;
 				case xen::Key::W:
-					point_light_color.xyz = Vec3r(1,1,1);
+					point_light_color.rgb = xen::Color3f(1,1,1);
 					break;
 				default: break;
 				}

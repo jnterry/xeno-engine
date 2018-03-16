@@ -40,6 +40,7 @@ namespace xen {
 	/// combination the MouseButtons bit field values
 	typedef u08 MouseButtonState;
 
+	// :TODO: convert to xen::BitField
 	struct MouseButtons{
 		enum Values : MouseButtonState{
 			Left    = 0x01,
@@ -55,6 +56,7 @@ namespace xen {
 	/// combination of the ModifierKeys bit field values
 	typedef u08 ModifierKeyState;
 
+	// :TODO: convert to xen::BitField
 	struct ModifierKeys {
 		enum Values {
 			Alt     = 0x01,

@@ -47,7 +47,7 @@ void handleCameraInputCylinder(xen::Camera3dCylinder& camera, real dt){
 }
 
 void handleCameraInputPlane(xen::Camera3d& camera, real dt) {
-	const static constexpr real camera_speed = 10.0f;
+	const static constexpr real camera_speed = 1.0f;
 
 	if(xen::isKeyPressed(xen::Key::ArrowUp)){
 		camera.position.y += camera_speed * dt;

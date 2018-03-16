@@ -21,7 +21,12 @@ namespace xen{
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wpedantic"
 
-	/// \brief Represents raw image data stored in CPU memory
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents raw image data stored in main memory
+	///
+	/// \todo :TODO:Replace with Array2d typedefed -> we loose the .size
+	/// (although ideally we would add that to Array2d as well)
+	/////////////////////////////////////////////////////////////////////
 	struct RawImage{
 		union{
 			struct{ u32 width, height; };
@@ -32,7 +37,6 @@ namespace xen{
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Helper struct used to access pixels of the image
-		/// \todo :TODO:COMP: Can we make some generic 2d array type?
 		/////////////////////////////////////////////////////////////////////
 		struct ColRef {
 			RawImage& image;

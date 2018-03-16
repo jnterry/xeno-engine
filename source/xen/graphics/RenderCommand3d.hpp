@@ -20,6 +20,10 @@
 
 namespace xen{
 
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Enumeration of the types of primitive a GraphicsDevice
+	/// is able to draw
+	/////////////////////////////////////////////////////////////////////
 	enum class PrimativeType {
 		/// \brief Draws geometry as a point cloud
 		POINTS,
@@ -40,7 +44,19 @@ namespace xen{
 		// TRIANGLE_STRIP
 	};
 
-	/// \brief Struct containing data for an immediate geometry source
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Struct containing data for an immediate geometry source,
+	/// IE: one whose data is stored in main memory and thus may be manipulated
+	/// freely per frame.
+	///
+	/// \note Note that using an immediate geometry source will have a performance
+	/// penalty over a Mesh (which lets the GraphicsDevice store the mesh data in
+	/// its own memory in a format suitable for its use) - hence immediate
+	/// geometry sources should be used for testing only
+	///
+	/// \todo Allow for some sort of "streaming" Mesh for geometry which is
+	/// updated per frame as alternative to this
+	/////////////////////////////////////////////////////////////////////
 	struct ImmediateGeometrySource {
 		/// \brief Number of vertices to draw
 		u32 vertex_count;
@@ -56,9 +72,12 @@ namespace xen{
 	};
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Represents a single object to be rendered to the scene
+	/// \brief Represents a single rendering operation which will draw
+	/// some object to the screen
 	/////////////////////////////////////////////////////////////////////
 	struct RenderCommand3d {
+		/// \brief Enumeration of the possible sources of geometry for a rendering
+		/// operation
 		enum GeometrySource {
 			// Do we really want to support immediate mode rendering?
 			// its slow, but useful for testing
@@ -95,7 +114,10 @@ namespace xen{
 		};
 	};
 
-	/// \brief Extra parameters required to render a scene
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Extra parameters required to render a scene. These vary per
+	/// frame rather than per object
+	/////////////////////////////////////////////////////////////////////
 	struct RenderParameters3d {
 		RenderParameters3d();
 

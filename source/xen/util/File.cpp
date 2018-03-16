@@ -55,8 +55,8 @@ namespace xen{
 
 		transaction.commit();
 		FileData result;
-		result.size = file_size;
-		result.data = data;
+		result.size     = file_size;
+		result.elements = data;
 		return result;
 	}
 }

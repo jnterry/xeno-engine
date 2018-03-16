@@ -5,6 +5,7 @@ add_executable(xen_unit_tests
 
 	${CMAKE_CURRENT_LIST_DIR}/core/array.cpp
 	${CMAKE_CURRENT_LIST_DIR}/core/minmax.cpp
+	${CMAKE_CURRENT_LIST_DIR}/core/bits.cpp
 
   ${CMAKE_CURRENT_LIST_DIR}/math/ostream_operators.hpp
 	${CMAKE_CURRENT_LIST_DIR}/math/utilities.cpp

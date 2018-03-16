@@ -26,11 +26,11 @@ namespace xen {
 	/// \param tri The triangle Barycentric coordinates are with respect to
 	/// \return Barycentric coordinates of point p
 	/////////////////////////////////////////////////////////////////////
-	template<typename T>
-	Vec3<T> getBarycentricCoordinates(const Triangle3<T>& tri, const Vec3<T>& p){
-    Vec3<T> v0 = tri.p2 - tri.p1;
-		Vec3<T> v1 = tri.p3 - tri.p1;
-		Vec3<T> v2 = p - tri.p1;
+	template<u32 T_DIM, typename T>
+	Vec3<T> getBarycentricCoordinates(const Triangle<T_DIM,T>& tri, const Vec<T_DIM,T>& p){
+    Vec<T_DIM,T> v0 = tri.p2 - tri.p1;
+		Vec<T_DIM,T> v1 = tri.p3 - tri.p1;
+		Vec<T_DIM,T> v2 = p - tri.p1;
 
     T d00 = xen::dot(v0, v0);
     T d01 = xen::dot(v0, v1);
@@ -40,7 +40,7 @@ namespace xen {
     T denom = d00 * d11 - d01 * d01;
     T v = (d11 * d20 - d01 * d21) / denom;
     T w = (d00 * d21 - d01 * d20) / denom;
-    T u = 1.0f - v - w;
+    T u = (T)1 - v - w;
 		return {u,v,w};
 	}
 
