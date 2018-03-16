@@ -81,7 +81,8 @@ namespace {
 	}
 
 	void doRenderLine2d(xen::sren::RenderTargetImpl& target, xen::LineSegment2r line,
-	                    xen::Color4f color,
+	                    xen::Color4f color1,
+											xen::Color4f color2,
 	                    real z_start, real z_end){
 		if(line.p1 == line.p2){ return; }
 
@@ -97,6 +98,7 @@ namespace {
 
 			// :TODO: Replace lerp with a perspective correct interpolation
 			real depth = xen::lerp(z_start, z_end, (i/num_pixels));
+			xen::Color4f color = xen::lerp(color1, color2, (i/num_pixels));
 			target.color[(u32)cur.y*target.width + (u32)cur.x] = color;
 			target.depth[(u32)cur.y*target.width + (u32)cur.x] = depth;
 			cur += delta;
@@ -143,7 +145,8 @@ namespace {
 	void doRenderLine3d(xen::sren::RenderTargetImpl& target,
 	                    const xen::Aabb2r& viewport,
 	                    const Mat4r& mvp_matrix,
-	                    xen::Color4f color,
+	                    xen::Color4f color1,
+	                    xen::Color4f color2,
 	                    const xen::LineSegment3r& line){
 
 				xen::LineSegment4r line_clip  = xen::toHomo(line) * mvp_matrix;
@@ -180,7 +183,7 @@ namespace {
 		xen::LineSegment2r line_screen =
 			_convertToScreenSpace<xen::LineSegment4r, xen::LineSegment2r>(line_clip, viewport);
 		if(xen::intersect(line_screen, viewport)){
-			doRenderLine2d(target, line_screen, color, z_start, z_end);
+			doRenderLine2d(target, line_screen, color1, color2, z_start, z_end);
 		}
 		///////////////////////////////////////////////////////////////////
 
@@ -202,22 +205,29 @@ namespace {
 	//          tri.p1
 	void doRenderTriangle2d(xen::sren::RenderTargetImpl& target,
 		                      const xen::Aabb2r& viewport,
-	                        xen::Color4f color, xen::Triangle2r tri){
+	                        xen::Triangle2r tri,
+	                        xen::Triangle4f colors){
 
 		#if XEN_SREN_DEBUG_RENDER_WIREFRAME
 		xen::LineSegment2r line;
 
 		line.p1 = tri.p1;
 		line.p2 = tri.p2;
-		if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
+		if(xen::intersect(line, viewport)){
+			doRenderLine2d(target, line, colors.p1, colors.p2, line.p1.z, line.p2.z);
+		}
 
 		line.p1 = tri.p2;
 		line.p2 = tri.p3;
-		if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
+		if(xen::intersect(line, viewport)){
+			doRenderLine2d(target, line, colors.p2, colors.p3, line.p2.z, line.p3.z);
+		}
 
 		line.p1 = tri.p3;
 		line.p2 = tri.p1;
-		if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
+		if(xen::intersect(line, viewport)){
+			doRenderLine2d(target, line, colors.p3, colors.p1, line.p3.z, line.p1.z);
+		}
 		return;
 		#endif
 
@@ -326,7 +336,13 @@ namespace {
 				u32 pixel_index = pixel_index_base + x;
 				//target.color[pixel_index].rgb = bary;
 				//target.color[pixel_index].a   = 1.0f;
+
+				xen::Color4f color = (bary.x*colors.p1 +
+				                      bary.y*colors.p2 +
+				                      bary.z*colors.p3);
+
 				target.color[pixel_index] = color;
+
 			}
 		}
 	}
@@ -334,8 +350,8 @@ namespace {
 	void doRenderTriangle3d(xen::sren::RenderTargetImpl& target,
 		                      const xen::Aabb2r& viewport,
 												  const Mat4r& mvp_matrix,
-	                        xen::Color4f color,
-	                        xen::Triangle3r& tri){
+	                        xen::Triangle3r& tri,
+	                        xen::Triangle4f& colors){
 		xen::Triangle4r tri_clip  = xen::toHomo(tri) * mvp_matrix;
 
 		// Work out which points are behind the camera
@@ -359,8 +375,7 @@ namespace {
 			xen::Triangle2r tri_screen =
 				_convertToScreenSpace<xen::Triangle4r, xen::Triangle2r>(tri_clip, viewport);
 
-			doRenderTriangle2d(target, viewport, color, tri_screen);
-
+			doRenderTriangle2d(target, viewport, tri_screen, colors);
 			return;
 		}
 
@@ -393,8 +408,8 @@ namespace {
 				xen::Triangle2r tri_screen =
 					_convertToScreenSpace<xen::Triangle4r, xen::Triangle2r>(tri_clip, viewport);
 
-				doRenderTriangle2d(target, viewport, color, tri_screen);
-
+				// :TODO: compute colors at each vertex
+				doRenderTriangle2d(target, viewport, tri_screen, colors);
 				return;
 			}
 		case 1: // 001
@@ -429,8 +444,15 @@ namespace {
 				quad_screen =
 					_convertToScreenSpace<xen::VertexGroup2r<4>, xen::VertexGroup2r<4>>(quad_screen, viewport);
 
-				doRenderTriangle2d(target, viewport, color, *(xen::Triangle2r*)&quad_screen.vertices[0]);
-				doRenderTriangle2d(target, viewport, color, *(xen::Triangle2r*)&quad_screen.vertices[1]);
+				// :TODO: compute colors at each vertex
+				doRenderTriangle2d(target, viewport,
+				                   *(xen::Triangle2r*)&quad_screen.vertices[0],
+				                   colors
+				                  );
+				doRenderTriangle2d(target, viewport,
+				                   *(xen::Triangle2r*)&quad_screen.vertices[1],
+				                   colors
+				                  );
 			}
 			return;
 		}
@@ -501,19 +523,51 @@ namespace xen{
 					stride = 2;
 					goto do_render_lines;
 					break;
-				case xen::PrimativeType::TRIANGLES:
+				case xen::PrimativeType::TRIANGLES: {
 					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += 3){
 						Triangle3r* tri_world = (Triangle3r*)(&cmd->immediate.position[i]);
-						doRenderTriangle3d(target,view_region, mat_mvp, cmd->color, *tri_world);
+
+						xen::Triangle4f tri_color;
+						if(cmd->immediate.color == nullptr){
+							tri_color.p1 = xen::Color::WHITE4f;
+							tri_color.p2 = xen::Color::WHITE4f;
+							tri_color.p3 = xen::Color::WHITE4f;
+						} else {
+							tri_color.p1 = makeColor4f(cmd->immediate.color[i+0]);
+							tri_color.p2 = makeColor4f(cmd->immediate.color[i+1]);
+							tri_color.p3 = makeColor4f(cmd->immediate.color[i+2]);
+						}
+						tri_color *= cmd->color;
+
+						doRenderTriangle3d(target,view_region, mat_mvp, *tri_world, tri_color);
 					}
+
 					break;
+				}
 				case xen::PrimativeType::LINE_STRIP:
 					stride = 1;
 				do_render_lines:
 					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += stride){
 						LineSegment3r* line_world = (LineSegment3r*)(&cmd->immediate.position[i]);
 
-						doRenderLine3d(target, view_region, mat_mvp, base_color, *line_world);
+						// If (color is not specified) -> set to white, else -> get color for vertex
+						xen::Color4f color1;
+						if(cmd->immediate.color == nullptr){
+							color1 = xen::Color::WHITE4f;
+						} else {
+							color1 = makeColor4f(cmd->immediate.color[i]);
+						}
+						xen::Color4f color2;
+						if(cmd->immediate.color == nullptr){
+							color2 = xen::Color::WHITE4f;
+						} else {
+							color2 = makeColor4f(cmd->immediate.color[i+1]);
+						}
+						// Multiply by cmd color, for case where colour for entire line is specified in command
+						color1 *= cmd->color;
+						color2 *= cmd->color;
+
+						doRenderLine3d(target, view_region, mat_mvp, color1, color2, *line_world);
 					}
 					break;
 				default:
