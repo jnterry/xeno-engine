@@ -4,6 +4,8 @@ set(GLOBAL PROPERTY USE_FOLDERS ON)
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/options/strict_compile.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/options/xshm.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/options/double_precision.cmake")
+
 # :TODO: have some way of configuring this
 set(CMAKE_BUILD_TYPE Debug)
 
