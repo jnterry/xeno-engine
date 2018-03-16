@@ -182,9 +182,9 @@ namespace xen {
 								}
 							}
 
-							real attenuation = (params.lights[i].attenuation.x * 1.0+
-							                    params.lights[i].attenuation.y * xen::sqrt(light_dist_sq) +
-							                    params.lights[i].attenuation.z * light_dist_sq
+							float attenuation = (params.lights[i].attenuation.x * 1.0+
+							                     params.lights[i].attenuation.y * xen::sqrt(light_dist_sq) +
+							                     params.lights[i].attenuation.z * light_dist_sq
 							                    );
 
 							//printf("Attenuation: %f, distance: %f\n", attenuation, light_dist_sq);

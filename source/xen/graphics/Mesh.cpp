@@ -172,7 +172,7 @@ namespace {
 			if(buffer_texcoord){
 				for(int i = 0; i < 3; ++i){
 					buffer_texcoord[face_index].vertices[i] =
-						aiVector3dToXenVec3<real>(mesh->mTextureCoords[0][idx[i]]).xy;
+						(Vec2f)aiVector3dToXenVec3<real>(mesh->mTextureCoords[0][idx[i]]).xy;
 				}
 			}
 			if(buffer_color){

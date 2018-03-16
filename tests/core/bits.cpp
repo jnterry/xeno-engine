@@ -156,7 +156,7 @@ TEST_CASE("BitField8", "[core][bits]"){
 	// 147
 	// bit indices : 7 6 5 4 3 2 1 0
 	// binary      : 1 0 0 1 0 0 1 1
-	xen::BitField<u8, 8> field_a = {{147}};
+	xen::BitField<u8, 8> field_a = 147;
 
 	REQUIRE(field_a[0] ==  true);
 	REQUIRE(field_a[1] ==  true);
@@ -182,7 +182,7 @@ TEST_CASE("BitField8", "[core][bits]"){
 	// 66
 	// bit indices : 7 6 5 4 3 2 1 0
 	// binary      : 0 1 0 0 0 0 1 0
-	xen::BitField<u08, 8> field_b = {{66}};
+	xen::BitField<u08, 8> field_b(66);
 	REQUIRE(field_b[0] == false);
 	REQUIRE(field_b[1] ==  true);
 	REQUIRE(field_b[2] == false);
