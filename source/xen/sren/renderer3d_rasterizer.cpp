@@ -24,14 +24,9 @@
 #include <cstdlib>
 #include <float.h>
 
-#define XEN_SREN_DEBUG_RENDER_WIREFRAME
+#define XEN_SREN_DEBUG_RENDER_WIREFRAME 1
 
 namespace {
-
-	const xen::Aabb3r CLIP_SPACE_AABB = {
-		Vec3r{-1, -1, -1}, Vec3r{1, 1, 1}
-	};
-
 	template<typename T_IN, typename T_OUT>
   T_OUT _convertToScreenSpace(const T_IN& in, const xen::Aabb2r& viewport){
 		T_OUT out = xen::swizzle<'x','y'>(in);
@@ -209,6 +204,23 @@ namespace {
 		                      const xen::Aabb2r& viewport,
 	                        xen::Color4f color, xen::Triangle2r tri){
 
+		#if XEN_SREN_DEBUG_RENDER_WIREFRAME
+		xen::LineSegment2r line;
+
+		line.p1 = tri.p1;
+		line.p2 = tri.p2;
+		if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
+
+		line.p1 = tri.p2;
+		line.p2 = tri.p3;
+		if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
+
+		line.p1 = tri.p3;
+		line.p2 = tri.p1;
+		if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
+		return;
+		#endif
+
 		{ // If any two points are equal draw a line and bail out
 			xen::LineSegment2r* line = nullptr;
 			if(tri.p1 == tri.p2){
@@ -364,23 +376,7 @@ namespace {
 			xen::Triangle2r tri_screen =
 				_convertToScreenSpace<xen::Triangle4r, xen::Triangle2r>(tri_clip, viewport);
 
-			#ifndef XEN_SREN_DEBUG_RENDER_WIREFRAME
 			doRenderTriangle2d(target, viewport, color, tri_screen);
-			#else
-			xen::LineSegment2r line;
-
-			line.p1 = tri_screen.vertices[0];
-			line.p2 = tri_screen.vertices[1];
-			if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
-
-			line.p1 = tri_screen.vertices[1];
-			line.p2 = tri_screen.vertices[2];
-			if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
-
-			line.p1 = tri_screen.vertices[2];
-			line.p2 = tri_screen.vertices[0];
-			if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
-			#endif
 
 			return;
 		}
@@ -414,23 +410,7 @@ namespace {
 				xen::Triangle2r tri_screen =
 					_convertToScreenSpace<xen::Triangle4r, xen::Triangle2r>(tri_clip, viewport);
 
-				#ifndef XEN_SREN_DEBUG_RENDER_WIREFRAME
 				doRenderTriangle2d(target, viewport, color, tri_screen);
-				#else
-				xen::LineSegment2r line;
-
-				line.p1 = tri_screen.vertices[0];
-				line.p2 = tri_screen.vertices[1];
-				if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
-
-				line.p1 = tri_screen.vertices[1];
-				line.p2 = tri_screen.vertices[2];
-				if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
-
-				line.p1 = tri_screen.vertices[2];
-				line.p2 = tri_screen.vertices[0];
-				if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
-				#endif
 
 				return;
 			}
@@ -458,40 +438,16 @@ namespace {
 				Vec4r p3_slide_to_p2 = (tri_clip.p3 + (delta_p2 * ((-tri_clip.p3.z / delta_p2.z))));
 
 				xen::VertexGroup2r<4> quad_screen;
-				quad_screen.vertices[0] = (p3_slide_to_p1 / p3_slide_to_p1.w).xy;
-				quad_screen.vertices[1] = (tri_clip.p1    / tri_clip.p1.w   ).xy;
+				quad_screen.vertices[0] = (tri_clip.p1    / tri_clip.p1.w   ).xy;
+				quad_screen.vertices[1] = (p3_slide_to_p1 / p3_slide_to_p1.w).xy;
 				quad_screen.vertices[2] = (tri_clip.p2    / tri_clip.p2.w   ).xy;
 				quad_screen.vertices[3] = (p3_slide_to_p2 / p3_slide_to_p2.w).xy;
 
 				quad_screen =
 					_convertToScreenSpace<xen::VertexGroup2r<4>, xen::VertexGroup2r<4>>(quad_screen, viewport);
 
-				#ifndef XEN_SREN_DEBUG_RENDER_WIREFRAME
 				doRenderTriangle2d(target, viewport, color, *(xen::Triangle2r*)&quad_screen.vertices[0]);
 				doRenderTriangle2d(target, viewport, color, *(xen::Triangle2r*)&quad_screen.vertices[1]);
-				#else
-				xen::LineSegment2r line;
-
-				line.p1 = quad_screen.vertices[0];
-				line.p2 = quad_screen.vertices[1];
-				if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
-
-				line.p1 = quad_screen.vertices[1];
-				line.p2 = quad_screen.vertices[2];
-				if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
-
-				line.p1 = quad_screen.vertices[2];
-				line.p2 = quad_screen.vertices[0];
-				if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
-
-				line.p1 = quad_screen.vertices[2];
-				line.p2 = quad_screen.vertices[3];
-				if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
-
-				line.p1 = quad_screen.vertices[3];
-				line.p2 = quad_screen.vertices[0];
-				if(xen::intersect(line, viewport)){ doRenderLine2d(target, line, color, 0, 0); }
-				#endif
 			}
 			return;
 		}
