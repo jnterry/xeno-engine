@@ -253,26 +253,76 @@ namespace {
 		for(u32 y = region.min.y; y <= region.max.y; ++y, frac_y += incr_y){
 			u32 pixel_index_base = y*target.width;
 
-			bool drawn_this_y = false;
-
-
 			Vec3r bary_left  = xen::lerp(bary_bottom_left,  bary_top_left,  frac_y);
 			Vec3r bary_right = xen::lerp(bary_bottom_right, bary_top_right, frac_y);
 
-			real frac_x = 0.0_r;
-			for(u32 x = region.min.x; x <= region.max.x; ++x, frac_x += incr_x){
+			// A pixel is in the triangle if all components of the barycentric
+			// coordinate is positive. We could loop between region.min.x and
+			// region.max.x, lerp out the bary centric coordinate and compute
+			// if the pixel is "in" on a per pixel basis.
+			// However since each component of the barycentric coordinate varies
+			// linearly with frac_x we can compute the point where the sign
+			// of each component flips, and constrain the range of x values that
+			// we loop over to be just those within the triangle
+
+			real min_x = 0.0_r;
+			real max_x = 1.0_r;
+
+			bool valid_row = true;
+
+			// :TODO: we are doing these instructions 3 wide (but branching)
+			// can we use simd?
+			for(u32 i = 0; i < 3; ++i){
+				if(bary_left[i] >= 0 && bary_right[i] >= 0){
+					// Then this component is always positive, we do not need to
+					// constrain the x range based on it
+					continue;
+				} else if (bary_left[i] < 0 && bary_right[i] < 0){
+					// Then this component is always negative, there is nothing
+					// to draw on this y
+					//
+					// :TODO: why does this ever happen?
+					//
+					// Current guess (no evidence):
+					// ----------------------------
+					// This probably happens when the bounding box of the triangle has
+					// been clipped to the viewport such that there are no pixels
+					// in the triangle for some y vale
+					//
+					// Can we do clipping to viewport in smarter way to avoid this?
+					valid_row = false;
+					break;
+				} else if(bary_left[i] < 0 && bary_right[i] >= 0) {
+					// Then the first n pixels of the row are not in the triangle (until
+					// we reach the point where the component hits 0).
+
+					// Compute where this cross over point is:
+					real sign_flip = -bary_left[i] / (bary_right[i] - bary_left[i]);
+
+					// Update min_x if need be
+					min_x = xen::max(min_x, sign_flip);
+				} else { //(bary_left[i] >= 0 && bary_right[i] < 0)
+					// Then the last n pixels of the row are not in the triangle (after
+					// we reach the point where the component hits 0).
+
+					// Compute where this cross over point is:
+					real sign_flip = bary_left[i] / (bary_left[i] - bary_right[i]);
+
+					// Update max_x if need be
+					max_x = xen::min(max_x, sign_flip);
+				}
+			}
+
+			if(!valid_row){ continue; }
+
+			// Now fill pixels between min and max
+			real frac_x = min_x;
+			for(u32 x  = xen::lerp(region.min.x, region.max.x, min_x);
+			    x     <= xen::lerp(region.min.x, region.max.x, max_x);
+			    ++x, frac_x += incr_x
+			    ){
 
 				Vec3r bary = xen::lerp(bary_left, bary_right, frac_x);
-
-				if(bary.x < 0 || bary.y < 0 || bary.z < 0){
-					if(drawn_this_y){
-						break;
-					} else {
-						continue;
-					}
-				}
-
-				drawn_this_y = true;
 
 				u32 pixel_index = pixel_index_base + x;
 				//target.color[pixel_index].rgb = bary;
