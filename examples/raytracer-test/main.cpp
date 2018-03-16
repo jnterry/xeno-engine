@@ -113,7 +113,7 @@ int main(int argc, char** argv){
 		real dt = time - last_time;
 		last_time = time;
 
-		scene_lights[0].point.position.y = xen::mapToRange(-1.f, 1.f, 0.01f, 20.0f, xen::sin(time * 90_deg));
+		scene_lights[0].point.position.y = xen::mapToRange(-1_r, 1_r, 0.01_r, 20.0_r, xen::sin(time * 90_deg));
 
 		xen::WindowEvent* event;
 		while((event = xen::pollEvent(app)) != nullptr){

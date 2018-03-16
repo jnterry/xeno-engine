@@ -53,9 +53,9 @@ namespace xen{
 	inline real asRevolution(Angle a){ return a.radians / 2.0_r * xen::PI;     }
 
 	#if XEN_USE_DOUBLE_PRECISION
-	inline double sin (Angle a ){ return sin(a.radians); }
-	inline double cos (Angle a ){ return cos(a.radians); }
-	inline double tan (Angle a ){ return tan(a.radians); }
+	inline double sin (Angle a ){ return ::sin(a.radians); }
+	inline double cos (Angle a ){ return ::cos(a.radians); }
+	inline double tan (Angle a ){ return ::tan(a.radians); }
 
 	inline Angle  asin(double a){ return { asin(a) };    }
 	inline Angle  acos(double a){ return { acos(a) };    }

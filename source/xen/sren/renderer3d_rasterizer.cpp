@@ -41,7 +41,7 @@ namespace {
 
 	void doRenderPoints(xen::sren::RenderTargetImpl& target,
 	                    const xen::Aabb2r& viewport,
-	                    const Mat4f& mvp_matrix,
+	                    const Mat4r& mvp_matrix,
 	                    const xen::ImmediateGeometrySource& geom){
 
 		const xen::Color* color_buffer = geom.color;
@@ -50,7 +50,7 @@ namespace {
 		}
 
 		for(u32 i = 0; i < geom.vertex_count; ++i){
-			Vec4f clip_space = xen::toHomo(geom.position[i]) * mvp_matrix;
+			Vec4r clip_space = xen::toHomo(geom.position[i]) * mvp_matrix;
 
 			if(clip_space.x < -clip_space.w ||
 			   clip_space.x >  clip_space.w ||
@@ -142,7 +142,7 @@ namespace {
 
 	void doRenderLine3d(xen::sren::RenderTargetImpl& target,
 	                    const xen::Aabb2r& viewport,
-	                    const Mat4f& mvp_matrix,
+	                    const Mat4r& mvp_matrix,
 	                    xen::Color4f color,
 	                    const xen::LineSegment3r& line){
 
@@ -338,7 +338,7 @@ namespace {
 
 	void doRenderTriangle3d(xen::sren::RenderTargetImpl& target,
 		                      const xen::Aabb2r& viewport,
-												  const Mat4f& mvp_matrix,
+												  const Mat4r& mvp_matrix,
 	                        xen::Color4f color,
 	                        xen::Triangle3r& tri){
 		xen::Triangle4r tri_clip  = xen::toHomo(tri) * mvp_matrix;
