@@ -25,6 +25,11 @@
 #include <float.h>
 
 namespace {
+
+	const xen::Aabb3r CLIP_SPACE_AABB = {
+		Vec3r{-1, -1, -1}, Vec3r{1, 1, 1}
+	};
+
 	template<typename T_IN, typename T_OUT>
   T_OUT _convertToScreenSpace(const T_IN& in, const xen::Aabb2r& viewport){
 		T_OUT out = xen::swizzle<'x','y'>(in);
@@ -50,11 +55,8 @@ namespace {
 		for(u32 i = 0; i < geom.vertex_count; ++i){
 			Vec3f clip_space = geom.position[i] * mvp_matrix;
 
-			if(clip_space.x < -1 || clip_space.x > 1 ||
-			   clip_space.y < -1 || clip_space.y > 1 ||
-			   clip_space.z < -1 || clip_space.z > 1
-			   ){
-				// Then point is not in view of the camera
+			if(!xen::contains(CLIP_SPACE_AABB, clip_space)){
+					// Then point is not in view of the camera
 				continue;
 			}
 
