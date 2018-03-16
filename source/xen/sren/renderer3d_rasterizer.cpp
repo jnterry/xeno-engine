@@ -189,20 +189,6 @@ namespace {
 
 	}
 
-	// Bresenham Triangle Algorithm, inspired by
-	// http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html#algo3
-	// :NOTE: tri.p1 becomes the bottom most vertice & tri.p3 is top most, as (0,0) is bottom left
-	//                     . tri.p3
-	//                    /
-	//     tri.p2 .      /
-	//            |     /
-	//            |    /
-	//            |   / a
-	//          b |  /
-	//            | /
-	//            |/
-	//            .
-	//          tri.p1
 	void doRenderTriangle2d(xen::sren::RenderTargetImpl& target,
 		                      const xen::Aabb2r& viewport,
 	                        xen::Triangle2r tri,
@@ -214,19 +200,19 @@ namespace {
 		line.p1 = tri.p1;
 		line.p2 = tri.p2;
 		if(xen::intersect(line, viewport)){
-			doRenderLine2d(target, line, colors.p1, colors.p2, line.p1.z, line.p2.z);
+			doRenderLine2d(target, line, colors.p1, colors.p2, 0, 0);
 		}
 
 		line.p1 = tri.p2;
 		line.p2 = tri.p3;
 		if(xen::intersect(line, viewport)){
-			doRenderLine2d(target, line, colors.p2, colors.p3, line.p2.z, line.p3.z);
+			doRenderLine2d(target, line, colors.p2, colors.p3, 0, 0);
 		}
 
 		line.p1 = tri.p3;
 		line.p2 = tri.p1;
 		if(xen::intersect(line, viewport)){
-			doRenderLine2d(target, line, colors.p3, colors.p1, line.p3.z, line.p1.z);
+			doRenderLine2d(target, line, colors.p3, colors.p1, 0, 0);
 		}
 		return;
 		#endif
@@ -351,7 +337,7 @@ namespace {
 		                      const xen::Aabb2r& viewport,
 												  const Mat4r& mvp_matrix,
 	                        xen::Triangle3r& tri,
-	                        xen::Triangle4f& colors){
+	                        xen::Triangle4f  colors){
 		xen::Triangle4r tri_clip  = xen::toHomo(tri) * mvp_matrix;
 
 		// Work out which points are behind the camera
@@ -381,9 +367,11 @@ namespace {
 
 		case 3:   // 011
 			xen::swap(tri_clip.p1, tri_clip.p3);
+			xen::swap(colors.p1,   colors.p3  );
 			goto do_draw_2_behind;
 		case 5:   // 101
 			xen::swap(tri_clip.p1, tri_clip.p2);
+			xen::swap(colors.p1,   colors.p2  );
 			goto do_draw_2_behind;
 		case 6:   // 110
 		do_draw_2_behind: {
@@ -395,10 +383,14 @@ namespace {
 				// component becomes 0
 
 				Vec4r delta_p2 = (tri_clip.p1 - tri_clip.p2);
-				tri_clip.p2 += delta_p2 * ((-tri_clip.p2.z / delta_p2.z));
+				real  frac_p2  = ((-tri_clip.p2.z / delta_p2.z));
+				tri_clip.p2   += delta_p2 * frac_p2;
+				colors.p2     += (colors.p1 - colors.p2) * frac_p2;
 
 				Vec4r delta_p3 = (tri_clip.p1 - tri_clip.p3);
-				tri_clip.p3 += delta_p3 * ((-tri_clip.p3.z / delta_p3.z));
+				real  frac_p3  = ((-tri_clip.p3.z / delta_p3.z));
+				tri_clip.p3   += delta_p3 * frac_p3;
+				colors.p3     += (colors.p1 - colors.p3) * frac_p3;
 
 				// Do perspective divide (into normalized device coordinates -> [-1, 1]
 				tri_clip.p1 /= (tri_clip.p1.w);
@@ -414,9 +406,11 @@ namespace {
 			}
 		case 1: // 001
 			xen::swap(tri_clip.p1, tri_clip.p3);
+			xen::swap(colors.p1,   colors.p3  );
 			goto do_draw_1_behind;
 		case 2: // 010
 			xen::swap(tri_clip.p2, tri_clip.p3);
+			xen::swap(colors.p2,   colors.p3  );
 			goto do_draw_1_behind;
 		case 4: // 100
 		do_draw_1_behind: {
@@ -430,10 +424,12 @@ namespace {
 				//tri_clip.p3 += delta_p3 * ((-tri_clip.p3.z / delta_p3.z));
 
 				Vec4r delta_p1       = (tri_clip.p1 - tri_clip.p3);
-				Vec4r p3_slide_to_p1 = (tri_clip.p3 + (delta_p1 * ((-tri_clip.p3.z / delta_p1.z))));
+				real  frac_p1        = ((-tri_clip.p3.z / delta_p1.z));
+				Vec4r p3_slide_to_p1 = (tri_clip.p3 + (delta_p1 * frac_p1));
 
 				Vec4r delta_p2       = (tri_clip.p2 - tri_clip.p3);
-				Vec4r p3_slide_to_p2 = (tri_clip.p3 + (delta_p2 * ((-tri_clip.p3.z / delta_p2.z))));
+				real  frac_p2        = ((-tri_clip.p3.z / delta_p2.z));
+				Vec4r p3_slide_to_p2 = (tri_clip.p3 + (delta_p2 * frac_p2));
 
 				xen::VertexGroup2r<4> quad_screen;
 				quad_screen.vertices[0] = (tri_clip.p1    / tri_clip.p1.w   ).xy;
@@ -441,17 +437,23 @@ namespace {
 				quad_screen.vertices[2] = (tri_clip.p2    / tri_clip.p2.w   ).xy;
 				quad_screen.vertices[3] = (p3_slide_to_p2 / p3_slide_to_p2.w).xy;
 
+				xen::VertexGroup4f<4> quad_colors;
+				quad_colors.vertices[0] = colors.p1;
+				quad_colors.vertices[1] = colors.p3 + (colors.p1 - colors.p3) * frac_p1;
+				quad_colors.vertices[2] = colors.p2;
+				quad_colors.vertices[3] = colors.p3 + (colors.p2 - colors.p3) * frac_p2;
+
 				quad_screen =
 					_convertToScreenSpace<xen::VertexGroup2r<4>, xen::VertexGroup2r<4>>(quad_screen, viewport);
 
 				// :TODO: compute colors at each vertex
 				doRenderTriangle2d(target, viewport,
 				                   *(xen::Triangle2r*)&quad_screen.vertices[0],
-				                   colors
+				                   *(xen::Triangle4f*)&quad_colors.vertices[0]
 				                  );
 				doRenderTriangle2d(target, viewport,
 				                   *(xen::Triangle2r*)&quad_screen.vertices[1],
-				                   colors
+				                   *(xen::Triangle4f*)&quad_colors.vertices[1]
 				                  );
 			}
 			return;
