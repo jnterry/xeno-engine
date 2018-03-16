@@ -267,7 +267,7 @@ namespace xen{
 				real factor = (a.max.y - r.p1.y) / (r.p2.y - r.p1.y);
 				x = r.p1.x + (r.p2.x - r.p1.x) * factor;
 				y = a.max.y;
-				z = r.p1.z + (r.p2.x - r.p1.x) * factor;
+				z = r.p1.z + (r.p2.z - r.p1.z) * factor;
 			} else if (outcode_out & PointOutCode::DOWN) {
 				real factor = (a.min.y - r.p1.y) / (r.p2.y - r.p1.y);
 				x = r.p1.x + (r.p2.x - r.p1.x) * factor;
