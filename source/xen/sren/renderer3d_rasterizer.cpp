@@ -244,10 +244,14 @@ namespace {
 		// than computing the barycentric coordinate at each position in the Aabb
 		// of the triangle we can compute it at the corners and then lerp
 		// across
-		Vec3r bary_bottom_left  = xen::getBarycentricCoordinates(tri, Vec2r{region.min.x, region.min.y});
-		Vec3r bary_bottom_right = xen::getBarycentricCoordinates(tri, Vec2r{region.max.x, region.min.y});
-		Vec3r bary_top_left     = xen::getBarycentricCoordinates(tri, Vec2r{region.min.x, region.max.y});
-		Vec3r bary_top_right    = xen::getBarycentricCoordinates(tri, Vec2r{region.max.x, region.max.y});
+		Vec3r bary_bottom_left  = xen::getBarycentricCoordinates(tri, Vec2r{
+				(real)region.min.x, (real)region.min.y});
+		Vec3r bary_bottom_right = xen::getBarycentricCoordinates(tri, Vec2r{
+				(real)region.max.x, (real)region.min.y});
+		Vec3r bary_top_left     = xen::getBarycentricCoordinates(tri, Vec2r{
+				(real)region.min.x, (real)region.max.y});
+		Vec3r bary_top_right    = xen::getBarycentricCoordinates(tri, Vec2r{
+				(real)region.max.x, (real)region.max.y});
 
 		float frac_y = 0.0_r;
 		for(u32 y = region.min.y; y <= region.max.y; ++y, frac_y += incr_y){
