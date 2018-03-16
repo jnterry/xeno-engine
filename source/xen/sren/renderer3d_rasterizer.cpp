@@ -24,7 +24,7 @@
 #include <cstdlib>
 #include <float.h>
 
-#define XEN_SREN_DEBUG_RENDER_WIREFRAME 1
+//#define XEN_SREN_DEBUG_RENDER_WIREFRAME 1
 
 namespace {
 	template<typename T_IN, typename T_OUT>
@@ -221,131 +221,44 @@ namespace {
 		return;
 		#endif
 
-		{ // If any two points are equal draw a line and bail out
-			xen::LineSegment2r* line = nullptr;
-			if(tri.p1 == tri.p2){
-				// then draw line connecting p2 and p3
-				line = (xen::LineSegment2r*)&tri.vertices[1];
-			} else if (tri.p1 == tri.p3 || tri.p2 == tri.p3) {
-				// then draw line connecting p1 and p2
-				line = (xen::LineSegment2r*)&tri.vertices[0];
-			}
-			if(line) {
-				// Then the triangle has at least 2 points equal to one another - just
-				// join the line segment and bail out. This isn't an error, eg, could
-				// be a 3d triangle that is edge on when projected
-				if(xen::intersect(*line, viewport)){
-					// :TODO: correct depth values here... not 0,0
-					doRenderLine2d(target, *line, color, 0, 0);
-				}
-				return;
-			}
-		}
-
 		// Sort Points such that p1 has lowest y, p3 has highest y
 		if (tri.p1.y > tri.p2.y) { swap(tri.p1, tri.p2); }
 		if (tri.p2.y > tri.p3.y) { swap(tri.p2, tri.p3); }
 		if (tri.p1.y > tri.p2.y) { swap(tri.p1, tri.p2); }
 
-		// :TODO: this is nasty hack to prevent infinite loop since we will
-		// never step up in y if the line is along x - but we still want to
-		// draw triangles
-		// This is case like:
-		//
-		//       /|
-		//      / |
-		//     /  |
-		//     ----   <- problem edge
-		if((u32)tri.p1.y == (u32)tri.p2.y){
+		xen::Aabb2r region_r = xen::Aabb2r::MaxMinBox;
+		xen::addPoint(region_r, tri.p1);
+		xen::addPoint(region_r, tri.p2);
+		xen::addPoint(region_r, tri.p3);
+		if(!xen::intersect(region_r, viewport)){
 			return;
 		}
+		xen::Aabb2u region = (xen::Aabb2u)region_r;
 
-		//printf("Points of triangle: (%f,%f), (%f,%f), (%f,%f)\n",
-		//       tri.p1.x, tri.p1.y,
-		//       tri.p2.x, tri.p2.y,
-		//       tri.p3.x, tri.p3.y);
+		for(u32 y = region.min.y; y <= region.max.y; ++y){
+			u32 pixel_index_base = y*target.width;
 
-		// Create line for each of a, b, & c for drawing purposes
-		xen::LineSegment2r line_a = {tri.p1, tri.p3};
-		xen::LineSegment2r line_b = {tri.p1, tri.p2};
-		xen::LineSegment2r line_c = {tri.p2, tri.p3};
+			bool drawn_this_y = false;
 
-		//////////////////////////////////////////////////////////
-		// Find step vector for line_a as well as start position
-		real num_pixels_a = xen::max(abs(line_a.p1.x - line_a.p2.x), abs(line_a.p1.y - line_a.p2.y));
-		//printf("Number of pixels in line_a: %f\n", num_pixels_a);
-		Vec2r delta_a = (line_a.p2 - line_a.p1) / num_pixels_a;
-		if(delta_a.y > 1.0f){ // ensure we never step up by multiple y
-			delta_a /= delta_a.y;
-		}
-		Vec2r curr_a  = line_a.p1;
+			for(u32 x = region.min.x; x <= region.max.x; ++x){
 
-		//////////////////////////////////////////////////////////
-		// Find step vector for line_b as well as start position
-		real num_pixels_b = xen::max(abs(line_b.p1.x - line_b.p2.x), abs(line_b.p1.y - line_b.p2.y));
-		//printf("Number of pixels in line_b: %f\n", num_pixels_b);
-		Vec2r delta_b = (line_b.p2 - line_b.p1) / num_pixels_b;
-		if(delta_b.y > 1.0f){ // ensure we never step up by multiple y
-			delta_b /= delta_b.y;
-		}
-		Vec2r curr_b  = line_b.p1;
-
-		//////////////////////////////////////////////////////////
-		// Find step vector for line_b, no start position as c is drawn after b
-		// is finished -> IE: (line_c.start == line_b.end)
-		real num_pixels_c = xen::max(abs(line_c.p1.x - line_c.p2.x), abs(line_c.p1.y - line_c.p2.y));
-		//printf("Number of pixels in line_c: %f\n", num_pixels_c);
-		Vec2r delta_c = (line_c.p2 - line_c.p1) / num_pixels_c;
-	  if(delta_c.y > 1.0f){ // ensure we never step up by multiple y
-			delta_c /= delta_c.y;
-		}
-
-	  //////////////////////////////////////////////////////////
-		// Step along each line, connecting along x after each step in y
-		u32 line_a_pixels_drawn = 0;
-		while(line_a_pixels_drawn < num_pixels_a){ // :TODO: This may need to be just < or != etc, idek
-			u32 curr_pixel_y = (u32)curr_a.y;
-			XenAssert(curr_pixel_y == (u32)curr_b.y, "Expected current y values to be equal!");
-
-			// Step along line a until we reach next y value
-			while((u32)curr_a.y == curr_pixel_y){
-				//printf("Stepping along a, now at: %f, %f\n", curr_a.x, curr_a.y);
-				if (xen::contains(viewport, curr_a)){
-					target.color[(u32)curr_a.y*target.width + (u32)curr_a.x] = color;
+				Vec3r bary = xen::getBarycentricCoordinates(tri, Vec2r{x, y});
+				if(bary.x < 0 || bary.y < 0 || bary.z < 0){
+					if(drawn_this_y){
+						break;
+					} else {
+						continue;
+					}
 				}
-				curr_a += delta_a;
-				++line_a_pixels_drawn;
-			}
 
-			// Step along line b until we reach next y value
-			while ((u32)curr_b.y == curr_pixel_y){
-				//printf("Stepping along b, now at: %f, %f\n", curr_b.x, curr_b.y);
-				if (xen::contains(viewport, curr_b)){
-					target.color[(u32)curr_b.y*target.width + (u32)curr_b.x] = color;
-				}
-				curr_b += delta_b;
-				// If b has reached end point then begin drawing line c by changing
-				// vector that represents a single step from that of b to that of c
-				if ((Vec2u)curr_b == (Vec2u)line_b.p2){
-					delta_b = delta_c;
-				}
-			}
+				drawn_this_y = true;
 
-			//printf("curr_a.y: %f, curr_b.y: %f\n", curr_a.y, curr_b.y);
-			XenAssert((u32)curr_a.y == (u32)curr_b.y, "Expected y of both currents to be equivalent");
-
-			//printf("Val of curr_a: %f, Val of curr_b: %f\n", curr_a.x, curr_b.x);
-
-			// draw horizontal line
-			u32 min_x = xen::max(xen::min(curr_a.x, curr_b.x, viewport.max.x), viewport.min.x);
-			u32 max_x = xen::min(xen::max(curr_a.x, curr_b.x, viewport.min.x), viewport.max.x);
-			if(curr_a.y >= viewport.min.y && curr_a.y <= viewport.max.y){
-				for (u32 x = min_x+1; x < max_x; ++x){
-					target.color[(u32)curr_a.y*target.width + x] = color;
-				}
+				u32 pixel_index = pixel_index_base + x;
+				//target.color[pixel_index].rgb = bary;
+				//target.color[pixel_index].a   = 1.0f;
+				target.color[pixel_index] = color;
 			}
 		}
-
 	}
 
 	void doRenderTriangle3d(xen::sren::RenderTargetImpl& target,
