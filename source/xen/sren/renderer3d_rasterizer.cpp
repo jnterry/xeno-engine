@@ -221,11 +221,6 @@ namespace {
 		return;
 		#endif
 
-		// Sort Points such that p1 has lowest y, p3 has highest y
-		if (tri.p1.y > tri.p2.y) { swap(tri.p1, tri.p2); }
-		if (tri.p2.y > tri.p3.y) { swap(tri.p2, tri.p3); }
-		if (tri.p1.y > tri.p2.y) { swap(tri.p1, tri.p2); }
-
 		xen::Aabb2r region_r = xen::Aabb2r::MaxMinBox;
 		xen::addPoint(region_r, tri.p1);
 		xen::addPoint(region_r, tri.p2);
