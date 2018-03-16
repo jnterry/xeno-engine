@@ -237,21 +237,29 @@ namespace {
 
 		// If we call min.x, 0 and max.x, 1 then incr_x is the amount we increase
 		// by when we move 1 pixel
-		float incr_x = 1.0_r / (real)(region.max.x - region.min.x);
+		real incr_x = 1.0_r / (real)(region.max.x - region.min.x);
+		real incr_y = 1.0_r / (real)(region.max.y - region.min.y);
 
-		for(u32 y = region.min.y; y <= region.max.y; ++y){
+		// Barycentric coordinates vary as a lerp along some axis, hence rather
+		// than computing the barycentric coordinate at each position in the Aabb
+		// of the triangle we can compute it at the corners and then lerp
+		// across
+		Vec3r bary_bottom_left  = xen::getBarycentricCoordinates(tri, Vec2r{region.min.x, region.min.y});
+		Vec3r bary_bottom_right = xen::getBarycentricCoordinates(tri, Vec2r{region.max.x, region.min.y});
+		Vec3r bary_top_left     = xen::getBarycentricCoordinates(tri, Vec2r{region.min.x, region.max.y});
+		Vec3r bary_top_right    = xen::getBarycentricCoordinates(tri, Vec2r{region.max.x, region.max.y});
+
+		float frac_y = 0.0_r;
+		for(u32 y = region.min.y; y <= region.max.y; ++y, frac_y += incr_y){
 			u32 pixel_index_base = y*target.width;
 
 			bool drawn_this_y = false;
 
-			// Barycentric coordinates vary as a lerp along some axis, hence rather
-			// than computing the barycentric coordinate at each position in the Aabb
-			// of the triangle we can compute it at the edges of each row, and then
-			// lerp across
-			Vec3r bary_left  = xen::getBarycentricCoordinates(tri, Vec2r{region.min.x, y});
-			Vec3r bary_right = xen::getBarycentricCoordinates(tri, Vec2r{region.max.x, y});
 
-			real frac_x = 0.0;
+			Vec3r bary_left  = xen::lerp(bary_bottom_left,  bary_top_left,  frac_y);
+			Vec3r bary_right = xen::lerp(bary_bottom_right, bary_top_right, frac_y);
+
+			real frac_x = 0.0_r;
 			for(u32 x = region.min.x; x <= region.max.x; ++x, frac_x += incr_x){
 
 				Vec3r bary = xen::lerp(bary_left, bary_right, frac_x);
