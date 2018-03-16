@@ -15,6 +15,7 @@
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
+#include <xen/core/array.hpp>
 
 #include "renderer3d.hxx"
 #include "RenderTargetImpl.hxx"
@@ -244,7 +245,7 @@ namespace xen {
 			// :TODO:COMP: view region calc duplicated with rasterizer
 			// Find the actual view_region we wish to draw to. This is the
 			// intersection of the actual target, and the user specified viewport
-            xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
+			xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 
 			Vec2s target_size = (Vec2s)xen::getSize(view_region);
@@ -299,6 +300,8 @@ namespace xen {
 			//////////////////////////////////////////////////////////////////////////
 
 			xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
+			xen::clearToZero(render_commands);
+
 			render_commands[0].primative_type         = xen::PrimativeType::LINES;
 			render_commands[0].color                  = xen::Color::MAGENTA4f;
 			render_commands[0].model_matrix           = Mat4r::Identity;
