@@ -235,14 +235,27 @@ namespace {
 		}
 		xen::Aabb2u region = (xen::Aabb2u)region_r;
 
+		// If we call min.x, 0 and max.x, 1 then incr_x is the amount we increase
+		// by when we move 1 pixel
+		float incr_x = 1.0_r / (real)(region.max.x - region.min.x);
+
 		for(u32 y = region.min.y; y <= region.max.y; ++y){
 			u32 pixel_index_base = y*target.width;
 
 			bool drawn_this_y = false;
 
-			for(u32 x = region.min.x; x <= region.max.x; ++x){
+			// Barycentric coordinates vary as a lerp along some axis, hence rather
+			// than computing the barycentric coordinate at each position in the Aabb
+			// of the triangle we can compute it at the edges of each row, and then
+			// lerp across
+			Vec3r bary_left  = xen::getBarycentricCoordinates(tri, Vec2r{region.min.x, y});
+			Vec3r bary_right = xen::getBarycentricCoordinates(tri, Vec2r{region.max.x, y});
 
-				Vec3r bary = xen::getBarycentricCoordinates(tri, Vec2r{x, y});
+			real frac_x = 0.0;
+			for(u32 x = region.min.x; x <= region.max.x; ++x, frac_x += incr_x){
+
+				Vec3r bary = xen::lerp(bary_left, bary_right, frac_x);
+
 				if(bary.x < 0 || bary.y < 0 || bary.z < 0){
 					if(drawn_this_y){
 						break;
