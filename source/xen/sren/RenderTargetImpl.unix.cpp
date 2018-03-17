@@ -183,7 +183,6 @@ namespace {
 		__m128  w_0    = _mm_set_ps1(  0.0f);
 		__m128  w_1    = _mm_set_ps1(  1.0f);
 		__m128  w_255  = _mm_set_ps1(255.0f);
-		__m128i wi_ff  = _mm_set_epi32(0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff);
 
 		// :TODO: take target.red_mask etc into account
 		u32* pixels = (u32*)target.ximage->data;
