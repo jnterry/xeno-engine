@@ -14,15 +14,9 @@
 
 #include <xen/math/utilities.hpp>
 #include <xen/core/memory/Allocator.hpp>
+#include <xen/core/simd_intrinsics.hpp>
 
 #include <cstring>
-
-#if XEN_USE_SSE
-#include <mmintrin.h>
-#include <xmmintrin.h>
-#include <immintrin.h>
-#include <emmintrin.h>
-#endif
 
 namespace {
 
