@@ -176,7 +176,7 @@ namespace xen {
 	};
 
 	const ImmediateGeometrySource TestMeshGeometry_UnitCube = {
-		XenArrayLength(UnitCubeLines_Positions),
+		XenArrayLength(UnitCube_Positions),
 		UnitCube_Positions,
 		UnitCube_Normals,
 		UnitCube_Colors,
