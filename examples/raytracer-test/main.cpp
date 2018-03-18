@@ -83,8 +83,7 @@ int main(int argc, char** argv){
 	render_commands[3].immediate.position     = &mesh_verts[3];
 	render_commands[3].immediate.vertex_count = 3;
 
-	// :TODO: get actual window size rather than hardcoding here and in common.cpp
-	xen::Aabb2u viewport = { 0, 0, 800, 800 };
+	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
 
 	xen::Stopwatch timer;
 	real last_time = 0;

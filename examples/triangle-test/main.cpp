@@ -54,8 +54,7 @@ int main(int argc, char** argv){
 	render_commands[2].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
 	render_commands[2].immediate              = xen::TestMeshGeometry_UnitCube;
 
-	// :TODO: get window size
-	xen::Aabb2u viewport = { 0, 0, 100000, 100000 };
+	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
 
 	xen::Stopwatch timer;
 	real last_time = 0;

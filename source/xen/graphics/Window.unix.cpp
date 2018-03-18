@@ -553,8 +553,13 @@ namespace xen {
 
 	/// \brief Retrieves the size of the client area (ie, part that may be renderered on) of some window
 	Vec2u getClientAreaSize(Window* window){
-		Vec2u result = {};
-		return result;
+		XWindowAttributes attributes;
+		XGetWindowAttributes(xen::impl::unix_display, window->xwindow, &attributes);
+
+    return {
+	    attributes.width,
+		    attributes.height,
+    };
 	}
 
 	bool isKeyPressed(Key key){

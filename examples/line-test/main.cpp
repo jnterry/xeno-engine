@@ -56,8 +56,7 @@ int main(int argc, char** argv){
 	render_commands[2].immediate.position     = &parallel_lines[0];
 	render_commands[2].immediate.vertex_count = LINE_COUNT * 2;
 
-	// make it stupidly big so we always render to the entire screen
-	xen::Aabb2u viewport = { 0, 0, 100000, 100000 };
+	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
 
 	xen::Stopwatch timer;
 	real last_time = 0;

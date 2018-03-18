@@ -58,8 +58,10 @@ int main(int argc, char** argv){
 	render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
 	render_commands[0].immediate              = MeshGeometry_CornellBox;
 
-	// :TODO: get actual window size
-	xen::Aabb2u viewport = { 0, 0, 10000, 10000 };
+	Vec2u window_size = xen::getClientAreaSize(app.window);
+	printf("window size is %u, %u\n", window_size.x, window_size.y);
+
+	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
 
 	xen::Stopwatch timer;
 	real last_time = 0;
