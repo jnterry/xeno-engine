@@ -1,25 +1,8 @@
 #include <stdio.h>
 
-#include <xen/core/intrinsics.hpp>
-#include <xen/core/memory.hpp>
-#include <xen/core/random.hpp>
-#include <xen/core/time.hpp>
-#include <xen/core/array.hpp>
-#include <xen/util/File.hpp>
-#include <xen/graphics/GraphicsDevice.hpp>
-#include <xen/graphics/Window.hpp>
-#include <xen/graphics/Camera3d.hpp>
-#include <xen/graphics/RenderCommand3d.hpp>
-#include <xen/graphics/TestMeshes.hpp>
-#include <xen/math/utilities.hpp>
-#include <xen/math/vector.hpp>
-#include <xen/math/geometry.hpp>
-#include <xen/math/quaternion.hpp>
-#include <xen/math/matrix.hpp>
-#include <xen/math/angle.hpp>
-#include <xen/sren/SoftwareDevice.hpp>
-
 #include "../common.cpp"
+
+#include <xen/graphics/TestMeshes.hpp>
 
 xen::Camera3dCylinder camera;
 
@@ -50,12 +33,9 @@ int main(int argc, char** argv){
 	camera.target = Vec3r::Origin;
 	camera.angle  = 0.0_deg;
 
-	Vec2r window_size = {800, 800};
-
-	xen::Allocator*      alloc  = new xen::AllocatorCounter<xen::AllocatorMalloc>();
-	xen::ArenaLinear     arena  = xen::createArenaLinear(*alloc, xen::megabytes(32));
-	xen::GraphicsDevice* device = xen::createRaytracerDebugDevice(arena);
-	xen::Window*         app    = device->createWindow((Vec2u)window_size, "starfield");
+	ExampleApplication app = createApplication("raytracer-test",
+	                                           ExampleApplication::Backend::RASTERIZER
+	                                          );
 
 	Vec3r mesh_verts[] = {
 		Vec3r{ 0_r, 0_r, 0_r },
@@ -103,12 +83,13 @@ int main(int argc, char** argv){
 	render_commands[3].immediate.position     = &mesh_verts[3];
 	render_commands[3].immediate.vertex_count = 3;
 
-	xen::Aabb2u viewport = { 0, 0, (u32)window_size.x, (u32)window_size.y };
+	// :TODO: get actual window size rather than hardcoding here and in common.cpp
+	xen::Aabb2u viewport = { 0, 0, 800, 800 };
 
 	xen::Stopwatch timer;
 	real last_time = 0;
 	printf("Entering main loop\n");
-	while(xen::isWindowOpen(app)) {
+	while(xen::isWindowOpen(app.window)) {
 		real time = xen::asSeconds<real>(timer.getElapsedTime());
 		real dt = time - last_time;
 		last_time = time;
@@ -116,10 +97,10 @@ int main(int argc, char** argv){
 		scene_lights[0].point.position.y = xen::mapToRange(-1_r, 1_r, 0.01_r, 20.0_r, xen::sin(time * 90_deg));
 
 		xen::WindowEvent* event;
-		while((event = xen::pollEvent(app)) != nullptr){
+		while((event = xen::pollEvent(app.window)) != nullptr){
 			switch(event->type){
 			case xen::WindowEvent::Closed:
-				device->destroyWindow(app);
+				app.device->destroyWindow(app.window);
 				break;
 			default: break;
 			}
@@ -127,14 +108,13 @@ int main(int argc, char** argv){
 		handleCameraInputCylinder(camera, dt);
 		render_params.camera = xen::generateCamera3d(camera);
 
-		device->clear      (app, xen::Color::BLACK);
-		device->render     (app, viewport, render_params, render_commands);
-		device->swapBuffers(app);
+		app.device->clear      (app.window, xen::Color::BLACK);
+		app.device->render     (app.window, viewport, render_params, render_commands);
+		app.device->swapBuffers(app.window);
 	}
 	printf("Exiting main loop\n");
 
-	xen::destroyArenaLinear(*alloc, arena);
-	delete alloc;
+	destroyApplication(app);
 
 	return 0;
 }
