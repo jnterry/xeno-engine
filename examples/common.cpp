@@ -32,6 +32,8 @@ ExampleApplication createApplication(const char* window_title,
 		nullptr,
 	};
 
+	Vec2u window_size = {800, 600};
+
 	do {
 		printf("Select graphics backend\n");
 		printf("-----------------------\n");
@@ -62,13 +64,16 @@ ExampleApplication createApplication(const char* window_title,
 			app.device = xen::createRasterizerDevice(app.arena);
 			break;
 		case ExampleApplication::Backend::RAYTRACER:
+			window_size = {128, 128};
 			app.device = xen::createRaytracerDevice(app.arena);
 			break;
 		case ExampleApplication::Backend::OPENGL:
 			app.device = xen::createGlDevice(app.arena);
 			break;
 		case ExampleApplication::Backend::RAYTRACER_CAMERA_DEBUG:
-			printf("\nNot implemented\n\n");
+			window_size.x = 800;
+			window_size.y = 800;
+			app.device = xen::createRaytracerDebugDevice(app.arena);
 			break;
 		case ExampleApplication::Backend::RASTERIZER_DEPTH_DEBUG:
 			printf("\nNot implemented\n\n");
@@ -78,8 +83,6 @@ ExampleApplication createApplication(const char* window_title,
 			break;
 		}
 	} while(app.device == nullptr);
-
-	Vec2u window_size = {800, 600};
 	app.window = app.device->createWindow(window_size, window_title);
 
 	return app;
