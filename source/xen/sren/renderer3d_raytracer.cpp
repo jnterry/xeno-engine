@@ -121,10 +121,27 @@ namespace xen {
 			Vec3r image_plane_center = (params.camera.position +
 			                            cam_zaxis * params.camera.z_near
 			                           );
-			// Camera is usually +ve z looking in -ve z direction, if we assume
-			// that camera is looking down its local z axis it is looking in +ve
-			// z direction. Hence camera's x and world's x are backwards compared
-			// to each other, hence the -(...) here
+
+			// In a typical scene the camera is usually at a +ve z position looking in
+			// the -ve z direction.
+			// In camera space however we assume that the camera is looking down its
+			// own local z axis, IE, in a +ve z direction. This means that the
+			// camera's z axis and world's z axis are pointing in opposite directions.
+			// This cannot be encoded as a rotation without at least one of the x
+			// and y axes also not lining up with their world space counter parts.
+			// This would be inconvenient when drawing to the screen, as either x or
+			// y would be reversed.
+			// Instead we encode this flip as a conversion between a right handed
+			// coordinate system in world space, but left handed in camera space.
+			// This is exactly the same as a mirror which really inverts the z axis -
+			// hence why the image is flipped horizontally but not vertically.
+			// It is for this reason we introduce a minus sign at the start of the
+			// line below; we must invert one of the axes in order to convert from the
+			// right handed world space to the left handed camera space.
+			// Note that OpenGL does this too - world space is right handed, camera
+			// space is left handed. This is precisely so the x and y axes of both
+			// spaces are in the same direction, while the z axis can point in the
+			// opposite direction.
 			Vec3r image_plane_pixel_offset_x = -(xen::normalized(cam_xaxis) *
 			                                     xen::tan(fov_x / (real)target_size.x) * params.camera.z_near
 			                                    );
@@ -287,10 +304,27 @@ namespace xen {
 			Vec3r image_plane_center = (camera.position +
 			                            cam_zaxis * camera.z_near
 			                           );
-			// Camera is usually +ve z looking in -ve z direction, if we assume
-			// that camera is looking down its local z axis it is looking in +ve
-			// z direction. Hence camera's x and world's x are backwards compared
-			// to each other, hence the -(...) here
+
+			// In a typical scene the camera is usually at a +ve z position looking in
+			// the -ve z direction.
+			// In camera space however we assume that the camera is looking down its
+			// own local z axis, IE, in a +ve z direction. This means that the
+			// camera's z axis and world's z axis are pointing in opposite directions.
+			// This cannot be encoded as a rotation without at least one of the x
+			// and y axes also not lining up with their world space counter parts.
+			// This would be inconvenient when drawing to the screen, as either x or
+			// y would be reversed.
+			// Instead we encode this flip as a conversion between a right handed
+			// coordinate system in world space, but left handed in camera space.
+			// This is exactly the same as a mirror which really inverts the z axis -
+			// hence why the image is flipped horizontally but not vertically.
+			// It is for this reason we introduce a minus sign at the start of the
+			// line below; we must invert one of the axes in order to convert from the
+			// right handed world space to the left handed camera space.
+			// Note that OpenGL does this too - world space is right handed, camera
+			// space is left handed. This is precisely so the x and y axes of both
+			// spaces are in the same direction, while the z axis can point in the
+			// opposite direction.
 			Vec3r image_plane_pixel_offset_x = -(xen::normalized(cam_xaxis) *
 			                                     xen::tan(fov_x / (real)target_size.x) * camera.z_near
 			                                    );
