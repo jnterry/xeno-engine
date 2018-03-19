@@ -359,8 +359,13 @@ namespace {
 
 				u32 pixel_index = pixel_index_base + x;
 				xen::Color4f color = evaluateBarycentricCoordinates(colors, bary);
+				Vec3r depth = evaluateBarycentricCoordinates(tri, bary);
 
-				target.color[pixel_index] = color;
+				if (depth.z < target.depth[pixel_index]) {
+					target.color[pixel_index] = color;
+					target.depth[pixel_index] = depth.z;
+				}
+
 
 			}
 		}
