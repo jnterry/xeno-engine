@@ -43,6 +43,20 @@ namespace xen {
     T u = (T)1 - v - w;
 		return {u,v,w};
 	}
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Evaluates the value of a given barycentric coordinates
+	/// of a specific point with respect to a given triangle
+	/// \param bary Barycentric coordinates of a known point
+	/// \param tri The triangle this point is being resolved within
+	/// \return Evalauted quantity, of type T1, of bary with respect to tri
+	/////////////////////////////////////////////////////////////////////
+	template<u32 T_DIM, typename T1, typename T2>
+	Vec<T_DIM,T1> evaluateBarycentricCoordinates(const Triangle<T_DIM,T1>& tri, const Vec3<T2>& bary){
+		Vec<T_DIM,T1> toReturn = (bary.x*tri.p1 +
+									bary.y*tri.p2 +
+									bary.z*tri.p3);
+		return toReturn;
+	}
 
 	template<u32 T_DIM, typename T>
 	bool hasArea(Triangle<T_DIM, T> tri){
