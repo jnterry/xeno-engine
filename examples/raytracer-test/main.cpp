@@ -47,7 +47,21 @@ int main(int argc, char** argv){
 		Vec3r{ 0_r, 0_r, 1_r },
 	};
 
-	xen::FixedArray<xen::RenderCommand3d, 4> render_commands;
+	xen::Color mesh_colors[] = {
+		xen::Color::MAGENTA4f,
+		xen::Color::MAGENTA4f,
+		xen::Color::MAGENTA4f,
+
+		xen::Color::YELLOW4f,
+		xen::Color::YELLOW4f,
+		xen::Color::YELLOW4f,
+	};
+
+	static_assert(XenArrayLength(mesh_verts) == XenArrayLength(mesh_colors),
+	              "Expected equal number of positions and colors"
+	             );
+
+	xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
 	xen::clearToZero(render_commands);
 	render_commands[0].primative_type         = xen::PrimativeType::LINES;
 	render_commands[0].color                  = xen::Color::WHITE4f;
@@ -64,24 +78,15 @@ int main(int argc, char** argv){
 	render_commands[1].immediate              = xen::TestMeshGeometry_UnitCubeLines;
 
 	render_commands[2].primative_type         = xen::PrimativeType::TRIANGLES;
-	render_commands[2].color                  = xen::Color::MAGENTA4f;
+	render_commands[2].color                  = xen::Color::WHITE4f;
 	render_commands[2].model_matrix           = (xen::Scale3d(50_r) *
 	                                             xen::Rotation3dy(90_deg)
 	                                             // * xen::Translation3d(-75.0_r, -75.0_r, -75.0_r)
 	                                            );
 	render_commands[2].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[2].immediate.position     = &mesh_verts[0];
-	render_commands[2].immediate.vertex_count = 3;
-
-	render_commands[3].primative_type         = xen::PrimativeType::TRIANGLES;
-	render_commands[3].color                  = xen::Color::YELLOW4f;
-	render_commands[3].model_matrix           = (xen::Scale3d(50_r)*
-	                                             xen::Rotation3dy(90_deg)
-	                                             // * xen::Translation3d(-75.0_r, -75.0_r, -75.0_r)
-	                                            );
-	render_commands[3].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[3].immediate.position     = &mesh_verts[3];
-	render_commands[3].immediate.vertex_count = 3;
+	render_commands[2].immediate.position     = mesh_verts;
+	render_commands[2].immediate.color        = mesh_colors;
+	render_commands[2].immediate.vertex_count = XenArrayLength(mesh_verts);
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
 
