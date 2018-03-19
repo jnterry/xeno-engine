@@ -320,13 +320,8 @@ namespace {
 				Vec3r bary = xen::lerp(bary_left, bary_right, frac_x);
 
 				u32 pixel_index = pixel_index_base + x;
-				//target.color[pixel_index].rgb = bary;
-				//target.color[pixel_index].a   = 1.0f;
-
-				xen::Color4f color = (bary.x*colors.p1 +
-				                      bary.y*colors.p2 +
-				                      bary.z*colors.p3);
-
+				xen::Color4f color = evaluateBarycentricCoordinates(colors, bary);
+				
 				target.color[pixel_index] = color;
 
 			}
