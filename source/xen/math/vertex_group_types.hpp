@@ -53,6 +53,20 @@ namespace xen{
 		VertexGroup(const Vec<T_DIM, T>& np1, const Vec<T_DIM, T>& np2, const Vec<T_DIM, T>& np3) : p1(np1), p2(np2), p3(np3) {}
 	};
 
+	template <u32 T_DIM, typename T>
+	union VertexGroup<4, T_DIM, T> {
+		FixedArray<Vec<T_DIM, T>, 4> vertices;
+		struct {
+			Vec<T_DIM, T> p1;
+			Vec<T_DIM, T> p2;
+			Vec<T_DIM, T> p3;
+			Vec<T_DIM, T> p4;
+		};
+
+		VertexGroup() {}
+		VertexGroup(const Vec<T_DIM, T>& np1, const Vec<T_DIM, T>& np2, const Vec<T_DIM, T>& np3, const Vec<T_DIM, T>& np4) : p1(np1), p2(np2), p3(np3), p4(np4) {}
+	};
+
 	#pragma GCC diagnostic pop // re-enable -Wpedantic
 
 	/////////////////////////////////////////////////////////////////////
@@ -122,6 +136,29 @@ namespace xen{
 	typedef Triangle<4, real  > Triangle4r;
 	typedef Triangle<4, float > Triangle4f;
 	typedef Triangle<4, double> Triangle4d;
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents a Quad in some number of dimensions
+	/////////////////////////////////////////////////////////////////////
+	template <u32 T_DIM, typename T> using Quad  = VertexGroup<4, T_DIM, T>;
+	template <           typename T> using Quad2 = Quad<2, T>;
+	template <           typename T> using Quad3 = Quad<3, T>;
+	template <           typename T> using Quad4 = Quad<4, T>;
+	typedef Quad<2, u32   > Quad2u;
+	typedef Quad<2, s32   > Quad2s;
+	typedef Quad<2, real  > Quad2r;
+	typedef Quad<2, float > Quad2f;
+	typedef Quad<2, double> Quad2d;
+	typedef Quad<3, u32   > Quad3u;
+	typedef Quad<3, s32   > Quad3s;
+	typedef Quad<3, real  > Quad3r;
+	typedef Quad<3, float > Quad3f;
+	typedef Quad<3, double> Quad3d;
+	typedef Quad<4, u32   > Quad4u;
+	typedef Quad<4, s32   > Quad4s;
+	typedef Quad<4, real  > Quad4r;
+	typedef Quad<4, float > Quad4f;
+	typedef Quad<4, double> Quad4d;
 }
 
 template<u32 T_DIM, typename T>
