@@ -1,25 +1,6 @@
-#include <stdio.h>
-
-#include <xen/core/intrinsics.hpp>
-#include <xen/core/memory.hpp>
-#include <xen/core/random.hpp>
-#include <xen/core/time.hpp>
-#include <xen/core/array.hpp>
-#include <xen/util/File.hpp>
-#include <xen/graphics/Camera3d.hpp>
-#include <xen/graphics/RenderCommand3d.hpp>
-#include <xen/graphics/GraphicsDevice.hpp>
-#include <xen/graphics/Window.hpp>
-#include <xen/graphics/TestMeshes.hpp>
-#include <xen/math/utilities.hpp>
-#include <xen/math/vector.hpp>
-#include <xen/math/quaternion.hpp>
-#include <xen/math/matrix.hpp>
-#include <xen/math/angle.hpp>
-#include <xen/math/vertex_group_types.hpp>
-#include <xen/sren/SoftwareDevice.hpp>
-
 #include "../common.cpp"
+
+#include <xen/graphics/TestMeshes.hpp>
 
 xen::RenderParameters3d render_params;
 
@@ -33,12 +14,7 @@ int main(int argc, char** argv){
 	render_params.camera.look_dir = -Vec3r::UnitZ;
 	render_params.camera.position =  Vec3r{0, 0, 50};
 
-	Vec2r window_size = {800, 600};
-
-	xen::Allocator*      alloc  = new xen::AllocatorCounter<xen::AllocatorMalloc>();
-	xen::ArenaLinear     arena  = xen::createArenaLinear(*alloc, xen::megabytes(32));
-	xen::GraphicsDevice* device = xen::createRasterizerDevice(arena);
-	xen::Window*         app    = device->createWindow((Vec2u)window_size, "line-test");
+	ExampleApplication app = createApplication("line-test", ExampleApplication::Backend::RASTERIZER);
 
 	Vec3r parallel_lines[LINE_COUNT * 2];
 	for(int xi = 0; xi < LINE_COUNT_SQRT; ++xi){
@@ -80,23 +56,22 @@ int main(int argc, char** argv){
 	render_commands[2].immediate.position     = &parallel_lines[0];
 	render_commands[2].immediate.vertex_count = LINE_COUNT * 2;
 
-	// make it stupidly big so we always render to the entire screen
-	xen::Aabb2u viewport = { 0, 0, 100000, 100000 };
+	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
 
 	xen::Stopwatch timer;
 	real last_time = 0;
 	printf("Entering main loop\n");
-	while(xen::isWindowOpen(app)) {
+	while(xen::isWindowOpen(app.window)) {
 		real time = xen::asSeconds<real>(timer.getElapsedTime());
 		real dt = time - last_time;
 		last_time = time;
 
 		printf("dt: %f\n", dt);
 		xen::WindowEvent* event;
-		while((event = xen::pollEvent(app)) != nullptr){
+		while((event = xen::pollEvent(app.window)) != nullptr){
 			switch(event->type){
 			case xen::WindowEvent::Closed:
-				device->destroyWindow(app);
+				app.device->destroyWindow(app.window);
 				break;
 			default: break;
 			}
@@ -104,14 +79,13 @@ int main(int argc, char** argv){
 		handleCameraInputPlane(render_params.camera, dt);
 
 		// Rendering
-		device->clear(app, xen::Color::BLACK);
-		device->render(app, viewport, render_params, render_commands);
-		device->swapBuffers(app);
+		app.device->clear      (app.window, xen::Color::BLACK);
+		app.device->render     (app.window, viewport, render_params, render_commands);
+		app.device->swapBuffers(app.window);
 	}
 	printf("Exiting main loop\n");
 
-	xen::destroyArenaLinear(*alloc, arena);
-	delete alloc;
+	destroyApplication(app);
 
 	return 0;
 }

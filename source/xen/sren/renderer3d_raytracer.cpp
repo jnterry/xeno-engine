@@ -103,6 +103,11 @@ namespace xen {
 			Angle fov_y = params.camera.fov_y;
 			Angle fov_x = params.camera.fov_y * ((real)target_size.y / (real)target_size.x);
 
+			// Compute the local axes of the camera
+			Vec3r cam_zaxis = params.camera.look_dir;
+			Vec3r cam_xaxis = xen::cross(params.camera.look_dir, params.camera.up_dir);
+			Vec3r cam_yaxis = xen::cross(cam_xaxis, cam_zaxis);
+
 			// Compute distance between pixels on the image plane in world space using
 			// a bit of trig
 			//            x
@@ -113,16 +118,19 @@ namespace xen {
 			//         |  /
 			//         | /
 			//         |/ angle = fov_x / target_width
-			Vec3r image_plane_center = params.camera.position
-				                       + params.camera.look_dir * params.camera.z_near;
-			Vec3r image_plane_pixel_offset_x =
-				xen::normalized(
-				                xen::cross(params.camera.up_dir, params.camera.look_dir)
-				                ) * xen::tan(fov_x / (real)target_size.x) * params.camera.z_near;
-			Vec3r image_plane_pixel_offset_y =
-				-xen::normalized(
-				                 xen::cross(image_plane_pixel_offset_x, params.camera.look_dir)
-				                 ) * xen::tan(fov_y / (real)target_size.y) * params.camera.z_near;
+			Vec3r image_plane_center = (params.camera.position +
+			                            cam_zaxis * params.camera.z_near
+			                           );
+			// Camera is usually +ve z looking in -ve z direction, if we assume
+			// that camera is looking down its local z axis it is looking in +ve
+			// z direction. Hence camera's x and world's x are backwards compared
+			// to each other, hence the -(...) here
+			Vec3r image_plane_pixel_offset_x = -(xen::normalized(cam_xaxis) *
+			                                     xen::tan(fov_x / (real)target_size.x) * params.camera.z_near
+			                                    );
+			Vec3r image_plane_pixel_offset_y = (xen::normalized(cam_yaxis) *
+			                                    xen::tan(fov_y / (real)target_size.y) * params.camera.z_near
+			                                   );
 
 			//////////////////////////////////////////////////////////////////////////
 			// Loop over all pixels
@@ -143,7 +151,7 @@ namespace xen {
 					// Construct the primary ray
 					Ray3r primary_ray;
 					primary_ray.origin    = image_plane_position;;
-					primary_ray.direction = xen::normalized(params.camera.position - image_plane_position);
+					primary_ray.direction = xen::normalized(image_plane_position - params.camera.position);
 
 					/////////////////////////////////////////////////////////////////////
 					// Cast the ray into the scene
@@ -229,8 +237,16 @@ namespace xen {
 			                                      camera.position + camera.look_dir * xen::length(camera.position)
 			};
 
-			LineSegment3r camera_up_dir = { camera.position,
-			                                camera.position + camera.up_dir * 50_r
+			Vec3r camera_local_axes[] = {
+				camera.position, camera.position,
+				camera.position, camera.position,
+				camera.position, camera.position,
+			};
+
+			Color camera_local_axes_colors[] = {
+				xen::Color::RED,   xen::Color::RED,
+				xen::Color::GREEN, xen::Color::GREEN,
+				xen::Color::BLUE,  xen::Color::BLUE
 			};
 
 			Vec3r camera_corner_rays[] = {
@@ -253,6 +269,11 @@ namespace xen {
 			Angle fov_y = camera.fov_y;
 			Angle fov_x = camera.fov_y * ((real)target_size.y / (real)target_size.x);
 
+			// Compute the local axes of the camera
+			Vec3r cam_zaxis = camera.look_dir;
+			Vec3r cam_xaxis = xen::cross(camera.look_dir, camera.up_dir);
+			Vec3r cam_yaxis = xen::cross(cam_xaxis, cam_zaxis);
+
 			// Compute distance between pixels on the image plane in world space using
 			// a bit of trig
 			//            x
@@ -263,15 +284,23 @@ namespace xen {
 			//         |  /
 			//         | /
 			//         |/ angle = fov_x / target_width
-			Vec3r image_plane_center = camera.position + camera.look_dir * camera.z_near;
-			Vec3r image_plane_pixel_offset_x =
-				xen::normalized(
-				                xen::cross(camera.up_dir, camera.look_dir)
-				                ) * xen::tan(fov_x / (real)target_size.x) * camera.z_near;
-			Vec3r image_plane_pixel_offset_y =
-				-xen::normalized(
-				                 xen::cross(image_plane_pixel_offset_x, camera.look_dir)
-				                 ) * xen::tan(fov_y / (real)target_size.y) * camera.z_near;
+			Vec3r image_plane_center = (camera.position +
+			                            cam_zaxis * camera.z_near
+			                           );
+			// Camera is usually +ve z looking in -ve z direction, if we assume
+			// that camera is looking down its local z axis it is looking in +ve
+			// z direction. Hence camera's x and world's x are backwards compared
+			// to each other, hence the -(...) here
+			Vec3r image_plane_pixel_offset_x = -(xen::normalized(cam_xaxis) *
+			                                     xen::tan(fov_x / (real)target_size.x) * camera.z_near
+			                                    );
+			Vec3r image_plane_pixel_offset_y = (xen::normalized(cam_yaxis) *
+			                                    xen::tan(fov_y / (real)target_size.y) * camera.z_near
+			                                   );
+
+			camera_local_axes[1] += cam_xaxis * 30.0f;
+			camera_local_axes[3] += cam_yaxis * 30.0f;
+			camera_local_axes[5] += cam_zaxis * 30.0f;
 
 			Vec2s target_pos;
 			int ray_index = 0;
@@ -289,7 +318,7 @@ namespace xen {
 
 					Ray3r primary_ray;
 					primary_ray.origin    = camera.position;
-					primary_ray.direction = xen::normalized(camera.position - image_plane_position);
+					primary_ray.direction = xen::normalized(image_plane_position - camera.position);
 
 					camera_corner_rays[ray_index*2 + 1] += primary_ray.direction * 100_r;
 
@@ -310,11 +339,12 @@ namespace xen {
 			render_commands[0].immediate.vertex_count = 2;
 
 		  render_commands[1].primative_type         = xen::PrimativeType::LINES;
-			render_commands[1].color                  = xen::Color::GREEN4f;
+			render_commands[1].color                  = xen::Color::WHITE4f;
 			render_commands[1].model_matrix           = Mat4r::Identity;
 			render_commands[1].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-			render_commands[1].immediate.position     = &camera_up_dir.vertices[0];
-			render_commands[1].immediate.vertex_count = 2;
+			render_commands[1].immediate.position     = camera_local_axes;
+			render_commands[1].immediate.color        = camera_local_axes_colors;
+			render_commands[1].immediate.vertex_count = XenArrayLength(camera_local_axes);
 
 			render_commands[2].primative_type         = xen::PrimativeType::LINES;
 			render_commands[2].color                  = xen::Color::WHITE4f;

@@ -1,21 +1,8 @@
 #include <stdio.h>
 
-#include <xen/core/intrinsics.hpp>
-#include <xen/core/memory.hpp>
-#include <xen/core/random.hpp>
-#include <xen/core/time.hpp>
-#include <xen/core/array.hpp>
-#include <xen/util/File.hpp>
-#include <xen/graphics/Camera3d.hpp>
-#include <xen/graphics/RenderCommand3d.hpp>
-#include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/graphics/TestMeshes.hpp>
-#include <xen/math/utilities.hpp>
-#include <xen/math/vector.hpp>
-#include <xen/math/quaternion.hpp>
-#include <xen/math/matrix.hpp>
-#include <xen/math/angle.hpp>
-#include <xen/sren/SoftwareDevice.hpp>
+#include <xen/core/random.hpp>
+
 
 #include "../common.cpp"
 
@@ -37,12 +24,10 @@ int main(int argc, char** argv){
 	camera.target = Vec3r::Origin;
 	camera.angle  = 0.0_deg;
 
-	Vec2r window_size = {800, 600};
+	ExampleApplication app = createApplication("starfield",
+	                                           ExampleApplication::Backend::RASTERIZER
+	                                           );
 
-	xen::Allocator*      alloc  = new xen::AllocatorCounter<xen::AllocatorMalloc>();
-	xen::ArenaLinear     arena  = xen::createArenaLinear(*alloc, xen::megabytes(32));
-	xen::GraphicsDevice* device = xen::createRasterizerDevice(arena);
-	xen::Window*         app    = device->createWindow((Vec2u)window_size, "starfield");
 
 	for(u32 i = 0; i < STAR_COUNT; ++i){
 		star_positions[i].x = xen::randf(-100, 100);
@@ -80,12 +65,12 @@ int main(int argc, char** argv){
 	render_commands[2].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
 	render_commands[2].immediate              = xen::TestMeshGeometry_UnitCubeLines;
 
-	xen::Aabb2u viewport = { 0, 0, (u32)window_size.x, (u32)window_size.y };
+	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
 
 	xen::Stopwatch timer;
 	real last_time = 0;
 	printf("Entering main loop\n");
-	while(xen::isWindowOpen(app)) {
+	while(xen::isWindowOpen(app.window)) {
 	  real time = xen::asSeconds<real>(timer.getElapsedTime());
 		real dt = time - last_time;
 		last_time = time;
@@ -93,10 +78,10 @@ int main(int argc, char** argv){
 		printf("dt: %f\n", dt);
 
 		xen::WindowEvent* event;
-		while((event = xen::pollEvent(app)) != nullptr){
+		while((event = xen::pollEvent(app.window)) != nullptr){
 			switch(event->type){
 			case xen::WindowEvent::Closed:
-				device->destroyWindow(app);
+				app.device->destroyWindow(app.window);
 				break;
 			default: break;
 			}
@@ -111,14 +96,13 @@ int main(int argc, char** argv){
 			}
 		}
 
-	  device->clear(app, xen::Color::BLACK);
-		device->render(app, viewport, render_params, render_commands);
-		device->swapBuffers(app);
+	  app.device->clear      (app.window, xen::Color::BLACK);
+		app.device->render     (app.window, viewport, render_params, render_commands);
+		app.device->swapBuffers(app.window);
 	}
 	printf("Exiting main loop\n");
 
-	xen::destroyArenaLinear(*alloc, arena);
-	delete alloc;
+	destroyApplication(app);
 
 	return 0;
 }

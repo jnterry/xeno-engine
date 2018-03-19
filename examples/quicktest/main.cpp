@@ -43,8 +43,6 @@ int main(int argc, char** argv){
 
 	render_params.lights = light_sources;
 
-	xen::Aabb2u viewport = { 0, 0, 800, 600 };
-
 	xen::Allocator* alloc  = new xen::AllocatorCounter<xen::AllocatorMalloc>();
 	xen::ArenaLinear arena = xen::createArenaLinear(*alloc, xen::megabytes(32));
 
@@ -54,7 +52,9 @@ int main(int argc, char** argv){
 
 	printf("Created gl device\n");
 
-	xen::Window* app = device->createWindow(viewport.max, "Quicktest");
+	xen::Window* app = device->createWindow({800, 600}, "Quicktest");
+
+	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app) };
 
 	Mat4r model_mat;
 	xen::Color4f point_light_color = xen::Color4f(1,0,0,1);
