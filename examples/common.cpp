@@ -41,23 +41,49 @@ ExampleApplication createApplication(const char* window_title,
 			printf("%2i. %s\n", i+1, ExampleApplication::BACKEND_NAMES[i]);
 		}
 		printf("\n");
-		printf("Enter Choice: ");
+		printf("Enter Choice");
+		if(default_backend >= 0 &&
+		   default_backend < ExampleApplication::Backend::COUNT
+		  ){
+			printf(" (press enter for default: %i)", default_backend+1);
+		}
+		printf(": ");
 
-		int backend = 0;
-		char c = '\0';
+		int backend         = 0;
+		char c              = '\0';
+		bool option_picked  = false;
+		bool invalid_option = false;
 		while(true){
 			c = getchar();
 			if(c == '\n'){ break; }
 			if(c < '0' || c > '9'){
+				invalid_option = true;
 				printf("\nYou must enter a valid integer choice!\n\n");
-				backend = -1;
 				break;
 			}
+			option_picked = true;
 			backend *= 10;
 			backend += (c - '0');
 		}
 
-		--backend; // Convert from gui [1, n+1] range to [0, n] range
+		if(invalid_option){
+			// Then re-print the menu, prompt user again
+			continue;
+		}
+
+		if(option_picked){
+			--backend; // Convert from gui [1, n+1] range to [0, n] range
+		} else {
+			if(default_backend >= 0 &&
+			   default_backend < ExampleApplication::Backend::COUNT){
+				backend = default_backend;
+				printf("Using default option: %s\n",
+				       ExampleApplication::BACKEND_NAMES[backend]);
+			} else {
+				printf("Please enter valid integer choice\n");
+				continue;
+			}
+		}
 
 		switch(backend){
 		case ExampleApplication::Backend::RASTERIZER:
