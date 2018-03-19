@@ -204,9 +204,10 @@ namespace {
 			Vec4r dir = line_clip.p1 - line_clip.p2;
 			line_clip.p2 += dir * ((-line_clip.p2.z) / dir.z);
 		}
+		///////////////////////////////////////////////////////////////////
+
 		real z_start = line_clip.p2.z;
 		real z_end   = line_clip.p1.z;
-		///////////////////////////////////////////////////////////////////
 
 		///////////////////////////////////////////////////////////////////
 		// Do perspective divide (into normalized device coordinates -> [-1, 1]
@@ -392,9 +393,9 @@ namespace {
 			return;
 		case 0: { // 000 - all points in front of camera
 			// Do perspective divide (into normalized device coordinates -> [-1, 1]
-			tri_clip.p1 /= (tri_clip.p1.w);
-			tri_clip.p2 /= (tri_clip.p2.w);
-			tri_clip.p3 /= (tri_clip.p3.w);
+			tri_clip.p1.xy /= (tri_clip.p1.w);
+			tri_clip.p2.xy /= (tri_clip.p2.w);
+			tri_clip.p3.xy /= (tri_clip.p3.w);
 
 			xen::Triangle3r tri_screen =
 				_convertToScreenSpaceTri(tri_clip, viewport);
@@ -431,9 +432,9 @@ namespace {
 				colors.p3     += (colors.p1 - colors.p3) * frac_p3;
 
 				// Do perspective divide (into normalized device coordinates -> [-1, 1]
-				tri_clip.p1 /= (tri_clip.p1.w);
-				tri_clip.p2 /= (tri_clip.p2.w);
-				tri_clip.p3 /= (tri_clip.p3.w);
+				tri_clip.p1.xy /= (tri_clip.p1.w);
+				tri_clip.p2.xy /= (tri_clip.p2.w);
+				tri_clip.p3.xy /= (tri_clip.p3.w);
 
 				xen::Triangle3r tri_screen = _convertToScreenSpaceTri(tri_clip, viewport);
 
@@ -468,10 +469,14 @@ namespace {
 				Vec4r p3_slide_to_p2 = (tri_clip.p3 + (delta_p2 * frac_p2));
 
 				xen::VertexGroup3r<4> quad_screen;
-				quad_screen.vertices[0] = (tri_clip.p1    / tri_clip.p1.w   ).xyz;
-				quad_screen.vertices[1] = (p3_slide_to_p1 / p3_slide_to_p1.w).xyz;
-				quad_screen.vertices[2] = (tri_clip.p2    / tri_clip.p2.w   ).xyz;
-				quad_screen.vertices[3] = (p3_slide_to_p2 / p3_slide_to_p2.w).xyz;
+				tri_clip.p1.xy /= (tri_clip.p1.w);
+				quad_screen.vertices[0] = tri_clip.p1.xyz;
+			  p3_slide_to_p1.xy /= p3_slide_to_p1.w;
+				quad_screen.vertices[1] = p3_slide_to_p1.xyz;
+				tri_clip.p2.xy /= tri_clip.p2.w;
+				quad_screen.vertices[2] = tri_clip.p2.xyz;
+				p3_slide_to_p2.xy /= p3_slide_to_p2.w;
+				quad_screen.vertices[3] = p3_slide_to_p2.xyz;
 
 				xen::VertexGroup4f<4> quad_colors;
 				quad_colors.vertices[0] = colors.p1;
