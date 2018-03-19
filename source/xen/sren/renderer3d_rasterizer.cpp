@@ -39,6 +39,41 @@ namespace {
 		return out;
 	}
 
+	xen::Triangle3r _convertToScreenSpaceTri(const xen::Triangle4r& in,
+		                                       const xen::Aabb2r& viewport){
+		xen::Triangle3r out = xen::swizzle<'x','y','z'>(in);
+
+		out += Vec3r{1,1,0};                                 // convert to [0, 2] space
+		out /= 2.0_r;                                        // convert to [0, 1] space
+		out *= xen::mkVec(viewport.max - viewport.min, 1_r); // convert to screen space
+		out += xen::mkVec(viewport.min,                0_r); // move to correct part of screen
+
+		// Preserve z component of input
+		out.p1.z = in.p1.z;
+		out.p2.z = in.p2.z;
+		out.p3.z = in.p3.z;
+
+		return out;
+	}
+
+	xen::Quad3r _convertToScreenSpaceQuad(const xen::Quad3r in,
+		                                    const xen::Aabb2r& viewport){
+		xen::Quad3r out = xen::swizzle<'x','y','z'>(in);
+
+		out += Vec3r{1,1,0};                               // convert to [0, 2] space
+		out /= 2.0_r;                                      // convert to [0, 1] space
+		out *= xen::mkVec(viewport.max - viewport.min, 1_r); // convert to screen space
+		out += xen::mkVec(viewport.min,                0_r); // move to correct part of screen
+
+		// Preserve z component of input
+		out.p1.z = in.p1.z;
+		out.p2.z = in.p2.z;
+		out.p3.z = in.p3.z;
+		out.p4.z = in.p4.z;
+
+		return out;
+	}
+
 	void doRenderPoints(xen::sren::RenderTargetImpl& target,
 	                    const xen::Aabb2r& viewport,
 	                    const Mat4r& mvp_matrix,
@@ -99,8 +134,10 @@ namespace {
 			// :TODO: Replace lerp with a perspective correct interpolation
 			real depth = xen::lerp(z_start, z_end, (i/num_pixels));
 			xen::Color4f color = xen::lerp(color1, color2, (i/num_pixels));
-			target.color[(u32)cur.y*target.width + (u32)cur.x] = color;
-			target.depth[(u32)cur.y*target.width + (u32)cur.x] = depth;
+			if (depth < target.depth[(u32)cur.y*target.width + (u32)cur.x]) {
+				target.color[(u32)cur.y*target.width + (u32)cur.x] = color;
+				target.depth[(u32)cur.y*target.width + (u32)cur.x] = depth;
+			}
 			cur += delta;
 		}
 
@@ -191,26 +228,27 @@ namespace {
 
 	void doRenderTriangle2d(xen::sren::RenderTargetImpl& target,
 		                      const xen::Aabb2r& viewport,
-	                        xen::Triangle2r tri,
+	                        xen::Triangle3r tri,
 	                        xen::Triangle4f colors){
+		xen::Triangle2r tri2d = xen::swizzle<'x','y'>(tri);
 
 		#if XEN_SREN_DEBUG_RENDER_WIREFRAME
 		xen::LineSegment2r line;
 
-		line.p1 = tri.p1;
-		line.p2 = tri.p2;
+		line.p1 = tri2d.p1;
+		line.p2 = tri2d.p2;
 		if(xen::intersect(line, viewport)){
 			doRenderLine2d(target, line, colors.p1, colors.p2, 0, 0);
 		}
 
-		line.p1 = tri.p2;
-		line.p2 = tri.p3;
+		line.p1 = tri2d.p2;
+		line.p2 = tri2d.p3;
 		if(xen::intersect(line, viewport)){
 			doRenderLine2d(target, line, colors.p2, colors.p3, 0, 0);
 		}
 
-		line.p1 = tri.p3;
-		line.p2 = tri.p1;
+		line.p1 = tri2d.p3;
+		line.p2 = tri2d.p1;
 		if(xen::intersect(line, viewport)){
 			doRenderLine2d(target, line, colors.p3, colors.p1, 0, 0);
 		}
@@ -218,9 +256,9 @@ namespace {
 		#endif
 
 		xen::Aabb2r region_r = xen::Aabb2r::MaxMinBox;
-		xen::addPoint(region_r, tri.p1);
-		xen::addPoint(region_r, tri.p2);
-		xen::addPoint(region_r, tri.p3);
+		xen::addPoint(region_r, tri2d.p1);
+		xen::addPoint(region_r, tri2d.p2);
+		xen::addPoint(region_r, tri2d.p3);
 		if(!xen::intersect(region_r, viewport)){
 			return;
 		}
@@ -235,13 +273,13 @@ namespace {
 		// than computing the barycentric coordinate at each position in the Aabb
 		// of the triangle we can compute it at the corners and then lerp
 		// across
-		Vec3r bary_bottom_left  = xen::getBarycentricCoordinates(tri, Vec2r{
+		Vec3r bary_bottom_left  = xen::getBarycentricCoordinates(tri2d, Vec2r{
 				(real)region.min.x, (real)region.min.y});
-		Vec3r bary_bottom_right = xen::getBarycentricCoordinates(tri, Vec2r{
+		Vec3r bary_bottom_right = xen::getBarycentricCoordinates(tri2d, Vec2r{
 				(real)region.max.x, (real)region.min.y});
-		Vec3r bary_top_left     = xen::getBarycentricCoordinates(tri, Vec2r{
+		Vec3r bary_top_left     = xen::getBarycentricCoordinates(tri2d, Vec2r{
 				(real)region.min.x, (real)region.max.y});
-		Vec3r bary_top_right    = xen::getBarycentricCoordinates(tri, Vec2r{
+		Vec3r bary_top_right    = xen::getBarycentricCoordinates(tri2d, Vec2r{
 				(real)region.max.x, (real)region.max.y});
 
 		float frac_y = 0.0_r;
@@ -321,7 +359,7 @@ namespace {
 
 				u32 pixel_index = pixel_index_base + x;
 				xen::Color4f color = evaluateBarycentricCoordinates(colors, bary);
-				
+
 				target.color[pixel_index] = color;
 
 			}
@@ -353,8 +391,8 @@ namespace {
 			tri_clip.p2 /= (tri_clip.p2.w);
 			tri_clip.p3 /= (tri_clip.p3.w);
 
-			xen::Triangle2r tri_screen =
-				_convertToScreenSpace<xen::Triangle4r, xen::Triangle2r>(tri_clip, viewport);
+			xen::Triangle3r tri_screen =
+				_convertToScreenSpaceTri(tri_clip, viewport);
 
 			doRenderTriangle2d(target, viewport, tri_screen, colors);
 			return;
@@ -392,10 +430,8 @@ namespace {
 				tri_clip.p2 /= (tri_clip.p2.w);
 				tri_clip.p3 /= (tri_clip.p3.w);
 
-				xen::Triangle2r tri_screen =
-					_convertToScreenSpace<xen::Triangle4r, xen::Triangle2r>(tri_clip, viewport);
+				xen::Triangle3r tri_screen = _convertToScreenSpaceTri(tri_clip, viewport);
 
-				// :TODO: compute colors at each vertex
 				doRenderTriangle2d(target, viewport, tri_screen, colors);
 				return;
 			}
@@ -426,11 +462,11 @@ namespace {
 				real  frac_p2        = ((-tri_clip.p3.z / delta_p2.z));
 				Vec4r p3_slide_to_p2 = (tri_clip.p3 + (delta_p2 * frac_p2));
 
-				xen::VertexGroup2r<4> quad_screen;
-				quad_screen.vertices[0] = (tri_clip.p1    / tri_clip.p1.w   ).xy;
-				quad_screen.vertices[1] = (p3_slide_to_p1 / p3_slide_to_p1.w).xy;
-				quad_screen.vertices[2] = (tri_clip.p2    / tri_clip.p2.w   ).xy;
-				quad_screen.vertices[3] = (p3_slide_to_p2 / p3_slide_to_p2.w).xy;
+				xen::VertexGroup3r<4> quad_screen;
+				quad_screen.vertices[0] = (tri_clip.p1    / tri_clip.p1.w   ).xyz;
+				quad_screen.vertices[1] = (p3_slide_to_p1 / p3_slide_to_p1.w).xyz;
+				quad_screen.vertices[2] = (tri_clip.p2    / tri_clip.p2.w   ).xyz;
+				quad_screen.vertices[3] = (p3_slide_to_p2 / p3_slide_to_p2.w).xyz;
 
 				xen::VertexGroup4f<4> quad_colors;
 				quad_colors.vertices[0] = colors.p1;
@@ -438,16 +474,15 @@ namespace {
 				quad_colors.vertices[2] = colors.p2;
 				quad_colors.vertices[3] = colors.p3 + (colors.p2 - colors.p3) * frac_p2;
 
-				quad_screen =
-					_convertToScreenSpace<xen::VertexGroup2r<4>, xen::VertexGroup2r<4>>(quad_screen, viewport);
+				quad_screen = _convertToScreenSpaceQuad(quad_screen, viewport);
 
 				// :TODO: compute colors at each vertex
 				doRenderTriangle2d(target, viewport,
-				                   *(xen::Triangle2r*)&quad_screen.vertices[0],
+				                   *(xen::Triangle3r*)&quad_screen.vertices[0],
 				                   *(xen::Triangle4f*)&quad_colors.vertices[0]
 				                  );
 				doRenderTriangle2d(target, viewport,
-				                   *(xen::Triangle2r*)&quad_screen.vertices[1],
+				                   *(xen::Triangle3r*)&quad_screen.vertices[1],
 				                   *(xen::Triangle4f*)&quad_colors.vertices[1]
 				                  );
 			}
