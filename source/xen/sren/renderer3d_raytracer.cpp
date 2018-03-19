@@ -143,7 +143,7 @@ namespace xen {
 					// Construct the primary ray
 					Ray3r primary_ray;
 					primary_ray.origin    = image_plane_position;;
-					primary_ray.direction = xen::normalized(params.camera.position - image_plane_position);
+					primary_ray.direction = xen::normalized(image_plane_position - params.camera.position);
 
 					/////////////////////////////////////////////////////////////////////
 					// Cast the ray into the scene
@@ -289,7 +289,7 @@ namespace xen {
 
 					Ray3r primary_ray;
 					primary_ray.origin    = camera.position;
-					primary_ray.direction = xen::normalized(camera.position - image_plane_position);
+					primary_ray.direction = xen::normalized(image_plane_position - camera.position);
 
 					camera_corner_rays[ray_index*2 + 1] += primary_ray.direction * 100_r;
 
