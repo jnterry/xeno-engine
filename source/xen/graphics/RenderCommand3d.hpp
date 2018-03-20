@@ -88,9 +88,6 @@ namespace xen{
 			// :TODO: Implicit surfaces
 		};
 
-		primative
-
-
 		/// \brief The diffuse color to use
 		Color4f color;
 
