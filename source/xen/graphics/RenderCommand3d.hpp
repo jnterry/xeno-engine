@@ -24,7 +24,7 @@ namespace xen{
 	/// \brief Enumeration of the types of primitive a GraphicsDevice
 	/// is able to draw
 	/////////////////////////////////////////////////////////////////////
-	enum class PrimativeType {
+	enum class PrimitiveType {
 		/// \brief Draws geometry as a point cloud
 		POINTS,
 
@@ -88,6 +88,9 @@ namespace xen{
 			// :TODO: Implicit surfaces
 		};
 
+		primative
+
+
 		/// \brief The diffuse color to use
 		Color4f color;
 
@@ -99,7 +102,7 @@ namespace xen{
 		Mat4r model_matrix;
 
 		/// \brief The type of primitive to be drawn by this command
-		PrimativeType primative_type;
+		PrimitiveType primitive_type;
 
 		/// \brief The source of the geometry for this command
 		GeometrySource geometry_source;

@@ -34,13 +34,13 @@ int main(int argc, char** argv){
 	xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
 	xen::clearToZero(render_commands);
 
-	render_commands[0].primative_type         = xen::PrimativeType::LINES;
+	render_commands[0].primitive_type         = xen::PrimitiveType::LINES;
 	render_commands[0].color                  = xen::Color::WHITE4f;
 	render_commands[0].model_matrix           = xen::Scale3d(100_r);
 	render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
 	render_commands[0].immediate              = xen::TestMeshGeometry_Axes;
 
-	render_commands[1].primative_type         = xen::PrimativeType::TRIANGLES;
+	render_commands[1].primitive_type         = xen::PrimitiveType::TRIANGLES;
 	render_commands[1].color                  = xen::Color::WHITE4f;
 	render_commands[1].model_matrix           = xen::Scale3d(1, 1, 1);
 	render_commands[1].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
@@ -48,7 +48,7 @@ int main(int argc, char** argv){
 	render_commands[1].immediate.color        = test_triangles_color;
 	render_commands[1].immediate.vertex_count = XenArrayLength(test_triangles_pos);
 
-	render_commands[2].primative_type         = xen::PrimativeType::TRIANGLES;
+	render_commands[2].primitive_type         = xen::PrimitiveType::TRIANGLES;
 	render_commands[2].color                  = xen::Color::WHITE4f;
 	render_commands[2].model_matrix           = xen::Scale3d(1, 1, 1);
 	render_commands[2].geometry_source        = xen::RenderCommand3d::IMMEDIATE;

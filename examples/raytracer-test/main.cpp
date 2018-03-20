@@ -63,13 +63,13 @@ int main(int argc, char** argv){
 
 	xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
 	xen::clearToZero(render_commands);
-	render_commands[0].primative_type         = xen::PrimativeType::LINES;
+	render_commands[0].primitive_type         = xen::PrimitiveType::LINES;
 	render_commands[0].color                  = xen::Color::WHITE4f;
 	render_commands[0].model_matrix           = xen::Scale3d(100_r);
 	render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
 	render_commands[0].immediate              = xen::TestMeshGeometry_Axes;
 
-	render_commands[1].primative_type         = xen::PrimativeType::LINES;
+	render_commands[1].primitive_type         = xen::PrimitiveType::LINES;
 	render_commands[1].color                  = xen::Color::CYAN4f;
 	render_commands[1].model_matrix           = (xen::Scale3d(200_r) *
 	                                             xen::Translation3d(-100.0_r, -100.0_r, -100.0_r)
@@ -77,7 +77,7 @@ int main(int argc, char** argv){
 	render_commands[1].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
 	render_commands[1].immediate              = xen::TestMeshGeometry_UnitCubeLines;
 
-	render_commands[2].primative_type         = xen::PrimativeType::TRIANGLES;
+	render_commands[2].primitive_type         = xen::PrimitiveType::TRIANGLES;
 	render_commands[2].color                  = xen::Color::WHITE4f;
 	render_commands[2].model_matrix           = (xen::Scale3d(50_r) *
 	                                             xen::Rotation3dy(90_deg)

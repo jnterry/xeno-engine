@@ -52,7 +52,7 @@ int main(int argc, char** argv){
 	xen::FixedArray<xen::RenderCommand3d, 1> render_commands;
 	xen::clearToZero(render_commands);
 
-	render_commands[0].primative_type         = xen::PrimativeType::TRIANGLES;
+	render_commands[0].primitive_type         = xen::PrimitiveType::TRIANGLES;
 	render_commands[0].color                  = xen::Color::WHITE4f;
 	render_commands[0].model_matrix           = xen::Translation3d(-277_r, -277_r, -277_r);
 	render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;

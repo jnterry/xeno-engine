@@ -51,7 +51,7 @@ namespace {
 		// Loop over all objects in scene
 		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 			const xen::RenderCommand3d* cmd = &commands[cmd_index];
-			if(cmd->primative_type != xen::PrimativeType::TRIANGLES){
+			if(cmd->primitive_type != xen::PrimitiveType::TRIANGLES){
 				continue;
 			}
 
@@ -365,14 +365,14 @@ namespace xen {
 			xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
 			xen::clearToZero(render_commands);
 
-			render_commands[0].primative_type         = xen::PrimativeType::LINES;
+			render_commands[0].primitive_type         = xen::PrimitiveType::LINES;
 			render_commands[0].color                  = xen::Color::MAGENTA4f;
 			render_commands[0].model_matrix           = Mat4r::Identity;
 			render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
 			render_commands[0].immediate.position     = &camera_primary_axis.vertices[0];
 			render_commands[0].immediate.vertex_count = 2;
 
-		  render_commands[1].primative_type         = xen::PrimativeType::LINES;
+		  render_commands[1].primitive_type         = xen::PrimitiveType::LINES;
 			render_commands[1].color                  = xen::Color::WHITE4f;
 			render_commands[1].model_matrix           = Mat4r::Identity;
 			render_commands[1].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
@@ -380,7 +380,7 @@ namespace xen {
 			render_commands[1].immediate.color        = camera_local_axes_colors;
 			render_commands[1].immediate.vertex_count = XenArrayLength(camera_local_axes);
 
-			render_commands[2].primative_type         = xen::PrimativeType::LINES;
+			render_commands[2].primitive_type         = xen::PrimitiveType::LINES;
 			render_commands[2].color                  = xen::Color::WHITE4f;
 			render_commands[2].model_matrix           = Mat4r::Identity;
 			render_commands[2].geometry_source        = xen::RenderCommand3d::IMMEDIATE;

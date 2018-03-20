@@ -557,15 +557,15 @@ namespace xen{
 					continue;
 				}
 
-				switch(cmd->primative_type){
-				case xen::PrimativeType::POINTS:
+				switch(cmd->primitive_type){
+				case xen::PrimitiveType::POINTS:
 					doRenderPoints(target, view_region, mat_mvp, cmd->immediate);
 					break;
-				case xen::PrimativeType::LINES:
+				case xen::PrimitiveType::LINES:
 					stride = 2;
 					goto do_render_lines;
 					break;
-				case xen::PrimativeType::TRIANGLES: {
+				case xen::PrimitiveType::TRIANGLES: {
 					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += 3){
 						Triangle3r* tri_world = (Triangle3r*)(&cmd->immediate.position[i]);
 
@@ -586,7 +586,7 @@ namespace xen{
 
 					break;
 				}
-				case xen::PrimativeType::LINE_STRIP:
+				case xen::PrimitiveType::LINE_STRIP:
 					stride = 1;
 				do_render_lines:
 					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += stride){
