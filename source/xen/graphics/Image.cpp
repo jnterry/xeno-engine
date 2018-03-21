@@ -9,8 +9,8 @@
 #ifndef XEN_GRAPHICS_TEXTURE_CPP
 #define XEN_GRAPHICS_TEXTURE_CPP
 
-#include <xen/core/memory.hpp>
 #include <xen/graphics/Image.hpp>
+#include <xen/core/memory.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION

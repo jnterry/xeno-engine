@@ -12,9 +12,9 @@
 #include "RenderTargetImpl.hxx"
 #include "../graphics/Window.hxx"
 
-#include <xen/math/utilities.hpp>
+#include <xen/sren/Framebuffer.hpp>
+#include <xen/graphics/Image.hpp>
 #include <xen/core/memory/Allocator.hpp>
-#include <xen/core/simd_intrinsics.hpp>
 
 #include <cstring>
 
@@ -163,81 +163,6 @@ namespace {
 	  target.ximage = nullptr;
 	}
 	#endif
-
-	#if XEN_USE_SSE
-	void updateRenderTargetPixelBytes(xen::sren::RenderTargetImpl& target){
-		//////////////////////////////////////////////////////////////////////////
-		// Set values of pixels - converting from our float colors to 32bit colors
-		xen::Color4f color;
-		u32     color_bits;
-		float color_components_f[4];
-		int*  color_components;
-
-		// Generate 4 wide registers with single value broadcast to all components
-		__m128  w_0    = _mm_set_ps1(  0.0f);
-		__m128  w_1    = _mm_set_ps1(  1.0f);
-		__m128  w_255  = _mm_set_ps1(255.0f);
-
-		// :TODO: take target.red_mask etc into account
-		u32* pixels = (u32*)target.ximage->data;
-		for(u32 y = 0; y < target.height; ++y){
-			u32 base = y * target.width;
-			for(u32 x = 0; x < target.width; ++x){
-				color = (target.color[base + x]);
-
-				// load color components into wide register
-				__m128 w_color = _mm_set_ps(color.a, color.r, color.g, color.b);
-
-				// clamp to [0, 1] range
-				w_color = _mm_min_ps(w_1, w_color); // clamp to be <= 1
-				w_color = _mm_max_ps(w_0, w_color); // clamp to be >= 0
-
-				// multiply up to [0, 255] range
-				w_color = _mm_mul_ps(w_color, w_255);
-
-				// Convert to 32 bit integers
-				__m128i w_color_i = _mm_cvtps_epi32(w_color);
-
-				// get integers out of wide register
-				// sse2 has no instruction for storing ints, so we cheat...
-				__m128  w_color_i_f = _mm_castsi128_ps(w_color_i); // cast ints to floats
-				_mm_store_ps(color_components_f, w_color_i_f);     // store floats in memory
-				color_components = (int*)color_components_f;       // cast back to ints
-
-				// Set the pixel value
-				color_bits = (color_components[3] << 24 |
-				              color_components[2] << 16 |
-				              color_components[1] <<  8 |
-				              color_components[0] <<  0
-				              );
-
-				pixels[y*target.width + x] = color_bits;
-			}
-		}
-	}
-	#else
-	void updateRenderTargetPixelBytes(xen::sren::RenderTargetImpl& target){
-		//////////////////////////////////////////////////////////////////////////
-		// Set values of pixels - converting from our float colors to 32bit colors
-		xen::Color4f color;
-		u32     color_bits;
-		// :TODO: take target.red_mask etc into account
-		u32* pixels = (u32*)target.ximage->data;
-		for(u32 y = 0; y < target.height; ++y){
-			u32 base = y * target.width;
-			for(u32 x = 0; x < target.width; ++x){
-				color = (target.color[base + x]);
-
-				color_bits = (xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.a) << 24 |
-				              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.r) << 16 |
-				              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.g) <<  8 |
-				              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.b) <<  0);
-
-				pixels[y*target.width + x] = color_bits;
-			}
-		}
-	}
-	#endif
 }
 
 namespace xen {
@@ -307,10 +232,12 @@ namespace xen {
 			// with the pixel values...
 			XSync(xen::impl::unix_display, True);
 
-			// Update the byte array from the float array
-			// separate function since this may use SSE extensions depending on
-			// compiler options
-			updateRenderTargetPixelBytes(target);
+			// Update the byte array we show on screen from the float array we do
+			// our rendering into
+			xen::RawImage raw_image;
+			raw_image.size = target.size;
+			raw_image.pixels = (Color*)target.ximage->data;
+			xen::sren::getImageFromFramebuffer(&target, raw_image);
 
 			//////////////////////////////////////////////////////////////////////////
 			// Put the image on screen

@@ -11,8 +11,10 @@
 
 #include <xen/sren/Framebuffer.hpp>
 #include <xen/graphics/Image.hpp>
+#include <xen/math/utilities.hpp>
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/core/memory/utilities.hpp>
+#include <xen/core/simd_intrinsics.hpp>
 
 namespace xen {
 	namespace sren {
@@ -39,21 +41,100 @@ namespace xen {
 
 		void putImageOnFramebuffer(Framebuffer* fb, const RawImage& image, float depth_val){
 			printf("Put image on frame buffer NOT IMPLEMENTED\n");
-		}
 
-		void getImageFromFramebuffer(const Framebuffer* fb, RawImage& image){
-			printf("Get image from frame buffer NOT IMPLEMENTED\n");
+			u32 max_x = xen::min(image.size.x, fb->size.x);
+			u32 max_y = xen::min(image.size.y, fb->size.y);
 
-			for(u32 y = 0; y < image.size.y; ++y){
-				for(u32 x = 0; x < image.size.x; ++x){
+			for(u32 y = 0; y < max_y; ++y){
+				for(u32 x = 0; x < max_x; ++x){
 					printf("put pixel %i, %i\n", x, y);
-					image.pixels[y*image.width + x].r = x % 255;
-					image.pixels[y*image.width + x].g = y % 255;
-					image.pixels[y*image.width + x].b = 100;
-					image.pixels[y*image.width + x].a = 255;
+					fb->color[y*fb->width + x].r = x % 255;
+					fb->color[y*fb->width + x].g = y % 255;
+					fb->color[y*fb->width + x].b = 100;
+					fb->color[y*fb->width + x].a = 255;
 				}
 			}
 		}
+
+		#if XEN_USE_SSE
+		void getImageFromFramebuffer(const Framebuffer* fb, RawImage& image){
+			//////////////////////////////////////////////////////////////////////////
+			// Set values of pixels - converting from our float colors to 32bit colors
+			xen::Color4f color;
+			u32     color_bits;
+			float color_components_f[4];
+			int*  color_components;
+
+			// Generate 4 wide registers with single value broadcast to all components
+			__m128  w_0    = _mm_set_ps1(  0.0f);
+			__m128  w_1    = _mm_set_ps1(  1.0f);
+			__m128  w_255  = _mm_set_ps1(255.0f);
+
+			u32 max_x = xen::min(fb->width,  image.width);
+			u32 max_y = xen::min(fb->height, image.height);
+
+			for(u32 y = 0; y < max_y; ++y){
+
+				u32 base_fb  = y * fb->width;
+				u32 base_img = y * image.width;
+
+				for(u32 x = 0; x < max_x; ++x){
+					color = (fb->color[base_fb + x]);
+
+					// load color components into wide register
+					__m128 w_color = _mm_set_ps(color.a, color.r, color.g, color.b);
+
+					// clamp to [0, 1] range
+					w_color = _mm_min_ps(w_1, w_color); // clamp to be <= 1
+					w_color = _mm_max_ps(w_0, w_color); // clamp to be >= 0
+
+					// multiply up to [0, 255] range
+					w_color = _mm_mul_ps(w_color, w_255);
+
+					// Convert to 32 bit integers
+					__m128i w_color_i = _mm_cvtps_epi32(w_color);
+
+					// get integers out of wide register
+					// sse2 has no instruction for storing ints, so we cheat...
+					__m128  w_color_i_f = _mm_castsi128_ps(w_color_i); // cast ints to floats
+					_mm_store_ps(color_components_f, w_color_i_f);     // store floats in memory
+					color_components = (int*)color_components_f;       // cast back to ints
+
+					// Set the pixel value
+					color_bits = (color_components[3] << 24 |
+					              color_components[2] << 16 |
+					              color_components[1] <<  8 |
+					              color_components[0] <<  0
+					              );
+
+					image.pixels[base_img + x].value = color_bits;
+				}
+			}
+		}
+		#else
+		void getImageFromFramebuffer(const Framebuffer* fb, RawImage& image){
+			//////////////////////////////////////////////////////////////////////////
+			// Set values of pixels - converting from our float colors to 32bit colors
+			xen::Color4f color;
+			u32     color_bits;
+
+			u32 max_x = xen::min(fb->width,  image.width);
+			u32 max_y = xen::min(fb->height, image.height);
+
+			for(u32 y = 0; y < max_y; ++y){
+				for(u32 x = 0; x < max_x; ++x){
+					color = (fb->color[y * fb->width + x]);
+
+					color_bits = (xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.a) << 24 |
+					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.r) << 16 |
+					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.g) <<  8 |
+					              xen::mapToRangeClamped<float, u32>(0.0f, 1.0f, 0, 255, color.b) <<  0);
+
+					image.pixels[y * image.width + x].value = color_bits;
+				}
+			}
+		}
+		#endif
 	}
 }
 
