@@ -7,10 +7,15 @@
 
 xen::RenderParameters3d render_params;
 
-xen::sren::PostProcessorInvertColors pp_invertColors;
+xen::sren::PostProcessorInvertColors       pp_invertColors;
+xen::sren::PostProcessorDisplayDepthBuffer pp_displayDepthBuffer;
+
 xen::sren::PostProcessor* post_processors[] = {
-	&pp_invertColors
+	&pp_invertColors,
+	&pp_displayDepthBuffer,
 };
+
+
 
 int main(int argc, char** argv){
 	render_params.camera.z_near   =  0.001;
@@ -19,10 +24,16 @@ int main(int argc, char** argv){
 	render_params.camera.look_dir = -Vec3r::UnitZ;
 	render_params.camera.position =  Vec3r{0, 0, 10};
 
+	pp_displayDepthBuffer.screen_region.min = Vec2r{0.5_r, 0.5_r};
+	pp_displayDepthBuffer.screen_region.max = Vec2r{1.0_r, 1.0_r};
+	pp_displayDepthBuffer.z_near = render_params.camera.z_near;
+	pp_displayDepthBuffer.z_far  = render_params.camera.z_far;
+
 	ExampleApplication app = createApplication("triangle-test",
 	                                           ExampleApplication::Backend::RASTERIZER,
 	                                           xen::makeArray(post_processors, XenArrayLength(post_processors))
 	                                          );
+
 
 	Vec3r test_triangles_pos[] = {
 		{ 0.0, 0.0, 0.0},   { 1.0, 0.0, 0.0},   { 0.0, 1.0, 0.0 },

@@ -6,8 +6,8 @@
 /// \ingroup sren
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_SREN_POSTPROCESSORS_INVERTCOLORS_HPP
-#define XEN_SREN_POSTPROCESSORS_INVERTCOLORS_HPP
+#ifndef XEN_SREN_POSTPROCESSORS_INVERTCOLORS_CPP
+#define XEN_SREN_POSTPROCESSORS_INVERTCOLORS_CPP
 
 #include <xen/sren/PostProcessor.hpp>
 

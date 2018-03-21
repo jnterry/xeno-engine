@@ -10,6 +10,7 @@
 #define XEN_SREN_POSTPROCESSORS_HPP
 
 #include <xen/sren/FrameBuffer.hpp>
+#include <xen/math/geometry_types.hpp>
 
 namespace xen {
 
@@ -43,16 +44,22 @@ namespace xen {
 		/// \brief PostProcessor which displays the depth buffer at some location
 		/// on the screen
 		/////////////////////////////////////////////////////////////////////
-		//struct PostProcessorDisplayDepthBuffer : publich PostProcessor {
-		//	/// \brief The area of the screen upon which to present the depth_buffer
-		//	/// Values given as floating point between 0 and 1 representing the fractional
-		//	/// coordinates at which to display the buffer
-		//	/// Hence (0, 0) -> (1, 1) will take up the entire screen, where as
-		//	/// (0,.0 0.5) -> (0.5, 1.0) would take up the top-left quarter of the screen
-		//	xen::Aabb2r screen_region;
-		//
-		//			void process(FrameBuffer& fb);
-		//		};
+		struct PostProcessorDisplayDepthBuffer : public PostProcessor {
+			/// \brief The area of the screen upon which to present the depth_buffer
+			/// Values given as floating point between 0 and 1 representing the fractional
+			/// coordinates at which to display the buffer
+			/// Hence (0, 0) -> (1, 1) will take up the entire screen, where as
+			/// (0,.0 0.5) -> (0.5, 1.0) would take up the top-left quarter of the screen
+			xen::Aabb2r screen_region;
+
+			/// \brief Nearest z value camera can see
+			real z_near;
+
+			/// \brief Furthest z value camera can see
+			real z_far;
+
+			void process(FrameBuffer& fb);
+		};
 
 		// :TODO: more post processors, ideas:
 		// - antialiasing
