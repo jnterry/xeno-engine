@@ -158,8 +158,22 @@ namespace xen {
 					if(!castRayIntoScene(primary_ray, commands, intersection)){
 						continue;
 					}
+					// Get the intersection related to the triangle intersected
+					xen::Triangle3r intersected_tri = *(xen::Triangle3r*)&commands[intersection.object_index]
+					                                 .immediate.position[intersection.triangle_index*3];
+					// Get the colors of each point of the triangle intersected
+					xen::Triangle4f tri_colors      = *(xen::Triangle4f*)&commands[intersection.object_index]
+					                                 .immediate.color[intersection.triangle_index*3];
+					// Get the barycentric coordinates of the intersection
+					Vec3r bary = xen::getBarycentricCoordinates(intersected_tri, intersection.intersection);
 
-					Color4f pixel_color = commands[intersection.object_index].color;
+					// DEBUG
+					// :TODO: Bary values are not as expected. Should each be > 0 and add to 1 
+					printf("Bary Values: (%f, %f, %f)\n", bary.x, bary.y, bary.z);
+
+					// Get the color value of the point by evaluating the barycentric coordinates of the
+					// intersection within the color triangle
+					xen::Color4f pixel_color = evaluateBarycentricCoordinates(tri_colors, bary);
 					Color3f total_light = params.ambient_light;
 
 					/////////////////////////////////////////////////////////////////////
