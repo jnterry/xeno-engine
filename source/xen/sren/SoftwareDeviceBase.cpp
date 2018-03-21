@@ -20,7 +20,7 @@
 namespace xen {
 	namespace sren {
 
-		SoftwareDeviceBase::SoftwareDeviceBase(xen::Array<PostProcessor> post_processors)
+		SoftwareDeviceBase::SoftwareDeviceBase(xen::Array<FrameBufferOperation> post_processors)
 			: post_processors(post_processors),
 			  main_allocator (new xen::AllocatorCounter<xen::AllocatorMalloc>()),
 			  misc_arena     (xen::createArenaLinear(*main_allocator, xen::megabytes(1)))

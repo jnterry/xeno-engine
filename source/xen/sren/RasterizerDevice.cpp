@@ -24,7 +24,7 @@ public:
 
 	}
 
-	RasterizerDevice(xen::Array<xen::sren::PostProcessor> post_processors)
+	RasterizerDevice(xen::Array<xen::sren::FrameBufferOperation> post_processors)
 		: SoftwareDeviceBase(post_processors) {
 		// no-op
 	}
@@ -50,7 +50,7 @@ public:
 
 namespace xen {
 	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena,
-	                                       xen::Array<sren::PostProcessor> post_processors){
+	                                       xen::Array<sren::FrameBufferOperation> post_processors){
 		return xen::emplace<RasterizerDevice>(arena, post_processors);
 	}
 }

@@ -10,7 +10,7 @@
 #ifndef XEN_SREN_RENDERTARGETIMPL_HXX
 #define XEN_SREN_RENDERTARGETIMPL_HXX
 
-#include <xen/sren/SoftwareDevice.hpp>
+#include <xen/sren/FrameBuffer.hpp>
 #include <xen/graphics/Color.hpp>
 #include <xen/core/array_types.hpp>
 #include <xen/config.hpp>
