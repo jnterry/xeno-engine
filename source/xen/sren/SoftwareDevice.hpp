@@ -9,11 +9,15 @@
 #ifndef XEN_SREN_SOFTWAREDEVICE_HPP
 #define XEN_SREN_SOFTWAREDEVICE_HPP
 
-#include <xen/sren/FrameBuffer.hpp>
+#include <xen/core/array_types.hpp>
 
 namespace xen {
 	struct ArenaLinear;
 	struct GraphicsDevice;
+
+	namespace sren {
+		class PostProcessor;
+	}
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Creates a new GraphicsDevice which will perform rendering
@@ -22,8 +26,8 @@ namespace xen {
 	/// the image to the screen. Defaults to empty array
 	/////////////////////////////////////////////////////////////////////
 	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena,
-	                                      xen::Array<sren::FrameBufferOperation> post_processors =
-	                                      xen::Array<sren::FrameBufferOperation>::EmptyArray
+	                                      xen::Array<sren::PostProcessor*> post_processors =
+	                                      xen::Array<sren::PostProcessor*>::EmptyArray
 	                                     );
 
 	/////////////////////////////////////////////////////////////////////
@@ -33,8 +37,8 @@ namespace xen {
 	/// the image to the screen. Defaults to an empty array
 	/////////////////////////////////////////////////////////////////////
 	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena,
-	                                       xen::Array<sren::FrameBufferOperation> post_processors =
-	                                       xen::Array<sren::FrameBufferOperation>::EmptyArray
+	                                       xen::Array<sren::PostProcessor*> post_processors =
+	                                       xen::Array<sren::PostProcessor*>::EmptyArray
 	                                      );
 
 	/////////////////////////////////////////////////////////////////////

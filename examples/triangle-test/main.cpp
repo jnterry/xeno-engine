@@ -1,21 +1,15 @@
 #include <stdio.h>
 
 #include <xen/graphics/TestMeshes.hpp>
+#include <xen/sren/PostProcessor.hpp>
 
 #include "../common.cpp"
 
 xen::RenderParameters3d render_params;
 
-void invertColors(xen::sren::FrameBuffer& buffer){
-	for(u32 i = 0; i < buffer.size.x * buffer.size.y; ++i){
-		buffer.color[i].r = 1.0f - buffer.color[i].r;
-		buffer.color[i].g = 1.0f - buffer.color[i].g;
-		buffer.color[i].b = 1.0f - buffer.color[i].b;
-	}
-}
-
-xen::sren::FrameBufferOperation post_processors[] = {
-	&invertColors
+xen::sren::PostProcessorInvertColors pp_invertColors;
+xen::sren::PostProcessor* post_processors[] = {
+	&pp_invertColors
 };
 
 int main(int argc, char** argv){

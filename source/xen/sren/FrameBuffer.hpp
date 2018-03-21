@@ -50,10 +50,6 @@ namespace xen{
 		};
 
 		#pragma GCC diagnostic pop // re-enable -Wpedantic
-
-		/// \brief Represents a function which performs processing on a FrameBuffer
-		/// on a FrameBuffer before the image is presented to the screen
-		typedef void (*FrameBufferOperation)(FrameBuffer& target);
 	}
 }
 

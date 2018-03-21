@@ -15,12 +15,13 @@
 
 #include "../graphics/Window.hxx"
 
+#include <xen/sren/PostProcessor.hpp>
 #include <xen/core/array.hpp>
 
 namespace xen {
 	namespace sren {
 
-		SoftwareDeviceBase::SoftwareDeviceBase(xen::Array<FrameBufferOperation> post_processors)
+		SoftwareDeviceBase::SoftwareDeviceBase(xen::Array<PostProcessor*> post_processors)
 			: post_processors(post_processors),
 			  main_allocator (new xen::AllocatorCounter<xen::AllocatorMalloc>()),
 			  misc_arena     (xen::createArenaLinear(*main_allocator, xen::megabytes(1)))
@@ -117,7 +118,7 @@ namespace xen {
 			RenderTargetImpl& target = *this->getRenderTargetImpl(window->render_target);
 
 			for(u32 i = 0; i < xen::size(this->post_processors); ++i){
-				this->post_processors[i](target);
+				this->post_processors[i]->process(target);
 			}
 
 			xen::sren::presentRenderTarget(window, target);
