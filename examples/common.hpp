@@ -66,7 +66,9 @@ static_assert(ExampleApplication::Backend::COUNT ==
 ////////////////////////////////////////////////////////////////////
 ExampleApplication createApplication(const char* window_title,
                                      ExampleApplication::Backend default_backend =
-                                     ExampleApplication::Backend::COUNT
+                                     ExampleApplication::Backend::COUNT,
+                                     xen::Array<xen::sren::FrameBufferOperation> post_processors =
+                                     xen::Array<xen::sren::FrameBufferOperation>::EmptyArray
                                     );
 
 /////////////////////////////////////////////////////////////////////

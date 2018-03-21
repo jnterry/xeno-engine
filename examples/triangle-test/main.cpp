@@ -6,6 +6,18 @@
 
 xen::RenderParameters3d render_params;
 
+void invertColors(xen::sren::FrameBuffer& buffer){
+	for(u32 i = 0; i < buffer.size.x * buffer.size.y; ++i){
+		buffer.color[i].r = 1.0f - buffer.color[i].r;
+		buffer.color[i].g = 1.0f - buffer.color[i].g;
+		buffer.color[i].b = 1.0f - buffer.color[i].b;
+	}
+}
+
+xen::sren::FrameBufferOperation post_processors[] = {
+	&invertColors
+};
+
 int main(int argc, char** argv){
 	render_params.camera.z_near   =  0.001;
 	render_params.camera.z_far    =  1000;
@@ -14,7 +26,8 @@ int main(int argc, char** argv){
 	render_params.camera.position =  Vec3r{0, 0, 10};
 
 	ExampleApplication app = createApplication("triangle-test",
-	                                           ExampleApplication::Backend::RASTERIZER
+	                                           ExampleApplication::Backend::RASTERIZER,
+	                                           xen::makeArray(post_processors, XenArrayLength(post_processors))
 	                                          );
 
 	Vec3r test_triangles_pos[] = {

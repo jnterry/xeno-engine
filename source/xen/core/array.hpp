@@ -41,6 +41,14 @@ namespace xen{
 
 	// :TODO: findFirst, findLast, etc
 	// :TODO: iterator syntax?
+
+	template<typename T>
+	Array<T> makeArray(T* elements, size_t count){
+		Array<T> result;
+		result.elements = elements;
+		result.size     = count;
+		return result;
+	}
 }
 
 #endif
