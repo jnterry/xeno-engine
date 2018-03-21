@@ -18,7 +18,7 @@
 namespace xen {
 	namespace sren {
 
-		void PostProcessorDisplayDepthBuffer::process(FrameBuffer& fb) {
+		void PostProcessorDisplayDepthBuffer::process(Framebuffer& fb) {
 
 			for(u32 y = screen_region.min.y; y < screen_region.max.y; ++y){
 				u32 pixel_index_base = y * fb.width;

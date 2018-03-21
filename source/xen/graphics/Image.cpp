@@ -18,6 +18,31 @@
 #include <stb_image_write.hpp>
 
 namespace xen{
+	Color& RawImage::ColRef::operator[](u32 row) {
+		return image.pixels[col + (image.height-row-1) * image.width];
+	}
+
+	const Color& RawImage::ColRef::operator[](u32 row) const{
+		return image.pixels[col + (image.height-row-1) * image.width];
+	}
+
+	RawImage::ColRef RawImage::operator[](u32 col){
+		return { *this, col };
+	}
+
+	const RawImage::ColRef RawImage::operator[](u32 col) const{
+		return { *const_cast<RawImage*>(this), col };
+	}
+
+	RawImage createImage(Allocator& alloc, Vec2u size){
+		printf("Creating image NOT IMPLEMENTED\n");
+	}
+
+	void destroyImage(Allocator& alloc, RawImage image){
+		printf("Destroy image NOT IMPLEMENTED\n");
+	}
+
+
 	RawImage loadImage(ArenaLinear& arena, const char* file_path){
 		RawImage result = {0};
 
@@ -54,21 +79,15 @@ namespace xen{
 		return result;
 	}
 
-	Color& RawImage::ColRef::operator[](u32 row) {
-		return image.pixels[col + (image.height-row-1) * image.width];
+	RawImage loadImage(Allocator& alloc, const char* file_path) {
+		printf("Loading image: %s NOT IMPLEMENTED\n", file_path);
 	}
 
-	const Color& RawImage::ColRef::operator[](u32 row) const{
-		return image.pixels[col + (image.height-row-1) * image.width];
+	bool saveImage(const RawImage& image, const char* file_path){
+		printf("Saving image NOT IMPLEMENTED\n");
 	}
 
-	RawImage::ColRef RawImage::operator[](u32 col){
-		return { *this, col };
-	}
 
-	const RawImage::ColRef RawImage::operator[](u32 col) const{
-		return { *const_cast<RawImage*>(this), col };
-	}
 }
 
 #endif

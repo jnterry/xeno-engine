@@ -10,7 +10,7 @@
 #ifndef XEN_SREN_RENDERTARGETIMPL_HXX
 #define XEN_SREN_RENDERTARGETIMPL_HXX
 
-#include <xen/sren/FrameBuffer.hpp>
+#include <xen/sren/Framebuffer.hpp>
 #include <xen/graphics/Color.hpp>
 #include <xen/core/array_types.hpp>
 #include <xen/config.hpp>
@@ -23,7 +23,7 @@ namespace xen {
 
 		struct RenderTargetImpl;
 
-		struct RenderTargetImplBase : public xen::sren::FrameBuffer {
+		struct RenderTargetImplBase : public xen::sren::Framebuffer {
 			/// \brief The window this render target is for (or nullptr if an
 			/// off screen render buffer)
 			Window* window;

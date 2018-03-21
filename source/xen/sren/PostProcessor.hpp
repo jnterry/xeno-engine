@@ -9,7 +9,7 @@
 #ifndef XEN_SREN_POSTPROCESSORS_HPP
 #define XEN_SREN_POSTPROCESSORS_HPP
 
-#include <xen/sren/FrameBuffer.hpp>
+#include <xen/sren/Framebuffer.hpp>
 #include <xen/math/geometry_types.hpp>
 
 namespace xen {
@@ -18,7 +18,7 @@ namespace xen {
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Functor type which represents a Post Processing operation to
-		/// perform on a FrameBuffer after rendering has already been performed
+		/// perform on a Framebuffer after rendering has already been performed
 		///
 		/// Post processors are a class rather than simply a function pointer so
 		/// that they can store state. This state may be configuration for the
@@ -30,14 +30,14 @@ namespace xen {
 	  public:
 		  /// \brief Virtual function which when ran performs the post processing
 		  /// step represented by this PostProcessor
-		  virtual void process(FrameBuffer& fb) = 0;
+		  virtual void process(Framebuffer& fb) = 0;
 		};
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Simple PostProcessor which inverts the colors of the framebuffer
 		/////////////////////////////////////////////////////////////////////
 		struct PostProcessorInvertColors : public PostProcessor {
-			void process(FrameBuffer& fb);
+			void process(Framebuffer& fb);
 		};
 
 		/////////////////////////////////////////////////////////////////////
@@ -58,7 +58,7 @@ namespace xen {
 			/// \brief Transparency of the depth buffer overlay
 			float alpha;
 
-			void process(FrameBuffer& fb);
+			void process(Framebuffer& fb);
 		};
 
 		// :TODO: more post processors, ideas:

@@ -97,6 +97,7 @@ set(XEN_SOURCES_SREN
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RaytracerDebugDevice.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RasterizerDevice.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RenderTargetImpl.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/Framebuffer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/post_processors/InvertColors.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/post_processors/DisplayDepthBuffer.cpp
 
@@ -104,7 +105,7 @@ set(XEN_SOURCES_SREN
 
 set(XEN_HEADERS_SREN
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/SoftwareDevice.hpp
-	${CMAKE_CURRENT_LIST_DIR}/xen/sren/FrameBuffer.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/Framebuffer.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/PostProcessor.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/SoftwareDeviceBase.hxx
   ${CMAKE_CURRENT_LIST_DIR}/xen/sren/renderer3d.hxx

@@ -10,6 +10,8 @@
 #ifndef XEN_EXAMPLES_COMMON_HPP
 #define XEN_EXAMPLES_COMMON_HPP
 
+#include <xen/sren/PostProcessor.hpp>
+
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
