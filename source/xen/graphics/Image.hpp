@@ -110,16 +110,27 @@ namespace xen{
 	/////////////////////////////////////////////////////////////////////
 	RawImage loadImage(Allocator& alloc, const char* file_path);
 
+	enum class ImageFormat {
+		PNG,
+		BMP,
+		TGA,
+		JPG,
+		UNKNOWN,
+	};
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Saves a RawImage to a file
 	/// \param image The RawImage to save
 	/// \param file_path The name of the file to save to, any existing file
 	/// will be overwritten
+	/// \param format The format of the image to save. Defaults to UNKNOWN, which
+	/// means attempt to deduce from file extension. If file extension is unknown
+	/// then function returns false.
 	/// \return True if write succeeded, else false
 	///
 	/// \public \memberof RawImage
 	/////////////////////////////////////////////////////////////////////
-	bool saveImage(const RawImage& image, const char* file_path);
+	bool saveImage(const RawImage& image, const char* file_path, ImageFormat format = ImageFormat::UNKNOWN);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Frees the memory allocated for the specified image.

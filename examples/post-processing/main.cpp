@@ -28,22 +28,47 @@ int main(int argc, const char** argv){
 
 	xen::Allocator* alloc = new xen::AllocatorCounter<xen::AllocatorMalloc>();
 
+	//////////////////////////////////////////////////////////////////////////////
+	// Load input image
 	xen::RawImage image_in  = xen::loadImage(*alloc, filename_in);
-	xen::sren::Framebuffer* fb = xen::sren::createFramebuffer(*alloc, image_in.size);
-	xen::sren::putImageOnFramebuffer(fb, image_in);
+	if(image_in.size.x == 0 || image_in.size.y == 0 || image_in.pixels == nullptr){
+		printf("Failed to open input image: %s\n", filename_in);
+		return 1;
+	}
 
+	//////////////////////////////////////////////////////////////////////////////
+	// Create output image
+	xen::RawImage image_out = xen::createImage(*alloc, image_in.size);
+  if(image_out.size.x == 0 || image_out.size.y == 0 || image_out.pixels == nullptr){
+	  printf("Failed to allocate output image\n");
+	  xen::destroyImage(*alloc, image_in);
+	  return 1;
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+	// Create framebuffer
+	xen::sren::Framebuffer* fb = xen::sren::createFramebuffer(*alloc, image_in.size);
+	if(fb == nullptr){
+		xen::destroyImage(*alloc, image_in );
+		xen::destroyImage(*alloc, image_out);
+		printf("Failed to create framebuffer\n");
+		return 1;
+	}
+
+	//////////////////////////////////////////////////////////////////////////////
+	// Do post processing
+	xen::sren::putImageOnFramebuffer(fb, image_in);
 	xen::sren::PostProcessorInvertColors pp;
 	//pp.process(*fb);
-
-	xen::RawImage image_out = xen::createImage(*alloc, image_in.size);
 	xen::sren::getImageFromFramebuffer(fb, image_out);
 
 	xen::saveImage(image_out, filename_out);
 
+	//////////////////////////////////////////////////////////////////////////////
+	// Clean up
 	xen::destroyImage(*alloc, image_in );
 	xen::destroyImage(*alloc, image_out);
 	xen::sren::destroyFramebuffer(*alloc, fb);
-
 	delete alloc;
 
 	return 0;
