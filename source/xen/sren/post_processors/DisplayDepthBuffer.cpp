@@ -20,20 +20,21 @@ namespace xen {
 
 		void PostProcessorDisplayDepthBuffer::process(FrameBuffer& fb) {
 
-			Aabb2u viewport;
-			viewport.min = (Vec2u)((Vec2r)fb.size * this->screen_region.min);
-			viewport.max = (Vec2u)((Vec2r)fb.size * this->screen_region.max);
-
-			for(u32 y = viewport.min.y; y < viewport.max.y; ++y){
+			for(u32 y = screen_region.min.y; y < screen_region.max.y; ++y){
 				u32 pixel_index_base = y * fb.width;
-				for(u32 x = viewport.min.x; x < viewport.max.x; ++x){
+				for(u32 x = screen_region.min.x; x < screen_region.max.x; ++x){
 					u32 pixel_index = pixel_index_base + x;
 
+					// :TODO: really we should be sampling from multiple points in depth
+					// buffer and averaging, since we are down scaling so will get
+					// aliasing issues otherwise
+					// :COMP: make generic sample from image function? will be needed if
+					// we do texture mapping anyway
 					Vec2u depth_location;
-					depth_location.x = xen::mapToRange<u32, u32>(viewport.min.x, viewport.max.x,
+					depth_location.x = xen::mapToRange<u32, u32>(screen_region.min.x, screen_region.max.x,
 					                                             0, fb.size.x,
 					                                             x);
-					depth_location.y = xen::mapToRange<u32, u32>(viewport.min.y, viewport.max.y,
+					depth_location.y = xen::mapToRange<u32, u32>(screen_region.min.y, screen_region.max.y,
 					                                             0, fb.size.y,
 					                                             y);
 
@@ -55,10 +56,9 @@ namespace xen {
 					}
 
 
-					fb.color[pixel_index].r = depth_val;
-					fb.color[pixel_index].g = depth_val;
-					fb.color[pixel_index].b = depth_val;
-					fb.color[pixel_index].a = 1.0f;
+					fb.color[pixel_index].rgb = (alpha * xen::mkVec(depth_val, depth_val, depth_val) +
+					                             ((1 - alpha) * fb.color[pixel_index].rgb)
+					                            );
 				}
 			}
 		}

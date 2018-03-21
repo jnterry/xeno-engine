@@ -46,17 +46,17 @@ namespace xen {
 		/////////////////////////////////////////////////////////////////////
 		struct PostProcessorDisplayDepthBuffer : public PostProcessor {
 			/// \brief The area of the screen upon which to present the depth_buffer
-			/// Values given as floating point between 0 and 1 representing the fractional
-			/// coordinates at which to display the buffer
-			/// Hence (0, 0) -> (1, 1) will take up the entire screen, where as
-			/// (0,.0 0.5) -> (0.5, 1.0) would take up the top-left quarter of the screen
-			xen::Aabb2r screen_region;
+			/// Values are in pixels in screen space
+			xen::Aabb2u screen_region;
 
 			/// \brief Nearest z value camera can see
 			real z_near;
 
 			/// \brief Furthest z value camera can see
 			real z_far;
+
+			/// \brief Transparency of the depth buffer overlay
+			float alpha;
 
 			void process(FrameBuffer& fb);
 		};
