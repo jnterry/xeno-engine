@@ -17,6 +17,7 @@ raytracer-test
 cornell-box
 triangle-test
 line-test
+post-processing
 
 # Ignore program output
 screenshot.bmp
