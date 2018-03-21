@@ -20,6 +20,8 @@
 namespace xen {
 	namespace sren {
 		class SoftwareDeviceBase : public xen::GraphicsDevice {
+		private:
+
 		protected:
 			xen::Allocator*  main_allocator;
 			xen::ArenaLinear misc_arena;

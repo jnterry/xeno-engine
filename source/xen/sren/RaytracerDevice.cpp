@@ -48,7 +48,8 @@ public:
 };
 
 namespace xen {
-	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena){
+	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena,
+	                                      xen::Array<sren::PostProcessor> post_processors){
 		return xen::emplace<RaytracerDevice>(arena);
 	}
 }

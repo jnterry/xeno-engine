@@ -48,7 +48,8 @@ public:
 };
 
 namespace xen {
-	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena){
+	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena,
+	                                       xen::Array<sren::PostProcessor> post_processors){
 		return xen::emplace<RasterizerDevice>(arena);
 	}
 }
