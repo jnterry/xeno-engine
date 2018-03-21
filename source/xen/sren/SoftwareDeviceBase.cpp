@@ -20,10 +20,12 @@
 namespace xen {
 	namespace sren {
 
-		SoftwareDeviceBase::SoftwareDeviceBase()
-			: main_allocator(new xen::AllocatorCounter<xen::AllocatorMalloc>()),
-			  misc_arena       (xen::createArenaLinear(*main_allocator, xen::megabytes(1))) {
-
+		SoftwareDeviceBase::SoftwareDeviceBase(xen::Array<PostProcessor> post_processors)
+			: post_processors(post_processors),
+			  main_allocator (new xen::AllocatorCounter<xen::AllocatorMalloc>()),
+			  misc_arena     (xen::createArenaLinear(*main_allocator, xen::megabytes(1)))
+		{
+			// no-op
 		}
 
 		SoftwareDeviceBase::~SoftwareDeviceBase(){
@@ -113,6 +115,11 @@ namespace xen {
 		void SoftwareDeviceBase::swapBuffers(Window* window) {
 			if(!window->is_open){ return; }
 			RenderTargetImpl& target = *this->getRenderTargetImpl(window->render_target);
+
+			for(u32 i = 0; i < xen::size(this->post_processors); ++i){
+				this->post_processors[i](target);
+			}
+
 			xen::sren::presentRenderTarget(window, target);
 		}
 	}

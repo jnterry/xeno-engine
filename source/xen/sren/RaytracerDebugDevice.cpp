@@ -79,7 +79,8 @@ public:
 
 	}
 
-	RaytracerDebugDevice() {
+	RaytracerDebugDevice()
+		: SoftwareDeviceBase(xen::Array<xen::sren::PostProcessor>::EmptyArray) {
 		camera_x.position = {300, 0, 0};
 		camera_x.look_dir = -Vec3r::UnitX;
 		camera_x.up_dir   =  Vec3r::UnitY;

@@ -21,7 +21,7 @@ namespace xen {
 	namespace sren {
 		class SoftwareDeviceBase : public xen::GraphicsDevice {
 		private:
-
+			xen::Array<PostProcessor> post_processors;
 		protected:
 			xen::Allocator*  main_allocator;
 			xen::ArenaLinear misc_arena;
@@ -47,7 +47,7 @@ namespace xen {
 			void              resizeRenderTarget (RenderTargetImpl* target, Vec2u new_size);
 		public:
 
-			SoftwareDeviceBase();
+			SoftwareDeviceBase(xen::Array<PostProcessor> post_processors);
 
 			virtual ~SoftwareDeviceBase();
 

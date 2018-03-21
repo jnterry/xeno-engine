@@ -24,7 +24,8 @@ public:
 
 	}
 
-	RaytracerDevice() {
+	RaytracerDevice(xen::Array<xen::sren::PostProcessor> post_processors)
+		: SoftwareDeviceBase(post_processors) {
 		// no-op
 	}
 
@@ -50,7 +51,7 @@ public:
 namespace xen {
 	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena,
 	                                      xen::Array<sren::PostProcessor> post_processors){
-		return xen::emplace<RaytracerDevice>(arena);
+		return xen::emplace<RaytracerDevice>(arena, post_processors);
 	}
 }
 
