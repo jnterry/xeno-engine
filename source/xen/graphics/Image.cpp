@@ -128,14 +128,15 @@ namespace xen{
 				format = ImageFormat::PNG;
 			} else if(strcmp(last_dot, "bmp") == 0){
 					format = ImageFormat::BMP;
-			} else if(strcmp(last_dot, "jpg") == 0 || strcmp(last_dot, "jpeg")){
+			} else if(strcmp(last_dot, "jpg") == 0 || strcmp(last_dot, "jpeg") == 0){
 				format = ImageFormat::JPG;
 			} else if(strcmp(last_dot, "tga") == 0){
 				format = ImageFormat::TGA;
 			} else {
 				// :TODO: log
 				printf("Failed to determine image format to save as from filename "
-				       "since unrecongisned extension: %s\n", file_path);
+				       "since unrecognised extension '%s' in: %s\n",
+				       last_dot, file_path);
 				return false;
 			}
 		}
