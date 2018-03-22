@@ -35,6 +35,7 @@ int main(int argc, const char** argv){
 		printf("Failed to open input image: %s\n", filename_in);
 		return 1;
 	}
+	printf("Loaded input image\n");
 
 	//////////////////////////////////////////////////////////////////////////////
 	// Create output image
@@ -44,6 +45,7 @@ int main(int argc, const char** argv){
 	  xen::destroyImage(*alloc, image_in);
 	  return 1;
   }
+  printf("Created output image\n");
 
   //////////////////////////////////////////////////////////////////////////////
 	// Create framebuffer
@@ -54,15 +56,19 @@ int main(int argc, const char** argv){
 		printf("Failed to create framebuffer\n");
 		return 1;
 	}
+	printf("Created framebuffer\n");
 
 	//////////////////////////////////////////////////////////////////////////////
 	// Do post processing
+	printf("Performing processing... ");
 	xen::sren::putImageOnFramebuffer(fb, image_in);
 	xen::sren::PostProcessorInvertColors pp;
-	//pp.process(*fb);
+	pp.process(*fb);
 	xen::sren::getImageFromFramebuffer(fb, image_out);
+	printf("Complete\n");
 
 	xen::saveImage(image_out, filename_out);
+	printf("Wrote output image\n");
 
 	//////////////////////////////////////////////////////////////////////////////
 	// Clean up

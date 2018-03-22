@@ -23,11 +23,11 @@ namespace xen {
 			Framebuffer* result  = (Framebuffer*)alloc.allocate(sizeof(Framebuffer) +
 			                                                    sizeof(Color4f) * pixel_count +
 			                                                    sizeof(float)   * pixel_count +
-			                                                    alignof(float) + alignof(Color4f)
-			                                                    );
+			                                                    alignof(float) + alignof(Color4f));
 
 			if(result == nullptr){ return nullptr; }
 
+			result->size  = size;
 			result->color = (Color4f*)xen::ptrGetAlignedForward(&result[1], alignof(Color4f));
 			result->depth = (float*  )xen::ptrGetAdvanced(result->color, sizeof(Color4f) * pixel_count);
 			xen::ptrAlignForward((void**)&result->depth, alignof(float));
@@ -39,19 +39,16 @@ namespace xen {
 			alloc.deallocate(fb);
 		}
 
-		void putImageOnFramebuffer(Framebuffer* fb, const RawImage& image, float depth_val){
-			printf("Put image on frame buffer NOT IMPLEMENTED\n");
-
+		void putImageOnFramebuffer(Framebuffer* fb, const RawImage& image){
 			u32 max_x = xen::min(image.size.x, fb->size.x);
 			u32 max_y = xen::min(image.size.y, fb->size.y);
 
 			for(u32 y = 0; y < max_y; ++y){
 				for(u32 x = 0; x < max_x; ++x){
-					printf("put pixel %i, %i\n", x, y);
-					fb->color[y*fb->width + x].r = x % 255;
-					fb->color[y*fb->width + x].g = y % 255;
-					fb->color[y*fb->width + x].b = 100;
-					fb->color[y*fb->width + x].a = 255;
+					fb->color[y*fb->width + x].r = image.pixels[y*image.width + x].r / 255.0f;
+					fb->color[y*fb->width + x].g = image.pixels[y*image.width + x].g / 255.0f;
+					fb->color[y*fb->width + x].b = image.pixels[y*image.width + x].b / 255.0f;
+					fb->color[y*fb->width + x].a = image.pixels[y*image.width + x].a / 255.0f;
 				}
 			}
 		}

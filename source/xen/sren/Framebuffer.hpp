@@ -90,7 +90,7 @@ namespace xen{
 		/// \param image     The image to blit to the frame buffer
 		/// \param depth_val The value to clear the depth value of the frame buffer to
 		/////////////////////////////////////////////////////////////////////
-		void putImageOnFramebuffer(Framebuffer* fb, const RawImage& image, float depth_val = FLT_MAX);
+		void putImageOnFramebuffer(Framebuffer* fb, const RawImage& image);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Retrieves the contents of a Framebuffer's color attachment,
