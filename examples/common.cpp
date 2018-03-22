@@ -23,7 +23,8 @@ const char* ExampleApplication::BACKEND_NAMES[Backend::COUNT] = {
 };
 
 ExampleApplication createApplication(const char* window_title,
-                                     ExampleApplication::Backend default_backend){
+                                     ExampleApplication::Backend default_backend,
+                                     xen::Array<xen::sren::PostProcessor*> post_processors){
 	xen::Allocator* alloc = new xen::AllocatorCounter<xen::AllocatorMalloc>();
 	ExampleApplication app = {
 		alloc,
@@ -87,11 +88,11 @@ ExampleApplication createApplication(const char* window_title,
 
 		switch(backend){
 		case ExampleApplication::Backend::RASTERIZER:
-			app.device = xen::createRasterizerDevice(app.arena);
+			app.device = xen::createRasterizerDevice(app.arena, post_processors);
 			break;
 		case ExampleApplication::Backend::RAYTRACER:
 			window_size = {128, 128};
-			app.device = xen::createRaytracerDevice(app.arena);
+			app.device = xen::createRaytracerDevice(app.arena, post_processors);
 			break;
 		case ExampleApplication::Backend::OPENGL:
 			app.device = xen::createGlDevice(app.arena);

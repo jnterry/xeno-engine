@@ -50,7 +50,11 @@ namespace xen{
 		}
 
 		~AllocatorCounter() {
-			XenAssert(alloc_count == 0, "Outstanding allocations on allocator destruction");
+			if(alloc_count != 0){
+				// :TODO: log fatal
+				printf("*** AllocatorCounter destructed with %i outstanding allocations\n", alloc_count);
+				XenAssert(alloc_count == 0, "Outstanding allocations on allocator destruction");
+			}
 		}
 
 		void* allocate(u32 size, u32 align = alignof(int)){

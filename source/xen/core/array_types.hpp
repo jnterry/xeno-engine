@@ -23,7 +23,13 @@ namespace xen{
 
 		inline T&       operator[](u64 i)       { return elements[i]; }
 		inline const T& operator[](u64 i) const { return elements[i]; }
+
+		/// \brief Represents an EmptyArray of type T
+		static const Array EmptyArray;
 	};
+
+	template<typename T>
+	const Array<T> Array<T>::EmptyArray = {0, 0};
 
 	// Disable gcc's warning about anonymous structs in unions temporarily...
 	#pragma GCC diagnostic push

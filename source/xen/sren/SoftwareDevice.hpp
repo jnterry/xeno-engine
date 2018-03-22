@@ -9,23 +9,37 @@
 #ifndef XEN_SREN_SOFTWAREDEVICE_HPP
 #define XEN_SREN_SOFTWAREDEVICE_HPP
 
-#include <xen/graphics/Image.hpp>
+#include <xen/core/array_types.hpp>
 
 namespace xen {
 	struct ArenaLinear;
 	struct GraphicsDevice;
 
+	namespace sren {
+		class PostProcessor;
+	}
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Creates a new GraphicsDevice which will perform rendering
 	/// using a software raytracer
+	/// \param post_processors Array of post processors to call before presenting
+	/// the image to the screen. Defaults to empty array
 	/////////////////////////////////////////////////////////////////////
-	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena);
+	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena,
+	                                      xen::Array<sren::PostProcessor*> post_processors =
+	                                      xen::Array<sren::PostProcessor*>::EmptyArray
+	                                     );
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Creates a new GraphicsDevice which will perform rendering
 	/// using a software rasterizer
+	/// \param post_processors Array of post processors to to call before presenting
+	/// the image to the screen. Defaults to an empty array
 	/////////////////////////////////////////////////////////////////////
-	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena);
+	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena,
+	                                       xen::Array<sren::PostProcessor*> post_processors =
+	                                       xen::Array<sren::PostProcessor*>::EmptyArray
+	                                      );
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Creates a device which will debug the raytracer device by

@@ -1,10 +1,21 @@
 #include <stdio.h>
 
 #include <xen/graphics/TestMeshes.hpp>
+#include <xen/sren/PostProcessor.hpp>
 
 #include "../common.cpp"
 
 xen::RenderParameters3d render_params;
+
+xen::sren::PostProcessorInvertColors       pp_invertColors;
+xen::sren::PostProcessorDisplayDepthBuffer pp_displayDepthBuffer;
+
+xen::sren::PostProcessor* post_processors[] = {
+	&pp_invertColors,
+	&pp_displayDepthBuffer,
+};
+
+
 
 int main(int argc, char** argv){
 	render_params.camera.z_near   =  0.001;
@@ -13,9 +24,15 @@ int main(int argc, char** argv){
 	render_params.camera.look_dir = -Vec3r::UnitZ;
 	render_params.camera.position =  Vec3r{0, 0, 10};
 
+	pp_displayDepthBuffer.z_near = render_params.camera.z_near;
+	pp_displayDepthBuffer.z_far  = render_params.camera.z_far;
+	pp_displayDepthBuffer.alpha  = 0.8f;
+
 	ExampleApplication app = createApplication("triangle-test",
-	                                           ExampleApplication::Backend::RASTERIZER
+	                                           ExampleApplication::Backend::RASTERIZER,
+	                                           xen::makeArray(post_processors, XenArrayLength(post_processors))
 	                                          );
+
 
 	Vec3r test_triangles_pos[] = {
 		{ 0.0, 0.0, 0.0},   { 1.0, 0.0, 0.0},   { 0.0, 1.0, 0.0 },
@@ -55,6 +72,9 @@ int main(int argc, char** argv){
 	render_commands[2].immediate              = xen::TestMeshGeometry_UnitCube;
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
+
+	pp_displayDepthBuffer.screen_region.min = Vec2u{viewport.max.x / 2, 10};
+	pp_displayDepthBuffer.screen_region.max = Vec2u{viewport.max.x - 10, viewport.max.y / 2 - 10};
 
 	xen::Stopwatch timer;
 	real last_time = 0;
