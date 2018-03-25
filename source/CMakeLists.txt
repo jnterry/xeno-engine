@@ -17,7 +17,6 @@ target_include_directories(xen-core PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
 add_library(xen-math ${XEN_HEADERS_MATH} ${XEN_SOURCES_MATH})
 target_include_directories(xen-math PUBLIC ${CMAKE_CURRENT_LIST_DIR})
-target_link_libraries     (xen-math xen-core)
 
 add_library(xen-graphics ${XEN_HEADERS_GRAPHICS} ${XEN_SOURCES_GRAPHICS})
 target_include_directories(xen-graphics PRIVATE "${XEN_EXTLIBS_DIR}/stb/")
