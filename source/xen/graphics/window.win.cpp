@@ -379,6 +379,8 @@ namespace xen{
 				return nullptr;
 			}
 
+			result->is_open = true;
+
 			return result;
 		}
 
@@ -388,10 +390,6 @@ namespace xen{
 			*window = {};
 		}
 	} //end of namespace xen::impl::
-
-	bool isWindowOpen(Window* window){
-		return window->handle && IsWindowVisible(window->handle);
-	}
 
 	/// \brief Retrieves the size of the client area (ie, part that may be renderered on) of some window
 	Vec2u getClientAreaSize(Window* window){

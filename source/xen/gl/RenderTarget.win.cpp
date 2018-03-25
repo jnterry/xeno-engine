@@ -34,7 +34,7 @@ namespace xen {
 				return nullptr;
 			}
 
-			printf("Created opengl render target for window, opengl version: '%s'",
+			printf("Created opengl render target for window, opengl version: '%s'\n",
 			       glGetString(GL_VERSION));
 			return result;
 		}
