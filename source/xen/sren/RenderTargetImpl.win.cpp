@@ -22,9 +22,7 @@ namespace xen {
 				return;
 			}
 
-			Vec2u size = getClientAreaSize(window);
-
-			u32 num_pixels = size.x * size.y;
+			u32 num_pixels = target.width * target.height;
 
 			// ensure allocated array is multiply of 4 so we can operate on it with 4
 			//wide simd instructions with no special cases
@@ -35,8 +33,8 @@ namespace xen {
 			// :TODO: some aspects of this should depend on the window's pixel format (eg, bit count)
 			target.bitmap_info = {0};
 			target.bitmap_info.bmiHeader.biSize        = sizeof(BITMAPINFOHEADER);
-			target.bitmap_info.bmiHeader.biWidth       = (LONG)size.x;
-			target.bitmap_info.bmiHeader.biHeight      = (LONG)size.y;
+			target.bitmap_info.bmiHeader.biWidth       = (LONG)target.width;
+			target.bitmap_info.bmiHeader.biHeight      = (LONG)target.height;
 			target.bitmap_info.bmiHeader.biPlanes      = 1;
 			target.bitmap_info.bmiHeader.biBitCount    = 32;
 			target.bitmap_info.bmiHeader.biCompression = BI_RGB;
@@ -72,9 +70,9 @@ namespace xen {
 			StretchDIBits(window->context,                        //dest
 			              0, 0, (int)target.width, (int)target.height,  //dest region -> could impl black bars here if render target size != window size
 			              0, 0, (int)target.width, (int)target.height,  //source region
-			              target.pixels, &target.bitmap_info,         //source data
-			              DIB_RGB_COLORS,                         //source color type (not palette)
-			              SRCCOPY);                               //replace dest with source, no blend
+			              target.pixels, &target.bitmap_info,           //source data
+			              DIB_RGB_COLORS,                               //source color type (not palette)
+			              SRCCOPY);                                     //replace dest with source, no blend
 
 			return;
 		}
