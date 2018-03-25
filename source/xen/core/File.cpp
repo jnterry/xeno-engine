@@ -3,11 +3,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Contains platform independent implementation of File system API
 ///
-/// \ingroup util
+/// \ingroup core
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_UTIL_FILE_CPP
-#define XEN_UTIL_FILE_CPP
+#ifndef XEN_CORE_FILE_CPP
+#define XEN_CORE_FILE_CPP
 
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/File.hpp>

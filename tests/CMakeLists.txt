@@ -23,10 +23,8 @@ add_executable(unit-tests
 	${CMAKE_CURRENT_LIST_DIR}/graphics/Camera.cpp
 )
 
-
 target_include_directories(unit-tests PRIVATE ${XEN_INCLUDE_DIR})
 target_link_libraries(unit-tests xen-graphics)
-target_link_libraries(unit-tests xen-util    )
 target_link_libraries(unit-tests xen-math    )
 target_link_libraries(unit-tests xen-core    )
 
