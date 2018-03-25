@@ -12,7 +12,7 @@
 *.obj
 quicktest
 starfield
-xen_unit_tests
+unit-tests
 raytracer-test
 cornell-box
 triangle-test
