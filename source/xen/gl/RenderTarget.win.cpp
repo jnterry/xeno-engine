@@ -19,6 +19,10 @@ namespace xen {
 			Window* window;
 		};
 
+		void makeCurrent(RenderTargetImpl* target){
+			wglMakeCurrent(target->window->context, target->gl_context);
+		}
+
 		RenderTargetImpl* createWindowRenderTarget(xen::ArenaLinear& arena, xen::Window* window){
 			xen::MemoryTransaction transaction(arena);
 
@@ -26,6 +30,7 @@ namespace xen {
 			if(result == nullptr){ return nullptr; }
 
 			result->gl_context = wglCreateContext(window->context);
+			result->window     = window;
 
 			if (result->gl_context == nullptr){
 				// :TODO: log
@@ -34,6 +39,7 @@ namespace xen {
 				return nullptr;
 			}
 
+			makeCurrent(result);
 			printf("Created opengl render target for window, opengl version: '%s'\n",
 			       glGetString(GL_VERSION));
 			return result;
@@ -41,10 +47,6 @@ namespace xen {
 
 		void destroyRenderTarget(RenderTargetImpl* target){
 			wglDeleteContext(target->gl_context);
-		}
-
-		void makeCurrent(RenderTargetImpl* target){
-			wglMakeCurrent(target->window->context, target->gl_context);
 		}
 
 		void swapBuffers(RenderTargetImpl* target){
