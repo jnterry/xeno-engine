@@ -67,8 +67,11 @@ namespace xen {
 
 			//////////////////////////////////////////////////////////////////////////
 			// Put the image on screen
+
+			// Note the -target.height, this mirrors the image on y since our idea of
+			// which way is up does not line up with windows
 			StretchDIBits(window->context,                        //dest
-			              0, 0, (int)target.width, (int)target.height,  //dest region -> could impl black bars here if render target size != window size
+			              0, (int)target.height, (int)target.width, -(int)target.height,  //dest region -> could impl black bars here if render target size != window size
 			              0, 0, (int)target.width, (int)target.height,  //source region
 			              target.pixels, &target.bitmap_info,           //source data
 			              DIB_RGB_COLORS,                               //source color type (not palette)
