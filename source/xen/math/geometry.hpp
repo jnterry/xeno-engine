@@ -19,8 +19,13 @@
 #include <xen/core/intrinsics.hpp>
 
 #include "impl/swizzles.hxx"
+#include "impl/geometry_aabb.hxx"
 
 namespace xen{
+
+	//////////////////////////////////////////////////////////////////////////////
+	// Translate geometry type by some offset vector
+
 	template<u32 T_DIM, typename T>
 	Aabb<T_DIM, T>& translate(Aabb<T_DIM, T>& aabb, Vec<T_DIM, T> delta){
 		aabb.min += delta;
@@ -46,6 +51,13 @@ namespace xen{
 		return original;
 	}
 
+	//////////////////////////////////////////////////////////////////////////////
+	// Transform geometry type by some arbitary matrix
+
+	// Can't transform Aabb in general case, would result in arbitary quad
+
+	// :TODO: transform sphere
+
 	template<u32 T_DIM, typename T>
 	Ray<T_DIM, T> transform(Ray<T_DIM, T>& ray, const xen::Matrix<T_DIM+1, T_DIM+1, T>& mat){
 		Vec<T_DIM, T> point = ray.origin + ray.direction;
@@ -65,12 +77,19 @@ namespace xen{
 		return result;
 	}
 
+	//////////////////////////////////////////////////////////////////////////////
+	// Check if point lies within geometry
+
+	/// \brief Checks if an Aabb contains a point
+	/// \public \memberof Aabb
 	template<typename T>
 	bool contains(Aabb2<T> aabb, Vec2<T> point){
 		return aabb.min.x <= point.x && point.x <= aabb.max.x &&
 		       aabb.min.y <= point.y && point.y <= aabb.max.y;
 	}
 
+	/// \brief Checks if an Aabb contains a point
+	/// \public \memberof Aabb
 	template<typename T>
 	bool contains(Aabb3<T> aabb, Vec3<T> point){
 		return aabb.min.x <= point.x && point.x <= aabb.max.x &&
@@ -78,94 +97,21 @@ namespace xen{
 		       aabb.min.z <= point.z && point.z <= aabb.max.z;
 	}
 
+	/// \brief Checks if a Sphere or circle contains a point
+	/// \public \memberof Aabb
 	template<u32 T_DIM, typename T>
 	bool contains(const Sphere<T_DIM, T>& sphere, const Vec<T_DIM, T>& point){
-		return xen::distance(sphere.center, point) <= sphere.radius;
+		return xen::distanceSq(sphere.center, point) <= (sphere.radius * sphere.radius);
 	}
 
-	namespace impl{
-		template<u32 T_DIM, typename T>
-		void movePointInto(Vec<T_DIM, T>& point, const Vec<T_DIM, T>& other_point, const Aabb<T_DIM, T>& aabb){
-			Vec<T_DIM, T> dir = other_point - point;
+	//////////////////////////////////////////////////////////////////////////////
 
-			for(u32 dim = 0; dim < T_DIM; ++dim){
-				if(dir[dim] != 0){
-					if(point[dim] < aabb.min[dim] && dir[dim] > 0){
-						point += dir * ((aabb.min[dim] - point[dim]) / dir[dim]);
-					}
-					if(point[dim] > aabb.max[dim] && dir[dim] < 0){
-						point += dir * ((aabb.max[dim] - point[dim]) / dir[dim]);
-					}
-				}
-			}
-		}
-	}
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Code representing the position of a point compared to an Aabb
-	/// see: https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm
-	/////////////////////////////////////////////////////////////////////
-	struct PointOutCode : public xen::BitField<u08, 6> {
-		using BitField::BitField; // use constructors of parent
-
-		enum Values {
-			/// \brief Point is inside the Aabb
-			INSIDE    = 0,
-
-			/// \brief Point is to the left of the Aabb (x too small)
-			LEFT      = 1,
-
-			/// \brief Point is to the left of the Aabb (x too big)
-			RIGHT     = 2,
-
-			/// \brief Point is below of the Aabb (y too small)
-			DOWN      = 4,
-
-			/// \brief Point is above of the Aabb (y too big)
-			UP        = 8,
-
-			/// \brief Point is behind the Aabb (z too small)
-			BEHIND    = 16,
-
-			/// \brief Point is in front of the Aabb (z too big)
-			INFRONT   = 32,
-		};
-	};
-
-	template <typename T>
-	PointOutCode computePointOutCode(Aabb2<T> a, Vec2<T> p){
-	  PointOutCode result = PointOutCode::INSIDE;
-
-		if(p.x < a.min.x){ result |= PointOutCode::LEFT;  }
-		if(p.x > a.max.x){ result |= PointOutCode::RIGHT; }
-		if(p.y < a.min.y){ result |= PointOutCode::DOWN;  }
-		if(p.y > a.max.y){ result |= PointOutCode::UP;    }
-
-		return result;
-	}
-
-	template <typename T>
-  PointOutCode computePointOutCode(Aabb3<T> a, Vec3<T> p){
-	  PointOutCode result = PointOutCode::INSIDE;
-
-		if(p.x < a.min.x){ result |= PointOutCode::LEFT;    }
-		if(p.x > a.max.x){ result |= PointOutCode::RIGHT;   }
-		if(p.y < a.min.y){ result |= PointOutCode::DOWN;    }
-		if(p.y > a.max.y){ result |= PointOutCode::UP;      }
-		if(p.z < a.min.z){ result |= PointOutCode::BEHIND;  }
-		if(p.z > a.max.z){ result |= PointOutCode::INFRONT; }
-
-		return result;
-	}
-
-	/////////////////////////////////////////////////////////////////////
 	/// \brief Clips a line segment such that it is fully contained within the
 	/// specified Aabb.
 	///
 	/// If the line does not intersect the Aabb then returns false without
 	/// modifying the passed in LineSegment2, else modifies the line segment
 	/// such that it is fully contained by the Aabb2 and then returns true
-	/////////////////////////////////////////////////////////////////////
 	template<typename T>
 	bool intersect(LineSegment2<T>& l, Aabb2<T> a){
 		// https://en.wikipedia.org/wiki/Cohen%E2%80%93Sutherland_algorithm
@@ -401,15 +347,6 @@ namespace xen{
 		return sphere.radius > 0;
 	}
 
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Returns n-dimensional vector representing the size of some
-	/// aabb along each dimension
-	/////////////////////////////////////////////////////////////////////
-	template<u32 T_DIM, typename T>
-	Vec<T_DIM, T> getSize(Aabb<T_DIM, T> aabb){
-		return aabb.max - aabb.min;
-	}
-
 	template<u32 T_DIM, typename T>
 	Aabb<T_DIM-1, T> fromHomo(Aabb<T_DIM, T> a){
 		return Aabb<T_DIM-1, T>{ fromHomo(a.p1), fromHomo(a.p2) };
@@ -428,28 +365,6 @@ namespace xen{
 	template<u32 T_DIM, typename T>
 	Sphere<T_DIM+1, T> toHomo(Sphere<T_DIM, T> a, T val = 1){
 		return Sphere<T_DIM+1, T>{ toHomo(a.center, val), a.radius };
-	}
-
-	template<u32 T_DIM, typename T>
-	Aabb<T_DIM, T> makeAabbFromMinAndSize(Vec<T_DIM, T> min, Vec<T_DIM, T> size){
-		return { min, min + size };
-	}
-
-	template<typename T>
-	Aabb2<T> makeAabbFromMinAndSize(T mx, T my, T sx, T sy) {
-		return makeAabbFromMinAndSize(xen::mkVec(mx, my), xen::mkVec(sx, sy));
-	}
-
-	template<typename T>
-	Aabb3<T> makeAabbFromMinAndSize(T mx, T my, T mz, T sx, T sy, T sz) {
-		return makeAabbFromMinAndSize(xen::mkVec(mx, my, mz), xen::mkVec(sx, sy. sz));
-	}
-
-	template<u32 T_DIM, typename T>
-	Aabb<T_DIM, T>& addPoint(Aabb<T_DIM, T>& aabb, Vec<T_DIM, T> p){
-		aabb.min = xen::min(aabb.min, p);
-		aabb.max = xen::max(aabb.max, p);
-		return aabb;
 	}
 
 	//////////////////////////////////////////////////////////////////////////////
