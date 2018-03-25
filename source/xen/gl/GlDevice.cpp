@@ -9,13 +9,13 @@
 #ifndef XEN_GL_GLDEVICE_CPP
 #define XEN_GL_GLDEVICE_CPP
 
-#include <xen/config.hpp>
+#include <xen/graphics/GraphicsDevice.hpp>
+#include <xen/graphics/Mesh.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/core/array.hpp>
-#include <xen/graphics/GraphicsDevice.hpp>
-#include <xen/graphics/Mesh.hpp>
-#include <xen/util/File.hpp>
+#include <xen/core/File.hpp>
+#include <xen/config.hpp>
 
 #include "gl_header.hxx"
 #include "Mesh.hxx"

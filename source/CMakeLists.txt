@@ -15,10 +15,6 @@ target_link_libraries     (xen-all assimp)
 add_library(xen-core ${XEN_HEADERS_CORE} ${XEN_SOURCES_CORE})
 target_include_directories(xen-core PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
-add_library(xen-util ${XEN_HEADERS_UTIL} ${XEN_SOURCES_UTIL})
-target_include_directories(xen-util PUBLIC ${CMAKE_CURRENT_LIST_DIR})
-target_link_libraries     (xen-util xen-core)
-
 add_library(xen-math ${XEN_HEADERS_MATH} ${XEN_SOURCES_MATH})
 target_include_directories(xen-math PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries     (xen-math xen-core)
@@ -47,7 +43,6 @@ target_link_libraries     (xen-gl xen-graphics)
 
 set_target_properties(xen-all      PROPERTIES FOLDER "xeno_engine")
 set_target_properties(xen-core     PROPERTIES FOLDER "xeno_engine")
-set_target_properties(xen-util     PROPERTIES FOLDER "xeno_engine")
 set_target_properties(xen-math     PROPERTIES FOLDER "xeno_engine")
 set_target_properties(xen-graphics PROPERTIES FOLDER "xeno_engine")
 set_target_properties(xen-gl       PROPERTIES FOLDER "xeno_engine")

@@ -10,7 +10,7 @@
 #define XEN_UTIL_FILE_CPP
 
 #include <xen/core/memory/ArenaLinear.hpp>
-#include <xen/util/File.hpp>
+#include <xen/core/File.hpp>
 
 #include <cstdio>
 
