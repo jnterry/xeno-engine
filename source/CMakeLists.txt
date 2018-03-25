@@ -44,3 +44,11 @@ target_include_directories(xen-gl PRIVATE "${XEN_EXTLIBS_DIR}/glew-2.1.0/include
 target_include_directories(xen-gl PUBLIC  ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries     (xen-gl libglew_shared)
 target_link_libraries     (xen-gl xen-graphics)
+
+set_target_properties(xen-all      PROPERTIES FOLDER "xeno_engine")
+set_target_properties(xen-core     PROPERTIES FOLDER "xeno_engine")
+set_target_properties(xen-util     PROPERTIES FOLDER "xeno_engine")
+set_target_properties(xen-math     PROPERTIES FOLDER "xeno_engine")
+set_target_properties(xen-graphics PROPERTIES FOLDER "xeno_engine")
+set_target_properties(xen-gl       PROPERTIES FOLDER "xeno_engine")
+set_target_properties(xen-sren     PROPERTIES FOLDER "xeno_engine")

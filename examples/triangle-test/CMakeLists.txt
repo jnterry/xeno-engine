@@ -9,3 +9,5 @@ target_link_libraries(triangle-test xen-all)
 
 target_include_directories(triangle-test PRIVATE "${XEN_EXTLIBS_DIR}/glew-2.1.0/include/")
 target_link_libraries(triangle-test libglew_shared)
+
+set_target_properties(triangle-test PROPERTIES FOLDER "examples")

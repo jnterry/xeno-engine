@@ -29,3 +29,12 @@ execute_process(COMMAND cmake -E tar xf glew-2.1.0.zip WORKING_DIRECTORY ${CMAKE
 add_subdirectory(glew-2.1.0)
 
 set(CMAKE_SKIP_RULE_DEPENDENCY OFF)
+
+set_target_properties(assimp                              PROPERTIES FOLDER "extlibs")
+set_target_properties(uninstall                           PROPERTIES FOLDER "extlibs")
+set_target_properties(UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER "extlibs")
+set_target_properties(libglew_shared                      PROPERTIES FOLDER "extlibs")
+set_target_properties(libglew_static                      PROPERTIES FOLDER "extlibs")
+set_target_properties(libglewmx_shared                    PROPERTIES FOLDER "extlibs")
+set_target_properties(libglewmx_static                    PROPERTIES FOLDER "extlibs")
+set_target_properties(zlibstatic                          PROPERTIES FOLDER "extlibs")

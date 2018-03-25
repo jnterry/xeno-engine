@@ -9,3 +9,5 @@ target_link_libraries(line-test xen-all)
 
 target_include_directories(line-test PRIVATE "${XEN_EXTLIBS_DIR}/glew-2.1.0/include/")
 target_link_libraries(line-test libglew_shared)
+
+set_target_properties(line-test PROPERTIES FOLDER "examples")

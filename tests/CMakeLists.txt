@@ -1,4 +1,4 @@
-add_executable(xen_unit_tests
+add_executable(unit-tests
   ${CMAKE_CURRENT_LIST_DIR}/main.cpp
 
   ${CMAKE_CURRENT_LIST_DIR}/extlibs/catch.hpp
@@ -24,10 +24,12 @@ add_executable(xen_unit_tests
 )
 
 
-target_include_directories(xen_unit_tests PRIVATE ${XEN_INCLUDE_DIR})
-target_link_libraries(xen_unit_tests xen-graphics)
-target_link_libraries(xen_unit_tests xen-util    )
-target_link_libraries(xen_unit_tests xen-math    )
-target_link_libraries(xen_unit_tests xen-core    )
+target_include_directories(unit-tests PRIVATE ${XEN_INCLUDE_DIR})
+target_link_libraries(unit-tests xen-graphics)
+target_link_libraries(unit-tests xen-util    )
+target_link_libraries(unit-tests xen-math    )
+target_link_libraries(unit-tests xen-core    )
 
-target_include_directories(xen_unit_tests PRIVATE ${CMAKE_CURRENT_LIST_DIR}/extlibs)
+target_include_directories(unit-tests PRIVATE ${CMAKE_CURRENT_LIST_DIR}/extlibs)
+
+set_target_properties(unit-tests PROPERTIES FOLDER "examples")

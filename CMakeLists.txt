@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 2.8.1)
 project("Xeno Engine")
-set(GLOBAL PROPERTY USE_FOLDERS ON)
+
+# Enable grouping projects into folders in generated IDE solution files (eg, visual studio)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/options/strict_compile.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/options/xshm.cmake")
