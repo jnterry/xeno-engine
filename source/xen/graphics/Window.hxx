@@ -69,6 +69,8 @@ namespace xen {
 
 #if defined XEN_OS_UNIX
 	#include "Window.unix.hxx"
+#elif defined XEN_OS_WINDOWS
+	#include "Window.win.hxx"
 #endif
 
 #endif

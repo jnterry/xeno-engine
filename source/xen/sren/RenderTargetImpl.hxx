@@ -45,8 +45,12 @@ namespace xen {
 	}
 }
 
-#if XEN_OS_UNIX
+#ifdef XEN_OS_UNIX
 	#include "RenderTargetImpl.unix.hxx"
+#elif defined XEN_OS_WINDOWS
+	#include "RenderTargetImpl.win.hxx"
+#else
+	#error "Software renderer not supported on this platform!"
 #endif
 
 #endif

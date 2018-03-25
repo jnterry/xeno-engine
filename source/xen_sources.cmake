@@ -6,6 +6,7 @@ set(XEN_SOURCES_CORE
   ${CMAKE_CURRENT_LIST_DIR}/xen/core/memory/ArenaLinear.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/core/random.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/core/time.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/core/File.cpp
 )
 
 set(XEN_HEADERS_CORE
@@ -18,17 +19,7 @@ set(XEN_HEADERS_CORE
   ${CMAKE_CURRENT_LIST_DIR}/xen/core/memory/utilities.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/core/random.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/core/time.hpp
-)
-
-##################################################
-## Util
-##################################################
-set(XEN_SOURCES_UTIL
-  ${CMAKE_CURRENT_LIST_DIR}/xen/util/File.cpp
-)
-
-set(XEN_HEADERS_UTIL
-  ${CMAKE_CURRENT_LIST_DIR}/xen/util/File.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/core/File.hpp
 )
 
 ##################################################

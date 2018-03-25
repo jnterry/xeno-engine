@@ -4,6 +4,7 @@
 
 TEST_CASE("Camera3dCylinder Position", "[graphics][Camera3d][Camera3dCylinder]"){
 	xen::Camera3dCylinder camera;
+	camera.target = Vec3r::Origin;
 	camera.up_dir = Vec3r::UnitY;
 	camera.axis   = Vec3r::UnitY;
 	camera.height = 0;

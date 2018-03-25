@@ -3,11 +3,11 @@
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Contains public interface for interacting with the file system
 ///
-/// \ingroup util
+/// \ingroup core
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_UTIL_FILE_HPP
-#define XEN_UTIL_FILE_HPP
+#ifndef XEN_CORE_FILE_HPP
+#define XEN_CORE_FILE_HPP
 
 #include <xen/core/array_types.hpp>
 

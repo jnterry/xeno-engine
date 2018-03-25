@@ -6,8 +6,8 @@
 /// \ingroup graphics
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_GL_RENDERTARGETIMPL_CPP
-#define XEN_GL_RENDERTARGETIMPL_CPP
+#ifndef XEN_GL_RENDERTARGETIMPL_UNIX_CPP
+#define XEN_GL_RENDERTARGETIMPL_UNIX_CPP
 
 #include "../graphics/Window.unix.hxx"
 

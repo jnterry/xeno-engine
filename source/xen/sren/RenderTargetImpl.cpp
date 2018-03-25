@@ -11,8 +11,12 @@
 
 #include <xen/config.hpp>
 
-#if XEN_OS_UNIX
+#ifdef XEN_OS_UNIX
 	#include "RenderTargetImpl.unix.cpp"
+#elif defined XEN_OS_WINDOWS
+	#include "RenderTargetImpl.win.cpp"
+#else
+	#error "Software renderer not supported on this platform!"
 #endif
 
 #endif

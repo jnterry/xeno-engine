@@ -9,13 +9,13 @@
 #ifndef XEN_GL_GLDEVICE_CPP
 #define XEN_GL_GLDEVICE_CPP
 
-#include <xen/config.hpp>
+#include <xen/graphics/GraphicsDevice.hpp>
+#include <xen/graphics/Mesh.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/core/array.hpp>
-#include <xen/graphics/GraphicsDevice.hpp>
-#include <xen/graphics/Mesh.hpp>
-#include <xen/util/File.hpp>
+#include <xen/core/File.hpp>
+#include <xen/config.hpp>
 
 #include "gl_header.hxx"
 #include "Mesh.hxx"
@@ -26,14 +26,53 @@
 
 #if defined XEN_OS_UNIX
 	#include "RenderTarget.unix.cpp"
-// #elif defined XEN_OS_WINDOWS
-// :TODO:
+#elif defined XEN_OS_WINDOWS
+	#include "RenderTarget.win.cpp"
 #else
 	// :TODO: add dummy implementation
 	#error "GlDevice is not implemented on this platform!"
 #endif
 
 namespace {
+
+		/*void xenGlDebugCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* msg, onst void* userParam){
+		  const char* source_str = "Unknown Source";
+		  const char* type_str   = "Unknown Type";
+
+		  switch(source){
+		  case DEBUG_SOURCE_API:
+		  source_str = "DEBUG_SOURCE_API (call to gl function)"; break;
+		  case DEBUG_SOURCE_WINDOW_SYSTEM:
+		  source_str = "DEBUG_SOURCE_WINDOW_SYSTEM"; break;
+		  case DEBUG_SOURCE_SHADER_COMPILER:
+		  source_str = "DEBUG_SOURCE_SHADER_COMPILER"; break;
+		  case DEBUG_SOURCE_THIRD_PARTY:
+		  source_str = "DEBUG_SOURCE_THRID_PARTY"; break;
+		  case DEBUG_SOURCE_APPLICATION:
+		  source_str = "DEBUG_SOURCE_APPLICATION"; break;
+		  case DEBUG_SOURCE_OTHER:
+		  source_str = "DEBUG_SOURCE_OTHER";break;
+		  default: XenInvalidPath;
+		  };
+
+		  switch(type){
+		  case DEBUG_TYPE_ERROR:               type_str = "DEBUG_TYPE_ERROR"; break;
+		  case DEBUG_TYPE_DEPRECATED_BEHAVIOR: type_str = "DEBUG_TYPE_DEPRECATED_BEHAVIOR"; break;
+		  case DEBUG_TYPE_UNDEFINED_BEHAVIOR:  type_str = "DEBUG_TYPE_UNDEFINED_BEHAVIOR"; break;
+		  case DEBUG_TYPE_PORTABILITY:         type_str = "DEBUG_TYPE_PORTABILITY"; break;
+		  case DEBUG_TYPE_PERFORMANCE:         type_str = "DEBUG_TYPE_PERFORMANCE"; break;
+		  case DEBUG_TYPE_MARKER:              type_str = "DEBUG_TYPE_MARKER"; break;
+		  case DEBUG_TYPE_PUSH_GROUP:          type_str = "DEBUG_TYPE_PUSH_GROUP"; break;
+		  case DEBUG_TYPE_POP_GROUP:           type_str = "DEBUG_TYPE_POP_GROUP"; break;
+		  case DEBUG_TYPE_OTHER:               type_str = "DEBUG_TYPE_OTHER"; break;
+		  default: XenInvalidPath;
+		  };
+
+		  xen::log::write(::xen::_sys::log, "?", 0, xen::log::ERROR, "OpenGL Error Callback: source: '%s', type: '%s', msg: %s",
+		  source_str, type_str, msg, "xen.gl", nullptr);
+
+		  }*/
+
 	xen::gl::ShaderProgram* loadShader(xen::ArenaLinear& arena){
 		XenTempArena(scratch, 8196);
 
@@ -186,6 +225,13 @@ namespace {
 			GLuint vao;
 			glGenVertexArrays(1, &vao);
 			glBindVertexArray(vao);
+
+			//:TODO: compile time if def, 3 levels for gl debugging:
+			// none -> no checks
+			// some -> do this setup here
+			// all  -> enable the XEN_CHECK_GL macros
+			//glEnable(GL_DEBUG_OUTPUT);
+			//glDebugMessageCallback(&impl::xenGlDebugCallback, nullptr);
 
 			printf("Done GL setup\n");
 
