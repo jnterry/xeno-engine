@@ -38,23 +38,6 @@ namespace xen{
 	/// \brief Represents some period of time, various helpers exist to convert between different units
 	struct Duration{
 		s64 nanoseconds;
-
-		bool operator==(const Duration& other) const{ return this->nanoseconds == other.nanoseconds; }
-		bool operator!=(const Duration& other) const{ return this->nanoseconds != other.nanoseconds; }
-		bool operator>=(const Duration& other) const{ return this->nanoseconds >= other.nanoseconds; }
-		bool operator<=(const Duration& other) const{ return this->nanoseconds <= other.nanoseconds; }
-		bool operator< (const Duration& other) const{ return this->nanoseconds <  other.nanoseconds; }
-		bool operator> (const Duration& other) const{ return this->nanoseconds >  other.nanoseconds; }
-
-		Duration operator+(const Duration& rhs) { return Duration{this->nanoseconds + rhs.nanoseconds}; }
-		Duration operator-(const Duration& rhs) { return Duration{this->nanoseconds - rhs.nanoseconds}; }
-		Duration operator*(real scalar)         { return Duration{(s64)(this->nanoseconds * scalar)};   }
-		Duration operator/(real scalar)         { return Duration{(s64)(this->nanoseconds / scalar)};   }
-
-		Duration& operator+=(const Duration& rhs) { this->nanoseconds += rhs.nanoseconds; return *this; }
-		Duration& operator-=(const Duration& rhs) { this->nanoseconds -= rhs.nanoseconds; return *this; }
-		Duration& operator*=(real scalar) { this->nanoseconds = (s64)( (r64)this->nanoseconds * scalar); return *this; }
-		Duration& operator/=(real scalar) { this->nanoseconds = (s64)( (r64)this->nanoseconds / scalar); return *this; }
 	};
 
 	/// \brief Returns Duration instance representing time since some fixed point (eg: program start),
@@ -65,21 +48,6 @@ namespace xen{
 	/// \todo :TODO: Check thread statement is actually true
 	/// \public \memberof Duration
 	Duration getTimeStamp();
-
-	/// \brief Helper class for recording time elapsed since some point
-	struct Stopwatch{
-		Duration start_time;
-		inline Stopwatch() : start_time(getTimeStamp()){}
-		inline Duration getElapsedTime(){ return getTimeStamp() - start_time; }
-
-		/// \brief Restarts the stopwatch and returns the elapsed time just before reset
-		inline Duration restart(){
-			Duration now = getTimeStamp();
-			Duration last_start = start_time;
-			start_time = now;
-			return now - last_start;
-		}
-	};
 
 	/// \brief Opqaue type representing a calendar date and time
 	///
@@ -166,8 +134,8 @@ namespace xen{
 
 	/// \constructor
 	/// \public \memberof Duration
-   Duration nanoseconds(u64 ns){
-	   return Duration{ (s64)(ns) };
+	Duration nanoseconds(u64 ns){
+		return Duration{ (s64)(ns) };
 	}
 
 	/// \constructor
@@ -184,10 +152,10 @@ namespace xen{
 
 	/// \constructor
 	/// \public \memberof Duration
-   Duration seconds(double secs){
-	   // do part of multiple as a double to keep precision, but do
-	   // part as s64 to ensure we don't lose precision with large doubles
-	   return Duration{ ((s64)(secs * 100000.0)) * (s64)10000 };
+	Duration seconds(double secs){
+		// do part of multiple as a double to keep precision, but do
+		// part as s64 to ensure we don't lose precision with large doubles
+		return Duration{ ((s64)(secs * 100000.0)) * (s64)10000 };
 	}
 
 	/// \constructor
@@ -203,6 +171,58 @@ namespace xen{
 	}
 }
 
+inline bool operator==(const xen::Duration a, const xen::Duration b) {
+	return a.nanoseconds == b.nanoseconds;
+}
+inline bool operator!=(const xen::Duration a, const xen::Duration b) {
+	return a.nanoseconds != b.nanoseconds;
+}
+inline bool operator>=(const xen::Duration a, const xen::Duration b) {
+	return a.nanoseconds >= b.nanoseconds;
+}
+inline bool operator<=(const xen::Duration a, const xen::Duration b) {
+	return a.nanoseconds <= b.nanoseconds;
+}
+inline bool operator< (const xen::Duration a, const xen::Duration b) {
+	return a.nanoseconds <  b.nanoseconds;
+}
+inline bool operator> (const xen::Duration a, const xen::Duration b) {
+	return a.nanoseconds >  b.nanoseconds;
+}
+
+inline xen::Duration operator+(const xen::Duration lhs, const xen::Duration rhs) {
+	return xen::Duration{lhs.nanoseconds + rhs.nanoseconds};
+}
+inline xen::Duration operator-(const xen::Duration lhs, const xen::Duration rhs) {
+	return xen::Duration{lhs.nanoseconds - rhs.nanoseconds};
+}
+inline xen::Duration operator*(real scalar, const xen::Duration d){
+	return xen::Duration{(s64)(d.nanoseconds * scalar)};
+}
+inline xen::Duration operator*(const xen::Duration d, real scalar){
+	return xen::Duration{(s64)(d.nanoseconds * scalar)};
+}
+inline xen::Duration operator/(const xen::Duration d, real scalar){
+	return xen::Duration{(s64)(d.nanoseconds / scalar)};
+}
+
+inline xen::Duration& operator+=(xen::Duration& lhs, const xen::Duration rhs) {
+	lhs.nanoseconds += rhs.nanoseconds;
+	return lhs;
+}
+inline xen::Duration& operator-=(xen::Duration& lhs, const xen::Duration rhs) {
+	lhs.nanoseconds -= rhs.nanoseconds;
+	return lhs;
+}
+inline xen::Duration& operator*=(xen::Duration& lhs, real scalar) {
+	lhs.nanoseconds = (s64)( (r64)lhs.nanoseconds * scalar);
+	return lhs;
+}
+inline xen::Duration& operator/=(xen::Duration& lhs, real scalar) {
+	lhs.nanoseconds = (s64)( (r64)lhs.nanoseconds / scalar);
+	return lhs;
+}
+
 /// \brief Returns the difference between two DateTime instances as
 /// a xen::Duration
 xen::Duration operator-(const xen::DateTime& lhs, const xen::DateTime& rhs);
@@ -212,5 +232,24 @@ xen::DateTime& operator-=(xen::DateTime& lhs, const xen::Duration& rhs);
 
 xen::DateTime operator+(const xen::DateTime& lhs, const xen::Duration& rhs);
 xen::DateTime operator-(const xen::DateTime& lhs, const xen::Duration& rhs);
+
+namespace xen {
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Helper class for recording time elapsed since some point
+	/////////////////////////////////////////////////////////////////////
+	struct Stopwatch {
+		Duration start_time;
+		inline Stopwatch() : start_time(getTimeStamp()) {}
+		inline Duration getElapsedTime() { return getTimeStamp() - start_time; }
+
+		/// \brief Restarts the stopwatch and returns the elapsed time just before reset
+		inline Duration restart() {
+			Duration now = getTimeStamp();
+			Duration last_start = start_time;
+			start_time = now;
+			return now - last_start;
+		}
+	};
+}
 
 #endif

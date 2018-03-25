@@ -71,7 +71,7 @@ xen::Duration operator-(const xen::DateTime& lhs, const xen::DateTime& rhs){
 	return { (s64)( (*((u64*)&lhs) - *((u64*)&rhs)) * 100 ) };
 }
 
-DateTime& operator+=(xen::DateTime& lhs, const xen::Duration& rhs){
+xen::DateTime& operator+=(xen::DateTime& lhs, const xen::Duration& rhs){
 	*((u64*)&lhs) += (xen::asNanoseconds<u64>(rhs) / (u64)100);
 	return lhs;
 }
