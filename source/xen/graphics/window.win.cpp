@@ -148,7 +148,7 @@ namespace xen{
 			if(!TrackMouseEvent(&mouse_track)){
 				// :TODO: log warn
 				printf("Failed to setup mouse tracking on window, MouseLeft events will not be generated, "
-				       "GetLastError: %i", GetLastError());
+				       "GetLastError: %i\n", GetLastError());
 			}
 		}
 
@@ -290,105 +290,104 @@ namespace xen{
 				msgResult = PeekMessage(&msg, w->handle, 0, 0, PM_REMOVE);
 			}
 		}
-	} //end of namespace xen::impl::
 
-	Window* createWindow(xen::ArenaLinear& arena, const char* title){
-		HINSTANCE module = GetModuleHandle(NULL);
-		if(!impl::windowClassRegistered){
-			if(impl::registerWindowClass(module)){
-				// :TODO: log info
-				printf("Registered Xeno Engine's window class successfully");
-			} else {
-				// :TODO: log
-				// :TODO: FormatMessage lets you get a error string from a GetLastError, make some helper?
-				printf("ERROR: Failed to register Xeno Engine's window class, GetLastError: %i",
-					   GetLastError()
-				      );
+		Window* createWindow(xen::ArenaLinear& arena, Vec2u size, const char* title){
+			HINSTANCE module = GetModuleHandle(NULL);
+			if(!impl::windowClassRegistered){
+				if(impl::registerWindowClass(module)){
+					// :TODO: log info
+					printf("Registered Xeno Engine's window class successfully\n");
+				} else {
+					// :TODO: log
+					// :TODO: FormatMessage lets you get a error string from a GetLastError, make some helper?
+					printf("ERROR: Failed to register Xeno Engine's window class, GetLastError: %i\n",
+					       GetLastError()
+					       );
+					return nullptr;
+				}
+			}
+
+			//////////////////////////////////////////////////////////
+			// Create the window
+			void* oldNextByte = arena.next_byte; // :TODO: use memory transaction
+			Window* result = xen::reserveType<xen::Window>(arena);
+			*result = {};
+
+			result->handle = CreateWindowEx(0,
+			                                impl::WINDOW_CLASS_NAME,
+			                                title,
+			                                WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+			                                CW_USEDEFAULT,
+			                                CW_USEDEFAULT,
+			                                size.x,
+			                                size.y,
+			                                0,
+			                                0,
+			                                module,
+			                                0);
+
+			if(result->handle == nullptr){
+				printf("ERROR: Failed to create a window, GetLastError: %i\n", GetLastError());
+				arena.next_byte = oldNextByte;
 				return nullptr;
 			}
+			//enable us to get the xen::Window* from the HWND, eg when handling event callbacks
+			SetWindowLongPtr(result->handle, GWLP_USERDATA, (LONG_PTR)result);
+
+			//////////////////////////////////////////////////////////
+			// Setup the window's pixel format and get a device context
+			result->context = GetDC(result->handle);
+			if(result->context == NULL){
+				printf("ERROR: Failed to create window since was unable to obtain a device context\n");
+				arena.next_byte = oldNextByte;
+				return nullptr;
+			}
+			//setup pixel format
+			//https://msdn.microsoft.com/en-us/library/windows/desktop/dd368826(v=vs.85).aspx
+			//:TODO: make this configurable with params to the function?
+			//ie, if we need a depth buffer, SUPPORT_OPENGL need not be set if planning on using directx, software renderer, etc
+			PIXELFORMATDESCRIPTOR desiredPixelFormat = {
+				sizeof(PIXELFORMATDESCRIPTOR),
+				1, //version, always 1
+				PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,   //Flags
+				PFD_TYPE_RGBA,            //The kind of framebuffer. RGBA or palette.
+				32,                       //Colordepth of the framebuffer.
+				0, 0, 0, 0, 0, 0,
+				0,
+				0,
+				0,
+				0, 0, 0, 0,
+				24,                       //Number of bits for the depthbuffer
+				8,                        //Number of bits for the stencilbuffer
+				0,                        //Number of Aux buffers in the framebuffer (MSDN says not supported?)
+				PFD_MAIN_PLANE,
+				0,
+				0, 0, 0};
+			//get index of closest match that the hardware supports
+			int actualFormatIndex = ChoosePixelFormat(result->context, &desiredPixelFormat);
+			if(actualFormatIndex == 0){
+				printf("Failed to create window as was unable to find a suitable pixel format supported by the hardware\n");
+				arena.next_byte = oldNextByte;
+				return nullptr;
+			}
+
+			PIXELFORMATDESCRIPTOR actualFormat;
+			DescribePixelFormat(result->context, actualFormatIndex, sizeof(PIXELFORMATDESCRIPTOR), &actualFormat);
+			if (!SetPixelFormat(result->context, actualFormatIndex, &actualFormat)){
+				printf("Failed to create window as was unable to set its pixel format\n");
+				arena.next_byte = oldNextByte; // :TDOO: use memory transaction
+				return nullptr;
+			}
+
+			return result;
 		}
 
-		//////////////////////////////////////////////////////////
-		// Create the window
-		void* oldNextByte = arena.next_byte; // :TODO: use memory transaction
-		Window* result = xen::reserveType<xen::Window>(arena);
-		*result = {};
-
-		result->handle = CreateWindowEx(
-		                                0,
-		                                impl::WINDOW_CLASS_NAME,
-		                                title,
-		                                WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-		                                CW_USEDEFAULT,
-		                                CW_USEDEFAULT,
-		                                CW_USEDEFAULT,
-		                                CW_USEDEFAULT,
-		                                0,
-		                                0,
-		                                module,
-		                                0);
-
-		if(result->handle == nullptr){
-			printf("ERROR: Failed to create a window, GetLastError: %i", GetLastError());
-			arena.next_byte = oldNextByte;
-			return nullptr;
+		//Doesn't deallocate any memory, closes + destroys window with window api
+		void destroyWindow(Window* window){
+			DestroyWindow(window->handle);
+			*window = {};
 		}
-		//enable us to get the xen::Window* from the HWND, eg when handling event callbacks
-		SetWindowLongPtr(result->handle, GWLP_USERDATA, (LONG_PTR)result);
-
-		//////////////////////////////////////////////////////////
-		// Setup the window's pixel format and get a device context
-		result->context = GetDC(result->handle);
-		if(result->context == NULL){
-			printf("ERROR: Failed to create window since was unable to obtain a device context");
-			arena.next_byte = oldNextByte;
-			return nullptr;
-		}
-		//setup pixel format
-		//https://msdn.microsoft.com/en-us/library/windows/desktop/dd368826(v=vs.85).aspx
-		//:TODO: make this configurable with params to the function?
-		//ie, if we need a depth buffer, SUPPORT_OPENGL need not be set if planning on using directx, software renderer, etc
-		PIXELFORMATDESCRIPTOR desiredPixelFormat = {
-			sizeof(PIXELFORMATDESCRIPTOR),
-			1, //version, always 1
-			PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,   //Flags
-			PFD_TYPE_RGBA,            //The kind of framebuffer. RGBA or palette.
-			32,                       //Colordepth of the framebuffer.
-			0, 0, 0, 0, 0, 0,
-			0,
-			0,
-			0,
-			0, 0, 0, 0,
-			24,                       //Number of bits for the depthbuffer
-			8,                        //Number of bits for the stencilbuffer
-			0,                        //Number of Aux buffers in the framebuffer (MSDN says not supported?)
-			PFD_MAIN_PLANE,
-			0,
-			0, 0, 0};
-		//get index of closest match that the hardware supports
-		int actualFormatIndex = ChoosePixelFormat(result->context, &desiredPixelFormat);
-		if(actualFormatIndex == 0){
-			printf("Failed to create window as was unable to find a suitable pixel format supported by the hardware");
-			arena.next_byte = oldNextByte;
-			return nullptr;
-		}
-
-		PIXELFORMATDESCRIPTOR actualFormat;
-		DescribePixelFormat(result->context, actualFormatIndex, sizeof(PIXELFORMATDESCRIPTOR), &actualFormat);
-		if (!SetPixelFormat(result->context, actualFormatIndex, &actualFormat)){
-			printf("Failed to create window as was unable to set its pixel format");
-			arena.next_byte = oldNextByte; // :TDOO: use memory transaction
-			return nullptr;
-		}
-
-		return result;
-	}
-
-	//Doesn't deallocate any memory, closes + destroys window with window api
-	void destroyWindow(Window* window){
-		DestroyWindow(window->handle);
-		*window = {};
-	}
+	} //end of namespace xen::impl::
 
 	bool isWindowOpen(Window* window){
 		return window->handle && IsWindowVisible(window->handle);
