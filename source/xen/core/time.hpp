@@ -134,25 +134,25 @@ namespace xen{
 
 	/// \constructor
 	/// \public \memberof Duration
-	Duration nanoseconds(u64 ns){
+	inline Duration nanoseconds(u64 ns){
 		return Duration{ (s64)(ns) };
 	}
 
 	/// \constructor
 	/// \public \memberof Duration
-	Duration microseconds(u64 us){
+	inline Duration microseconds(u64 us){
 		return Duration{ (s64)(us * 1000) };
 	}
 
 	/// \constructor
 	/// \public \memberof Duration
-	Duration milliseconds(u64 ms){
+	inline Duration milliseconds(u64 ms){
 		return Duration{ (s64)(ms * 1000000) };
 	}
 
 	/// \constructor
 	/// \public \memberof Duration
-	Duration seconds(double secs){
+	inline Duration seconds(double secs){
 		// do part of multiple as a double to keep precision, but do
 		// part as s64 to ensure we don't lose precision with large doubles
 		return Duration{ ((s64)(secs * 100000.0)) * (s64)10000 };
@@ -160,13 +160,13 @@ namespace xen{
 
 	/// \constructor
 	/// \public \memberof Duration
-	Duration minutes(double mins){
+	inline Duration minutes(double mins){
 		return seconds(mins*60.0);
 	}
 
 	/// \constructor
 	/// \public \memberof Duration
-	Duration hours(double hours){
+	inline Duration hours(double hours){
 		return seconds(hours*3600);
 	}
 }
