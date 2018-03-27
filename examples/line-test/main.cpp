@@ -11,6 +11,7 @@ int main(int argc, char** argv){
 	render_params.camera.z_near   =  0.001;
 	render_params.camera.z_far    =  1000;
 	render_params.camera.fov_y    =  70_deg;
+	render_params.camera.up_dir   =  Vec3r::UnitY;
 	render_params.camera.look_dir = -Vec3r::UnitZ;
 	render_params.camera.position =  Vec3r{0, 0, 50};
 
