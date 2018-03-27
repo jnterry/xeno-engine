@@ -154,10 +154,14 @@ namespace xen{
 		case ImageFormat::TGA:
 			write_result = stbi_write_tga(file_path, image.width, image.height, 4, image.pixels);
 			break;
-		case ImageFormat::JPG:
+		case ImageFormat::JPG: {
 			// :TODO: some way to configure, between 0 and 100
 			int quality = 100;
 			write_result = stbi_write_jpg(file_path, image.width, image.height, 4, image.pixels, quality);
+			break;
+		}
+		case ImageFormat::UNKNOWN:
+			XenInvalidCodePath("Type should have been detected from file extension");
 			break;
 		}
 

@@ -81,7 +81,7 @@ int main(int argc, char** argv){
 	xen::Mesh mesh_cube = device->createMesh(mesh_data_cube);
 
 	xen::RawImage          test_image   = xen::loadImage(arena, "test.bmp");
-	xen::gl::TextureHandle test_texture = xen::gl::createTexture(&test_image);
+	xen::gl::createTexture(&test_image);
 
 	int CMD_BUNNY  = 0;
 	int CMD_FLOOR  = 1;
