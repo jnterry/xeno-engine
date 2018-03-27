@@ -549,6 +549,23 @@ namespace xen{
 
 				mat_mvp = cmd->model_matrix * mat_vp;
 
+				#ifdef XEN_DEBUG_ADDITIONAL_CHECKS
+				bool is_bad = true;
+				for(u32 i = 0; i < 16; ++i){
+					if(std::isnan(mat_mvp.elements[i])){
+						// :TODO: log error
+						printf("ERROR: Element %i of mvp matrix is nan in cmd: %i\n",
+						       i, cmd_index);
+						is_bad = true;
+					}
+				}
+				if(is_bad){
+					printf("ERROR: Skipping command %i due to invalid mvp matrix\n",
+					       cmd_index);
+					continue;
+				}
+				#endif
+
 				Color4f base_color = cmd->color;
 				base_color.rgb *= params.ambient_light;
 
