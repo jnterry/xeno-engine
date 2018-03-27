@@ -36,6 +36,11 @@ ExampleApplication createApplication(const char* window_title,
 	Vec2u window_size = {800, 600};
 
 	do {
+		bool option_picked  = false;
+		int backend         = 0;
+
+		// change to 1 to disable picking a backend - default_backend will be used
+		#if 1
 		printf("Select graphics backend\n");
 		printf("-----------------------\n");
 		for(u32 i = 0; i < ExampleApplication::Backend::COUNT; ++i){
@@ -50,9 +55,8 @@ ExampleApplication createApplication(const char* window_title,
 		}
 		printf(": ");
 
-		int backend         = 0;
+
 		char c              = '\0';
-		bool option_picked  = false;
 		bool invalid_option = false;
 		while(true){
 			c = getchar();
@@ -71,6 +75,7 @@ ExampleApplication createApplication(const char* window_title,
 			// Then re-print the menu, prompt user again
 			continue;
 		}
+		#endif
 
 		if(option_picked){
 			--backend; // Convert from gui [1, n+1] range to [0, n] range
