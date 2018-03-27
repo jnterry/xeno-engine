@@ -14,6 +14,14 @@
 #include "swizzles.hxx"
 
 namespace xen{
+	template<u32 T_SIZE, typename T>
+	bool isnan(Vec<T_SIZE, T> vec){
+		for(u32 i = 0; i < T_SIZE; ++i){
+			if(xen::isnan(vec.elements[i])){ return true; }
+		}
+		return false;
+	}
+
 	/// \brief Computes dot product of two vectors
 	template<typename T>
 	T dot(const Vec2<T>& a, const Vec2<T>& b){

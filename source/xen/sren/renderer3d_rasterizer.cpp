@@ -533,6 +533,13 @@ namespace xen{
 		                     const RenderParameters3d& params,
 		                     const xen::Array<RenderCommand3d>& commands){
 
+			#ifdef XEN_DEBUG_ADDITIONAL_CHECKS
+			if(!xen::isCameraValid(params.camera)){
+				printf("ERROR: Camera is not valid, skipping rendering\n");
+				return;
+			}
+			#endif
+
 			// Find the actual view_region we wish to draw to. This is the
 			// intersection of the actual target, and the user specified viewport
 			xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
@@ -550,17 +557,8 @@ namespace xen{
 				mat_mvp = cmd->model_matrix * mat_vp;
 
 				#ifdef XEN_DEBUG_ADDITIONAL_CHECKS
-				bool is_bad = true;
-				for(u32 i = 0; i < 16; ++i){
-					if(std::isnan(mat_mvp.elements[i])){
-						// :TODO: log error
-						printf("ERROR: Element %i of mvp matrix is nan in cmd: %i\n",
-						       i, cmd_index);
-						is_bad = true;
-					}
-				}
-				if(is_bad){
-					printf("ERROR: Skipping command %i due to invalid mvp matrix\n",
+				if(xen::isnan(mat_mvp)){
+					printf("ERROR: MVP matrix contains NaN elements, skipping command %i\n",
 					       cmd_index);
 					continue;
 				}

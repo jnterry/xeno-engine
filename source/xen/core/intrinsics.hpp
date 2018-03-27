@@ -101,6 +101,9 @@ namespace xen{
 		a     = b;
 		b     = tmp;
 	}
+
+	inline bool isnan(float a ){ return std::isnan(a); }
+	inline bool isnan(double a){ return std::isnan(a); }
 }
 
 inline constexpr real operator"" _r(long double            val){ return (real)val; }

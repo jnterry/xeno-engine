@@ -169,6 +169,13 @@ namespace xen {
 	inline Vec3r getCameraPosition(const Camera3d&         cam){
 		return cam.position;
 	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Determines if a camera is valid and may be used for rendering
+	/// IE: No NaN values, look_dir and up_dir are not in the same direction,
+	/// etc
+	/////////////////////////////////////////////////////////////////////
+	bool isCameraValid(const Camera3d cam);
 }
 
 #endif
