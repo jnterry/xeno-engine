@@ -54,3 +54,11 @@ check_section "The following files should be included relatively" \
 
 check_section "The following spelling mistakes were found" \
 							"egrep --color -R -i 'verticies|indicies|matricies|primative'"
+
+if [[ $section_has_been_printed == 0 ]] ; then
+		printf "\033[1;32m--- No issues found ---\033[0m\n"
+		exit 0
+else
+		printf "\033[1;31m*** Issues found ***\033[0m\n"
+		exit 1
+fi

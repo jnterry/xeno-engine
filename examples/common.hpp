@@ -10,6 +10,8 @@
 #ifndef XEN_EXAMPLES_COMMON_HPP
 #define XEN_EXAMPLES_COMMON_HPP
 
+#include <xen/sren/PostProcessor.hpp>
+
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
@@ -66,7 +68,9 @@ static_assert(ExampleApplication::Backend::COUNT ==
 ////////////////////////////////////////////////////////////////////
 ExampleApplication createApplication(const char* window_title,
                                      ExampleApplication::Backend default_backend =
-                                     ExampleApplication::Backend::COUNT
+                                     ExampleApplication::Backend::COUNT,
+                                     xen::Array<xen::sren::PostProcessor*> post_processors =
+                                     xen::Array<xen::sren::PostProcessor*>::EmptyArray
                                     );
 
 /////////////////////////////////////////////////////////////////////

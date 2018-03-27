@@ -14,7 +14,7 @@
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/math/geometry.hpp>
-#include <xen/util/File.hpp>
+#include <xen/core/File.hpp>
 #include <xen/graphics/Mesh.hpp>
 
 #include <assimp/cimport.h>

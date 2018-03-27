@@ -11,6 +11,7 @@ int main(int argc, char** argv){
 	render_params.camera.z_near   =  0.001;
 	render_params.camera.z_far    =  1000;
 	render_params.camera.fov_y    =  70_deg;
+	render_params.camera.up_dir   =  Vec3r::UnitY;
 	render_params.camera.look_dir = -Vec3r::UnitZ;
 	render_params.camera.position =  Vec3r{0, 0, 50};
 
@@ -30,13 +31,13 @@ int main(int argc, char** argv){
 	xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
 	xen::clearToZero(render_commands);
 
-	render_commands[0].primative_type         = xen::PrimativeType::LINES;
+	render_commands[0].primitive_type         = xen::PrimitiveType::LINES;
 	render_commands[0].color                  = xen::Color::WHITE4f;
 	render_commands[0].model_matrix           = xen::Scale3d(100_r);
 	render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
 	render_commands[0].immediate              = xen::TestMeshGeometry_Axes;
 
-	render_commands[1].primative_type         = xen::PrimativeType::LINES;
+	render_commands[1].primitive_type         = xen::PrimitiveType::LINES;
 	render_commands[1].color                  = xen::Color::YELLOW4f;
 	render_commands[1].model_matrix           = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
 	                                             xen::Scale3d(50_r, 50_r, 10_r) *
@@ -46,7 +47,7 @@ int main(int argc, char** argv){
 	render_commands[1].immediate.position     = &parallel_lines[0];
 	render_commands[1].immediate.vertex_count = LINE_COUNT * 2;
 
-	render_commands[2].primative_type         = xen::PrimativeType::LINES;
+	render_commands[2].primitive_type         = xen::PrimitiveType::LINES;
 	render_commands[2].color                  = xen::Color::MAGENTA4f;
 	render_commands[2].model_matrix           = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
 	                                             xen::Scale3d(50_r, 50_r, 10_r) *

@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 2.8.1)
 project("Xeno Engine")
-set(GLOBAL PROPERTY USE_FOLDERS ON)
+
+# Enable grouping projects into folders in generated IDE solution files (eg, visual studio)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/options/strict_compile.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/options/xshm.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/options/double_precision.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/options/simd.cmake")
-
-# :TODO: have some way of configuring this
-set(CMAKE_BUILD_TYPE Debug)
+include("${CMAKE_CURRENT_LIST_DIR}/cmake/options/build_type.cmake")
 
 set(XEN_LIB_DIR "${CMAKE_CURRENT_LIST_DIR}/lib")
 set(XEN_BIN_DIR "${CMAKE_CURRENT_LIST_DIR}/bin")
@@ -24,7 +24,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${XEN_BIN_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${XEN_BIN_DIR})
 
 set(XEN_EXTLIBS_DIR     "${CMAKE_CURRENT_LIST_DIR}/extlibs")
-set(PP_SFML_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/extlibs/sfml2.4.2/include/")
 set(XEN_INCLUDE_DIR     "${CMAKE_CURRENT_LIST_DIR}/source/")
 
 # Force c++ 11 standard

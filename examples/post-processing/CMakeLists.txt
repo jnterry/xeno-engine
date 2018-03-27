@@ -1,3 +1,3 @@
-xen_add_example(line-test
+xen_add_example(post-processing
 	${CMAKE_CURRENT_LIST_DIR}/main.cpp
 )

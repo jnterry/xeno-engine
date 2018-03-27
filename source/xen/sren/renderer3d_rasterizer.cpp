@@ -533,6 +533,13 @@ namespace xen{
 		                     const RenderParameters3d& params,
 		                     const xen::Array<RenderCommand3d>& commands){
 
+			#ifdef XEN_DEBUG_ADDITIONAL_CHECKS
+			if(!xen::isCameraValid(params.camera)){
+				printf("ERROR: Camera is not valid, skipping rendering\n");
+				return;
+			}
+			#endif
+
 			// Find the actual view_region we wish to draw to. This is the
 			// intersection of the actual target, and the user specified viewport
 			xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
@@ -549,6 +556,14 @@ namespace xen{
 
 				mat_mvp = cmd->model_matrix * mat_vp;
 
+				#ifdef XEN_DEBUG_ADDITIONAL_CHECKS
+				if(xen::isnan(mat_mvp)){
+					printf("ERROR: MVP matrix contains NaN elements, skipping command %i\n",
+					       cmd_index);
+					continue;
+				}
+				#endif
+
 				Color4f base_color = cmd->color;
 				base_color.rgb *= params.ambient_light;
 
@@ -557,15 +572,15 @@ namespace xen{
 					continue;
 				}
 
-				switch(cmd->primative_type){
-				case xen::PrimativeType::POINTS:
+				switch(cmd->primitive_type){
+				case xen::PrimitiveType::POINTS:
 					doRenderPoints(target, view_region, mat_mvp, cmd->immediate);
 					break;
-				case xen::PrimativeType::LINES:
+				case xen::PrimitiveType::LINES:
 					stride = 2;
 					goto do_render_lines;
 					break;
-				case xen::PrimativeType::TRIANGLES: {
+				case xen::PrimitiveType::TRIANGLES: {
 					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += 3){
 						Triangle3r* tri_world = (Triangle3r*)(&cmd->immediate.position[i]);
 
@@ -586,7 +601,7 @@ namespace xen{
 
 					break;
 				}
-				case xen::PrimativeType::LINE_STRIP:
+				case xen::PrimitiveType::LINE_STRIP:
 					stride = 1;
 				do_render_lines:
 					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += stride){

@@ -15,6 +15,14 @@
 #include <xen/math/angle.hpp>
 
 namespace xen {
+	template<u32 T_Rows, u32 T_Cols, typename T>
+	bool isnan(Matrix<T_Rows, T_Cols, T> mat){
+		for(u32 i = 0; i < T_Rows * T_Cols; ++i){
+			if(xen::isnan(mat.elements[i])){ return true; }
+		}
+		return false;
+	}
+
 	template<typename T>
 	inline Mat4<T> transposed(const Mat4<T>& mat){
 		const T* e = mat.elements;

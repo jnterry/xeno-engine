@@ -556,10 +556,7 @@ namespace xen {
 		XWindowAttributes attributes;
 		XGetWindowAttributes(xen::impl::unix_display, window->xwindow, &attributes);
 
-    return {
-	    attributes.width,
-		    attributes.height,
-    };
+    return { (u32)attributes.width, (u32)attributes.height };
 	}
 
 	bool isKeyPressed(Key key){

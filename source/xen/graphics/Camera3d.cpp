@@ -83,6 +83,17 @@ namespace xen {
 
 		return result;
 	}
+
+	bool isCameraValid(const Camera3d cam){
+		return (cam.look_dir != Vec3r::Origin &&
+		        cam.up_dir   != Vec3r::Origin &&
+		        xen::normalized(cam.look_dir) != xen::normalized(cam.up_dir) &&
+		        !xen::isnan(cam.look_dir) &&
+		        !xen::isnan(cam.up_dir)   &&
+		        !xen::isnan(cam.z_near)   &&
+		        !xen::isnan(cam.z_far)
+		       );
+	}
 }
 
 #endif
