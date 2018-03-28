@@ -175,22 +175,48 @@ namespace xen {
 					if(!castRayIntoScene(primary_ray, commands, intersection)){
 						continue;
 					}
-					// Get the intersection related to the triangle intersected
-					xen::Triangle3r intersected_tri = *(xen::Triangle3r*)&commands[intersection.object_index]
-					                                 .immediate.position[intersection.triangle_index*3];
-					// Get the colors of each point of the triangle intersected
-					xen::Triangle4f tri_colors      = *(xen::Triangle4f*)&commands[intersection.object_index]
-					                                 .immediate.color[intersection.triangle_index*3];
-					// Get the barycentric coordinates of the intersection
-					Vec3r bary = xen::getProjectedBarycentricCoordinates(intersected_tri, intersection.intersection);
 
-					// DEBUG
-					// :TODO: Bary values are not as expected. Should each be > 0 and add to 1
-					printf("Bary Values: (%f, %f, %f)\n", bary.x, bary.y, bary.z);
+					XenAssert(intersection.object_index < xen::size(commands),
+					          "Expected intersection's object index to be within "
+					          "bounds of the command list");
+					XenAssert(intersection.triangle_index * 3 <
+					          commands[intersection.object_index].immediate.vertex_count,
+					          "Expected intersection's triangle index to be within "
+					          "bounds of the vertex list");
 
-					// Get the color value of the point by evaluating the barycentric coordinates of the
-					// intersection within the color triangle
-					xen::Color4f pixel_color = evaluateBarycentricCoordinates(tri_colors, bary);
+
+
+					// Default to using WHITE for the pixel color
+					xen::Color4f pixel_color = xen::Color::WHITE4f;
+
+					// :TODO:OPT: Surface calculations and lighting calculations are
+					// completely independent, then multiplied together at end.
+					// Thread for each?
+
+					// If we have per vertex color information use that instead
+					if(commands[intersection.object_index].immediate.color != nullptr){
+						Color* cbuf = commands[intersection.object_index].immediate.color;
+						Vec3r* pbuf = commands[intersection.object_index].immediate.position;
+						u32    buf_index = intersection.triangle_index * 3;
+
+						// Extract the per vertex attributes for the triangle we have intersected
+						xen::Triangle3r     ptri       = *(xen::Triangle3r*)&pbuf[buf_index];
+						xen::Triangle4f ctri;
+						ctri.p1 = xen::makeColor4f(cbuf[buf_index + 0]);
+						ctri.p2 = xen::makeColor4f(cbuf[buf_index + 1]);
+						ctri.p3 = xen::makeColor4f(cbuf[buf_index + 2]);
+
+						// Get the barycentric coordinates of the intersection
+						Vec3r bary = xen::getProjectedBarycentricCoordinates(ptri, intersection.intersection);
+
+						// DEBUG
+						// :TODO: Bary values are not as expected. Should each be > 0 and add to 1
+						printf("Bary Values: (%f, %f, %f)\n", bary.x, bary.y, bary.z);
+
+						// Compute the per vertex attributes for this point on the triangle's surface
+						pixel_color = evaluateBarycentricCoordinates(ctri, bary);
+					}
+
 					Color3f total_light = params.ambient_light;
 
 					/////////////////////////////////////////////////////////////////////
@@ -240,7 +266,7 @@ namespace xen {
 						}
 					}
 
-					pixel_color.rgb *= total_light;
+          //pixel_color.rgb *= total_light;
 
 					/////////////////////////////////////////////////////////////////////
 					// Color the pixel
