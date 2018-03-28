@@ -78,16 +78,23 @@ namespace {
 			for(u32 i = 0; i < cmd->immediate.vertex_count; i += 3){
 				tri = (const xen::Triangle3r*)&cmd->immediate.position[i];
 
-				if(xen::getIntersection(ray_model, *tri, intersection_model)){
-				  intersection_length_sq = xen::distanceSq(ray_model.origin, intersection_model);
-					if(intersection_length_sq < result.depth_sq){
-					  result.depth_sq    = intersection_length_sq;
-						result.pos_world   = intersection_model * cmd->model_matrix;
-						result.cmd_index   = cmd_index;
-						result.tri_index = i/3;
-					  found_intersection = true;
-					}
+				if(!xen::getIntersection(ray_model, *tri, intersection_model)){
+					// Then the ray does not intersection this triangle
+					continue;
 				}
+
+				intersection_length_sq = xen::distanceSq(ray_model.origin, intersection_model);
+
+				if(intersection_length_sq >= result.depth_sq){
+					// Then we've already found a closer intersection. Ignore this one
+					continue;
+				}
+
+				result.depth_sq    = intersection_length_sq;
+				result.pos_world   = intersection_model * cmd->model_matrix;
+				result.cmd_index   = cmd_index;
+				result.tri_index = i/3;
+				found_intersection = true;
 			}
 		}
 
