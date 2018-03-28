@@ -39,7 +39,7 @@ namespace {
 
 		/// \brief The square of the distance between the ray's origin and
 		/// the intersection position in world space
-	  real depth_sq;
+	  real dist_sq;
 
 		/// \brief The index of the object with which the intersection occurred
 		u32 cmd_index;
@@ -52,7 +52,7 @@ namespace {
 	                      const xen::Array<xen::RenderCommand3d>& commands,
 	                      SceneRayCastResult& result){
 
-		result.depth_sq = std::numeric_limits<real>::max();
+		result.dist_sq = std::numeric_limits<real>::max();
 		bool found_intersection = false;
 
 		// Loop over all objects in scene
@@ -90,16 +90,16 @@ namespace {
 				intersection_world = intersection_model * cmd->model_matrix;
 				intersection_length_sq = xen::distanceSq(ray_world.origin, intersection_world);
 
-				if(intersection_length_sq >= result.depth_sq){
+				if(intersection_length_sq >= result.dist_sq){
 					// Then we've already found a closer intersection. Ignore this one
 					continue;
 				}
 
-				result.depth_sq    = intersection_length_sq;
+				result.dist_sq     = intersection_length_sq;
 				result.pos_world   = intersection_world;
 				result.pos_model   = intersection_model;
 				result.cmd_index   = cmd_index;
-				result.tri_index = i/3;
+				result.tri_index   = i/3;
 				found_intersection = true;
 			}
 		}
@@ -255,7 +255,7 @@ namespace xen {
 							                                    );
 
 							if(castRayIntoScene(shadow_ray, commands, shadow_intersection) &&
-							   light_dist_sq > shadow_intersection.depth_sq){
+							   light_dist_sq > shadow_intersection.dist_sq){
 								// Then there is geometry between the intersection.pos_world and
 								// this light. Hence the light source is blocked
 								break;
