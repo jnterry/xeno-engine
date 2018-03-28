@@ -55,6 +55,8 @@
 
 ** Shared
 
+	 - Per Vertex Colors
+		 - Both the software rasterizer and software raytracer support per vertex colors, rather than just per triangle colors. These colors are blended together
 	 - Mesh Loader
 		 - :TODO: flexible mesh system which can represent meshes with arbitrary number of attributes, each of an arbitrary type
 		 - Using assimp library to load mesh formats such as obj
