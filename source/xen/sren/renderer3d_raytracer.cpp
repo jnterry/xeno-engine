@@ -34,6 +34,9 @@ namespace {
 		/// \brief The position of the intersection in world space
 		Vec3r pos_world;
 
+		/// \brief The position of the intersection in model space
+		Vec3r pos_model;
+
 		/// \brief The square of the distance between the ray's origin and
 		/// the intersection position in world space
 	  real depth_sq;
@@ -72,7 +75,8 @@ namespace {
 			const xen::Triangle3r* tri;
 
 			Vec3r intersection_model;
-			real intersection_length_sq;
+			Vec3r intersection_world;
+			real  intersection_length_sq;
 
 			// Loop over all triangles of object
 			for(u32 i = 0; i < cmd->immediate.vertex_count; i += 3){
@@ -83,7 +87,8 @@ namespace {
 					continue;
 				}
 
-				intersection_length_sq = xen::distanceSq(ray_model.origin, intersection_model);
+				intersection_world = intersection_model * cmd->model_matrix;
+				intersection_length_sq = xen::distanceSq(ray_world.origin, intersection_world);
 
 				if(intersection_length_sq >= result.depth_sq){
 					// Then we've already found a closer intersection. Ignore this one
@@ -91,7 +96,8 @@ namespace {
 				}
 
 				result.depth_sq    = intersection_length_sq;
-				result.pos_world   = intersection_model * cmd->model_matrix;
+				result.pos_world   = intersection_world;
+				result.pos_model   = intersection_model;
 				result.cmd_index   = cmd_index;
 				result.tri_index = i/3;
 				found_intersection = true;
@@ -218,13 +224,13 @@ namespace xen {
 						ctri.p3 = xen::makeColor4f(cbuf[buf_index + 2]);
 
 						// Get the barycentric coordinates of the intersection
-						Vec3r bary = xen::getProjectedBarycentricCoordinates(ptri, intersection.pos_world);
+						Vec3r bary = xen::getBarycentricCoordinates(ptri, intersection.pos_model);
 
-						// DEBUG
-						// :TODO: Bary values are not as expected. Should each be > 0 and add to 1
-						printf("Bary Values: (%f, %f, %f)\n", bary.x, bary.y, bary.z);
+						XenDebugAssert(bary.x >= 0, "Expected barycentric x component to be positive");
+						XenDebugAssert(bary.y >= 0, "Expected barycentric y component to be positive");
+						XenDebugAssert(bary.z >= 0, "Expected barycentric z component to be positive");
 
-						// Compute the per vertex attributes for this point on the triangle's surface
+						// Compute the surface attributes at this point on the triangle
 						pixel_color = evaluateBarycentricCoordinates(ctri, bary);
 					}
 

@@ -43,6 +43,11 @@ namespace xen {
     T u = (T)1 - v - w;
 		return {u,v,w};
 	}
+
+	/*
+	  Not currently used. Idea is to avoid floating point issues by ensuring the
+	  point is projected onto plane of triangle before computing the barycentric
+	  coordinates
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Computes the barycentric coordinates for the projection p' of
 	/// point p into the plane of triangle tri
@@ -68,6 +73,7 @@ namespace xen {
 
 		return {x,y,z};
 	}
+	*/
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Evaluates the value of a given barycentric coordinates
