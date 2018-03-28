@@ -176,15 +176,13 @@ namespace xen {
 						continue;
 					}
 
-					XenAssert(intersection.object_index < xen::size(commands),
-					          "Expected intersection's object index to be within "
-					          "bounds of the command list");
-					XenAssert(intersection.triangle_index * 3 <
-					          commands[intersection.object_index].immediate.vertex_count,
-					          "Expected intersection's triangle index to be within "
-					          "bounds of the vertex list");
-
-
+					XenDebugAssert(intersection.object_index < xen::size(commands),
+					               "Expected intersection's object index to be within "
+					               "bounds of the command list");
+					XenDebugAssert(intersection.triangle_index * 3 <
+					               commands[intersection.object_index].immediate.vertex_count,
+					               "Expected intersection's triangle index to be within "
+					               "bounds of the vertex list");
 
 					// Default to using WHITE for the pixel color
 					xen::Color4f pixel_color = xen::Color::WHITE4f;
