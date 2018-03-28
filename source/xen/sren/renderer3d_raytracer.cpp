@@ -34,6 +34,10 @@ namespace {
 		/// \brief The position of the intersection in world space
 		Vec3r pos_world;
 
+		/// \brief The square of the distance between the ray's origin and
+		/// the intersection position in world space
+	  real depth_sq;
+
 		/// \brief The index of the object with which the intersection occurred
 		u32 cmd_index;
 
@@ -41,11 +45,11 @@ namespace {
 		u32 tri_index;
 	};
 
-  bool castRayIntoScene(const xen::Ray3r& ray,
+  bool castRayIntoScene(const xen::Ray3r& ray_world,
 	                      const xen::Array<xen::RenderCommand3d>& commands,
 	                      SceneRayCastResult& result){
 
-		real closest_intersection_length_sq = std::numeric_limits<real>::max();
+		result.depth_sq = std::numeric_limits<real>::max();
 		bool found_intersection = false;
 
 		// Loop over all objects in scene
@@ -60,23 +64,25 @@ namespace {
 			// basis
 			Mat4r mat_model_inv = xen::getInverse(cmd->model_matrix);
 
-			xen::Ray3r ray_model_space = xen::getTransformed(ray, mat_model_inv);
+			// Compute the ray in model space.
+			// This is faster (2 vertices to define a ray) than transforming the mesh
+			// into world space (arbitrary number of vertices)
+			xen::Ray3r ray_model = xen::getTransformed(ray_world, mat_model_inv);
 
 			const xen::Triangle3r* tri;
 
-			Vec3r intersection;
+			Vec3r intersection_model;
 			real intersection_length_sq;
 
 			// Loop over all triangles of object
 			for(u32 i = 0; i < cmd->immediate.vertex_count; i += 3){
 				tri = (const xen::Triangle3r*)&cmd->immediate.position[i];
 
-				if(xen::getIntersection(ray_model_space, *tri, intersection)){
-					intersection_length_sq = distanceSq(ray.origin, intersection);
-					if(intersection_length_sq < closest_intersection_length_sq){
-						closest_intersection_length_sq = intersection_length_sq;
-
-						result.pos_world   = intersection * cmd->model_matrix;
+				if(xen::getIntersection(ray_model, *tri, intersection_model)){
+				  intersection_length_sq = xen::distanceSq(ray_model.origin, intersection_model);
+					if(intersection_length_sq < result.depth_sq){
+					  result.depth_sq    = intersection_length_sq;
+						result.pos_world   = intersection_model * cmd->model_matrix;
 						result.cmd_index   = cmd_index;
 						result.tri_index = i/3;
 					  found_intersection = true;
@@ -235,15 +241,11 @@ namespace xen {
 							                                     intersection.pos_world
 							                                    );
 
-							if(castRayIntoScene(shadow_ray, commands, shadow_intersection)){
-								real geom_dist_sq  = xen::distanceSq(shadow_intersection.pos_world,
-								                                     intersection.pos_world
-								                                    );
-
-								if(light_dist_sq > geom_dist_sq) {
-									// Then light source if blocked by geometry
-									break;
-								}
+							if(castRayIntoScene(shadow_ray, commands, shadow_intersection) &&
+							   light_dist_sq > shadow_intersection.depth_sq){
+								// Then there is geometry between the intersection.pos_world and
+								// this light. Hence the light source is blocked
+								break;
 							}
 
 							float attenuation = (params.lights[i].attenuation.x * 1.0+
