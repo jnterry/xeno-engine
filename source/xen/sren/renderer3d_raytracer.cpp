@@ -32,13 +32,13 @@ namespace {
 	/////////////////////////////////////////////////////////////////////
 	struct SceneRayCastResult {
 		/// \brief The position of the intersection in world space
-		Vec3r intersection;
+		Vec3r pos_world;
 
 		/// \brief The index of the object with which the intersection occurred
-		u32 object_index;
+		u32 cmd_index;
 
 		/// \brief Which triangle of the target object the ray intersected
-		u32 triangle_index;
+		u32 tri_index;
 	};
 
   bool castRayIntoScene(const xen::Ray3r& ray,
@@ -76,9 +76,9 @@ namespace {
 					if(intersection_length_sq < closest_intersection_length_sq){
 						closest_intersection_length_sq = intersection_length_sq;
 
-						result.intersection   = intersection * cmd->model_matrix;
-						result.object_index   = cmd_index;
-						result.triangle_index = i/3;
+						result.pos_world   = intersection * cmd->model_matrix;
+						result.cmd_index   = cmd_index;
+						result.tri_index = i/3;
 					  found_intersection = true;
 					}
 				}
@@ -176,11 +176,11 @@ namespace xen {
 						continue;
 					}
 
-					XenDebugAssert(intersection.object_index < xen::size(commands),
+					XenDebugAssert(intersection.cmd_index < xen::size(commands),
 					               "Expected intersection's object index to be within "
 					               "bounds of the command list");
-					XenDebugAssert(intersection.triangle_index * 3 <
-					               commands[intersection.object_index].immediate.vertex_count,
+					XenDebugAssert(intersection.tri_index * 3 <
+					               commands[intersection.cmd_index].immediate.vertex_count,
 					               "Expected intersection's triangle index to be within "
 					               "bounds of the vertex list");
 
@@ -192,10 +192,10 @@ namespace xen {
 					// Thread for each?
 
 					// If we have per vertex color information use that instead
-					if(commands[intersection.object_index].immediate.color != nullptr){
-						Color* cbuf = commands[intersection.object_index].immediate.color;
-						Vec3r* pbuf = commands[intersection.object_index].immediate.position;
-						u32    buf_index = intersection.triangle_index * 3;
+					if(commands[intersection.cmd_index].immediate.color != nullptr){
+						Color* cbuf = commands[intersection.cmd_index].immediate.color;
+						Vec3r* pbuf = commands[intersection.cmd_index].immediate.position;
+						u32    buf_index = intersection.tri_index * 3;
 
 						// Extract the per vertex attributes for the triangle we have intersected
 						xen::Triangle3r     ptri       = *(xen::Triangle3r*)&pbuf[buf_index];
@@ -205,7 +205,7 @@ namespace xen {
 						ctri.p3 = xen::makeColor4f(cbuf[buf_index + 2]);
 
 						// Get the barycentric coordinates of the intersection
-						Vec3r bary = xen::getProjectedBarycentricCoordinates(ptri, intersection.intersection);
+						Vec3r bary = xen::getProjectedBarycentricCoordinates(ptri, intersection.pos_world);
 
 						// DEBUG
 						// :TODO: Bary values are not as expected. Should each be > 0 and add to 1
@@ -226,18 +226,18 @@ namespace xen {
 
 						switch(params.lights[i].type){
 						case xen::LightSource3d::POINT: {
-							shadow_ray.origin    = intersection.intersection;
+							shadow_ray.origin    = intersection.pos_world;
 							shadow_ray.direction = xen::normalized(params.lights[i].point.position -
-							                                       intersection.intersection
+							                                       intersection.pos_world
 							                                      );
 
 							real light_dist_sq = xen::distanceSq(params.lights[i].point.position,
-							                                     intersection.intersection
+							                                     intersection.pos_world
 							                                    );
 
 							if(castRayIntoScene(shadow_ray, commands, shadow_intersection)){
-								real geom_dist_sq  = xen::distanceSq(shadow_intersection.intersection,
-								                                     intersection.intersection
+								real geom_dist_sq  = xen::distanceSq(shadow_intersection.pos_world,
+								                                     intersection.pos_world
 								                                    );
 
 								if(light_dist_sq > geom_dist_sq) {
