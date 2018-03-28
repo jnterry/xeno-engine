@@ -43,6 +43,38 @@ namespace xen {
     T u = (T)1 - v - w;
 		return {u,v,w};
 	}
+
+	/*
+	  Not currently used. Idea is to avoid floating point issues by ensuring the
+	  point is projected onto plane of triangle before computing the barycentric
+	  coordinates
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Computes the barycentric coordinates for the projection p' of
+	/// point p into the plane of triangle tri
+	/// Taken from: https://pdfs.semanticscholar.org/0141/b1416bb749bb5ba94210a30d70f0824760a4.pdf
+	/// \param p The point to find barycentric coordinates of
+	/// \param tri The triangle Barycentric coordinates are with respect to
+	/// \return Barycentric coordinates of point p
+	/////////////////////////////////////////////////////////////////////
+	template<u32 T_DIM, typename T>
+	Vec3<T> getProjectedBarycentricCoordinates(const Triangle<T_DIM,T>& tri, const Vec<T_DIM,T>& p){
+		//:TODO: Translate this into Jamie friendly code
+		Vec<T_DIM,T> q = tri.p1;
+		Vec<T_DIM,T> u = tri.p2-tri.p1;
+		Vec<T_DIM,T> v = tri.p3-tri.p1;
+
+		Vec<T_DIM,T> n = xen::cross( u, v );
+		real oneOver4ASquared= 1.0 / xen::dot( n, n );
+		Vec<T_DIM,T> w = p - q;
+
+		T y = dot( cross( w, v ), n ) * oneOver4ASquared;
+		T z = dot( cross( u, w ), n ) * oneOver4ASquared;
+		T x = (T)1 - y - z;
+
+		return {x,y,z};
+	}
+	*/
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Evaluates the value of a given barycentric coordinates
 	/// of a specific point with respect to a given triangle

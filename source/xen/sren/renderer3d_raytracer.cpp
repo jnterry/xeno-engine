@@ -32,20 +32,27 @@ namespace {
 	/////////////////////////////////////////////////////////////////////
 	struct SceneRayCastResult {
 		/// \brief The position of the intersection in world space
-		Vec3r intersection;
+		Vec3r pos_world;
+
+		/// \brief The position of the intersection in model space
+		Vec3r pos_model;
+
+		/// \brief The square of the distance between the ray's origin and
+		/// the intersection position in world space
+	  real dist_sq;
 
 		/// \brief The index of the object with which the intersection occurred
-		u32 object_index;
+		u32 cmd_index;
 
 		/// \brief Which triangle of the target object the ray intersected
-		u32 triangle_index;
+		u32 tri_index;
 	};
 
-  bool castRayIntoScene(const xen::Ray3r& ray,
+  bool castRayIntoScene(const xen::Ray3r& ray_world,
 	                      const xen::Array<xen::RenderCommand3d>& commands,
 	                      SceneRayCastResult& result){
 
-		real closest_intersection_length_sq = std::numeric_limits<real>::max();
+		result.dist_sq = std::numeric_limits<real>::max();
 		bool found_intersection = false;
 
 		// Loop over all objects in scene
@@ -60,28 +67,40 @@ namespace {
 			// basis
 			Mat4r mat_model_inv = xen::getInverse(cmd->model_matrix);
 
-			xen::Ray3r ray_model_space = xen::getTransformed(ray, mat_model_inv);
+			// Compute the ray in model space.
+			// This is faster (2 vertices to define a ray) than transforming the mesh
+			// into world space (arbitrary number of vertices)
+			xen::Ray3r ray_model = xen::getTransformed(ray_world, mat_model_inv);
 
 			const xen::Triangle3r* tri;
 
-			Vec3r intersection;
-			real intersection_length_sq;
+			Vec3r intersection_model;
+			Vec3r intersection_world;
+			real  intersection_length_sq;
 
 			// Loop over all triangles of object
 			for(u32 i = 0; i < cmd->immediate.vertex_count; i += 3){
 				tri = (const xen::Triangle3r*)&cmd->immediate.position[i];
 
-				if(xen::getIntersection(ray_model_space, *tri, intersection)){
-					intersection_length_sq = distanceSq(ray.origin, intersection);
-					if(intersection_length_sq < closest_intersection_length_sq){
-						closest_intersection_length_sq = intersection_length_sq;
-
-						result.intersection   = intersection * cmd->model_matrix;
-						result.object_index   = cmd_index;
-						result.triangle_index = i/3;
-					  found_intersection = true;
-					}
+				if(!xen::getIntersection(ray_model, *tri, intersection_model)){
+					// Then the ray does not intersection this triangle
+					continue;
 				}
+
+				intersection_world = intersection_model * cmd->model_matrix;
+				intersection_length_sq = xen::distanceSq(ray_world.origin, intersection_world);
+
+				if(intersection_length_sq >= result.dist_sq){
+					// Then we've already found a closer intersection. Ignore this one
+					continue;
+				}
+
+				result.dist_sq     = intersection_length_sq;
+				result.pos_world   = intersection_world;
+				result.pos_model   = intersection_model;
+				result.cmd_index   = cmd_index;
+				result.tri_index   = i/3;
+				found_intersection = true;
 			}
 		}
 
@@ -176,7 +195,45 @@ namespace xen {
 						continue;
 					}
 
-					Color4f pixel_color = commands[intersection.object_index].color;
+					XenDebugAssert(intersection.cmd_index < xen::size(commands),
+					               "Expected intersection's object index to be within "
+					               "bounds of the command list");
+					XenDebugAssert(intersection.tri_index * 3 <
+					               commands[intersection.cmd_index].immediate.vertex_count,
+					               "Expected intersection's triangle index to be within "
+					               "bounds of the vertex list");
+
+					// Default to using WHITE for the pixel color
+					xen::Color4f pixel_color = xen::Color::WHITE4f;
+
+					// :TODO:OPT: Surface calculations and lighting calculations are
+					// completely independent, then multiplied together at end.
+					// Thread for each?
+
+					// If we have per vertex color information use that instead
+					if(commands[intersection.cmd_index].immediate.color != nullptr){
+						Color* cbuf = commands[intersection.cmd_index].immediate.color;
+						Vec3r* pbuf = commands[intersection.cmd_index].immediate.position;
+						u32    buf_index = intersection.tri_index * 3;
+
+						// Extract the per vertex attributes for the triangle we have intersected
+						xen::Triangle3r     ptri       = *(xen::Triangle3r*)&pbuf[buf_index];
+						xen::Triangle4f ctri;
+						ctri.p1 = xen::makeColor4f(cbuf[buf_index + 0]);
+						ctri.p2 = xen::makeColor4f(cbuf[buf_index + 1]);
+						ctri.p3 = xen::makeColor4f(cbuf[buf_index + 2]);
+
+						// Get the barycentric coordinates of the intersection
+						Vec3r bary = xen::getBarycentricCoordinates(ptri, intersection.pos_model);
+
+						XenDebugAssert(bary.x >= 0, "Expected barycentric x component to be positive");
+						XenDebugAssert(bary.y >= 0, "Expected barycentric y component to be positive");
+						XenDebugAssert(bary.z >= 0, "Expected barycentric z component to be positive");
+
+						// Compute the surface attributes at this point on the triangle
+						pixel_color = evaluateBarycentricCoordinates(ctri, bary);
+					}
+
 					Color3f total_light = params.ambient_light;
 
 					/////////////////////////////////////////////////////////////////////
@@ -188,24 +245,20 @@ namespace xen {
 
 						switch(params.lights[i].type){
 						case xen::LightSource3d::POINT: {
-							shadow_ray.origin    = intersection.intersection;
+							shadow_ray.origin    = intersection.pos_world;
 							shadow_ray.direction = xen::normalized(params.lights[i].point.position -
-							                                       intersection.intersection
+							                                       intersection.pos_world
 							                                      );
 
 							real light_dist_sq = xen::distanceSq(params.lights[i].point.position,
-							                                     intersection.intersection
+							                                     intersection.pos_world
 							                                    );
 
-							if(castRayIntoScene(shadow_ray, commands, shadow_intersection)){
-								real geom_dist_sq  = xen::distanceSq(shadow_intersection.intersection,
-								                                     intersection.intersection
-								                                    );
-
-								if(light_dist_sq > geom_dist_sq) {
-									// Then light source if blocked by geometry
-									break;
-								}
+							if(castRayIntoScene(shadow_ray, commands, shadow_intersection) &&
+							   light_dist_sq > shadow_intersection.dist_sq){
+								// Then there is geometry between the intersection.pos_world and
+								// this light. Hence the light source is blocked
+								break;
 							}
 
 							float attenuation = (params.lights[i].attenuation.x * 1.0+
@@ -226,7 +279,7 @@ namespace xen {
 						}
 					}
 
-					pixel_color.rgb *= total_light;
+          //pixel_color.rgb *= total_light;
 
 					/////////////////////////////////////////////////////////////////////
 					// Color the pixel
