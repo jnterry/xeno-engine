@@ -4,6 +4,10 @@
 # Ignore documentation
 /docs/
 
+# Generated report files
+report.tex
+report.pdf
+
 # Ignore emacs backup files
 *#*#
 *.#*
