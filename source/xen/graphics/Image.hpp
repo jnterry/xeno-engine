@@ -144,6 +144,91 @@ namespace xen{
 	/// \public \memberof RawImage
 	/////////////////////////////////////////////////////////////////////
 	void destroyImage(Allocator& alloc, RawImage image);
+
+
+
+	//////////////////////////////////////////////////////////////////////////////
+
+	// :TODO: support blitting one image to another with different fill types
+	// Note: we really also want this for when we present a render target
+	// to a window
+	/*
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Enumeration of the supported methods by which a framebuffer
+	/// may be displayed on a window's surface.
+	/////////////////////////////////////////////////////////////////////
+	enum class BlitOperation {
+		/////////////////////////////////////////////////////////////////////
+		/// \brief The top left of the source and destination buffers will be lined
+		/// up
+		///
+		/// If the source is larger than the destination then extra contents in the
+		/// lower right corner will be discarded
+		///
+		/// If the source is smaller than the target any pixels not covered by the
+		/// source in the target will not be modified
+		///
+		/// For example
+		///  # # # . . .
+		///  # # # . . .
+		///  # # # . . .
+		///  # # # . . .
+		///  . . . . . .
+		///  . . . . . .
+		///
+		/////////////////////////////////////////////////////////////////////
+		TOP_LEFT,
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief The centers' of the source and destination buffers will be lined
+		/// up.
+		///
+		/// If the source is larger than the destination then extra contents along
+		/// some dimension then contents will be lost at both edges of the source
+		/// on that dimension.
+		///
+		/// If the source is smaller than the destination then pixels outside of
+		/// the source in the destination will not be modified
+		///
+		/// For example:
+		///  . . . . . .
+		///  . # # # . .
+		///  . # # # . .
+		///  . # # # . .
+		///  . # # # . .
+		///  . . . . . .
+		/////////////////////////////////////////////////////////////////////
+		CENTER,
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief The centers' of the source and destination buffers will be lined
+		/// up, and the source will be scaled such that one dimension is equal to
+		/// that of the target, and the other is smaller or equal to that of the
+		/// target. Aspect ratio of the source will not be changed.
+		///
+		///
+		/// Pixels outside of the source on the destination will not be modified
+		/////////////////////////////////////////////////////////////////////
+		CENTER_SCALE_FIT,
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief The center's of the source and destination buffers will be lined
+		/// up, and the source will be scaled such that one dimension is equal to
+		/// that of the target, and the other is larger or equal to that of that
+		/// target. Aspect ratio of the source will not be changed.
+		///
+		/// Some contents of the source may be lost along the dimension of the
+		/// source which is longer than that of the target
+		/////////////////////////////////////////////////////////////////////
+		CENTER_SCALE_FILL,
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief The source will be stretched along any dimension necessary
+		/// in order to fill the destination. Aspect ratio will not be maintained
+		/////////////////////////////////////////////////////////////////////
+		STRETCH_FILL,
+	};
+	*/
 }
 
 #endif
