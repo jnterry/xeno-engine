@@ -100,6 +100,34 @@ namespace xen {
 	}
 
 	/////////////////////////////////////////////////////////////////////
+	/// \brief Reserves a slot from the specified ArenaPool
+	/// \return Index of the reserved slot
+	/// \public \memberof xen::ArenaPool
+	/// \see reserveType
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+  u32 reserveSlot(ArenaPool<T>& arena){
+		if(arena.first_free_slot == ArenaPool<T>::BAD_SLOT_INDEX){
+			return ArenaPool<T>::BAD_SLOT_INDEX;
+		}
+		++arena.slots_used;
+		u32 result = arena.first_free_slot;
+		arena.first_free_slot = arena.slots[result].next_free;
+		return result;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Frees a slot in some ArenaPool such that it may be reused.
+	/// This invalidates any pointers to the object contained by the slot
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	void freeSlot(ArenaPool<T>& arena, u32 slot_index){
+		--arena.slots_used;
+		arena.slots[slot_index].next_free = arena.first_free_slot;
+		arena.first_free_slot = slot_index;
+	}
+
+	/////////////////////////////////////////////////////////////////////
   /// \brief Reserves a slot from the specified ArenaPool for an instance of
 	/// type T
 	/// \public \memberof xen::ArenaPool
@@ -122,9 +150,7 @@ namespace xen {
 	template<typename T>
 	void freeType(ArenaPool<T>& arena, T* object) {
 		u32 slot_index = (object - &arena.slots[0].item) / sizeof(T);
-		--arena.slots_used;
-		arena.slots[slot_index].next_free = arena.first_free_slot;
-		arena.first_free_slot = slot_index;
+	  freeSlot(arena, slot_index);
 	}
 
 	/// \brief Pushes a new instance of some class into some arena. After

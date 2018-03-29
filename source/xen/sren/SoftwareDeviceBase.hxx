@@ -13,6 +13,7 @@
 #include <xen/graphics/Image.hpp>
 
 #include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/core/memory/ArenaPool.hpp>
 #include <xen/core/memory/Allocator.hpp>
 
 #include "RenderTargetImpl.hxx"
@@ -28,8 +29,7 @@ namespace xen {
 			xen::Allocator*  main_allocator;
 			xen::ArenaLinear misc_arena;
 
-			// :TODO: re-sizeable pool helper
-			xen::FixedArray<RenderTargetImpl, 128> render_targets;
+			xen::ArenaPool<RenderTargetImpl> render_targets;
 
 			/// \brief Creates a new RenderTarget with the specified size
 			RenderTarget      createRenderTarget (Vec2u size, Window* window);

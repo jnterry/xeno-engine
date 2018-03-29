@@ -24,7 +24,8 @@ namespace xen {
 		SoftwareDeviceBase::SoftwareDeviceBase(xen::Array<PostProcessor*> post_processors)
 			: post_processors(post_processors),
 			  main_allocator (new xen::AllocatorCounter<xen::AllocatorMalloc>()),
-			  misc_arena     (xen::createArenaLinear(*main_allocator, xen::megabytes(1)))
+			  misc_arena     (xen::createArenaLinear(*main_allocator, xen::megabytes(1))),
+			  render_targets (xen::createArenaPool<RenderTargetImpl>(main_allocator, 128))
 		{
 			// no-op
 		}
@@ -35,7 +36,7 @@ namespace xen {
 		}
 
 		RenderTargetImpl* SoftwareDeviceBase::getRenderTargetImpl(RenderTarget target){
-			return &this->render_targets[target._id];
+			return &this->render_targets.slots[target._id].item;
 		}
 
 		void SoftwareDeviceBase::clear(xen::RenderTarget& target, xen::Color color){
@@ -43,16 +44,8 @@ namespace xen {
 		}
 
 		RenderTarget SoftwareDeviceBase::createRenderTarget (Vec2u size, Window* window){
-			u32 slot;
-			for(slot = 0; slot < xen::size(this->render_targets); ++slot){
-				if(this->render_targets[slot].color == nullptr){
-					break;
-				}
-			}
-			// :TODO: re-sizeable pool
-			XenAssert(slot <= xen::size(this->render_targets), "No space for new render target");
-
-			RenderTargetImpl* target = &this->render_targets[slot];
+			u32 slot = xen::reserveSlot(this->render_targets);
+			RenderTargetImpl* target = &this->render_targets.slots[slot].item;
 
 			xen::clearToZero<RenderTargetImpl>(target);
 			this->resizeRenderTarget(target, size);
@@ -73,6 +66,8 @@ namespace xen {
 			target->depth = nullptr;
 
 			xen::sren::doPlatformRenderTargetDestruction(this->main_allocator, *target, target->window);
+
+			xen::freeType(this->render_targets, target);
 		}
 
 		void SoftwareDeviceBase::resizeRenderTarget(RenderTargetImpl* target, Vec2u size){
