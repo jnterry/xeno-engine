@@ -15,7 +15,7 @@
 
 #include <xen/math/vector_types.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
-#include <xen/windows_header.hxx>
+#include "../windows_header.hxx"
 
 namespace xen{
 	struct Allocator;

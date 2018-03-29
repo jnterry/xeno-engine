@@ -11,7 +11,7 @@
 
 #include "Window.hxx"
 
-#include <xen/windows_header.hxx>
+#include "../windows_header.hxx"
 
 namespace xen {
 	struct Window : public xen::impl::WindowBase{
