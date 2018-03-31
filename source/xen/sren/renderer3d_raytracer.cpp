@@ -279,7 +279,7 @@ namespace xen {
 						}
 					}
 
-          //pixel_color.rgb *= total_light;
+          pixel_color.rgb *= total_light;
 
 					/////////////////////////////////////////////////////////////////////
 					// Color the pixel

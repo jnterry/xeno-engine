@@ -20,7 +20,7 @@ int main(int argc, char** argv){
 	scene_lights[0].color          = xen::Color::WHITE4f;
 	scene_lights[0].attenuation    = {0.0f, 0.0f, 0.01f};
 
-	render_params.ambient_light = xen::Color3f(1.0f, 1.0f, 1.0f);
+	render_params.ambient_light = xen::Color3f(0.2f, 0.2f, 0.2f);
 	render_params.lights        = scene_lights;
 
 	camera.z_near = 0.001;
