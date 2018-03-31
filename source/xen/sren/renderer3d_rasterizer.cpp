@@ -24,9 +24,10 @@
 #include <cstdlib>
 #include <float.h>
 
-//#define XEN_SREN_DEBUG_RENDER_WIREFRAME 1
-
 namespace {
+
+	// :TODO: consolidate all of these convert to screen space functions into single
+	// function
 	template<typename T_IN, typename T_OUT>
   T_OUT _convertToScreenSpace(const T_IN& in, const xen::Aabb2r& viewport){
 		T_OUT out = xen::swizzle<'x','y'>(in);
@@ -505,30 +506,6 @@ namespace {
 namespace xen{
 
 	namespace sren {
-		void clear(xen::sren::RenderTargetImpl& target, Color color) {
-			Color4f color01 = (Color4f)color;
-			for(u32 i = 0; i < target.width * target.height; ++i){
-				target.color[i] = color01;
-			}
-			for(u32 i = 0; i < target.width * target.height; ++i){
-				target.depth[i] = FLT_MAX;
-			}
-		}
-
-		void clear(RenderTargetImpl& target, const xen::Aabb2u& viewport, Color color){
-			Color4f color01 = (Color4f)color;
-
-			for(u32 y = viewport.min.y; y < viewport.max.y; ++y){
-				// still need to stride by width of whole target to get to next line in
-				// y, not just the width of the viewport
-				u32 base = y * target.width;
-				for(u32 x = viewport.min.x; x < viewport.max.x; ++x){
-					target.color[base + x] = color01;
-					target.depth[base + x] = FLT_MAX;
-				}
-			}
-		}
-
 		void renderRasterize(xen::sren::RenderTargetImpl& target, const xen::Aabb2u& viewport,
 		                     const RenderParameters3d& params,
 		                     const xen::Array<RenderCommand3d>& commands){
