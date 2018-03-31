@@ -11,7 +11,9 @@
 
 #include <xen/graphics/Color.hpp>
 #include <xen/math/geometry_types.hpp>
+#include <xen/math/vector_types.hpp>
 #include "RenderTargetImpl.hxx"
+#include "renderer3d.hxx"
 
 namespace xen {
 	namespace sren {
@@ -37,6 +39,17 @@ namespace xen {
 					target.depth[base + x] = FLT_MAX;
 				}
 			}
+		}
+
+		xen::Color3f computeLightInfluence(xen::Color4f light_color,
+		                                   Vec3f        attenuation_coefficents,
+		                                   real         distance_sq){
+			float attenuation = (attenuation_coefficents.x * 1.0 +
+			                     attenuation_coefficents.y * xen::sqrt(distance_sq) +
+			                     attenuation_coefficents.z * distance_sq
+			                     );
+
+			return (light_color / attenuation).rgb * light_color.w;
 		}
 	}
 }

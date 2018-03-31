@@ -9,9 +9,12 @@
 #ifndef XEN_GRAPHICS_SREN_RENDERER3D_HPP
 #define XEN_GRAPHICS_SREN_RENDERER3D_HPP
 
-#include <xen/core/array_types.hpp>
 #include <xen/graphics/Color.hpp>
+#include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/math/geometry_types.hpp>
+#include <xen/math/utilities.hpp>
+#include <xen/math/vector_types.hpp>
+#include <xen/core/array_types.hpp>
 
 #include <cstdio>
 
@@ -44,9 +47,9 @@ namespace xen{
 		/// view the scene
 		/// \param commands Array of render commands to perform
 		/////////////////////////////////////////////////////////////////////
-		void renderRasterize(xen::sren::RenderTargetImpl&,
-		                     const xen::Aabb2u& viewport,
-		                     const RenderParameters3d& params,
+		void renderRasterize(xen::sren::RenderTargetImpl&       target,
+		                     const xen::Aabb2u&                 viewport,
+		                     const xen::RenderParameters3d&     params,
 		                     const xen::Array<RenderCommand3d>& commands);
 
 		/////////////////////////////////////////////////////////////////////
@@ -57,9 +60,9 @@ namespace xen{
 		/// \param camera The 3d camera used to view the scene
 		/// \param commands Array of render commands to perform
 		/////////////////////////////////////////////////////////////////////
-		void renderRaytrace (xen::sren::RenderTargetImpl&,
-		                     const xen::Aabb2u& viewport,
-		                     const RenderParameters3d& params,
+		void renderRaytrace (xen::sren::RenderTargetImpl&       target,
+		                     const xen::Aabb2u&                 viewport,
+		                     const xen::RenderParameters3d&     params,
 		                     const xen::Array<RenderCommand3d>& commands);
 
 		/////////////////////////////////////////////////////////////////////
@@ -71,9 +74,25 @@ namespace xen{
 		/// \param camera      The camera to draw
 		/////////////////////////////////////////////////////////////////////
 		void renderCameraDebug(xen::sren::RenderTargetImpl& target,
-		                       const xen::Aabb2u& viewport,
-		                       const Camera3d& view_camera,
-		                       const Camera3d& camera);
+		                       const xen::Aabb2u&           viewport,
+		                       const Camera3d&              view_camera,
+		                       const Camera3d&              camera);
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Computes the influence of a light of a particular color at
+		/// some distance from it
+		/// \param light_color The color of the light. w component is interpreted
+		/// as a modifier for brightness of the light where 1 means full brightness
+		/// and 0 means no light emitted.
+		/// \param attenuation - Vector representing the attenuation coefficients
+		/// of the light where x is some constant, y is a linear coefficient and
+		/// z is the quadratic coefficient
+		/// \param distance_sq The square of the distance between the light source
+		/// and the point it is illuminating
+		/////////////////////////////////////////////////////////////////////
+		xen::Color3f computeLightInfluence(xen::Color4f light_color,
+		                                   Vec3f        attenuation,
+		                                   real         distance_sq);
 
 	}
 

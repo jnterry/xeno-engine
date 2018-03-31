@@ -238,7 +238,7 @@ namespace xen {
 
 					/////////////////////////////////////////////////////////////////////
 					// Cast shadow ray
-                    for(u64 i = 0; i < params.lights.size; ++i){
+					for(u64 i = 0; i < params.lights.size; ++i){
 						//printf("%i, %i :::::: Casting shadow ray for light %i\n",
 						//       target_pos.x, target_pos.y, i);
 						Ray3r shadow_ray;
@@ -261,14 +261,10 @@ namespace xen {
 								break;
 							}
 
-							float attenuation = (params.lights[i].attenuation.x * 1.0+
-							                     params.lights[i].attenuation.y * xen::sqrt(light_dist_sq) +
-							                     params.lights[i].attenuation.z * light_dist_sq
-							                    );
-
-							//printf("Attenuation: %f, distance: %f\n", attenuation, light_dist_sq);
-
-							total_light += (params.lights[i].color / attenuation).rgb * params.lights[i].color.w;
+							total_light +=
+								xen::sren::computeLightInfluence(params.lights[i].color,
+								                                 params.lights[i].attenuation,
+								                                 light_dist_sq);
 
 							break;
 						}
