@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include <xen/graphics/TestMeshes.hpp>
+#include <xen/graphics/Light3d.hpp>
 #include <xen/core/random.hpp>
 
 
@@ -8,6 +9,7 @@
 
 xen::RenderParameters3d render_params;
 xen::Camera3dCylinder camera;
+xen::FixedArray<xen::LightSource3d, 2> scene_lights;
 
 const u32 STAR_COUNT = 1024;
 Vec3r      star_positions[STAR_COUNT];
@@ -23,6 +25,22 @@ int main(int argc, char** argv){
 	camera.axis   = Vec3r::UnitY;
 	camera.target = Vec3r::Origin;
 	camera.angle  = 0.0_deg;
+
+  scene_lights[0].type           = xen::LightSource3d::POINT;
+	scene_lights[0].point.position = {50_r, 50_r, 50_r};
+	scene_lights[0].color          = xen::Color::WHITE4f;
+	scene_lights[0].color.a        = 1_r;
+	scene_lights[0].attenuation    = {0.0f, 0.0f, 0.001f};
+
+	scene_lights[1].type           = xen::LightSource3d::POINT;
+	scene_lights[1].point.position = {-50_r, -50_r, -50_r};
+	scene_lights[1].color          = xen::Color::WHITE4f;
+	scene_lights[1].color.a        = 1_r;
+	scene_lights[1].attenuation    = {0.0f, 0.0f, 0.001f};
+
+	xen::clearToZero(&render_params);
+	render_params.ambient_light = xen::Color3f(0.4f, 0.4f, 0.4f);
+	render_params.lights        = scene_lights;
 
 	ExampleApplication app = createApplication("starfield",
 	                                           ExampleApplication::Backend::RASTERIZER

@@ -16,6 +16,7 @@
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
+#include <xen/core/array.hpp>
 
 #include "renderer3d.hxx"
 #include "RenderTargetImpl.hxx"
@@ -75,9 +76,50 @@ namespace {
 		return out;
 	}
 
-	void doRenderPoints(xen::sren::RenderTargetImpl& target,
-	                    const xen::Aabb2r& viewport,
-	                    const Mat4r& mvp_matrix,
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Performs fragment shader computations - IE: lighting
+	/// \todo texture lookup
+	/////////////////////////////////////////////////////////////////////
+	xen::Color4f _fragmentShader(const xen::RenderParameters3d& params,
+	                             Vec3r                          pos_world,
+	                             Vec3r                          normal_world,
+	                             xen::Color4f                   color){
+
+		xen::Color4f result = xen::Color4f::Origin;
+
+		xen::Color3f total_light = params.ambient_light;
+
+		for(u32 i = 0; i < xen::size(params.lights); ++i){
+			if(params.lights[i].type != xen::LightSource3d::POINT){
+				printf("WARN: Unsupported light type in rasterizer\n");
+				continue;
+			}
+
+			real distance_sq = xen::distanceSq(pos_world, params.lights[i].point.position);
+
+			total_light += xen::sren::computeLightInfluence
+				(params.lights[i].color,
+				 params.lights[i].attenuation,
+				 distance_sq
+				);
+		}
+
+		for(u32 i = 0; i < 3; ++i){
+			if(total_light.elements[i] > 1){
+				total_light.elements[i] = 1;
+			}
+		}
+
+		result.rgb = color.rgb * total_light;
+		result.a   = 1;
+
+		return result;
+	}
+
+	void doRenderPoints(xen::sren::RenderTargetImpl&        target,
+	                    const xen::RenderParameters3d&      params,
+	                    const xen::Aabb2r&                  viewport,
+	                    const Mat4r&                        mvp_matrix,
 	                    const xen::ImmediateGeometrySource& geom){
 
 		const xen::Color* color_buffer = geom.color;
@@ -112,7 +154,12 @@ namespace {
 				continue;
 			}
 			target.depth[pixel_index] = clip_space.z;
-			target.color[pixel_index] = xen::makeColor4f(color_buffer[i * (geom.color != nullptr)]);
+			target.color[pixel_index] = _fragmentShader
+				(params,
+				 geom.position[i],
+				 Vec3r::Origin,
+				 xen::makeColor4f(color_buffer[i * (geom.color != nullptr)])
+				);
 		}
 	}
 
@@ -364,11 +411,9 @@ namespace {
 				Vec3r depth = evaluateBarycentricCoordinates(tri, bary);
 
 				if (depth.z < target.depth[pixel_index]) {
-					target.color[pixel_index] = color;
 					target.depth[pixel_index] = depth.z;
+					target.color[pixel_index] = color; // :TODO: fragment shader
 				}
-
-
 			}
 		}
 	}
@@ -551,7 +596,7 @@ namespace xen{
 
 				switch(cmd->primitive_type){
 				case xen::PrimitiveType::POINTS:
-					doRenderPoints(target, view_region, mat_mvp, cmd->immediate);
+					doRenderPoints(target, params, view_region, mat_mvp, cmd->immediate);
 					break;
 				case xen::PrimitiveType::LINES:
 					stride = 2;
