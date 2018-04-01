@@ -116,11 +116,11 @@ namespace {
 		return result;
 	}
 
-	void doRenderPoints(xen::sren::RenderTargetImpl&        target,
-	                    const xen::RenderParameters3d&      params,
-	                    const xen::Aabb2r&                  viewport,
-	                    const Mat4r&                        mvp_matrix,
-	                    const xen::ImmediateGeometrySource& geom){
+	void _renderPointsWorld(xen::sren::RenderTargetImpl&        target,
+	                        const xen::RenderParameters3d&      params,
+	                        const xen::Aabb2r&                  viewport,
+	                        const Mat4r&                        mvp_matrix,
+	                        const xen::ImmediateGeometrySource& geom){
 
 		const xen::Color* color_buffer = geom.color;
 		if(geom.color == nullptr){
@@ -163,12 +163,12 @@ namespace {
 		}
 	}
 
-	void doRenderLine3d(xen::sren::RenderTargetImpl&  target,
-	                    const xen::Aabb2r&            viewport,
-	                    const xen::RenderParameters3d params,
-	                    const Mat4r&                  mvp_matrix,
-	                    const xen::LineSegment4f&     line_color,
-	                    const xen::LineSegment3r&     line_world){
+	void _renderLineWorld(xen::sren::RenderTargetImpl&  target,
+	                      const xen::Aabb2r&            viewport,
+	                      const xen::RenderParameters3d params,
+	                      const Mat4r&                  mvp_matrix,
+	                      const xen::LineSegment4f&     line_color,
+	                      const xen::LineSegment3r&     line_world){
 
 		xen::LineSegment4r line_clip  = xen::toHomo(line_world) * mvp_matrix;
 
@@ -242,16 +242,18 @@ namespace {
 
 	}
 
-	void doRenderTriangle2d(xen::sren::RenderTargetImpl& target,
-		                      const xen::Aabb2r& viewport,
-	                        xen::Triangle3r tri,
-	                        xen::Triangle4f colors){
-		xen::Triangle2r tri2d = xen::swizzle<'x','y'>(tri);
+	void _renderTriangleScreen(xen::sren::RenderTargetImpl&   target,
+	                           const xen::Aabb2r&             viewport,
+	                           const xen::RenderParameters3d& params,
+	                           xen::Triangle3r                tri_world,
+	                           xen::Triangle3r                tri_screen,
+	                           xen::Triangle4f                colors){
+		xen::Triangle2r tri_screen_xy = xen::swizzle<'x','y'>(tri_screen);
 
 		xen::Aabb2r region_r = xen::Aabb2r::MaxMinBox;
-		xen::addPoint(region_r, tri2d.p1);
-		xen::addPoint(region_r, tri2d.p2);
-		xen::addPoint(region_r, tri2d.p3);
+		xen::addPoint(region_r, tri_screen_xy.p1);
+		xen::addPoint(region_r, tri_screen_xy.p2);
+		xen::addPoint(region_r, tri_screen_xy.p3);
 		if(!xen::intersect(region_r, viewport)){
 			return;
 		}
@@ -266,13 +268,13 @@ namespace {
 		// than computing the barycentric coordinate at each position in the Aabb
 		// of the triangle we can compute it at the corners and then lerp
 		// across
-		Vec3r bary_bottom_left  = xen::getBarycentricCoordinates(tri2d, Vec2r{
+		Vec3r bary_bottom_left  = xen::getBarycentricCoordinates(tri_screen_xy, Vec2r{
 				(real)region.min.x, (real)region.min.y});
-		Vec3r bary_bottom_right = xen::getBarycentricCoordinates(tri2d, Vec2r{
+		Vec3r bary_bottom_right = xen::getBarycentricCoordinates(tri_screen_xy, Vec2r{
 				(real)region.max.x, (real)region.min.y});
-		Vec3r bary_top_left     = xen::getBarycentricCoordinates(tri2d, Vec2r{
+		Vec3r bary_top_left     = xen::getBarycentricCoordinates(tri_screen_xy, Vec2r{
 				(real)region.min.x, (real)region.max.y});
-		Vec3r bary_top_right    = xen::getBarycentricCoordinates(tri2d, Vec2r{
+		Vec3r bary_top_right    = xen::getBarycentricCoordinates(tri_screen_xy, Vec2r{
 				(real)region.max.x, (real)region.max.y});
 
 		float frac_y = 0.0_r;
@@ -351,23 +353,30 @@ namespace {
 				Vec3r bary = xen::lerp(bary_left, bary_right, frac_x);
 
 				u32 pixel_index = pixel_index_base + x;
-				xen::Color4f color = evaluateBarycentricCoordinates(colors, bary);
-				Vec3r depth = evaluateBarycentricCoordinates(tri, bary);
+
+				xen::Color4f color        = evaluateBarycentricCoordinates(colors,     bary);
+				Vec3r        depth        = evaluateBarycentricCoordinates(tri_screen, bary);
+				Vec3r        pos_world    = evaluateBarycentricCoordinates(tri_world,  bary);
+				Vec3r        normal_world = Vec3r::Origin; // :TODO: compute
 
 				if (depth.z < target.depth[pixel_index]) {
 					target.depth[pixel_index] = depth.z;
-					target.color[pixel_index] = color; // :TODO: fragment shader
+					target.color[pixel_index] = _fragmentShader(params,
+					                                            pos_world,
+					                                            normal_world,
+					                                            color);
 				}
 			}
 		}
 	}
 
-	void doRenderTriangle3d(xen::sren::RenderTargetImpl& target,
-		                      const xen::Aabb2r& viewport,
-												  const Mat4r& mvp_matrix,
-	                        xen::Triangle3r& tri,
-	                        xen::Triangle4f  colors){
-		xen::Triangle4r tri_clip  = xen::toHomo(tri) * mvp_matrix;
+	void _renderTriangleWorld(xen::sren::RenderTargetImpl&  target,
+		                      const xen::Aabb2r&            viewport,
+	                        const xen::RenderParameters3d params,
+												  const Mat4r&                  mvp_matrix,
+	                        const xen::Triangle3r&        tri_world,
+	                        xen::Triangle4f               tri_color){
+		xen::Triangle4r tri_clip  = xen::toHomo(tri_world) * mvp_matrix;
 
 		// Work out which points are behind the camera
 		u08 points_behind = 0;
@@ -390,17 +399,18 @@ namespace {
 			xen::Triangle3r tri_screen =
 				_convertToScreenSpaceTri(tri_clip, viewport);
 
-			doRenderTriangle2d(target, viewport, tri_screen, colors);
+			_renderTriangleScreen(target, viewport, params,
+			                      tri_world, tri_screen, tri_color);
 			return;
 		}
 
 		case 3:   // 011
-			xen::swap(tri_clip.p1, tri_clip.p3);
-			xen::swap(colors.p1,   colors.p3  );
+			xen::swap(tri_clip.p1,  tri_clip.p3 );
+			xen::swap(tri_color.p1, tri_color.p3);
 			goto do_draw_2_behind;
 		case 5:   // 101
-			xen::swap(tri_clip.p1, tri_clip.p2);
-			xen::swap(colors.p1,   colors.p2  );
+			xen::swap(tri_clip.p1,  tri_clip.p2 );
+			xen::swap(tri_color.p1, tri_color.p2);
 			goto do_draw_2_behind;
 		case 6:   // 110
 		do_draw_2_behind: {
@@ -414,12 +424,12 @@ namespace {
 				Vec4r delta_p2 = (tri_clip.p1 - tri_clip.p2);
 				real  frac_p2  = ((-tri_clip.p2.z / delta_p2.z));
 				tri_clip.p2   += delta_p2 * frac_p2;
-				colors.p2     += (colors.p1 - colors.p2) * frac_p2;
+				tri_color.p2  += (tri_color.p1 - tri_color.p2) * frac_p2;
 
 				Vec4r delta_p3 = (tri_clip.p1 - tri_clip.p3);
 				real  frac_p3  = ((-tri_clip.p3.z / delta_p3.z));
 				tri_clip.p3   += delta_p3 * frac_p3;
-				colors.p3     += (colors.p1 - colors.p3) * frac_p3;
+				tri_color.p3  += (tri_color.p1 - tri_color.p3) * frac_p3;
 
 				// Do perspective divide (into normalized device coordinates -> [-1, 1]
 				tri_clip.p1.xy /= (tri_clip.p1.w);
@@ -428,16 +438,17 @@ namespace {
 
 				xen::Triangle3r tri_screen = _convertToScreenSpaceTri(tri_clip, viewport);
 
-				doRenderTriangle2d(target, viewport, tri_screen, colors);
+				_renderTriangleScreen(target, viewport, params,
+				                      tri_world, tri_screen, tri_color);
 				return;
 			}
 		case 1: // 001
-			xen::swap(tri_clip.p1, tri_clip.p3);
-			xen::swap(colors.p1,   colors.p3  );
+			xen::swap(tri_clip.p1,  tri_clip.p3 );
+			xen::swap(tri_color.p1, tri_color.p3);
 			goto do_draw_1_behind;
 		case 2: // 010
-			xen::swap(tri_clip.p2, tri_clip.p3);
-			xen::swap(colors.p2,   colors.p3  );
+			xen::swap(tri_clip.p2,  tri_clip.p3 );
+			xen::swap(tri_color.p2, tri_color.p3);
 			goto do_draw_1_behind;
 		case 4: // 100
 		do_draw_1_behind: {
@@ -468,23 +479,30 @@ namespace {
 				p3_slide_to_p2.xy /= p3_slide_to_p2.w;
 				quad_screen.vertices[3] = p3_slide_to_p2.xyz;
 
+				xen::VertexGroup3r<4> quad_world;
+				quad_world.vertices[0] = tri_world.p1;
+				quad_world.vertices[1] = tri_world.p3 + (tri_world.p1 - tri_world.p3) * frac_p1;
+				quad_world.vertices[2] = tri_world.p2;
+				quad_world.vertices[3] = tri_world.p3 + (tri_world.p2 - tri_world.p3) * frac_p2;
+
 				xen::VertexGroup4f<4> quad_colors;
-				quad_colors.vertices[0] = colors.p1;
-				quad_colors.vertices[1] = colors.p3 + (colors.p1 - colors.p3) * frac_p1;
-				quad_colors.vertices[2] = colors.p2;
-				quad_colors.vertices[3] = colors.p3 + (colors.p2 - colors.p3) * frac_p2;
+				quad_colors.vertices[0] = tri_color.p1;
+				quad_colors.vertices[1] = tri_color.p3 + (tri_color.p1 - tri_color.p3) * frac_p1;
+				quad_colors.vertices[2] = tri_color.p2;
+				quad_colors.vertices[3] = tri_color.p3 + (tri_color.p2 - tri_color.p3) * frac_p2;
 
 				quad_screen = _convertToScreenSpaceQuad(quad_screen, viewport);
 
-				// :TODO: compute colors at each vertex
-				doRenderTriangle2d(target, viewport,
-				                   *(xen::Triangle3r*)&quad_screen.vertices[0],
-				                   *(xen::Triangle4f*)&quad_colors.vertices[0]
-				                  );
-				doRenderTriangle2d(target, viewport,
-				                   *(xen::Triangle3r*)&quad_screen.vertices[1],
-				                   *(xen::Triangle4f*)&quad_colors.vertices[1]
-				                  );
+				_renderTriangleScreen(target, viewport, params,
+				                      *(xen::Triangle3r*)&quad_world.vertices [0],
+				                      *(xen::Triangle3r*)&quad_screen.vertices[0],
+				                      *(xen::Triangle4f*)&quad_colors.vertices[0]
+				                     );
+				_renderTriangleScreen(target, viewport, params,
+				                      *(xen::Triangle3r*)&quad_world.vertices [1],
+				                      *(xen::Triangle3r*)&quad_screen.vertices[1],
+				                      *(xen::Triangle4f*)&quad_colors.vertices[1]
+				                     );
 			}
 			return;
 		}
@@ -540,33 +558,12 @@ namespace xen{
 
 				switch(cmd->primitive_type){
 				case xen::PrimitiveType::POINTS:
-					doRenderPoints(target, params, view_region, mat_mvp, cmd->immediate);
+					_renderPointsWorld(target, params, view_region, mat_mvp, cmd->immediate);
 					break;
 				case xen::PrimitiveType::LINES:
 					stride = 2;
 					goto do_render_lines;
 					break;
-				case xen::PrimitiveType::TRIANGLES: {
-					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += 3){
-						Triangle3r* tri_world = (Triangle3r*)(&cmd->immediate.position[i]);
-
-						xen::Triangle4f tri_color;
-						if(cmd->immediate.color == nullptr){
-							tri_color.p1 = xen::Color::WHITE4f;
-							tri_color.p2 = xen::Color::WHITE4f;
-							tri_color.p3 = xen::Color::WHITE4f;
-						} else {
-							tri_color.p1 = makeColor4f(cmd->immediate.color[i+0]);
-							tri_color.p2 = makeColor4f(cmd->immediate.color[i+1]);
-							tri_color.p3 = makeColor4f(cmd->immediate.color[i+2]);
-						}
-						tri_color *= cmd->color;
-
-						doRenderTriangle3d(target,view_region, mat_mvp, *tri_world, tri_color);
-					}
-
-					break;
-				}
 				case xen::PrimitiveType::LINE_STRIP:
 					stride = 1;
 				do_render_lines:
@@ -579,11 +576,34 @@ namespace xen{
 							line_color.p2 *= xen::makeColor4f(cmd->immediate.color[i+1]);
 						}
 
-						doRenderLine3d(target, view_region, params,
-						               mat_mvp, line_color, *line_world
-						              );
+						_renderLineWorld(target, view_region, params,
+						                 mat_mvp, line_color, *line_world
+						                 );
 					}
 					break;
+				case xen::PrimitiveType::TRIANGLES: {
+					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += 3){
+						Triangle3r* tri_world = (Triangle3r*)(&cmd->immediate.position[i]);
+
+						xen::Triangle4f tri_color = {
+							cmd->color,
+							cmd->color,
+							cmd->color,
+						};
+
+						if(cmd->immediate.color != nullptr){
+							tri_color.p1 *= makeColor4f(cmd->immediate.color[i+0]);
+							tri_color.p2 *= makeColor4f(cmd->immediate.color[i+1]);
+							tri_color.p3 *= makeColor4f(cmd->immediate.color[i+2]);
+						}
+
+						_renderTriangleWorld(target, view_region, params,
+						                     mat_mvp, *tri_world, tri_color
+						                    );
+					}
+
+					break;
+				}
 				default:
 					XenInvalidCodePath("Unhandled render command type in software rasterizer");
 					break;
