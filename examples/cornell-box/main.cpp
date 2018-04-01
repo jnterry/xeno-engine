@@ -14,7 +14,7 @@ int main(int argc, char** argv){
 	camera.height   = 0;
 	camera.up_dir   = Vec3r::UnitY;
 	camera.axis     = Vec3r::UnitY;
-	camera.target   = Vec3r::Origin;
+	camera.target   = {0.0_r, 0.5_r, 0.0_r};
 	camera.angle    = 0.0_deg;
 
 	xen::FixedArray<xen::LightSource3d, 1> scene_lights;
