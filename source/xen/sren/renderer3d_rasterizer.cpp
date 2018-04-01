@@ -25,60 +25,107 @@
 #include <cstdlib>
 #include <float.h>
 
+////////////////////////////////////////////////////////////////////////////////
+//
+// A note on spaces:
+// -----------------
+//
+// In this file geometry is typically encoded in one of the following spaces
+// - model
+//   - positions relative to the origin of the model/mesh
+// - world
+//   - positions relative to the world's origin
+// - clip
+//   - something???
+// - screen
+//   - positions relative to the origin of the screen where x and y is pixel
+//     on the screen, and z is the depth
+//
+// Variable names should be suffixed with _world, _clip etc to indicate the
+// space that variable is in.
+//
+// Screen space is given in pixel coordinates, where x and y is the position
+// and the screen
+//
+// Transformations between the spaces are defined as the following:
+//
+// model
+//   |
+//   | vector * model_matrix
+//   v
+// world
+//   |
+//   | vector * view_projection_matrix (vp_matrix)
+//   v
+// clip
+//   |
+//   | use the _convertToScreenSpace functions
+//   v
+// screen
+////////////////////////////////////////////////////////////////////////////////
+
+// :TODO: lighting calculations currently all wrong - we are passing in
+// model space to the fragmentShader as world space
+
 namespace {
 
 	// :TODO: consolidate all of these convert to screen space functions into single
 	// function
 	template<typename T_IN, typename T_OUT>
-  T_OUT _convertToScreenSpace(const T_IN& in, const xen::Aabb2r& viewport){
-		T_OUT out = xen::swizzle<'x','y'>(in);
+  T_OUT _convertToScreenSpace(const T_IN& in_clip, const xen::Aabb2r& viewport){
+		// :TODO: include depth information as z
+		T_OUT out_screen = xen::swizzle<'x','y'>(in_clip);
 
-		out += Vec2r{1,1};                  // convert to [0, 2] space
-		out /= 2.0_r;                       // convert to [0, 1] space
-		out *= viewport.max - viewport.min; // convert to screen space
-		out += viewport.min;                // move to correct part of screen
+		out_screen += Vec2r{1,1};                  // convert to [0, 2] space
+		out_screen /= 2.0_r;                       // convert to [0, 1] space
+		out_screen *= viewport.max - viewport.min; // convert to screen space
+		out_screen += viewport.min;                // move to correct part of screen
 
-		return out;
+		return out_screen;
 	}
 
-	xen::Triangle3r _convertToScreenSpaceTri(const xen::Triangle4r& in,
+	xen::Triangle3r _convertToScreenSpaceTri(const xen::Triangle4r& in_clip,
 		                                       const xen::Aabb2r& viewport){
-		xen::Triangle3r out = xen::swizzle<'x','y','z'>(in);
+		xen::Triangle3r out_screen = xen::swizzle<'x','y','z'>(in_clip);
 
-		out += Vec3r{1,1,0};                                 // convert to [0, 2] space
-		out /= 2.0_r;                                        // convert to [0, 1] space
-		out *= xen::mkVec(viewport.max - viewport.min, 1_r); // convert to screen space
-		out += xen::mkVec(viewport.min,                0_r); // move to correct part of screen
+		out_screen += Vec3r{1,1,0};                                 // convert to [0, 2] space
+		out_screen /= 2.0_r;                                        // convert to [0, 1] space
+		out_screen *= xen::mkVec(viewport.max - viewport.min, 1_r); // convert to screen space
+		out_screen += xen::mkVec(viewport.min,                0_r); // move to correct part of screen
 
 		// Preserve z component of input
-		out.p1.z = in.p1.z;
-		out.p2.z = in.p2.z;
-		out.p3.z = in.p3.z;
+		out_screen.p1.z = in_clip.p1.z;
+		out_screen.p2.z = in_clip.p2.z;
+		out_screen.p3.z = in_clip.p3.z;
 
-		return out;
+		return out_screen;
 	}
 
-	xen::Quad3r _convertToScreenSpaceQuad(const xen::Quad3r in,
+	xen::Quad3r _convertToScreenSpaceQuad(const xen::Quad3r in_clip,
 		                                    const xen::Aabb2r& viewport){
-		xen::Quad3r out = xen::swizzle<'x','y','z'>(in);
+		xen::Quad3r out_screen = xen::swizzle<'x','y','z'>(in_clip);
 
-		out += Vec3r{1,1,0};                               // convert to [0, 2] space
-		out /= 2.0_r;                                      // convert to [0, 1] space
-		out *= xen::mkVec(viewport.max - viewport.min, 1_r); // convert to screen space
-		out += xen::mkVec(viewport.min,                0_r); // move to correct part of screen
+		out_screen += Vec3r{1,1,0};                                 // convert to [0, 2] space
+		out_screen /= 2.0_r;                                        // convert to [0, 1] space
+		out_screen *= xen::mkVec(viewport.max - viewport.min, 1_r); // convert to screen space
+		out_screen += xen::mkVec(viewport.min,                0_r); // move to correct part of screen
 
 		// Preserve z component of input
-		out.p1.z = in.p1.z;
-		out.p2.z = in.p2.z;
-		out.p3.z = in.p3.z;
-		out.p4.z = in.p4.z;
+		out_screen.p1.z = in_clip.p1.z;
+		out_screen.p2.z = in_clip.p2.z;
+		out_screen.p3.z = in_clip.p3.z;
+		out_screen.p4.z = in_clip.p4.z;
 
-		return out;
+		return out_screen;
 	}
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Performs fragment shader computations - IE: lighting
 	/// \todo texture lookup
+	/// \param params       The rendering parameters describing the whole scene
+	/// \param pos_world    The position of the point being filled in world space
+	/// \param normal_world The normal of the point being filled in world space
+	/// \param color        The base diffuse color of the point being filled
 	/////////////////////////////////////////////////////////////////////
 	xen::Color4f _fragmentShader(const xen::RenderParameters3d& params,
 	                             Vec3r                          pos_world,
@@ -95,12 +142,12 @@ namespace {
 				continue;
 			}
 
-			real distance_sq = xen::distanceSq(pos_world, params.lights[i].point.position);
+			real dist_sq_world = xen::distanceSq(pos_world, params.lights[i].point.position);
 
 			total_light += xen::sren::computeLightInfluence
 				(params.lights[i].color,
 				 params.lights[i].attenuation,
-				 distance_sq
+				 dist_sq_world
 				);
 		}
 
@@ -116,49 +163,73 @@ namespace {
 		return result;
 	}
 
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Renders a set of points in world space to the screen
+	/// \param target       The render target to draw on
+	/// \param params       Render parameters describing the scene as a whole
+	/// \param viewport     The viewport of the target that may be drawn to
+	/// \param m_matrix     Model matrix representing transform from model space
+	///                     to world space
+	/// \param vp_matrix    View-projection matrix representing transform from
+	///                     world space to clip space
+	/// \param base_color   The base color of points
+	/// \param pos_model    The positions of the points to render in model space
+	///                     Array length should equal vertex_count
+	/// \param color_buffer Array of per vertex colors. May be nullptr in which
+	///                     case the base_color will be used unmodified
+	/// \param vertex_count Number of vertices to draw
+	/////////////////////////////////////////////////////////////////////
 	void _renderPointsWorld(xen::sren::RenderTargetImpl&        target,
 	                        const xen::RenderParameters3d&      params,
 	                        const xen::Aabb2r&                  viewport,
-	                        const Mat4r&                        mvp_matrix,
-	                        const xen::ImmediateGeometrySource& geom){
+	                        const Mat4r&                        m_matrix,
+	                        const Mat4r&                        vp_matrix,
+	                        const xen::Color4f                  color,
+	                        const Vec3r*                        pos_model,
+	                        const xen::Color*                   color_buffer,
+	                        const u32                           vertex_count){
 
-		const xen::Color* color_buffer = geom.color;
-		if(geom.color == nullptr){
+		bool colors_per_vertex = (color_buffer != nullptr);
+		if(!colors_per_vertex){
 			color_buffer = &xen::Color::WHITE;
 		}
 
-		for(u32 i = 0; i < geom.vertex_count; ++i){
-			Vec4r clip_space = xen::toHomo(geom.position[i]) * mvp_matrix;
+		for(u32 i = 0; i < vertex_count; ++i){
+			Vec4r point_world = xen::toHomo(pos_model[i]) * m_matrix;
+			Vec4r point_clip  = point_world * vp_matrix;
 
-			if(clip_space.x < -clip_space.w ||
-			   clip_space.x >  clip_space.w ||
-			   clip_space.y < -clip_space.w ||
-			   clip_space.y >  clip_space.w ||
-			   clip_space.z < -clip_space.w ||
-			   clip_space.z >  clip_space.w){
+			if(point_clip.x < -point_clip.w ||
+			   point_clip.x >  point_clip.w ||
+			   point_clip.y < -point_clip.w ||
+			   point_clip.y >  point_clip.w ||
+			   point_clip.z < -point_clip.w ||
+			   point_clip.z >  point_clip.w){
 				// Then point is not in view of the camera
 				continue;
 			}
 
 			// Do perspective divide ensure xy that are further away are made smaller
-			clip_space.xy /= (clip_space.z);
+			// :TODO: should this be done as part of screen space conversion?
+			point_clip.xy /= (point_clip.z);
 
 			// Convert from [-1, 1] clip space to screen space
 			Vec2r screen_space =
-				_convertToScreenSpace<Vec4r, Vec2r>(clip_space, viewport);
+				_convertToScreenSpace<Vec4r, Vec2r>(point_clip, viewport);
 
 			u32 pixel_index = (u32)screen_space.y*target.width + (u32)screen_space.x;
 
-			if (clip_space.z > target.depth[pixel_index]){
+			// :TODO: we should store z in screen_space -> modify _convertToScreenSpace
+			if (point_clip.z > target.depth[pixel_index]){
 				// Then point is behind something else occupying this pixel
 				continue;
 			}
-			target.depth[pixel_index] = clip_space.z;
+
+			target.depth[pixel_index] = point_clip.z;
 			target.color[pixel_index] = _fragmentShader
 				(params,
-				 geom.position[i],
+				 point_world.xyz,
 				 Vec3r::Origin,
-				 xen::makeColor4f(color_buffer[i * (geom.color != nullptr)])
+				 xen::makeColor4f(color_buffer[i * colors_per_vertex]) * color
 				);
 		}
 	}
@@ -558,7 +629,11 @@ namespace xen{
 
 				switch(cmd->primitive_type){
 				case xen::PrimitiveType::POINTS:
-					_renderPointsWorld(target, params, view_region, mat_mvp, cmd->immediate);
+					_renderPointsWorld(target, params, view_region,
+					                   cmd->model_matrix, mat_vp,
+					                   cmd->color,
+					                   cmd->immediate.position, cmd->immediate.color,
+					                   cmd->immediate.vertex_count);
 					break;
 				case xen::PrimitiveType::LINES:
 					stride = 2;
