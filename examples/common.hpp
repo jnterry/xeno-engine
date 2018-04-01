@@ -16,6 +16,8 @@
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/graphics/Window.hpp>
+#include <xen/graphics/TestMeshes.hpp>
+#include <xen/graphics/Light3d.hpp>
 
 #include <xen/math/utilities.hpp>
 #include <xen/math/vector.hpp>
@@ -81,7 +83,7 @@ void destroyApplication(ExampleApplication& app);
 /////////////////////////////////////////////////////////////////////
 /// \brief Handles the control input for a cylinder orbit camera
 /////////////////////////////////////////////////////////////////////
-void handleCameraInputCylinder(xen::Camera3dCylinder& camera, real dt);
+void handleCameraInputCylinder(xen::Camera3dCylinder& camera, real dt, real max_radius = 750_r);
 
 /////////////////////////////////////////////////////////////////////
 /// \brief Handles the control input for a camera which moves around in
