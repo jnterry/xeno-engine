@@ -44,6 +44,25 @@ namespace xen {
 		return {u,v,w};
 	}
 
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Computes the surface normal for some triangle
+	/// \param tri The triangle whose normal you wish to compute
+	/// \return Vec3 representing the normal of the triangle
+	/// \public \memberof Triangle
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	Vec3<T> computeTriangleNormal(const Triangle3<T>& tri){
+		Vec3<T> u = tri.p2 - tri.p1;
+		Vec3<T> v = tri.p3 - tri.p1;
+
+		Vec3<T> normal;
+		normal.x = u.y*v.z - u.x*v.y;
+		normal.y = u.z*v.x - u.x*v.z;
+		normal.z = u.x*v.y - u.y*v.x;
+
+		return normal;
+	}
+
 	/*
 	  Not currently used. Idea is to avoid floating point issues by ensuring the
 	  point is projected onto plane of triangle before computing the barycentric

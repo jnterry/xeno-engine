@@ -32,7 +32,7 @@ int main(int argc, char** argv){
 	camera.angle  = 0.0_deg;
 
 	ExampleApplication app = createApplication("raytracer-test",
-	                                           ExampleApplication::Backend::RASTERIZER
+	                                           ExampleApplication::Backend::RAYTRACER
 	                                          );
 
 	Vec3r mesh_verts[] = {
@@ -40,8 +40,8 @@ int main(int argc, char** argv){
 		Vec3r{ 1_r, 0_r, 0_r },
 		Vec3r{ 0_r, 1_r, 0_r },
 
-		Vec3r{ 0_r, 0_r, 0_r },
 		Vec3r{ 1_r, 0_r, 0_r },
+		Vec3r{ 0_r, 0_r, 0_r },
 		Vec3r{ 0_r, 0_r, 1_r },
 	};
 

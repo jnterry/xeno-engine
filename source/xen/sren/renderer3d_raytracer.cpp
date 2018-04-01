@@ -110,9 +110,9 @@ namespace {
 
 namespace xen {
 	namespace sren {
-		void renderRaytrace (xen::sren::RenderTargetImpl& target,
-		                     const xen::Aabb2u& viewport,
-		                     const RenderParameters3d& params,
+		void renderRaytrace (xen::sren::RenderTargetImpl&       target,
+		                     const xen::Aabb2u&                 viewport,
+		                     const RenderParameters3d&          params,
 		                     const xen::Array<RenderCommand3d>& commands){
 
 			xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
@@ -203,75 +203,97 @@ namespace xen {
 					               "Expected intersection's triangle index to be within "
 					               "bounds of the vertex list");
 
-					// Default to using WHITE for the pixel color
-					xen::Color4f pixel_color = xen::Color::WHITE4f;
-
-					// :TODO:OPT: Surface calculations and lighting calculations are
-					// completely independent, then multiplied together at end.
-					// Thread for each?
-
-					// If we have per vertex color information use that instead
-					if(commands[intersection.cmd_index].immediate.color != nullptr){
-						Color* cbuf = commands[intersection.cmd_index].immediate.color;
-						Vec3r* pbuf = commands[intersection.cmd_index].immediate.position;
+					// Compute surface properties at intersection point
+					xen::Color4f pixel_color        = xen::Color::WHITE4f;
+					Vec3r        pixel_normal_world = Vec3r::Origin;
+					{
+						Vec3r* pbuf_model = commands[intersection.cmd_index].immediate.position;
+						Vec3r* nbuf_model = commands[intersection.cmd_index].immediate.normal;
+						Color* cbuf       = commands[intersection.cmd_index].immediate.color;
 						u32    buf_index = intersection.tri_index * 3;
 
-						// Extract the per vertex attributes for the triangle we have intersected
-						xen::Triangle3r     ptri       = *(xen::Triangle3r*)&pbuf[buf_index];
-						xen::Triangle4f ctri;
-						ctri.p1 = xen::makeColor4f(cbuf[buf_index + 0]);
-						ctri.p2 = xen::makeColor4f(cbuf[buf_index + 1]);
-						ctri.p3 = xen::makeColor4f(cbuf[buf_index + 2]);
+						xen::Triangle3r ptri_model = *(xen::Triangle3r*)&pbuf_model[buf_index];
 
 						// Get the barycentric coordinates of the intersection
-						Vec3r bary = xen::getBarycentricCoordinates(ptri, intersection.pos_model);
+						Vec3r bary = xen::getBarycentricCoordinates(ptri_model, intersection.pos_model);
 
 						XenDebugAssert(bary.x >= 0, "Expected barycentric x component to be positive");
 						XenDebugAssert(bary.y >= 0, "Expected barycentric y component to be positive");
 						XenDebugAssert(bary.z >= 0, "Expected barycentric z component to be positive");
 
-						// Compute the surface attributes at this point on the triangle
-						pixel_color = evaluateBarycentricCoordinates(ctri, bary);
+						// If we have per vertex color information use it rather than WHITE
+						if(cbuf != nullptr){
+							// Extract the per vertex attributes for the triangle we have intersected
+
+							xen::Triangle4f ctri;
+							ctri.p1 = xen::makeColor4f(cbuf[buf_index + 0]);
+							ctri.p2 = xen::makeColor4f(cbuf[buf_index + 1]);
+							ctri.p3 = xen::makeColor4f(cbuf[buf_index + 2]);
+
+							pixel_color = evaluateBarycentricCoordinates(ctri, bary);
+						}
+
+						Vec3r pixel_normal_model;
+						if(nbuf_model != nullptr){
+							pixel_normal_model = nbuf_model[buf_index];
+						} else {
+							// :TODO: lets not support immediate rendering
+							// have the device store meshes, and force normal information, since
+							// we CANNOT do sensible lighting calculations without it...
+							//
+							// THIS MEANS WINDING ORDER MATTERS!!!
+							pixel_normal_model = xen::computeTriangleNormal(ptri_model);
+						}
+						pixel_normal_world = xen::normalized(pixel_normal_model *
+						                                     commands[intersection.cmd_index].model_matrix
+						                                    );
 					}
 
+					// compute light hitting surface at intersection point
 					Color3f total_light = params.ambient_light;
+					{
+						/////////////////////////////////////////////////////////////////////
+						// Cast shadow ray
+						for(u64 i = 0; i < params.lights.size; ++i){
+							//printf("%i, %i :::::: Casting shadow ray for light %i\n",
+							//       target_pos.x, target_pos.y, i);
+							Ray3r shadow_ray;
 
-					/////////////////////////////////////////////////////////////////////
-					// Cast shadow ray
-					for(u64 i = 0; i < params.lights.size; ++i){
-						//printf("%i, %i :::::: Casting shadow ray for light %i\n",
-						//       target_pos.x, target_pos.y, i);
-						Ray3r shadow_ray;
+							switch(params.lights[i].type){
+							case xen::LightSource3d::POINT: {
+								shadow_ray.origin    = intersection.pos_world;
 
-						switch(params.lights[i].type){
-						case xen::LightSource3d::POINT: {
-							shadow_ray.origin    = intersection.pos_world;
-							shadow_ray.direction = xen::normalized(params.lights[i].point.position -
-							                                       intersection.pos_world
-							                                      );
+								// Don't shoot directly from the surface or we may intersect
+								// ourselves. Push the origin out slightly
+								shadow_ray.origin += pixel_normal_world * 0.001_r;
 
-							real light_dist_sq = xen::distanceSq(params.lights[i].point.position,
-							                                     intersection.pos_world
-							                                    );
+								shadow_ray.direction = xen::normalized(params.lights[i].point.position -
+								                                       intersection.pos_world
+								                                       );
 
-							if(castRayIntoScene(shadow_ray, commands, shadow_intersection) &&
-							   light_dist_sq > shadow_intersection.dist_sq){
-								// Then there is geometry between the intersection.pos_world and
-								// this light. Hence the light source is blocked
+								real light_dist_sq = xen::distanceSq(params.lights[i].point.position,
+								                                     intersection.pos_world
+								                                     );
+
+								if(castRayIntoScene(shadow_ray, commands, shadow_intersection) &&
+								   light_dist_sq > shadow_intersection.dist_sq){
+									// Then there is geometry between the intersection.pos_world and
+									// this light. Hence the light source is blocked
+									break;
+								}
+
+								total_light +=
+									xen::sren::computeLightInfluence(params.lights[i].color,
+									                                 params.lights[i].attenuation,
+									                                 light_dist_sq);
+
 								break;
 							}
-
-							total_light +=
-								xen::sren::computeLightInfluence(params.lights[i].color,
-								                                 params.lights[i].attenuation,
-								                                 light_dist_sq);
-
-							break;
-						}
-						default:
-							printf("WARN: Unhandled light type in raytracer, type: %i\n",
-							       params.lights[i].type);
-							break;
+							default:
+								printf("WARN: Unhandled light type in raytracer, type: %i\n",
+								       params.lights[i].type);
+								break;
+							}
 						}
 					}
 
