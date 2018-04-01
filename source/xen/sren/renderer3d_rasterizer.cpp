@@ -468,13 +468,15 @@ namespace {
 		}
 	}
 
-	void _renderTriangleWorld(xen::sren::RenderTargetImpl&  target,
-		                      const xen::Aabb2r&            viewport,
-	                        const xen::RenderParameters3d params,
-												  const Mat4r&                  mvp_matrix,
-	                        const xen::Triangle3r&        tri_world,
-	                        xen::Triangle4f               tri_color){
-		xen::Triangle4r tri_clip  = xen::toHomo(tri_world) * mvp_matrix;
+	void _renderTriangleModel(xen::sren::RenderTargetImpl&  target,
+	                          const xen::Aabb2r&            viewport,
+	                          const xen::RenderParameters3d params,
+	                          const Mat4r&                  m_matrix,
+	                          const Mat4r&                  vp_matrix,
+	                          const xen::Triangle3r&        tri_model,
+	                          xen::Triangle4f               tri_color){
+		xen::Triangle3r tri_world = tri_model * m_matrix;
+		xen::Triangle4r tri_clip  = xen::toHomo(tri_world) * vp_matrix;
 
 		// Work out which points are behind the camera
 		u08 points_behind = 0;
@@ -627,8 +629,7 @@ namespace xen{
 			xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 
-			Mat4r mat_vp = xen::getViewProjectionMatrix(params.camera, view_region.max - view_region.min);
-			Mat4r mat_mvp;
+			Mat4r vp_matrix = xen::getViewProjectionMatrix(params.camera, view_region.max - view_region.min);
 
 			int stride = 0;
 
@@ -636,10 +637,8 @@ namespace xen{
 			for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 				cmd = &commands[cmd_index];
 
-				mat_mvp = cmd->model_matrix * mat_vp;
-
 				#ifdef XEN_DEBUG_ADDITIONAL_CHECKS
-				if(xen::isnan(mat_mvp)){
+				if(xen::isnan(vp_matrix)){
 					printf("ERROR: MVP matrix contains NaN elements, skipping command %i\n",
 					       cmd_index);
 					continue;
@@ -657,7 +656,7 @@ namespace xen{
 				switch(cmd->primitive_type){
 				case xen::PrimitiveType::POINTS:
 					_renderPointsModel(target, params, view_region,
-					                   cmd->model_matrix, mat_vp,
+					                   cmd->model_matrix, vp_matrix,
 					                   cmd->color,
 					                   cmd->immediate.position, cmd->immediate.color,
 					                   cmd->immediate.vertex_count);
@@ -679,7 +678,7 @@ namespace xen{
 						}
 
 						_renderLineModel(target, view_region, params,
-						                 cmd->model_matrix, mat_vp,
+						                 cmd->model_matrix, vp_matrix,
 						                 *line_model, line_color
 						                 );
 					}
@@ -700,8 +699,9 @@ namespace xen{
 							tri_color.p3 *= makeColor4f(cmd->immediate.color[i+2]);
 						}
 
-						_renderTriangleWorld(target, view_region, params,
-						                     mat_mvp, *tri_world, tri_color
+						_renderTriangleModel(target, view_region, params,
+						                     cmd->model_matrix, vp_matrix,
+						                     *tri_world, tri_color
 						                    );
 					}
 
