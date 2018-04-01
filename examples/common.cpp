@@ -136,7 +136,7 @@ void handleCameraInputCylinder(xen::Camera3dCylinder& camera, real dt, real max_
 	if(xen::isKeyPressed(xen::Key::ArrowDown)){
 		camera.radius += camera_speed * dt;
 	}
-	camera.radius = xen::clamp(camera.radius, 0.0001_r, max_radius);
+	camera.radius = xen::clamp(camera.radius, 0.005_r, max_radius);
 
   if(xen::isKeyPressed(xen::Key::ArrowLeft)){
 		camera.angle -= camera_rotate_speed * dt;
