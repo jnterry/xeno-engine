@@ -313,8 +313,8 @@ namespace {
 		                           abs(line_screen.p1.y - line_screen.p2.y)
 		                          );
 
-		Vec2r delta_screen = (line_screen.p1 - line_screen.p2) / num_pixels;
-		Vec2r cur_screen   = line_screen.p2;
+		Vec2r delta_screen = (line_screen.p2 - line_screen.p1) / num_pixels;
+		Vec2r cur_screen   = line_screen.p1;
 		for(u32 i = 0; i < (u32)num_pixels; ++i){
 
 			// :TODO: Replace lerp with a perspective correct interpolation
