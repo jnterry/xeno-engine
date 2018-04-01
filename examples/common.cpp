@@ -125,8 +125,9 @@ void destroyApplication(ExampleApplication& app){
 	delete app.allocator;
 }
 
-void handleCameraInputCylinder(xen::Camera3dCylinder& camera, real dt){
-	const real       camera_speed        = 250;
+void handleCameraInputCylinder(xen::Camera3dCylinder& camera, real dt, real max_radius){
+	// compute speed such that can get from full zoom to no zoom in 3 seconds
+	const real       camera_speed        = (max_radius / 3_r);
 	const xen::Angle camera_rotate_speed = 120_deg;
 
 	if(xen::isKeyPressed(xen::Key::ArrowUp)){
@@ -135,7 +136,7 @@ void handleCameraInputCylinder(xen::Camera3dCylinder& camera, real dt){
 	if(xen::isKeyPressed(xen::Key::ArrowDown)){
 		camera.radius += camera_speed * dt;
 	}
-	camera.radius = xen::clamp(camera.radius, 0.01_r, 750_r);
+	camera.radius = xen::clamp(camera.radius, 0.0001_r, max_radius);
 
   if(xen::isKeyPressed(xen::Key::ArrowLeft)){
 		camera.angle -= camera_rotate_speed * dt;
