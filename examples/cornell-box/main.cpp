@@ -23,13 +23,13 @@ int main(int argc, char** argv){
 	Vec3r short_box_center = { 0.18_r,  0.0_r,  0.18_r};
 
 	scene_lights[0].type           = xen::LightSource3d::POINT;
-	scene_lights[0].point.position = {0.0_r, 1.0_r, 0.0_r};
+	scene_lights[0].point.position = Vec3r{0.0_r, 1.0_r, 0.0_r};
 	scene_lights[0].color          = xen::Color::WHITE4f;
 	scene_lights[0].color.a        = 0.2f;
 	scene_lights[0].attenuation    = {0.0f, 0.0f, 2.0f};
 
 	scene_lights[1].type           = xen::LightSource3d::POINT;
-	scene_lights[1].point.position = {0.0_r, 0.5_r, 0.0_r};
+	scene_lights[1].point.position = Vec3r{0.0_r, 0.5_r, 0.0_r};
 	scene_lights[1].color          = xen::Color::RED4f;
 	scene_lights[1].color.a        = 0.05f;
 	scene_lights[1].attenuation    = {0.0f, 0.0f, 2.0f};
@@ -59,7 +59,7 @@ int main(int argc, char** argv){
 	render_commands[1].immediate       = MeshGeometry_CornellBoxWalls;
 
 	render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	render_commands[2].color           = xen::Color::BLUE4f;
+	render_commands[2].color           = Vec4r{ 0.15_r, 0.15_r, 0.75_r, 1.0_r };
 	render_commands[2].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
 	                                      xen::Scale3d      (0.3_r, 0.6_r, 0.3_r  ) *
 	                                      xen::Rotation3dy  (15_deg               ) *
@@ -69,7 +69,7 @@ int main(int argc, char** argv){
 	render_commands[2].immediate       = xen::TestMeshGeometry_UnitCube;
 
 	render_commands[3].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	render_commands[3].color           = xen::Color::RED4f;
+  render_commands[3].color           = Vec4r{ 0.75_r, 0.15_r, 0.15_r, 1.0_r };
 	render_commands[3].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
 	                                      xen::Scale3d      (0.3_r, 0.3_r, 0.3_r  ) *
 	                                      xen::Rotation3dy  (-18_deg              ) *
