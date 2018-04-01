@@ -1,7 +1,5 @@
 #include <stdio.h>
 
-#include <xen/graphics/TestMeshes.hpp>
-#include <xen/graphics/Light3d.hpp>
 #include <xen/core/random.hpp>
 
 

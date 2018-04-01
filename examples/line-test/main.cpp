@@ -1,7 +1,5 @@
 #include "../common.cpp"
 
-#include <xen/graphics/TestMeshes.hpp>
-
 xen::RenderParameters3d render_params;
 
 #define LINE_COUNT_SQRT (50)

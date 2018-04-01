@@ -1,23 +1,5 @@
 #include <stdio.h>
 
-#include <xen/core/intrinsics.hpp>
-#include <xen/core/memory.hpp>
-#include <xen/core/random.hpp>
-#include <xen/core/time.hpp>
-#include <xen/core/array.hpp>
-#include <xen/core/File.hpp>
-#include <xen/graphics/Camera3d.hpp>
-#include <xen/graphics/RenderCommand3d.hpp>
-#include <xen/graphics/GraphicsDevice.hpp>
-#include <xen/graphics/Window.hpp>
-#include <xen/math/utilities.hpp>
-#include <xen/math/vector.hpp>
-#include <xen/math/geometry.hpp>
-#include <xen/math/quaternion.hpp>
-#include <xen/math/matrix.hpp>
-#include <xen/math/angle.hpp>
-#include <xen/sren/SoftwareDevice.hpp>
-
 #include "../common.cpp"
 #include "cornell-box.hpp"
 

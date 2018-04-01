@@ -16,6 +16,8 @@
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/graphics/Window.hpp>
+#include <xen/graphics/TestMeshes.hpp>
+#include <xen/graphics/Light3d.hpp>
 
 #include <xen/math/utilities.hpp>
 #include <xen/math/vector.hpp>

@@ -2,8 +2,6 @@
 
 #include "../common.cpp"
 
-#include <xen/graphics/TestMeshes.hpp>
-
 xen::Camera3dCylinder camera;
 
 static const real       Z_NEAR = 0.001_r;
