@@ -313,13 +313,15 @@ namespace {
 		                           abs(line_screen.p1.y - line_screen.p2.y)
 		                          );
 
-		Vec2r delta = (line_screen.p1 - line_screen.p2) / num_pixels;
-		Vec2r cur   = line_screen.p2;
+		Vec2r delta_screen = (line_screen.p1 - line_screen.p2) / num_pixels;
+		Vec2r cur_screen   = line_screen.p2;
 		for(u32 i = 0; i < (u32)num_pixels; ++i){
 
 			// :TODO: Replace lerp with a perspective correct interpolation
 			real lerp_factor = i / num_pixels;
-			u32  pixel_index = (u32)cur.y*target.width + cur.x;
+
+			// :TODO: should be u32 -> but cur.y or cur.z may be negative
+			s32  pixel_index = (s32)cur_screen.y*target.width + cur_screen.x;
 
 			real         depth      = xen::lerp(z_start, z_end, lerp_factor);
 			xen::Color4f base_color = xen::lerp(line_color,     lerp_factor);
@@ -333,7 +335,7 @@ namespace {
 				                                           );
 				target.depth[pixel_index] = depth;
 			}
-			cur += delta;
+			cur_screen += delta_screen;
 		}
 
 	}
