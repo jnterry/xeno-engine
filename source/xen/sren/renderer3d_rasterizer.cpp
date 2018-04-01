@@ -163,46 +163,17 @@ namespace {
 		}
 	}
 
-	void doRenderLine2d(xen::sren::RenderTargetImpl& target,
-	                    xen::LineSegment2r line_screen,
-	                    xen::LineSegment4f line_color,
-	                    real z_start, real z_end){
-		if(line_screen.p1 == line_screen.p2){ return; }
-
-		//https://www.cs.virginia.edu/luther/blog/posts/492.html
-
-		real num_pixels = xen::max(abs(line_screen.p1.x - line_screen.p2.x),
-		                           abs(line_screen.p1.y - line_screen.p2.y)
-		                          );
-
-		Vec2r delta = (line_screen.p1 - line_screen.p2) / num_pixels;
-		Vec2r cur   = line_screen.p2;
-		for(u32 i = 0; i < (u32)num_pixels; ++i){
-
-			// :TODO: Replace lerp with a perspective correct interpolation
-			real lerp_factor = i / num_pixels;
-			u32  pixel_index = (u32)cur.y*target.width + cur.x;
-
-			real depth = xen::lerp(z_start, z_end, lerp_factor);
-
-			if (depth < target.depth[pixel_index]) {
-				target.color[pixel_index] = xen::lerp(line_color, lerp_factor);
-				target.depth[pixel_index] = depth;
-			}
-			cur += delta;
-		}
-	}
-
-	void doRenderLine3d(xen::sren::RenderTargetImpl& target,
-	                    const xen::Aabb2r& viewport,
-	                    const Mat4r& mvp_matrix,
-	                    const xen::LineSegment4f& line_color,
-	                    const xen::LineSegment3r& line_world){
+	void doRenderLine3d(xen::sren::RenderTargetImpl&  target,
+	                    const xen::Aabb2r&            viewport,
+	                    const xen::RenderParameters3d params,
+	                    const Mat4r&                  mvp_matrix,
+	                    const xen::LineSegment4f&     line_color,
+	                    const xen::LineSegment3r&     line_world){
 
 		xen::LineSegment4r line_clip  = xen::toHomo(line_world) * mvp_matrix;
 
 		///////////////////////////////////////////////////////////////////
-		// Do line clipping
+		// Do line clipping against z planes
 		if(line_clip.p1.z < 0 && line_clip.p2.z < 0){
 			// Then line is completely behind the camera
 			return;
@@ -234,10 +205,40 @@ namespace {
 		xen::LineSegment2r line_screen =
 			_convertToScreenSpace<xen::LineSegment4r, xen::LineSegment2r>(line_clip, viewport);
 
-		if(xen::intersect(line_screen, viewport)){
-			doRenderLine2d(target, line_screen, line_color, z_start, z_end);
+		if(!xen::intersect(line_screen, viewport)){
+			return;
 		}
+		if(line_screen.p1 == line_screen.p2){ return; }
 		///////////////////////////////////////////////////////////////////
+
+
+		//https://www.cs.virginia.edu/luther/blog/posts/492.html
+		real num_pixels = xen::max(abs(line_screen.p1.x - line_screen.p2.x),
+		                           abs(line_screen.p1.y - line_screen.p2.y)
+		                          );
+
+		Vec2r delta = (line_screen.p1 - line_screen.p2) / num_pixels;
+		Vec2r cur   = line_screen.p2;
+		for(u32 i = 0; i < (u32)num_pixels; ++i){
+
+			// :TODO: Replace lerp with a perspective correct interpolation
+			real lerp_factor = i / num_pixels;
+			u32  pixel_index = (u32)cur.y*target.width + cur.x;
+
+			real         depth      = xen::lerp(z_start, z_end, lerp_factor);
+			xen::Color4f base_color = xen::lerp(line_color,     lerp_factor);
+			Vec3r        pos_world  = xen::lerp(line_world,     lerp_factor);
+
+			if (depth < target.depth[pixel_index]) {
+				target.color[pixel_index] = _fragmentShader(params,
+				                                            pos_world,
+				                                            Vec3r::Origin,
+				                                            base_color
+				                                           );
+				target.depth[pixel_index] = depth;
+			}
+			cur += delta;
+		}
 
 	}
 
@@ -578,7 +579,9 @@ namespace xen{
 							line_color.p2 *= xen::makeColor4f(cmd->immediate.color[i+1]);
 						}
 
-						doRenderLine3d(target, view_region, mat_mvp, line_color, *line_world);
+						doRenderLine3d(target, view_region, params,
+						               mat_mvp, line_color, *line_world
+						              );
 					}
 					break;
 				default:
