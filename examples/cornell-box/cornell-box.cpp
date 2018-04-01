@@ -6,15 +6,15 @@
 
 // ---------------------------------------------------------------------------
 // Define room coordinates
-Vec3r A_room = { 555_r,   0_r,   0_r };
-Vec3r B_room = {   0_r,   0_r,   0_r };
-Vec3r C_room = { 555_r,   0_r, 555_r };
-Vec3r D_room = {   0_r,   0_r, 555_r };
+Vec3r A_room = { 1_r,   0_r, 0_r };
+Vec3r B_room = { 0_r,   0_r, 0_r };
+Vec3r C_room = { 1_r,   0_r, 1_r };
+Vec3r D_room = { 0_r,   0_r, 1_r };
 
-Vec3r E_room = { 555_r, 555_r,   0_r };
-Vec3r F_room = {   0_r, 555_r,   0_r };
-Vec3r G_room = { 555_r, 555_r, 555_r };
-Vec3r H_room = {   0_r, 555_r, 555_r };
+Vec3r E_room = { 1_r, 1_r, 0_r };
+Vec3r F_room = { 0_r, 1_r, 0_r };
+Vec3r G_room = { 1_r, 1_r, 1_r };
+Vec3r H_room = { 0_r, 1_r, 1_r };
 
 // ---------------------------------------------------------------------------
 // Define short block coordinates
