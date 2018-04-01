@@ -64,9 +64,6 @@
 // screen
 ////////////////////////////////////////////////////////////////////////////////
 
-// :TODO: lighting calculations currently all wrong - we are passing in
-// model space to the fragmentShader as world space
-
 namespace {
 
 	// :TODO: consolidate all of these convert to screen space functions into single
