@@ -72,7 +72,7 @@ namespace {
 	// :TODO: consolidate all of these convert to screen space functions into single
 	// function
 	template<typename T_IN, typename T_OUT>
-  T_OUT _convertToScreenSpace(const T_IN& in_clip, const xen::Aabb2r& viewport){
+  T_OUT _convertToScreenSpaceOLD(const T_IN& in_clip, const xen::Aabb2r& viewport){
 		// :TODO: include depth information as z
 		T_OUT out_screen = xen::swizzle<'x','y'>(in_clip);
 
@@ -84,8 +84,24 @@ namespace {
 		return out_screen;
 	}
 
-	xen::Triangle3r _convertToScreenSpaceTri(const xen::Triangle4r& in_clip,
-		                                       const xen::Aabb2r& viewport){
+	Vec3r _convertToScreenSpace(const Vec4r in_clip, const::xen::Aabb2r& viewport){
+		Vec3r out_screen = in_clip.xyz;
+
+		// Do perspective divide such that things farther from camera are nearer in
+		// screen space
+		out_screen.xy /= in_clip.z;
+
+		out_screen.xy += Vec2r{1,1};                  // [-1, 1] => [0, 2] space
+		out_screen.xy /= 2.0_r;                       // [ 0, 2] => [0, 1] space
+		out_screen.xy *= viewport.max - viewport.min; // [ 0, 1] => screen space (pixels)
+		out_screen.xy += viewport.min;                // move to correct part of screen
+
+		return out_screen;
+	}
+
+
+	xen::Triangle3r _convertToScreenSpaceTriOLD(const xen::Triangle4r& in_clip,
+	                                            const xen::Aabb2r& viewport){
 		xen::Triangle3r out_screen = xen::swizzle<'x','y','z'>(in_clip);
 
 		out_screen += Vec3r{1,1,0};                                 // convert to [0, 2] space
@@ -101,7 +117,7 @@ namespace {
 		return out_screen;
 	}
 
-	xen::Quad3r _convertToScreenSpaceQuad(const xen::Quad3r in_clip,
+	xen::Quad3r _convertToScreenSpaceQuadOLD(const xen::Quad3r in_clip,
 		                                    const xen::Aabb2r& viewport){
 		xen::Quad3r out_screen = xen::swizzle<'x','y','z'>(in_clip);
 
@@ -208,18 +224,11 @@ namespace {
 				continue;
 			}
 
-			// Do perspective divide ensure xy that are further away are made smaller
-			// :TODO: should this be done as part of screen space conversion?
-			point_clip.xy /= (point_clip.z);
+			Vec3r point_screen = _convertToScreenSpace(point_clip, viewport);
 
-			// Convert from [-1, 1] clip space to screen space
-			Vec2r screen_space =
-				_convertToScreenSpace<Vec4r, Vec2r>(point_clip, viewport);
+			u32 pixel_index = (u32)point_screen.y*target.width + (u32)point_screen.x;
 
-			u32 pixel_index = (u32)screen_space.y*target.width + (u32)screen_space.x;
-
-			// :TODO: we should store z in screen_space -> modify _convertToScreenSpace
-			if (point_clip.z > target.depth[pixel_index]){
+			if (point_screen.z > target.depth[pixel_index]){
 				// Then point is behind something else occupying this pixel
 				continue;
 			}
@@ -274,7 +283,7 @@ namespace {
 		///////////////////////////////////////////////////////////////////
 		// Clip to the viewport
 		xen::LineSegment2r line_screen =
-			_convertToScreenSpace<xen::LineSegment4r, xen::LineSegment2r>(line_clip, viewport);
+			_convertToScreenSpaceOLD<xen::LineSegment4r, xen::LineSegment2r>(line_clip, viewport);
 
 		if(!xen::intersect(line_screen, viewport)){
 			return;
@@ -468,7 +477,7 @@ namespace {
 			tri_clip.p3.xy /= (tri_clip.p3.w);
 
 			xen::Triangle3r tri_screen =
-				_convertToScreenSpaceTri(tri_clip, viewport);
+				_convertToScreenSpaceTriOLD(tri_clip, viewport);
 
 			_renderTriangleScreen(target, viewport, params,
 			                      tri_world, tri_screen, tri_color);
@@ -507,7 +516,7 @@ namespace {
 				tri_clip.p2.xy /= (tri_clip.p2.w);
 				tri_clip.p3.xy /= (tri_clip.p3.w);
 
-				xen::Triangle3r tri_screen = _convertToScreenSpaceTri(tri_clip, viewport);
+				xen::Triangle3r tri_screen = _convertToScreenSpaceTriOLD(tri_clip, viewport);
 
 				_renderTriangleScreen(target, viewport, params,
 				                      tri_world, tri_screen, tri_color);
@@ -562,7 +571,7 @@ namespace {
 				quad_colors.vertices[2] = tri_color.p2;
 				quad_colors.vertices[3] = tri_color.p3 + (tri_color.p2 - tri_color.p3) * frac_p2;
 
-				quad_screen = _convertToScreenSpaceQuad(quad_screen, viewport);
+				quad_screen = _convertToScreenSpaceQuadOLD(quad_screen, viewport);
 
 				_renderTriangleScreen(target, viewport, params,
 				                      *(xen::Triangle3r*)&quad_world.vertices [0],
