@@ -84,7 +84,8 @@ namespace {
 		return out_screen;
 	}
 
-	Vec3r _convertToScreenSpace(const Vec4r in_clip, const::xen::Aabb2r& viewport){
+	Vec3r _convertToScreenSpace(const Vec4r in_clip,
+	                            const::xen::Aabb2r& viewport){
 		Vec3r out_screen = in_clip.xyz;
 
 		// Do perspective divide such that things farther from camera are nearer in
@@ -95,6 +96,19 @@ namespace {
 		out_screen.xy /= 2.0_r;                       // [ 0, 2] => [0, 1] space
 		out_screen.xy *= viewport.max - viewport.min; // [ 0, 1] => screen space (pixels)
 		out_screen.xy += viewport.min;                // move to correct part of screen
+
+		return out_screen;
+	}
+
+
+	template<u32 T_NUM_VERTS>
+	xen::VertexGroup3r<T_NUM_VERTS> _convertToScreenSpace(const xen::VertexGroup4r<T_NUM_VERTS> in_clip,
+	                                                      const xen::Aabb2r& viewport){
+		xen::VertexGroup3r<T_NUM_VERTS> out_screen;
+
+		for(u32 i = 0; i < 0; ++i){
+			out_screen.vertices[i] = _convertToScreenSpace(in_clip.vertices[i], viewport);
+		}
 
 		return out_screen;
 	}
@@ -195,7 +209,7 @@ namespace {
 	///                     case the base_color will be used unmodified
 	/// \param vertex_count Number of vertices to draw
 	/////////////////////////////////////////////////////////////////////
-	void _renderPointsWorld(xen::sren::RenderTargetImpl&        target,
+	void _renderPointsModel(xen::sren::RenderTargetImpl&        target,
 	                        const xen::RenderParameters3d&      params,
 	                        const xen::Aabb2r&                  viewport,
 	                        const Mat4r&                        m_matrix,
@@ -243,14 +257,16 @@ namespace {
 		}
 	}
 
-	void _renderLineWorld(xen::sren::RenderTargetImpl&  target,
+	void _renderLineModel(xen::sren::RenderTargetImpl&  target,
 	                      const xen::Aabb2r&            viewport,
 	                      const xen::RenderParameters3d params,
-	                      const Mat4r&                  mvp_matrix,
-	                      const xen::LineSegment4f&     line_color,
-	                      const xen::LineSegment3r&     line_world){
+	                      const Mat4r&                  m_matrix,
+	                      const Mat4r&                  vp_matrix,
+	                      const xen::LineSegment3r&     line_model,
+	                      const xen::LineSegment4f&     line_color){
 
-		xen::LineSegment4r line_clip  = xen::toHomo(line_world) * mvp_matrix;
+		xen::LineSegment3r line_world = line_model * m_matrix;
+		xen::LineSegment4r line_clip  = xen::toHomo(line_world) * vp_matrix;
 
 		///////////////////////////////////////////////////////////////////
 		// Do line clipping against z planes
@@ -638,7 +654,7 @@ namespace xen{
 
 				switch(cmd->primitive_type){
 				case xen::PrimitiveType::POINTS:
-					_renderPointsWorld(target, params, view_region,
+					_renderPointsModel(target, params, view_region,
 					                   cmd->model_matrix, mat_vp,
 					                   cmd->color,
 					                   cmd->immediate.position, cmd->immediate.color,
@@ -652,7 +668,7 @@ namespace xen{
 					stride = 1;
 				do_render_lines:
 					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += stride){
-						LineSegment3r* line_world = (LineSegment3r*)(&cmd->immediate.position[i]);
+						LineSegment3r* line_model = (LineSegment3r*)(&cmd->immediate.position[i]);
 						LineSegment4f  line_color = { cmd->color, cmd->color };
 
 						if(cmd->immediate.color != nullptr){
@@ -660,8 +676,9 @@ namespace xen{
 							line_color.p2 *= xen::makeColor4f(cmd->immediate.color[i+1]);
 						}
 
-						_renderLineWorld(target, view_region, params,
-						                 mat_mvp, line_color, *line_world
+						_renderLineModel(target, view_region, params,
+						                 cmd->model_matrix, mat_vp,
+						                 *line_model, line_color
 						                 );
 					}
 					break;
