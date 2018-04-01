@@ -90,6 +90,15 @@ namespace xen {
 		return toReturn;
 	}
 
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Performs a lerp along some line segment, equivalent to
+	/// lerping between the line's .p1 to its .p2
+	/////////////////////////////////////////////////////////////////////
+	template<u32 T_DIM, typename T>
+	Vec<T_DIM, T> lerp(LineSegment<T_DIM, T> line, const real factor){
+		return xen::lerp(line.p1, line.p2, factor);
+	}
+
 	template<u32 T_DIM, typename T>
 	bool hasArea(Triangle<T_DIM, T> tri){
 		return tri.p1 != tri.p2 && tri.p1 != tri.p3 && tri.p2 != tri.p2;

@@ -16,6 +16,7 @@
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
+#include <xen/core/array.hpp>
 
 #include "renderer3d.hxx"
 #include "RenderTargetImpl.hxx"
@@ -24,173 +25,248 @@
 #include <cstdlib>
 #include <float.h>
 
+////////////////////////////////////////////////////////////////////////////////
+//
+// A note on spaces:
+// -----------------
+//
+// In this file geometry is typically encoded in one of the following spaces
+// - model
+//   - positions relative to the origin of the model/mesh
+// - world
+//   - positions relative to the world's origin
+// - clip
+//   - something???
+// - screen
+//   - positions relative to the origin of the screen where x and y is pixel
+//     on the screen, and z is the depth
+//
+// Variable names should be suffixed with _world, _clip etc to indicate the
+// space that variable is in.
+//
+// Screen space is given in pixel coordinates, where x and y is the position
+// and the screen
+//
+// Transformations between the spaces are defined as the following:
+//
+// model
+//   |
+//   | vector * model_matrix
+//   v
+// world
+//   |
+//   | vector * view_projection_matrix (vp_matrix)
+//   v
+// clip
+//   |
+//   | use the _convertToScreenSpace functions
+//   v
+// screen
+////////////////////////////////////////////////////////////////////////////////
+
 namespace {
 
 	// :TODO: consolidate all of these convert to screen space functions into single
 	// function
 	template<typename T_IN, typename T_OUT>
-  T_OUT _convertToScreenSpace(const T_IN& in, const xen::Aabb2r& viewport){
-		T_OUT out = xen::swizzle<'x','y'>(in);
+  T_OUT _convertToScreenSpaceOLD(const T_IN& in_clip, const xen::Aabb2r& viewport){
+		// :TODO: include depth information as z
+		T_OUT out_screen = xen::swizzle<'x','y'>(in_clip);
 
-		out += Vec2r{1,1};                  // convert to [0, 2] space
-		out /= 2.0_r;                       // convert to [0, 1] space
-		out *= viewport.max - viewport.min; // convert to screen space
-		out += viewport.min;                // move to correct part of screen
+		out_screen += Vec2r{1,1};                  // convert to [0, 2] space
+		out_screen /= 2.0_r;                       // convert to [0, 1] space
+		out_screen *= viewport.max - viewport.min; // convert to screen space
+		out_screen += viewport.min;                // move to correct part of screen
 
-		return out;
+		return out_screen;
 	}
 
-	xen::Triangle3r _convertToScreenSpaceTri(const xen::Triangle4r& in,
-		                                       const xen::Aabb2r& viewport){
-		xen::Triangle3r out = xen::swizzle<'x','y','z'>(in);
+	Vec3r _convertToScreenSpace(const Vec4r in_clip,
+	                            const::xen::Aabb2r& viewport){
+		Vec3r out_screen = in_clip.xyz;
 
-		out += Vec3r{1,1,0};                                 // convert to [0, 2] space
-		out /= 2.0_r;                                        // convert to [0, 1] space
-		out *= xen::mkVec(viewport.max - viewport.min, 1_r); // convert to screen space
-		out += xen::mkVec(viewport.min,                0_r); // move to correct part of screen
+		// Do perspective divide such that things farther from camera are nearer in
+		// screen space
+		out_screen.xy /= in_clip.z;
+
+		out_screen.xy += Vec2r{1,1};                  // [-1, 1] => [0, 2] space
+		out_screen.xy /= 2.0_r;                       // [ 0, 2] => [0, 1] space
+		out_screen.xy *= viewport.max - viewport.min; // [ 0, 1] => screen space (pixels)
+		out_screen.xy += viewport.min;                // move to correct part of screen
+
+		return out_screen;
+	}
+
+
+	template<u32 T_NUM_VERTS>
+	xen::VertexGroup3r<T_NUM_VERTS> _convertToScreenSpace(const xen::VertexGroup4r<T_NUM_VERTS> in_clip,
+	                                                      const xen::Aabb2r& viewport){
+		xen::VertexGroup3r<T_NUM_VERTS> out_screen;
+
+		for(u32 i = 0; i < 0; ++i){
+			out_screen.vertices[i] = _convertToScreenSpace(in_clip.vertices[i], viewport);
+		}
+
+		return out_screen;
+	}
+
+
+	xen::Triangle3r _convertToScreenSpaceTriOLD(const xen::Triangle4r& in_clip,
+	                                            const xen::Aabb2r& viewport){
+		xen::Triangle3r out_screen = xen::swizzle<'x','y','z'>(in_clip);
+
+		out_screen += Vec3r{1,1,0};                                 // convert to [0, 2] space
+		out_screen /= 2.0_r;                                        // convert to [0, 1] space
+		out_screen *= xen::mkVec(viewport.max - viewport.min, 1_r); // convert to screen space
+		out_screen += xen::mkVec(viewport.min,                0_r); // move to correct part of screen
 
 		// Preserve z component of input
-		out.p1.z = in.p1.z;
-		out.p2.z = in.p2.z;
-		out.p3.z = in.p3.z;
+		out_screen.p1.z = in_clip.p1.z;
+		out_screen.p2.z = in_clip.p2.z;
+		out_screen.p3.z = in_clip.p3.z;
 
-		return out;
+		return out_screen;
 	}
 
-	xen::Quad3r _convertToScreenSpaceQuad(const xen::Quad3r in,
+	xen::Quad3r _convertToScreenSpaceQuadOLD(const xen::Quad3r in_clip,
 		                                    const xen::Aabb2r& viewport){
-		xen::Quad3r out = xen::swizzle<'x','y','z'>(in);
+		xen::Quad3r out_screen = xen::swizzle<'x','y','z'>(in_clip);
 
-		out += Vec3r{1,1,0};                               // convert to [0, 2] space
-		out /= 2.0_r;                                      // convert to [0, 1] space
-		out *= xen::mkVec(viewport.max - viewport.min, 1_r); // convert to screen space
-		out += xen::mkVec(viewport.min,                0_r); // move to correct part of screen
+		out_screen += Vec3r{1,1,0};                                 // convert to [0, 2] space
+		out_screen /= 2.0_r;                                        // convert to [0, 1] space
+		out_screen *= xen::mkVec(viewport.max - viewport.min, 1_r); // convert to screen space
+		out_screen += xen::mkVec(viewport.min,                0_r); // move to correct part of screen
 
 		// Preserve z component of input
-		out.p1.z = in.p1.z;
-		out.p2.z = in.p2.z;
-		out.p3.z = in.p3.z;
-		out.p4.z = in.p4.z;
+		out_screen.p1.z = in_clip.p1.z;
+		out_screen.p2.z = in_clip.p2.z;
+		out_screen.p3.z = in_clip.p3.z;
+		out_screen.p4.z = in_clip.p4.z;
 
-		return out;
+		return out_screen;
 	}
 
-	void doRenderPoints(xen::sren::RenderTargetImpl& target,
-	                    const xen::Aabb2r& viewport,
-	                    const Mat4r& mvp_matrix,
-	                    const xen::ImmediateGeometrySource& geom){
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Performs fragment shader computations - IE: lighting
+	/// \todo texture lookup
+	/// \param params       The rendering parameters describing the whole scene
+	/// \param pos_world    The position of the point being filled in world space
+	/// \param normal_world The normal of the point being filled in world space
+	/// \param color        The base diffuse color of the point being filled
+	/////////////////////////////////////////////////////////////////////
+	xen::Color4f _fragmentShader(const xen::RenderParameters3d& params,
+	                             Vec3r                          pos_world,
+	                             Vec3r                          normal_world,
+	                             xen::Color4f                   color){
 
-		const xen::Color* color_buffer = geom.color;
-		if(geom.color == nullptr){
+		xen::Color4f result = xen::Color4f::Origin;
+
+		xen::Color3f total_light = params.ambient_light;
+
+		for(u32 i = 0; i < xen::size(params.lights); ++i){
+			if(params.lights[i].type != xen::LightSource3d::POINT){
+				printf("WARN: Unsupported light type in rasterizer\n");
+				continue;
+			}
+
+			real dist_sq_world = xen::distanceSq(pos_world, params.lights[i].point.position);
+
+			total_light += xen::sren::computeLightInfluence
+				(params.lights[i].color,
+				 params.lights[i].attenuation,
+				 dist_sq_world
+				);
+		}
+
+		for(u32 i = 0; i < 3; ++i){
+			if(total_light.elements[i] > 1){
+				total_light.elements[i] = 1;
+			}
+		}
+
+		result.rgb = color.rgb * total_light;
+		result.a   = 1;
+
+		return result;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Renders a set of points in world space to the screen
+	/// \param target       The render target to draw on
+	/// \param params       Render parameters describing the scene as a whole
+	/// \param viewport     The viewport of the target that may be drawn to
+	/// \param m_matrix     Model matrix representing transform from model space
+	///                     to world space
+	/// \param vp_matrix    View-projection matrix representing transform from
+	///                     world space to clip space
+	/// \param base_color   The base color of points
+	/// \param pos_model    The positions of the points to render in model space
+	///                     Array length should equal vertex_count
+	/// \param color_buffer Array of per vertex colors. May be nullptr in which
+	///                     case the base_color will be used unmodified
+	/// \param vertex_count Number of vertices to draw
+	/////////////////////////////////////////////////////////////////////
+	void _renderPointsModel(xen::sren::RenderTargetImpl&        target,
+	                        const xen::RenderParameters3d&      params,
+	                        const xen::Aabb2r&                  viewport,
+	                        const Mat4r&                        m_matrix,
+	                        const Mat4r&                        vp_matrix,
+	                        const xen::Color4f                  color,
+	                        const Vec3r*                        pos_model,
+	                        const xen::Color*                   color_buffer,
+	                        const u32                           vertex_count){
+
+		bool colors_per_vertex = (color_buffer != nullptr);
+		if(!colors_per_vertex){
 			color_buffer = &xen::Color::WHITE;
 		}
 
-		for(u32 i = 0; i < geom.vertex_count; ++i){
-			Vec4r clip_space = xen::toHomo(geom.position[i]) * mvp_matrix;
+		for(u32 i = 0; i < vertex_count; ++i){
+			Vec4r point_world = xen::toHomo(pos_model[i]) * m_matrix;
+			Vec4r point_clip  = point_world * vp_matrix;
 
-			if(clip_space.x < -clip_space.w ||
-			   clip_space.x >  clip_space.w ||
-			   clip_space.y < -clip_space.w ||
-			   clip_space.y >  clip_space.w ||
-			   clip_space.z < -clip_space.w ||
-			   clip_space.z >  clip_space.w){
+			if(point_clip.x < -point_clip.w ||
+			   point_clip.x >  point_clip.w ||
+			   point_clip.y < -point_clip.w ||
+			   point_clip.y >  point_clip.w ||
+			   point_clip.z < -point_clip.w ||
+			   point_clip.z >  point_clip.w){
 				// Then point is not in view of the camera
 				continue;
 			}
 
-			// Do perspective divide ensure xy that are further away are made smaller
-			clip_space.xy /= (clip_space.z);
+			Vec3r point_screen = _convertToScreenSpace(point_clip, viewport);
 
-			// Convert from [-1, 1] clip space to screen space
-			Vec2r screen_space =
-				_convertToScreenSpace<Vec4r, Vec2r>(clip_space, viewport);
+			u32 pixel_index = (u32)point_screen.y*target.width + (u32)point_screen.x;
 
-			u32 pixel_index = (u32)screen_space.y*target.width + (u32)screen_space.x;
-
-			if (clip_space.z > target.depth[pixel_index]){
+			if (point_screen.z > target.depth[pixel_index]){
 				// Then point is behind something else occupying this pixel
 				continue;
 			}
-			target.depth[pixel_index] = clip_space.z;
-			target.color[pixel_index] = xen::makeColor4f(color_buffer[i * (geom.color != nullptr)]);
+
+			target.depth[pixel_index] = point_clip.z;
+			target.color[pixel_index] = _fragmentShader
+				(params,
+				 point_world.xyz,
+				 Vec3r::Origin,
+				 xen::makeColor4f(color_buffer[i * colors_per_vertex]) * color
+				);
 		}
 	}
 
-	void doRenderLine2d(xen::sren::RenderTargetImpl& target, xen::LineSegment2r line,
-	                    xen::Color4f color1,
-											xen::Color4f color2,
-	                    real z_start, real z_end){
-		if(line.p1 == line.p2){ return; }
+	void _renderLineModel(xen::sren::RenderTargetImpl&  target,
+	                      const xen::Aabb2r&            viewport,
+	                      const xen::RenderParameters3d params,
+	                      const Mat4r&                  m_matrix,
+	                      const Mat4r&                  vp_matrix,
+	                      const xen::LineSegment3r&     line_model,
+	                      const xen::LineSegment4f&     line_color){
 
-		#if 1
-		//https://www.cs.virginia.edu/luther/blog/posts/492.html
-
-		//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
-		real num_pixels = xen::max(abs(line.p1.x - line.p2.x), abs(line.p1.y - line.p2.y));
-		//printf("Drawing line with %f (%u) pixels\n", num_pixels, (u32)num_pixels);
-		Vec2r delta = (line.p1 - line.p2) / num_pixels;
-		Vec2r cur   = line.p2;
-		for(u32 i = 0; i < (u32)num_pixels; ++i){
-
-			// :TODO: Replace lerp with a perspective correct interpolation
-			real depth = xen::lerp(z_start, z_end, (i/num_pixels));
-			xen::Color4f color = xen::lerp(color1, color2, (i/num_pixels));
-			if (depth < target.depth[(u32)cur.y*target.width + (u32)cur.x]) {
-				target.color[(u32)cur.y*target.width + (u32)cur.x] = color;
-				target.depth[(u32)cur.y*target.width + (u32)cur.x] = depth;
-			}
-			cur += delta;
-		}
-
-		#else
-
-		// Bresenham Algorithm, taken from:
-		// https://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#C.2B.2B
-		// :NOTE: May be a more efficient implementation available
-		const bool steep = (fabs(line.p2.y - line.p1.y) > fabs(line.p2.x - line.p1.x));
-		if(steep){
-			xen::swap(line.p1.x, line.p1.y);
-			xen::swap(line.p2.x, line.p2.y);
-		}
-		if(line.p1.x > line.p2.x){
-			xen::swap(line.p1.x, line.p2.x);
-			xen::swap(line.p1.y, line.p2.y);
-		}
-		const real dx = line.p2.x - line.p1.x;
-		const real dy = fabs(line.p2.y - line.p1.y);
-
-		real error = dx / 2.0f;
-		const int ystep = (line.p1.y < line.p2.y) ? 1 : -1;
-		int y = (int)line.p1.y;
-		const int maxX = (int)line.p2.x;
-
-		for(int x=(int)line.p1.x; x<maxX; x++){
-			if(steep){
-				target.color[(u32)x*target.width + y] = color;
-			}else{
-				target.color[(u32)y*target.width + x] = color;
-			}
-
-			error -= dy;
-			if(error < 0){
-				y += ystep;
-				error += dx;
-			}
-		}
-		#endif
-	}
-
-	void doRenderLine3d(xen::sren::RenderTargetImpl& target,
-	                    const xen::Aabb2r& viewport,
-	                    const Mat4r& mvp_matrix,
-	                    xen::Color4f color1,
-	                    xen::Color4f color2,
-	                    const xen::LineSegment3r& line){
-
-				xen::LineSegment4r line_clip  = xen::toHomo(line) * mvp_matrix;
+		xen::LineSegment3r line_world = line_model * m_matrix;
+		xen::LineSegment4r line_clip  = xen::toHomo(line_world) * vp_matrix;
 
 		///////////////////////////////////////////////////////////////////
-		// Do line clipping
+		// Do line clipping against z planes
 		if(line_clip.p1.z < 0 && line_clip.p2.z < 0){
 			// Then line is completely behind the camera
 			return;
@@ -220,47 +296,59 @@ namespace {
 		///////////////////////////////////////////////////////////////////
 		// Clip to the viewport
 		xen::LineSegment2r line_screen =
-			_convertToScreenSpace<xen::LineSegment4r, xen::LineSegment2r>(line_clip, viewport);
-		if(xen::intersect(line_screen, viewport)){
-			doRenderLine2d(target, line_screen, color1, color2, z_start, z_end);
+			_convertToScreenSpaceOLD<xen::LineSegment4r, xen::LineSegment2r>(line_clip, viewport);
+
+		if(!xen::intersect(line_screen, viewport)){
+			return;
 		}
+		if(line_screen.p1 == line_screen.p2){ return; }
 		///////////////////////////////////////////////////////////////////
+
+
+		//https://www.cs.virginia.edu/luther/blog/posts/492.html
+		real num_pixels = xen::max(abs(line_screen.p1.x - line_screen.p2.x),
+		                           abs(line_screen.p1.y - line_screen.p2.y)
+		                          );
+
+		Vec2r delta_screen = (line_screen.p2 - line_screen.p1) / num_pixels;
+		Vec2r cur_screen   = line_screen.p1;
+		for(u32 i = 0; i < (u32)num_pixels; ++i){
+
+			// :TODO: Replace lerp with a perspective correct interpolation
+			real lerp_factor = i / num_pixels;
+
+			// :TODO: should be u32 -> but cur.y or cur.z may be negative
+			s32  pixel_index = (s32)cur_screen.y*target.width + cur_screen.x;
+
+			real         depth      = xen::lerp(z_start, z_end, lerp_factor);
+			xen::Color4f base_color = xen::lerp(line_color,     lerp_factor);
+			Vec3r        pos_world  = xen::lerp(line_world,     lerp_factor);
+
+			if (depth < target.depth[pixel_index]) {
+				target.color[pixel_index] = _fragmentShader(params,
+				                                            pos_world,
+				                                            Vec3r::Origin,
+				                                            base_color
+				                                           );
+				target.depth[pixel_index] = depth;
+			}
+			cur_screen += delta_screen;
+		}
 
 	}
 
-	void doRenderTriangle2d(xen::sren::RenderTargetImpl& target,
-		                      const xen::Aabb2r& viewport,
-	                        xen::Triangle3r tri,
-	                        xen::Triangle4f colors){
-		xen::Triangle2r tri2d = xen::swizzle<'x','y'>(tri);
-
-		#if XEN_SREN_DEBUG_RENDER_WIREFRAME
-		xen::LineSegment2r line;
-
-		line.p1 = tri2d.p1;
-		line.p2 = tri2d.p2;
-		if(xen::intersect(line, viewport)){
-			doRenderLine2d(target, line, colors.p1, colors.p2, 0, 0);
-		}
-
-		line.p1 = tri2d.p2;
-		line.p2 = tri2d.p3;
-		if(xen::intersect(line, viewport)){
-			doRenderLine2d(target, line, colors.p2, colors.p3, 0, 0);
-		}
-
-		line.p1 = tri2d.p3;
-		line.p2 = tri2d.p1;
-		if(xen::intersect(line, viewport)){
-			doRenderLine2d(target, line, colors.p3, colors.p1, 0, 0);
-		}
-		return;
-		#endif
+	void _renderTriangleScreen(xen::sren::RenderTargetImpl&   target,
+	                           const xen::Aabb2r&             viewport,
+	                           const xen::RenderParameters3d& params,
+	                           xen::Triangle3r                tri_world,
+	                           xen::Triangle3r                tri_screen,
+	                           xen::Triangle4f                colors){
+		xen::Triangle2r tri_screen_xy = xen::swizzle<'x','y'>(tri_screen);
 
 		xen::Aabb2r region_r = xen::Aabb2r::MaxMinBox;
-		xen::addPoint(region_r, tri2d.p1);
-		xen::addPoint(region_r, tri2d.p2);
-		xen::addPoint(region_r, tri2d.p3);
+		xen::addPoint(region_r, tri_screen_xy.p1);
+		xen::addPoint(region_r, tri_screen_xy.p2);
+		xen::addPoint(region_r, tri_screen_xy.p3);
 		if(!xen::intersect(region_r, viewport)){
 			return;
 		}
@@ -275,13 +363,13 @@ namespace {
 		// than computing the barycentric coordinate at each position in the Aabb
 		// of the triangle we can compute it at the corners and then lerp
 		// across
-		Vec3r bary_bottom_left  = xen::getBarycentricCoordinates(tri2d, Vec2r{
+		Vec3r bary_bottom_left  = xen::getBarycentricCoordinates(tri_screen_xy, Vec2r{
 				(real)region.min.x, (real)region.min.y});
-		Vec3r bary_bottom_right = xen::getBarycentricCoordinates(tri2d, Vec2r{
+		Vec3r bary_bottom_right = xen::getBarycentricCoordinates(tri_screen_xy, Vec2r{
 				(real)region.max.x, (real)region.min.y});
-		Vec3r bary_top_left     = xen::getBarycentricCoordinates(tri2d, Vec2r{
+		Vec3r bary_top_left     = xen::getBarycentricCoordinates(tri_screen_xy, Vec2r{
 				(real)region.min.x, (real)region.max.y});
-		Vec3r bary_top_right    = xen::getBarycentricCoordinates(tri2d, Vec2r{
+		Vec3r bary_top_right    = xen::getBarycentricCoordinates(tri_screen_xy, Vec2r{
 				(real)region.max.x, (real)region.max.y});
 
 		float frac_y = 0.0_r;
@@ -360,25 +448,32 @@ namespace {
 				Vec3r bary = xen::lerp(bary_left, bary_right, frac_x);
 
 				u32 pixel_index = pixel_index_base + x;
-				xen::Color4f color = evaluateBarycentricCoordinates(colors, bary);
-				Vec3r depth = evaluateBarycentricCoordinates(tri, bary);
+
+				xen::Color4f color        = evaluateBarycentricCoordinates(colors,     bary);
+				Vec3r        depth        = evaluateBarycentricCoordinates(tri_screen, bary);
+				Vec3r        pos_world    = evaluateBarycentricCoordinates(tri_world,  bary);
+				Vec3r        normal_world = Vec3r::Origin; // :TODO: compute
 
 				if (depth.z < target.depth[pixel_index]) {
-					target.color[pixel_index] = color;
 					target.depth[pixel_index] = depth.z;
+					target.color[pixel_index] = _fragmentShader(params,
+					                                            pos_world,
+					                                            normal_world,
+					                                            color);
 				}
-
-
 			}
 		}
 	}
 
-	void doRenderTriangle3d(xen::sren::RenderTargetImpl& target,
-		                      const xen::Aabb2r& viewport,
-												  const Mat4r& mvp_matrix,
-	                        xen::Triangle3r& tri,
-	                        xen::Triangle4f  colors){
-		xen::Triangle4r tri_clip  = xen::toHomo(tri) * mvp_matrix;
+	void _renderTriangleModel(xen::sren::RenderTargetImpl&  target,
+	                          const xen::Aabb2r&            viewport,
+	                          const xen::RenderParameters3d params,
+	                          const Mat4r&                  m_matrix,
+	                          const Mat4r&                  vp_matrix,
+	                          const xen::Triangle3r&        tri_model,
+	                          xen::Triangle4f               tri_color){
+		xen::Triangle3r tri_world = tri_model * m_matrix;
+		xen::Triangle4r tri_clip  = xen::toHomo(tri_world) * vp_matrix;
 
 		// Work out which points are behind the camera
 		u08 points_behind = 0;
@@ -399,19 +494,20 @@ namespace {
 			tri_clip.p3.xy /= (tri_clip.p3.w);
 
 			xen::Triangle3r tri_screen =
-				_convertToScreenSpaceTri(tri_clip, viewport);
+				_convertToScreenSpaceTriOLD(tri_clip, viewport);
 
-			doRenderTriangle2d(target, viewport, tri_screen, colors);
+			_renderTriangleScreen(target, viewport, params,
+			                      tri_world, tri_screen, tri_color);
 			return;
 		}
 
 		case 3:   // 011
-			xen::swap(tri_clip.p1, tri_clip.p3);
-			xen::swap(colors.p1,   colors.p3  );
+			xen::swap(tri_clip.p1,  tri_clip.p3 );
+			xen::swap(tri_color.p1, tri_color.p3);
 			goto do_draw_2_behind;
 		case 5:   // 101
-			xen::swap(tri_clip.p1, tri_clip.p2);
-			xen::swap(colors.p1,   colors.p2  );
+			xen::swap(tri_clip.p1,  tri_clip.p2 );
+			xen::swap(tri_color.p1, tri_color.p2);
 			goto do_draw_2_behind;
 		case 6:   // 110
 		do_draw_2_behind: {
@@ -425,30 +521,31 @@ namespace {
 				Vec4r delta_p2 = (tri_clip.p1 - tri_clip.p2);
 				real  frac_p2  = ((-tri_clip.p2.z / delta_p2.z));
 				tri_clip.p2   += delta_p2 * frac_p2;
-				colors.p2     += (colors.p1 - colors.p2) * frac_p2;
+				tri_color.p2  += (tri_color.p1 - tri_color.p2) * frac_p2;
 
 				Vec4r delta_p3 = (tri_clip.p1 - tri_clip.p3);
 				real  frac_p3  = ((-tri_clip.p3.z / delta_p3.z));
 				tri_clip.p3   += delta_p3 * frac_p3;
-				colors.p3     += (colors.p1 - colors.p3) * frac_p3;
+				tri_color.p3  += (tri_color.p1 - tri_color.p3) * frac_p3;
 
 				// Do perspective divide (into normalized device coordinates -> [-1, 1]
 				tri_clip.p1.xy /= (tri_clip.p1.w);
 				tri_clip.p2.xy /= (tri_clip.p2.w);
 				tri_clip.p3.xy /= (tri_clip.p3.w);
 
-				xen::Triangle3r tri_screen = _convertToScreenSpaceTri(tri_clip, viewport);
+				xen::Triangle3r tri_screen = _convertToScreenSpaceTriOLD(tri_clip, viewport);
 
-				doRenderTriangle2d(target, viewport, tri_screen, colors);
+				_renderTriangleScreen(target, viewport, params,
+				                      tri_world, tri_screen, tri_color);
 				return;
 			}
 		case 1: // 001
-			xen::swap(tri_clip.p1, tri_clip.p3);
-			xen::swap(colors.p1,   colors.p3  );
+			xen::swap(tri_clip.p1,  tri_clip.p3 );
+			xen::swap(tri_color.p1, tri_color.p3);
 			goto do_draw_1_behind;
 		case 2: // 010
-			xen::swap(tri_clip.p2, tri_clip.p3);
-			xen::swap(colors.p2,   colors.p3  );
+			xen::swap(tri_clip.p2,  tri_clip.p3 );
+			xen::swap(tri_color.p2, tri_color.p3);
 			goto do_draw_1_behind;
 		case 4: // 100
 		do_draw_1_behind: {
@@ -479,23 +576,30 @@ namespace {
 				p3_slide_to_p2.xy /= p3_slide_to_p2.w;
 				quad_screen.vertices[3] = p3_slide_to_p2.xyz;
 
+				xen::VertexGroup3r<4> quad_world;
+				quad_world.vertices[0] = tri_world.p1;
+				quad_world.vertices[1] = tri_world.p3 + (tri_world.p1 - tri_world.p3) * frac_p1;
+				quad_world.vertices[2] = tri_world.p2;
+				quad_world.vertices[3] = tri_world.p3 + (tri_world.p2 - tri_world.p3) * frac_p2;
+
 				xen::VertexGroup4f<4> quad_colors;
-				quad_colors.vertices[0] = colors.p1;
-				quad_colors.vertices[1] = colors.p3 + (colors.p1 - colors.p3) * frac_p1;
-				quad_colors.vertices[2] = colors.p2;
-				quad_colors.vertices[3] = colors.p3 + (colors.p2 - colors.p3) * frac_p2;
+				quad_colors.vertices[0] = tri_color.p1;
+				quad_colors.vertices[1] = tri_color.p3 + (tri_color.p1 - tri_color.p3) * frac_p1;
+				quad_colors.vertices[2] = tri_color.p2;
+				quad_colors.vertices[3] = tri_color.p3 + (tri_color.p2 - tri_color.p3) * frac_p2;
 
-				quad_screen = _convertToScreenSpaceQuad(quad_screen, viewport);
+				quad_screen = _convertToScreenSpaceQuadOLD(quad_screen, viewport);
 
-				// :TODO: compute colors at each vertex
-				doRenderTriangle2d(target, viewport,
-				                   *(xen::Triangle3r*)&quad_screen.vertices[0],
-				                   *(xen::Triangle4f*)&quad_colors.vertices[0]
-				                  );
-				doRenderTriangle2d(target, viewport,
-				                   *(xen::Triangle3r*)&quad_screen.vertices[1],
-				                   *(xen::Triangle4f*)&quad_colors.vertices[1]
-				                  );
+				_renderTriangleScreen(target, viewport, params,
+				                      *(xen::Triangle3r*)&quad_world.vertices [0],
+				                      *(xen::Triangle3r*)&quad_screen.vertices[0],
+				                      *(xen::Triangle4f*)&quad_colors.vertices[0]
+				                     );
+				_renderTriangleScreen(target, viewport, params,
+				                      *(xen::Triangle3r*)&quad_world.vertices [1],
+				                      *(xen::Triangle3r*)&quad_screen.vertices[1],
+				                      *(xen::Triangle4f*)&quad_colors.vertices[1]
+				                     );
 			}
 			return;
 		}
@@ -522,8 +626,7 @@ namespace xen{
 			xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
 			xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 
-			Mat4r mat_vp = xen::getViewProjectionMatrix(params.camera, view_region.max - view_region.min);
-			Mat4r mat_mvp;
+			Mat4r vp_matrix = xen::getViewProjectionMatrix(params.camera, view_region.max - view_region.min);
 
 			int stride = 0;
 
@@ -531,10 +634,8 @@ namespace xen{
 			for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 				cmd = &commands[cmd_index];
 
-				mat_mvp = cmd->model_matrix * mat_vp;
-
 				#ifdef XEN_DEBUG_ADDITIONAL_CHECKS
-				if(xen::isnan(mat_mvp)){
+				if(xen::isnan(vp_matrix)){
 					printf("ERROR: MVP matrix contains NaN elements, skipping command %i\n",
 					       cmd_index);
 					continue;
@@ -551,59 +652,58 @@ namespace xen{
 
 				switch(cmd->primitive_type){
 				case xen::PrimitiveType::POINTS:
-					doRenderPoints(target, view_region, mat_mvp, cmd->immediate);
+					_renderPointsModel(target, params, view_region,
+					                   cmd->model_matrix, vp_matrix,
+					                   cmd->color,
+					                   cmd->immediate.position, cmd->immediate.color,
+					                   cmd->immediate.vertex_count);
 					break;
 				case xen::PrimitiveType::LINES:
 					stride = 2;
 					goto do_render_lines;
 					break;
-				case xen::PrimitiveType::TRIANGLES: {
-					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += 3){
-						Triangle3r* tri_world = (Triangle3r*)(&cmd->immediate.position[i]);
-
-						xen::Triangle4f tri_color;
-						if(cmd->immediate.color == nullptr){
-							tri_color.p1 = xen::Color::WHITE4f;
-							tri_color.p2 = xen::Color::WHITE4f;
-							tri_color.p3 = xen::Color::WHITE4f;
-						} else {
-							tri_color.p1 = makeColor4f(cmd->immediate.color[i+0]);
-							tri_color.p2 = makeColor4f(cmd->immediate.color[i+1]);
-							tri_color.p3 = makeColor4f(cmd->immediate.color[i+2]);
-						}
-						tri_color *= cmd->color;
-
-						doRenderTriangle3d(target,view_region, mat_mvp, *tri_world, tri_color);
-					}
-
-					break;
-				}
 				case xen::PrimitiveType::LINE_STRIP:
 					stride = 1;
 				do_render_lines:
 					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += stride){
-						LineSegment3r* line_world = (LineSegment3r*)(&cmd->immediate.position[i]);
+						LineSegment3r* line_model = (LineSegment3r*)(&cmd->immediate.position[i]);
+						LineSegment4f  line_color = { cmd->color, cmd->color };
 
-						// If (color is not specified) -> set to white, else -> get color for vertex
-						xen::Color4f color1;
-						if(cmd->immediate.color == nullptr){
-							color1 = xen::Color::WHITE4f;
-						} else {
-							color1 = makeColor4f(cmd->immediate.color[i]);
+						if(cmd->immediate.color != nullptr){
+							line_color.p1 *= xen::makeColor4f(cmd->immediate.color[i+0]);
+							line_color.p2 *= xen::makeColor4f(cmd->immediate.color[i+1]);
 						}
-						xen::Color4f color2;
-						if(cmd->immediate.color == nullptr){
-							color2 = xen::Color::WHITE4f;
-						} else {
-							color2 = makeColor4f(cmd->immediate.color[i+1]);
-						}
-						// Multiply by cmd color, for case where colour for entire line is specified in command
-						color1 *= cmd->color;
-						color2 *= cmd->color;
 
-						doRenderLine3d(target, view_region, mat_mvp, color1, color2, *line_world);
+						_renderLineModel(target, view_region, params,
+						                 cmd->model_matrix, vp_matrix,
+						                 *line_model, line_color
+						                 );
 					}
 					break;
+				case xen::PrimitiveType::TRIANGLES: {
+					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += 3){
+						Triangle3r* tri_world = (Triangle3r*)(&cmd->immediate.position[i]);
+
+						xen::Triangle4f tri_color = {
+							cmd->color,
+							cmd->color,
+							cmd->color,
+						};
+
+						if(cmd->immediate.color != nullptr){
+							tri_color.p1 *= makeColor4f(cmd->immediate.color[i+0]);
+							tri_color.p2 *= makeColor4f(cmd->immediate.color[i+1]);
+							tri_color.p3 *= makeColor4f(cmd->immediate.color[i+2]);
+						}
+
+						_renderTriangleModel(target, view_region, params,
+						                     cmd->model_matrix, vp_matrix,
+						                     *tri_world, tri_color
+						                    );
+					}
+
+					break;
+				}
 				default:
 					XenInvalidCodePath("Unhandled render command type in software rasterizer");
 					break;
