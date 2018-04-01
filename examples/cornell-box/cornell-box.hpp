@@ -1,1 +1,2 @@
-const extern xen::ImmediateGeometrySource MeshGeometry_CornellBox;
+const extern xen::ImmediateGeometrySource MeshGeometry_CornellBoxWalls;
+const extern xen::ImmediateGeometrySource MeshGeometry_CornellBoxInterior;
