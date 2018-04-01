@@ -163,78 +163,43 @@ namespace {
 		}
 	}
 
-	void doRenderLine2d(xen::sren::RenderTargetImpl& target, xen::LineSegment2r line,
-	                    xen::Color4f color1,
-											xen::Color4f color2,
+	void doRenderLine2d(xen::sren::RenderTargetImpl& target,
+	                    xen::LineSegment2r line_screen,
+	                    xen::LineSegment4f line_color,
 	                    real z_start, real z_end){
-		if(line.p1 == line.p2){ return; }
+		if(line_screen.p1 == line_screen.p2){ return; }
 
-		#if 1
 		//https://www.cs.virginia.edu/luther/blog/posts/492.html
 
-		//printf("%f, %f  ->  %f, %f\n", line.p1.x, line.p1.y, line.p2.x, line.p2.y);
-		real num_pixels = xen::max(abs(line.p1.x - line.p2.x), abs(line.p1.y - line.p2.y));
-		//printf("Drawing line with %f (%u) pixels\n", num_pixels, (u32)num_pixels);
-		Vec2r delta = (line.p1 - line.p2) / num_pixels;
-		Vec2r cur   = line.p2;
+		real num_pixels = xen::max(abs(line_screen.p1.x - line_screen.p2.x),
+		                           abs(line_screen.p1.y - line_screen.p2.y)
+		                          );
+
+		Vec2r delta = (line_screen.p1 - line_screen.p2) / num_pixels;
+		Vec2r cur   = line_screen.p2;
 		for(u32 i = 0; i < (u32)num_pixels; ++i){
 
 			// :TODO: Replace lerp with a perspective correct interpolation
-			real depth = xen::lerp(z_start, z_end, (i/num_pixels));
-			xen::Color4f color = xen::lerp(color1, color2, (i/num_pixels));
-			if (depth < target.depth[(u32)cur.y*target.width + (u32)cur.x]) {
-				target.color[(u32)cur.y*target.width + (u32)cur.x] = color;
-				target.depth[(u32)cur.y*target.width + (u32)cur.x] = depth;
+			real lerp_factor = i / num_pixels;
+			u32  pixel_index = (u32)cur.y*target.width + cur.x;
+
+			real depth = xen::lerp(z_start, z_end, lerp_factor);
+
+			if (depth < target.depth[pixel_index]) {
+				target.color[pixel_index] = xen::lerp(line_color, lerp_factor);
+				target.depth[pixel_index] = depth;
 			}
 			cur += delta;
 		}
-
-		#else
-
-		// Bresenham Algorithm, taken from:
-		// https://rosettacode.org/wiki/Bitmap/Bresenham%27s_line_algorithm#C.2B.2B
-		// :NOTE: May be a more efficient implementation available
-		const bool steep = (fabs(line.p2.y - line.p1.y) > fabs(line.p2.x - line.p1.x));
-		if(steep){
-			xen::swap(line.p1.x, line.p1.y);
-			xen::swap(line.p2.x, line.p2.y);
-		}
-		if(line.p1.x > line.p2.x){
-			xen::swap(line.p1.x, line.p2.x);
-			xen::swap(line.p1.y, line.p2.y);
-		}
-		const real dx = line.p2.x - line.p1.x;
-		const real dy = fabs(line.p2.y - line.p1.y);
-
-		real error = dx / 2.0f;
-		const int ystep = (line.p1.y < line.p2.y) ? 1 : -1;
-		int y = (int)line.p1.y;
-		const int maxX = (int)line.p2.x;
-
-		for(int x=(int)line.p1.x; x<maxX; x++){
-			if(steep){
-				target.color[(u32)x*target.width + y] = color;
-			}else{
-				target.color[(u32)y*target.width + x] = color;
-			}
-
-			error -= dy;
-			if(error < 0){
-				y += ystep;
-				error += dx;
-			}
-		}
-		#endif
 	}
 
 	void doRenderLine3d(xen::sren::RenderTargetImpl& target,
 	                    const xen::Aabb2r& viewport,
 	                    const Mat4r& mvp_matrix,
-	                    xen::Color4f color1,
-	                    xen::Color4f color2,
-	                    const xen::LineSegment3r& line){
+	                    const xen::LineSegment4f& line_color,
+	                    const xen::LineSegment3r& line_world){
 
-				xen::LineSegment4r line_clip  = xen::toHomo(line) * mvp_matrix;
+		xen::LineSegment4r line_clip  = xen::toHomo(line_world) * mvp_matrix;
 
 		///////////////////////////////////////////////////////////////////
 		// Do line clipping
@@ -268,8 +233,9 @@ namespace {
 		// Clip to the viewport
 		xen::LineSegment2r line_screen =
 			_convertToScreenSpace<xen::LineSegment4r, xen::LineSegment2r>(line_clip, viewport);
+
 		if(xen::intersect(line_screen, viewport)){
-			doRenderLine2d(target, line_screen, color1, color2, z_start, z_end);
+			doRenderLine2d(target, line_screen, line_color, z_start, z_end);
 		}
 		///////////////////////////////////////////////////////////////////
 
@@ -280,29 +246,6 @@ namespace {
 	                        xen::Triangle3r tri,
 	                        xen::Triangle4f colors){
 		xen::Triangle2r tri2d = xen::swizzle<'x','y'>(tri);
-
-		#if XEN_SREN_DEBUG_RENDER_WIREFRAME
-		xen::LineSegment2r line;
-
-		line.p1 = tri2d.p1;
-		line.p2 = tri2d.p2;
-		if(xen::intersect(line, viewport)){
-			doRenderLine2d(target, line, colors.p1, colors.p2, 0, 0);
-		}
-
-		line.p1 = tri2d.p2;
-		line.p2 = tri2d.p3;
-		if(xen::intersect(line, viewport)){
-			doRenderLine2d(target, line, colors.p2, colors.p3, 0, 0);
-		}
-
-		line.p1 = tri2d.p3;
-		line.p2 = tri2d.p1;
-		if(xen::intersect(line, viewport)){
-			doRenderLine2d(target, line, colors.p3, colors.p1, 0, 0);
-		}
-		return;
-		#endif
 
 		xen::Aabb2r region_r = xen::Aabb2r::MaxMinBox;
 		xen::addPoint(region_r, tri2d.p1);
@@ -628,25 +571,14 @@ namespace xen{
 				do_render_lines:
 					for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += stride){
 						LineSegment3r* line_world = (LineSegment3r*)(&cmd->immediate.position[i]);
+						LineSegment4f  line_color = { cmd->color, cmd->color };
 
-						// If (color is not specified) -> set to white, else -> get color for vertex
-						xen::Color4f color1;
-						if(cmd->immediate.color == nullptr){
-							color1 = xen::Color::WHITE4f;
-						} else {
-							color1 = makeColor4f(cmd->immediate.color[i]);
+						if(cmd->immediate.color != nullptr){
+							line_color.p1 *= xen::makeColor4f(cmd->immediate.color[i+0]);
+							line_color.p2 *= xen::makeColor4f(cmd->immediate.color[i+1]);
 						}
-						xen::Color4f color2;
-						if(cmd->immediate.color == nullptr){
-							color2 = xen::Color::WHITE4f;
-						} else {
-							color2 = makeColor4f(cmd->immediate.color[i+1]);
-						}
-						// Multiply by cmd color, for case where colour for entire line is specified in command
-						color1 *= cmd->color;
-						color2 *= cmd->color;
 
-						doRenderLine3d(target, view_region, mat_mvp, color1, color2, *line_world);
+						doRenderLine3d(target, view_region, mat_mvp, line_color, *line_world);
 					}
 					break;
 				default:
