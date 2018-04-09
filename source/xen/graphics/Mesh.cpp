@@ -207,6 +207,7 @@ namespace xen {
 		switch(type & VertexAttribute::_TypeMask){
 		case VertexAttribute::_TypeFloat  : result = sizeof(float ); break;
 		case VertexAttribute::_TypeDouble : result = sizeof(double); break;
+		case VertexAttribute::_TypeByte   : result = sizeof(u08   ); break;
 		default:
 			XenInvalidCodePath("Unhandled type in getVertexAttributeSize");
 			break;

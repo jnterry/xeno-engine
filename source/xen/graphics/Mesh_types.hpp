@@ -94,6 +94,7 @@ namespace xen{
 
 		  _TypeFloat          = 0x0080,
 		  _TypeDouble         = 0x0090,
+		  _TypeByte           = 0x00A0,
 		  _TypeMax,
 		  _TypeMask           = 0x00F8,
 
@@ -143,6 +144,10 @@ namespace xen{
 
 		  /// \brief 3 component RGB color with each component between 0 and 1
 		  Color3f    = _AspectColor    | _TypeFloat | 3,
+
+		  /// \brief 4 component RGBA color with each component being a byte
+		  /// between 0 and 255
+		  Color4b    = _AspectColor    | _TypeByte  | 4,
 
 		  /// \brief 2 component floating point texture coordinate between 0 and 1
 		  TexCoord2f = _AspectTexCoord | _TypeFloat | 2,
