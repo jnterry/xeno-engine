@@ -29,28 +29,21 @@ namespace xen {
 namespace sren {
 
 bool castRayIntoScene(const xen::Ray3r& ray_world,
-                      const xen::Array<xen::RenderCommand3d>& commands,
+                      const RaytracerScene& scene,
                       SceneRayCastResult& result){
 
-	result.dist_sq = std::numeric_limits<real>::max();
+	result.dist_sq_world = std::numeric_limits<real>::max();
 	bool found_intersection = false;
 
 	// Loop over all objects in scene
-	for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
-		const xen::RenderCommand3d* cmd = &commands[cmd_index];
-		if(cmd->primitive_type != xen::PrimitiveType::TRIANGLES){
-			continue;
-		}
+	for(u32 model_index = 0; model_index < xen::size(scene.models); ++model_index){
+		const xen::sren::RaytracerModel& model = scene.models[model_index];
 
-		// :TODO:OPT: we recompute the inverse model matrix for every ray we cast
-		// into the scene -> matrix inverse isn't cheap -> cache on per command
-		// basis
-		Mat4r mat_model_inv = xen::getInverse(cmd->model_matrix);
-
-		// Compute the ray in model space.
+		// Compute the ray in model space
+		//
 		// This is faster (2 vertices to define a ray) than transforming the mesh
 		// into world space (arbitrary number of vertices)
-		xen::Ray3r ray_model = xen::getTransformed(ray_world, mat_model_inv);
+		xen::Ray3r ray_model = xen::getTransformed(ray_world, model.inv_model_matrix);
 
 		const xen::Triangle3r* tri;
 
@@ -59,28 +52,28 @@ bool castRayIntoScene(const xen::Ray3r& ray_world,
 		real  intersection_length_sq;
 
 		// Loop over all triangles of object
-		for(u32 i = 0; i < cmd->immediate.vertex_count; i += 3){
-			tri = (const xen::Triangle3r*)&cmd->immediate.position[i];
+		for(u32 i = 0; i < model.mesh->vertex_count; i += 3){
+			tri = (const xen::Triangle3r*)&model.mesh->position[i];
 
 			if(!xen::getIntersection(ray_model, *tri, intersection_model)){
 				// Then the ray does not intersection this triangle
 				continue;
 			}
 
-			intersection_world = intersection_model * cmd->model_matrix;
+			intersection_world     = intersection_model * model.model_matrix;
 			intersection_length_sq = xen::distanceSq(ray_world.origin, intersection_world);
 
-			if(intersection_length_sq >= result.dist_sq){
+			if(intersection_length_sq >= result.dist_sq_world){
 				// Then we've already found a closer intersection. Ignore this one
 				continue;
 			}
 
-			result.dist_sq     = intersection_length_sq;
-			result.pos_world   = intersection_world;
-			result.pos_model   = intersection_model;
-			result.cmd_index   = cmd_index;
-			result.tri_index   = i/3;
-			found_intersection = true;
+			result.dist_sq_world = intersection_length_sq;
+			result.pos_world     = intersection_world;
+			result.pos_model     = intersection_model;
+			result.model_index   = model_index;
+			result.tri_index     = i/3;
+			found_intersection   = true;
 		}
 	}
 
@@ -89,8 +82,9 @@ bool castRayIntoScene(const xen::Ray3r& ray_world,
 
 void renderRaytrace (xen::sren::RenderTargetImpl&       target,
                      const xen::Aabb2u&                 viewport,
-                     const RenderParameters3d&          params,
-                     const xen::Array<RenderCommand3d>& commands){
+                     const xen::RenderParameters3d&     params,
+                     const RaytracerScene&              scene
+                     ){
 
 	xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
 	xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
@@ -168,15 +162,15 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 
 			/////////////////////////////////////////////////////////////////////
 			// Cast the ray into the scene
-			if(!castRayIntoScene(primary_ray, commands, intersection)){
+			if(!castRayIntoScene(primary_ray, scene, intersection)){
 				continue;
 			}
 
-			XenDebugAssert(intersection.cmd_index < xen::size(commands),
+			XenDebugAssert(intersection.model_index < xen::size(scene.models),
 			               "Expected intersection's object index to be within "
-			               "bounds of the command list");
+			               "bounds of the model list");
 			XenDebugAssert(intersection.tri_index * 3 <
-			               commands[intersection.cmd_index].immediate.vertex_count,
+			               scene.models[intersection.model_index].mesh->vertex_count,
 			               "Expected intersection's triangle index to be within "
 			               "bounds of the vertex list");
 
@@ -184,9 +178,9 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 			xen::Color4f pixel_color        = xen::Color::WHITE4f;
 			Vec3r        pixel_normal_world = Vec3r::Origin;
 			{
-				Vec3r* pbuf_model = commands[intersection.cmd_index].immediate.position;
-				Vec3r* nbuf_model = commands[intersection.cmd_index].immediate.normal;
-				Color* cbuf       = commands[intersection.cmd_index].immediate.color;
+				Vec3r* pbuf_model = scene.models[intersection.model_index].mesh->position;
+				Vec3r* nbuf_model = scene.models[intersection.model_index].mesh->normal;
+				Color* cbuf       = scene.models[intersection.model_index].mesh->color;
 				u32    buf_index = intersection.tri_index * 3;
 
 				xen::Triangle3r ptri_model = *(xen::Triangle3r*)&pbuf_model[buf_index];
@@ -222,7 +216,7 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 					pixel_normal_model = xen::computeTriangleNormal(ptri_model);
 				}
 				pixel_normal_world = xen::normalized(pixel_normal_model *
-				                                     commands[intersection.cmd_index].model_matrix
+				                                     scene.models[intersection.model_index].model_matrix
 				                                     );
 			}
 
@@ -252,8 +246,8 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 						                                     intersection.pos_world
 						                                     );
 
-						if(castRayIntoScene(shadow_ray, commands, shadow_intersection) &&
-						   light_dist_sq > shadow_intersection.dist_sq){
+						if(castRayIntoScene(shadow_ray, scene, shadow_intersection) &&
+						   light_dist_sq > shadow_intersection.dist_sq_world){
 							// Then there is geometry between the intersection.pos_world and
 							// this light. Hence the light source is blocked
 							break;

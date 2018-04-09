@@ -9,35 +9,61 @@
 #ifndef XEN_SREN_RAYTRACERDEVICE_CPP
 #define XEN_SREN_RAYTRACERDEVICE_CPP
 
-#include <xen/core/memory/ArenaLinear.hpp>
-#include <xen/graphics/GraphicsDevice.hpp>
-#include <xen/graphics/Image.hpp>
-#include <xen/sren/SoftwareDevice.hpp>
-
 #include "SoftwareDeviceBase.hxx"
 #include "render-utilities.hxx"
 #include "raytracer3d.hxx"
 
+#include <xen/sren/SoftwareDevice.hpp>
+#include <xen/graphics/GraphicsDevice.hpp>
+#include <xen/graphics/Image.hpp>
+#include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/core/memory/utilities.hpp>
+#include <xen/core/array.hpp>
 
 class RaytracerDevice : public xen::sren::SoftwareDeviceBase {
+private:
+	xen::Allocator*                          mesh_allocator;
+	xen::ArenaPool<xen::sren::RaytracerMesh> mesh_pool;
+
+	///< \brief Scratch space for per render call data
+	xen::ArenaLinear                         render_scratch_arena;
 public:
 	~RaytracerDevice(){
+		// :TODO: destroy all created meshes
 
+		// :TODO: why is one of these a pointer and one not???? Make consistent...
+		//   -> create equivalents also affected
+		xen::destroyArenaLinear(*main_allocator, render_scratch_arena);
+		xen::destroyArenaPool  ( main_allocator, mesh_pool);
 	}
 
 	RaytracerDevice(xen::Array<xen::sren::PostProcessor*> post_processors)
-		: SoftwareDeviceBase(post_processors) {
+		: SoftwareDeviceBase(post_processors),
+		  mesh_allocator(main_allocator),
+		  mesh_pool(xen::createArenaPool<xen::MeshGeometrySource>(main_allocator, 1024)),
+		  render_scratch_arena(xen::createArenaLinear(*main_allocator, xen::megabytes(8)))
+	{
 		// no-op
 	}
 
 	xen::Mesh createMesh(const xen::MeshData* mesh_data) override {
-	  return xen::makeNullHandle<xen::Mesh>();
-		// :TODO: implement
-		return xen::makeNullHandle<xen::Mesh>();
+		// :TODO:COMP:ISSUE_31: object pool with automatic handles / resizeable pool
+		u32 slot = xen::reserveSlot(this->mesh_pool);
+		xen::MeshGeometrySource* mesh_geom = &this->mesh_pool.slots[slot].item;
+
+		// Allocate storage and copy over attributes, this is equivalent
+		// to uploading to the gpu in a gl device
+		xen::initMeshGeometrySource(mesh_geom, mesh_data, mesh_allocator);
+
+		// :TODO: compute normal data if missing
+
+		return this->makeHandle<xen::Mesh::HANDLE_ID>(slot, 0);
 	}
 
 	void destroyMesh(xen::Mesh mesh) override {
-		// :TODO: implement
+	  xen::freeMeshGeometrySourceData(&this->mesh_pool.slots[mesh._id].item,
+		                                mesh_allocator);
+		xen::freeSlot(this->mesh_pool, mesh._id);
 	}
 
 	void render(xen::RenderTarget target,
@@ -45,7 +71,69 @@ public:
 	            const xen::RenderParameters3d& params,
 	            const xen::Array<xen::RenderCommand3d> commands
 	            ) override {
-		xen::sren::renderRaytrace(*this->getRenderTargetImpl(target), viewport, params, commands);
+
+		////////////////////////////////////////////////////////////////////////////
+		// Build up the RaytracerScene by consolidating all triangle drawing
+		// commands
+
+		// List of cmd indices referring to non-triangles
+		// Worst case is that every command is a non-triangle,
+		// so reserve that much space
+		xen::Array<u32> non_triangle_cmds;
+		non_triangle_cmds.size     = 0;
+		non_triangle_cmds.elements = xen::reserveTypeArray<u32>(render_scratch_arena,
+		                                                        xen::size(commands)
+		                                                       );
+
+		xen::sren::RaytracerScene scene;
+		scene.models.size     = 0;
+		scene.models.elements =
+			(xen::sren::RaytracerModel*)xen::ptrGetAlignedForward(render_scratch_arena.next_byte,
+			                                                      alignof(xen::sren::RaytracerModel)
+			                                                     );
+
+		for(u32 i = 0; i < xen::size(commands); ++i){
+			const xen::RenderCommand3d* cmd = &commands[i];
+
+			switch(cmd->primitive_type){
+			case xen::PrimitiveType::TRIANGLES: {
+				xen::sren::RaytracerModel* model = &scene.models[scene.models.size];
+				++scene.models.size;
+
+				switch(cmd->geometry_source){
+				case xen::RenderCommand3d::IMMEDIATE:
+					model->mesh = &cmd->immediate;
+					break;
+				case xen::RenderCommand3d::MESH:
+					model->mesh = &this->mesh_pool.slots[cmd->mesh._id].item;
+					break;
+				}
+
+				model->color            = cmd->color;
+				model->emissive_color   = cmd->color;
+				model->model_matrix     = cmd->model_matrix;
+				model->inv_model_matrix = xen::getInverse(cmd->model_matrix);
+
+				break;
+			}
+			default:
+				non_triangle_cmds[non_triangle_cmds.size] = i;
+				++non_triangle_cmds.size;
+				break;
+			}
+		}
+
+		xen::ptrAdvance(&render_scratch_arena.next_byte,
+		                sizeof(xen::sren::RaytracerModel) * scene.models.size);
+		////////////////////////////////////////////////////////////////////////////
+
+		// Now we have generated the scene we can render it...
+		xen::sren::renderRaytrace(*this->getRenderTargetImpl(target),
+		                          viewport,
+		                          params,
+		                          scene);
+
+		// :TODO: render the non triangle commands
 	}
 };
 

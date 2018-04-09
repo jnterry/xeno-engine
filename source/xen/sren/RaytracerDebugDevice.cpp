@@ -142,7 +142,8 @@ public:
 
 		xen::sren::clear(target, viewport_main, xen::Color::BLACK);
 
-		xen::sren::renderRaytrace(target, viewport_main, params, commands);
+		// :TODO: need to generate a raytracer scene
+		//xen::sren::renderRaytrace(target, viewport_main, params, commands);
 
 		xen::RenderParameters3d my_params = params;
 
