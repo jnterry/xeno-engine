@@ -10,6 +10,7 @@
 #define XEN_SREN_RASTERIZER3D_HXX
 
 #include <xen/math/geometry_types.hpp>
+#include <xen/math/vertex_group_types.hpp>
 
 namespace xen {
 	struct RenderParameters3d;
@@ -30,6 +31,57 @@ namespace xen {
 		                     const xen::Aabb2u&                 viewport,
 		                     const xen::RenderParameters3d&     params,
 		                     const xen::Array<RenderCommand3d>& commands);
+
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Rasterizes a set of points defined in model space to the screen
+		/// \param target       The render target to draw on
+		/// \param params       Render parameters describing the scene as a whole
+		/// \param viewport     The viewport of the target that may be drawn to
+		/// \param m_matrix     Model matrix representing transform from model space
+		///                     to world space
+		/// \param vp_matrix    View-projection matrix representing transform from
+		///                     world space to clip space
+		/// \param base_color   The base color of points
+		/// \param pos_model    The positions of the points to render in model space
+		///                     Array length should equal vertex_count
+		/// \param color_buffer Array of per vertex colors. May be nullptr in which
+		///                     case the base_color will be used unmodified
+		/// \param vertex_count Number of vertices to draw
+		/////////////////////////////////////////////////////////////////////
+		void rasterizePointsModel(xen::sren::RenderTargetImpl&        target,
+		                          const xen::RenderParameters3d&      params,
+		                          const xen::Aabb2r&                  viewport,
+		                          const Mat4r&                        m_matrix,
+		                          const Mat4r&                        vp_matrix,
+		                          const xen::Color4f                  color,
+		                          const Vec3r*                        pos_model,
+		                          const xen::Color*                   color_buffer,
+		                          const u32                           vertex_count);
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Rasterizes a single line defined in model space to the screen
+		/////////////////////////////////////////////////////////////////////
+		void rasterizeLineModel(xen::sren::RenderTargetImpl&  target,
+		                        const xen::Aabb2r&            viewport,
+		                        const xen::RenderParameters3d params,
+		                        const Mat4r&                  m_matrix,
+		                        const Mat4r&                  vp_matrix,
+		                        const xen::LineSegment3r&     line_model,
+		                        const xen::LineSegment4f&     line_color);
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Rasterizes a single triangle defined in model space to the screen
+		/////////////////////////////////////////////////////////////////////
+		void rasterizeTriangleModel(xen::sren::RenderTargetImpl&  target,
+		                            const xen::Aabb2r&            viewport,
+		                            const xen::RenderParameters3d params,
+		                            const Mat4r&                  m_matrix,
+		                            const Mat4r&                  vp_matrix,
+		                            const xen::Triangle3r&        tri_model,
+		                            const xen::Triangle3r&        tri_normal_model,
+		                            xen::Triangle4f               tri_color);
+
 
 	}
 }
