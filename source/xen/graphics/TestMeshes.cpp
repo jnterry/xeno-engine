@@ -168,21 +168,21 @@ namespace {
 }
 
 namespace xen {
-	const ImmediateGeometrySource TestMeshGeometry_UnitCubeLines = {
+	const MeshGeometrySource TestMeshGeometry_UnitCubeLines = {
 		XenArrayLength(UnitCubeLines_Positions),
 		UnitCubeLines_Positions,
 		nullptr,
 		UnitCubeLines_Colors,
 	};
 
-	const ImmediateGeometrySource TestMeshGeometry_UnitCube = {
+	const MeshGeometrySource TestMeshGeometry_UnitCube = {
 		XenArrayLength(UnitCube_Positions),
 		UnitCube_Positions,
 		UnitCube_Normals,
 		UnitCube_Colors,
 	};
 
-	const ImmediateGeometrySource TestMeshGeometry_Axes = {
+	const MeshGeometrySource TestMeshGeometry_Axes = {
 		XenArrayLength(Axes_Positions),
 		Axes_Positions,
 		nullptr,

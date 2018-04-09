@@ -174,14 +174,14 @@ static_assert(XenArrayLength(positions_interior) == XenArrayLength(colors_interi
               "Expected equal number of colors and positions"
              );
 
-const xen::ImmediateGeometrySource MeshGeometry_CornellBoxWalls = {
+const xen::MeshGeometrySource MeshGeometry_CornellBoxWalls = {
 	XenArrayLength(positions_walls),
   positions_walls,
 	nullptr, // normals
 	colors_walls,
 };
 
-const xen::ImmediateGeometrySource MeshGeometry_CornellBoxInterior = {
+const xen::MeshGeometrySource MeshGeometry_CornellBoxInterior = {
 	XenArrayLength(positions_interior),
   positions_interior,
 	nullptr, // normals

@@ -16,6 +16,7 @@
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/Light3d.hpp>
 #include <xen/graphics/Camera3d.hpp>
+#include <xen/graphics/Mesh.hpp>
 #include <xen/graphics/GraphicsDevice_types.hpp>
 
 namespace xen{
@@ -42,33 +43,6 @@ namespace xen{
 
 		// TRIANGLE_FAN
 		// TRIANGLE_STRIP
-	};
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Struct containing data for an immediate geometry source,
-	/// IE: one whose data is stored in main memory and thus may be manipulated
-	/// freely per frame.
-	///
-	/// \note Note that using an immediate geometry source will have a performance
-	/// penalty over a Mesh (which lets the GraphicsDevice store the mesh data in
-	/// its own memory in a format suitable for its use) - hence immediate
-	/// geometry sources should be used for testing only
-	///
-	/// \todo Allow for some sort of "streaming" Mesh for geometry which is
-	/// updated per frame as alternative to this
-	/////////////////////////////////////////////////////////////////////
-	struct ImmediateGeometrySource {
-		/// \brief Number of vertices to draw
-		u32 vertex_count;
-
-		/// \brief The positions of each vertex. Array length = vertex_count
-		Vec3r* position;
-
-		/// \brief The normals of each vertex. Array length = vertex_count
-		Vec3r* normal;
-
-		/// \brief The colors of each vertex. Array length = vertex_count
-		Color* color;
 	};
 
 	/////////////////////////////////////////////////////////////////////
@@ -107,7 +81,7 @@ namespace xen{
 		/// \brief Extra data dependent on the source field
 		union {
 			/// \brief Extra data used if source is Immediate
-			ImmediateGeometrySource immediate;
+			xen::MeshGeometrySource immediate;
 
 			/// \brief A handle to a mesh to be drawn, used if source is Mesh
 			xen::Mesh mesh;

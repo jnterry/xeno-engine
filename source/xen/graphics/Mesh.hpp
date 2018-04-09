@@ -20,6 +20,28 @@ namespace xen{
 	struct ArenaLinear;
 
 	/////////////////////////////////////////////////////////////////////
+	/// \brief Struct containing pointers to data stored in main memory
+	/// representing mesh geometry.
+	///
+	/// This struct is designed to represent a mesh with a fixed format - IE:
+	/// the number and type of vertex attributes cannot be changed. Use the
+	/// other types in this file for more flexibility - but more complexity
+	/////////////////////////////////////////////////////////////////////
+	struct MeshGeometrySource {
+		/// \brief Number of vertices to draw
+		u32 vertex_count;
+
+		/// \brief The positions of each vertex. Array length = vertex_count
+		Vec3r* position;
+
+		/// \brief The normals of each vertex. Array length = vertex_count
+		Vec3r* normal;
+
+		/// \brief The colors of each vertex. Array length = vertex_count
+		Color* color;
+	};
+
+	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents meta-data about the type of a Mesh vertex attribute.
 	///
 	/// These have an associated "aspect" that they attempt to capture, eg,
