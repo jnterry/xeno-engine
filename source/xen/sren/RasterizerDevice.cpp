@@ -46,85 +46,15 @@ public:
 
 		// Allocate storage and copy over attributes, this is equivalent
 		// to uploading to the gpu in a gl device
-		mesh_geom->vertex_count = mesh_data->vertex_count;
-
-		u08 attrib_pos = xen::findMeshAttrib(mesh_data,
-		                                     xen::VertexAttribute::_AspectPosition
-		                                    );
-		u08 attrib_nor = xen::findMeshAttrib(mesh_data,
-		                                     xen::VertexAttribute::_AspectNormal
-		                                    );
-		u08 attrib_col = xen::findMeshAttrib(mesh_data,
-		                                     xen::VertexAttribute::_AspectColor
-		                                    );
-
-		XenAssert(attrib_pos != xen::MeshData::BAD_ATTRIB_INDEX,
-		          "Mesh must have position attribute");
-		XenAssert(mesh_data->attrib_data[attrib_pos] != nullptr,
-		          "Data source for position attribute must be non-null"
-		         );
-		{
-			XenAssert((mesh_data->attrib_types[attrib_pos] &
-			           xen::VertexAttribute::_TypeMask
-			           ) == xen::VertexAttribute::_TypeReal,
-			          "Expected position components to be reals"
-			          );
-			XenAssert((mesh_data->attrib_types[attrib_pos] &
-			           xen::VertexAttribute::_ComponentCountMask
-			           ) == 3,
-			          "Expected position attribute to have 3 channels"
-			          );
-			u32 byte_count_pos  = sizeof(Vec3r) * mesh_geom->vertex_count;
-			mesh_geom->position = (Vec3r*)this->mesh_allocator->allocate(byte_count_pos);
-			memcpy(mesh_geom->position, mesh_data->attrib_data[attrib_pos], byte_count_pos);
-		}
-
-		if(attrib_nor != xen::MeshData::BAD_ATTRIB_INDEX &&
-		   mesh_data->attrib_data[attrib_nor] != nullptr
-		  ){
-			XenAssert((mesh_data->attrib_types[attrib_nor] &
-			           xen::VertexAttribute::_TypeMask
-			          ) == xen::VertexAttribute::_TypeReal,
-			          "Expected normal components to be reals"
-			         );
-			XenAssert((mesh_data->attrib_types[attrib_nor] &
-			           xen::VertexAttribute::_ComponentCountMask
-			           ) == 3,
-			          "Expected normal attribute to have 3 channels"
-			         );
-			u32 byte_count_nor  = sizeof(Vec3r) * mesh_geom->vertex_count;
-			mesh_geom->normal   = (Vec3r*)this->mesh_allocator->allocate(byte_count_nor);
-			memcpy(mesh_geom->normal, mesh_data->attrib_data[attrib_nor], byte_count_nor);
-		}
-
-		if(attrib_col != xen::MeshData::BAD_ATTRIB_INDEX &&
-		    mesh_data->attrib_data[attrib_col] != nullptr
-		  ){
-			u32 byte_count_color  = sizeof(xen::Color) * mesh_geom->vertex_count;
-			mesh_geom->color      = (xen::Color*)this->mesh_allocator->allocate(byte_count_color);
-
-			switch(mesh_data->attrib_types[attrib_col]){
-			case xen::VertexAttribute::Color3f: {
-				xen::Color3f* src_buf = (xen::Color3f*)mesh_data->attrib_data[attrib_col];
-				for(u32 i = 0; i < mesh_geom->vertex_count; ++i){
-					mesh_geom->color[i] = xen::Color(src_buf[i]);
-				}
-				break;
-			}
-			case xen::VertexAttribute::Color4b: {
-				memcpy(mesh_geom->color, mesh_data->attrib_data[attrib_col], byte_count_color);
-				break;
-			}
-			default:
-				XenInvalidCodePath("Found bad color format in mesh");
-			}
-		}
+		xen::initMeshGeometrySource(mesh_geom, mesh_data, mesh_allocator);
 
 		return this->makeHandle<xen::Mesh::HANDLE_ID>(slot, 0);
 	}
 
 	void destroyMesh(xen::Mesh mesh) override {
-		// :TODO: implement - resource leak
+		xen::freeMeshGeometrySourceData(&this->mesh_pool.slots[mesh._id].item,
+		                                mesh_allocator);
+		xen::freeSlot(this->mesh_pool, mesh._id);
 	}
 
 	void render(xen::RenderTarget target_handle,

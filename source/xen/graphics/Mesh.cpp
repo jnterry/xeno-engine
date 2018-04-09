@@ -269,6 +269,109 @@ namespace xen {
 		}
 		return MeshData::BAD_ATTRIB_INDEX;
 	}
+
+	void initMeshGeometrySource(MeshGeometrySource* mesh_geom,
+	                            const MeshData*     mesh_data,
+	                            Allocator*          allocator
+	                            ){
+		xen::clearToZero(mesh_geom);
+		mesh_geom->vertex_count = mesh_data->vertex_count;
+
+		u08 attrib_pos = xen::findMeshAttrib(mesh_data,
+		                                     xen::VertexAttribute::_AspectPosition
+		                                    );
+		u08 attrib_nor = xen::findMeshAttrib(mesh_data,
+		                                     xen::VertexAttribute::_AspectNormal
+		                                    );
+		u08 attrib_col = xen::findMeshAttrib(mesh_data,
+		                                     xen::VertexAttribute::_AspectColor
+		                                    );
+
+		XenAssert(attrib_pos != xen::MeshData::BAD_ATTRIB_INDEX,
+		          "Mesh must have position attribute");
+		XenAssert(mesh_data->attrib_data[attrib_pos] != nullptr,
+		          "Data source for position attribute must be non-null"
+		         );
+		{
+			XenAssert((mesh_data->attrib_types[attrib_pos] &
+			           xen::VertexAttribute::_TypeMask
+			           ) == xen::VertexAttribute::_TypeReal,
+			          "Expected position components to be reals"
+			          );
+			XenAssert((mesh_data->attrib_types[attrib_pos] &
+			           xen::VertexAttribute::_ComponentCountMask
+			           ) == 3,
+			          "Expected position attribute to have 3 channels"
+			          );
+			u32 byte_count_pos  = sizeof(Vec3r) * mesh_geom->vertex_count;
+			mesh_geom->position = (Vec3r*)allocator->allocate(byte_count_pos);
+			memcpy(mesh_geom->position, mesh_data->attrib_data[attrib_pos], byte_count_pos);
+		}
+
+		if(attrib_nor != xen::MeshData::BAD_ATTRIB_INDEX &&
+		   mesh_data->attrib_data[attrib_nor] != nullptr
+		  ){
+			XenAssert((mesh_data->attrib_types[attrib_nor] &
+			           xen::VertexAttribute::_TypeMask
+			          ) == xen::VertexAttribute::_TypeReal,
+			          "Expected normal components to be reals"
+			         );
+			XenAssert((mesh_data->attrib_types[attrib_nor] &
+			           xen::VertexAttribute::_ComponentCountMask
+			           ) == 3,
+			          "Expected normal attribute to have 3 channels"
+			         );
+			u32 byte_count_nor  = sizeof(Vec3r) * mesh_geom->vertex_count;
+			mesh_geom->normal   = (Vec3r*)allocator->allocate(byte_count_nor);
+			memcpy(mesh_geom->normal, mesh_data->attrib_data[attrib_nor], byte_count_nor);
+		}
+
+		if(attrib_col != xen::MeshData::BAD_ATTRIB_INDEX &&
+		    mesh_data->attrib_data[attrib_col] != nullptr
+		  ){
+			u32 byte_count_color  = sizeof(xen::Color) * mesh_geom->vertex_count;
+			mesh_geom->color      = (xen::Color*)allocator->allocate(byte_count_color);
+
+			switch(mesh_data->attrib_types[attrib_col]){
+			case xen::VertexAttribute::Color3f: {
+				xen::Color3f* src_buf = (xen::Color3f*)mesh_data->attrib_data[attrib_col];
+				for(u32 i = 0; i < mesh_geom->vertex_count; ++i){
+					mesh_geom->color[i] = xen::Color(src_buf[i]);
+				}
+				break;
+			}
+			case xen::VertexAttribute::Color4b: {
+				memcpy(mesh_geom->color, mesh_data->attrib_data[attrib_col], byte_count_color);
+				break;
+			}
+			default:
+				XenInvalidCodePath("Found bad color format in mesh");
+			}
+		}
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Frees any non-null pointers in the specified MeshGeometrySource
+	/// by deallocating the memory using the specified Allocator
+	/// \note This DOES NOT free the actual MeshGeometrySource instance
+	/////////////////////////////////////////////////////////////////////
+	void freeMeshGeometrySourceData(MeshGeometrySource* mesh,
+	                                Allocator* allocator){
+		if(mesh->position != nullptr){
+			allocator->deallocate(mesh->position);
+			mesh->position = nullptr;
+		}
+
+		if(mesh->normal != nullptr){
+			allocator->deallocate(mesh->normal);
+			mesh->normal = nullptr;
+		}
+
+		if(mesh->color != nullptr){
+			allocator->deallocate(mesh->color);
+			mesh->color = nullptr;
+		}
+	}
 }
 
 #endif

@@ -19,6 +19,7 @@
 
 namespace xen{
 	struct ArenaLinear;
+	struct Allocator;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves the size of a VertexAttributeType in bytes
@@ -95,6 +96,36 @@ namespace xen{
 	/// Returns MeshData::BAD_ATTRIB_INDEX if no such attribute exists
 	/////////////////////////////////////////////////////////////////////
 	u08 findMeshAttrib(const MeshData* mesh_data, VertexAttribute::_Flags aspect);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Initialises a MeshGeometrySource from some MeshData instance
+	///
+	/// This creates a deep copy of all data, allocating space using the specified
+	/// allocator
+	///
+	/// \note Any existing data in the MeshGeometrySource will be overwritten,
+	/// make sure it isn't pointing to memory not managed by anything else
+	/// or this will be a memory leak
+	///
+	/// \note The allocated memory may be freed by passing the MeshGeometrySource
+	/// to freeMeshGeometrySourceData
+	///
+	/// \param result    The MeshGeometrySource which will be initialised
+	/// \param mesh_data The source of data to copy into the MeshGeometrySource
+	/// \param allocator The allocator with which to get memory to store mesh data
+	/////////////////////////////////////////////////////////////////////
+	void initMeshGeometrySource(MeshGeometrySource* result,
+	                            const MeshData*     mesh_data,
+	                            Allocator*          allocator
+	                           );
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Frees any non-null pointers in the specified MeshGeometrySource
+	/// by deallocating the memory using the specified Allocator
+	/// \note This DOES NOT free the actual MeshGeometrySource instance
+	/////////////////////////////////////////////////////////////////////
+	void freeMeshGeometrySourceData(MeshGeometrySource* mesh,
+	                                Allocator* allocator);
 }
 
 #endif
