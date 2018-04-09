@@ -55,17 +55,11 @@ namespace xen {
 			return (light_color / attenuation).rgb * light_color.w;
 		}
 
-				/////////////////////////////////////////////////////////////////////
-		/// \brief Draws debug view of a camera (eg, origin, up dir, look dir, etc),
-		/// from some other camera's perspective
-		/// \param target          The render target to draw to
-		/// \param viewport        The area of the target to draw to
-		/// \param camera          The camera to use as the perspective to draw from
-		/// \param debugged_camera The camera to draw
-		/////////////////////////////////////////////////////////////////////
-		void renderCameraDebug(xen::sren::RenderTargetImpl& target, const xen::Aabb2u& viewport,
+		void renderCameraDebug(xen::sren::RenderTargetImpl& target,
+		                       const xen::Aabb2u& viewport,
 		                       const Camera3d& view_camera,
-		                       const Camera3d& camera
+		                       const Camera3d& camera,
+		                       real            camera_scale
 		                       ) {
 
 
@@ -151,9 +145,9 @@ namespace xen {
 			                                    xen::tan(fov_y / (real)target_size.y) * camera.z_near
 			                                   );
 
-			camera_local_axes[1] += cam_xaxis * 30.0f;
-			camera_local_axes[3] += cam_yaxis * 30.0f;
-			camera_local_axes[5] += cam_zaxis * 30.0f;
+			camera_local_axes[1] += cam_xaxis * camera_scale * 0.3_r;
+			camera_local_axes[3] += cam_yaxis * camera_scale * 0.3_r;
+			camera_local_axes[5] += cam_zaxis * camera_scale * 0.3_r;
 
 			Vec2s target_pos;
 			int ray_index = 0;
@@ -173,7 +167,7 @@ namespace xen {
 					primary_ray.origin    = camera.position;
 					primary_ray.direction = xen::normalized(image_plane_position - camera.position);
 
-					camera_corner_rays[ray_index*2 + 1] += primary_ray.direction * 100_r;
+					camera_corner_rays[ray_index*2 + 1] += primary_ray.direction * camera_scale;
 
 					++ray_index;
 				}

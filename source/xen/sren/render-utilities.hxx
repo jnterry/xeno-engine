@@ -45,11 +45,13 @@ namespace xen{
 		/// \param viewport    The area of the target to draw to
 		/// \param view_camera The camera to use as the perspective to draw from
 		/// \param camera      The camera to draw
+		/// \param scale       The scale of the camera to draw in world units
 		/////////////////////////////////////////////////////////////////////
 		void renderCameraDebug(xen::sren::RenderTargetImpl& target,
 		                       const xen::Aabb2u&           viewport,
 		                       const Camera3d&              view_camera,
-		                       const Camera3d&              camera);
+		                       const Camera3d&              camera,
+		                       real                         scale);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Computes the influence of a light of a particular color at

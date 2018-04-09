@@ -105,7 +105,8 @@ ExampleApplication createApplication(const char* window_title,
 		case ExampleApplication::Backend::RAYTRACER_CAMERA_DEBUG:
 			window_size.x = 800;
 			window_size.y = 800;
-			app.device = xen::createRaytracerDebugDevice(app.arena);
+			app.device = xen::createRaytracerDebugDevice(app.arena,
+			                                             10, &Vec3r::Origin);
 			break;
 		case ExampleApplication::Backend::RASTERIZER_DEPTH_DEBUG:
 			printf("\nNot implemented\n\n");
