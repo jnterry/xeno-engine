@@ -25,7 +25,7 @@
 class RasterizerDevice : public xen::sren::SoftwareDeviceBase {
 private:
 	xen::Allocator*                         mesh_allocator;
-	xen::ArenaPool<xen::MeshGeometrySource> mesh_pool;
+	xen::ArenaPool<xen::sren::RasterizerMesh> mesh_pool;
 public:
 	~RasterizerDevice(){
 
@@ -33,8 +33,8 @@ public:
 
 	RasterizerDevice(xen::Array<xen::sren::PostProcessor*> post_processors)
 		: SoftwareDeviceBase(post_processors),
-		  mesh_allocator(main_allocator),
-		  mesh_pool(xen::createArenaPool<xen::MeshGeometrySource>(main_allocator, 1024))
+		mesh_allocator(main_allocator),
+		mesh_pool(xen::createArenaPool<xen::sren::RasterizerMesh>(main_allocator, 1024))
 	{
 		// no-op
 	}
