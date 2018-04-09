@@ -16,6 +16,8 @@
 
 #include "gl_header.hxx"
 
+#include <cstring>
+
 namespace xen{
 	namespace gl{
 		// Disable gcc's warning about anonymous structs in unions temporarily...
@@ -28,6 +30,15 @@ namespace xen{
 		/////////////////////////////////////////////////////////////////////
 		struct VertexAttributeSource {
 			VertexAttributeSource(){}
+
+
+			VertexAttributeSource(const VertexAttributeSource& other){
+				*this = other;
+			}
+			VertexAttributeSource& operator=(const VertexAttributeSource& other){
+				memcpy(this, &other, sizeof(VertexAttributeSource));
+				return *this;
+			}
 
 			/// \brief The buffer that the vertex attribute data is stored in
 			/// If 0 then it is assumed all vertices have the same value
@@ -46,14 +57,17 @@ namespace xen{
 					uptr stride;
 				};
 
-				/// \brief Value for 3 component real values when buffer is null
+				/// \brief Value for 3 component real values when buffer is 0
 				Vec3r   vec3r;
 
-				/// \brief Value for 2 component float vector when buffer is null
+				/// \brief Value for 2 component float vector when buffer is 0
 				Vec2f   vec2f;
 
-				/// \brief Value for 3 component float color values when buffer is null
+				/// \brief Value for 3 component float color values when buffer is 0
 				Color3f color3f;
+
+				/// \brief Value for 4 component byte color values when buffer is 0
+				Color   color4b;
 			};
 		};
 

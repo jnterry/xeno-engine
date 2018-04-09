@@ -53,6 +53,9 @@ namespace{
 		case xen::VertexAttribute::Color3f:
 			source.color3f = xen::Color::WHITE4f.rgb;
 			break;
+		case xen::VertexAttribute::Color4b:
+			source.color4b = xen::Color::WHITE;
+			break;
 		case xen::VertexAttribute::TexCoord2f:
 			source.vec2f   = {0, 0 };
 			break;

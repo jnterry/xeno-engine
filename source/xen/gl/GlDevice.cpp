@@ -15,6 +15,7 @@
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/core/array.hpp>
 #include <xen/core/File.hpp>
+#include <xen/math/utilities.hpp>
 #include <xen/config.hpp>
 
 #include "gl_header.hxx"
@@ -103,22 +104,70 @@ namespace {
 			if(mesh->attribute_sources[i].buffer){
 				XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->attribute_sources[i].buffer));
 				XEN_CHECK_GL(glEnableVertexAttribArray(i));
-				XEN_CHECK_GL(glVertexAttribPointer(i,           //attrib layout
-				                                   3, GL_FLOAT, // num components and type
-				                                   GL_FALSE,    // normalised
+
+				GLint component_count = (mesh->attribute_types[i] &
+				                         xen::VertexAttribute::_ComponentCountMask
+				                        );
+
+				GLenum component_type;
+				GLboolean normalized = GL_FALSE;
+				switch(mesh->attribute_types[i] & xen::VertexAttribute::_TypeMask){
+				case xen::VertexAttribute::_TypeFloat:
+					component_type = GL_FLOAT;
+					break;
+			  case xen::VertexAttribute::_TypeDouble:
+				  component_type = GL_DOUBLE;
+					break;
+				case xen::VertexAttribute::_TypeByte:
+					component_type = GL_UNSIGNED_BYTE;
+					normalized     = GL_TRUE; // map [0-255] to [0-1]
+					break;
+				default:
+					XenInvalidCodePath("Unhandled vertex attribute type");
+					break;
+				}
+
+				XEN_CHECK_GL(glVertexAttribPointer(i, //attrib layout
+				                                   component_count,
+				                                   component_type,
+				                                   normalized,
 				                                   mesh->attribute_sources[i].stride,
 				                                   (void*)mesh->attribute_sources[i].offset
 				                                   )
 				             );
 			} else {
+				printf("Using constant value for attribute: %i\n", i);
 				XEN_CHECK_GL(glDisableVertexAttribArray(i));
-				// :TODO: this relies on real being a float
-				XEN_CHECK_GL(glVertexAttrib3f(i,
-				                              mesh->attribute_sources[i].vec3r.x,
-				                              mesh->attribute_sources[i].vec3r.y,
-				                              mesh->attribute_sources[i].vec3r.z
-				                              )
-				             );
+
+				switch(mesh->attribute_types[i]){
+				case xen::VertexAttribute::Position3r:
+				case xen::VertexAttribute::Normal3r:
+					#if XEN_USE_DOUBLE_PRECISION
+					XEN_CHECK_GL(glVertexAttrib3dv(i, &mesh->attribute_sources[i].vec3r[0]));
+					#else
+					XEN_CHECK_GL(glVertexAttrib3fv(i, &mesh->attribute_sources[i].vec3r[0]));
+					#endif
+					break;
+				case xen::VertexAttribute::TexCoord2f:
+					XEN_CHECK_GL(glVertexAttrib2fv(i, &mesh->attribute_sources[i].vec2f[0]));
+					break;
+				case xen::VertexAttribute::Color3f:
+					XEN_CHECK_GL(glVertexAttrib3fv(i, &mesh->attribute_sources[i].color3f[0]));
+					break;
+				case xen::VertexAttribute::Color4b: {
+					xen::Color color = mesh->attribute_sources[i].color4b;
+					XEN_CHECK_GL(glVertexAttrib4f
+					             (i,
+					              xen::mapToRange<u32, float>(0, 255, 0.0f, 1.0f, color.r),
+					              xen::mapToRange<u32, float>(0, 255, 0.0f, 1.0f, color.g),
+					              xen::mapToRange<u32, float>(0, 255, 0.0f, 1.0f, color.b),
+					              xen::mapToRange<u32, float>(0, 255, 0.0f, 1.0f, color.a)
+					              ));
+					break;
+				}
+				default:
+					XenInvalidCodePath("Unhandled vertex attribute type");
+				}
 			}
 		}
 

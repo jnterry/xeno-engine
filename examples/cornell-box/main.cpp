@@ -165,7 +165,7 @@ int main(int argc, char** argv){
 		                                  );
 		scene_lights[1].point.position = light_1_pos;
 
-		app.device->clear      (app.window, xen::Color::BLACK);
+		app.device->clear      (app.window, xen::Color{20, 20, 20, 255});
 	  app.device->render     (app.window, viewport, render_params, render_commands);
 	  app.device->swapBuffers(app.window);
 	}
