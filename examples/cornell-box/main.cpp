@@ -65,6 +65,7 @@ void initMeshes(xen::GraphicsDevice* device){
 		void* mesh_cube_attrib_data[xen::size(vertex_spec)] = {
 			xen::TestMeshGeometry_UnitCube.position,
 			xen::TestMeshGeometry_UnitCube.normal,
+			xen::TestMeshGeometry_UnitCube.color,
 		};
 		xen::MeshData mesh_data_cube;
 		mesh_data_cube.attrib_count = xen::size(vertex_spec);

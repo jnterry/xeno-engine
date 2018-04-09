@@ -60,6 +60,28 @@ Vec3r positions_walls[] = {
 	G_room, H_room, D_room,
 };
 
+Vec3r normals_walls[] = {
+	// Floor
+	-Vec3r::UnitY, -Vec3r::UnitY, -Vec3r::UnitY,
+	-Vec3r::UnitY, -Vec3r::UnitY, -Vec3r::UnitY,
+
+	// Left Wall
+  -Vec3r::UnitX, -Vec3r::UnitX, -Vec3r::UnitX,
+	-Vec3r::UnitX, -Vec3r::UnitX, -Vec3r::UnitX,
+
+	// Right Wall
+	Vec3r::UnitX, Vec3r::UnitX, Vec3r::UnitX,
+	Vec3r::UnitX, Vec3r::UnitX, Vec3r::UnitX,
+
+	// Ceiling
+  Vec3r::UnitY, Vec3r::UnitY, Vec3r::UnitY,
+	Vec3r::UnitY, Vec3r::UnitY, Vec3r::UnitY,
+
+	// Back Wall
+	-Vec3r::UnitZ, -Vec3r::UnitZ, -Vec3r::UnitZ,
+	-Vec3r::UnitZ, -Vec3r::UnitZ, -Vec3r::UnitZ,
+};
+
 Vec3r positions_interior[] = {
 	// ---------------------------------------------------------------------------
 	// Short block coordinates
@@ -169,6 +191,9 @@ xen::Color colors_interior[] = {
 static_assert(XenArrayLength(positions_walls) == XenArrayLength(colors_walls),
               "Expected equal number of colors and positions"
              );
+static_assert(XenArrayLength(positions_walls) == XenArrayLength(normals_walls),
+              "Expected equal number of colors and positions"
+             );
 
 static_assert(XenArrayLength(positions_interior) == XenArrayLength(colors_interior),
               "Expected equal number of colors and positions"
@@ -177,7 +202,7 @@ static_assert(XenArrayLength(positions_interior) == XenArrayLength(colors_interi
 const xen::MeshGeometrySource MeshGeometry_CornellBoxWalls = {
 	XenArrayLength(positions_walls),
   positions_walls,
-	nullptr, // normals
+	normals_walls,
 	colors_walls,
 };
 
