@@ -17,7 +17,9 @@
 #include <xen/core/intrinsics.hpp>
 
 #include "SoftwareDeviceBase.hxx"
-#include "renderer3d.hxx"
+#include "render-utilities.hxx"
+#include "rasterizer3d.hxx"
+#include "raytracer3d.hxx"
 #include "RenderTargetImpl.hxx"
 
 class RaytracerDebugDevice : public xen::sren::SoftwareDeviceBase {

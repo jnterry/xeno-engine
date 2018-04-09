@@ -15,7 +15,8 @@
 #include <xen/sren/SoftwareDevice.hpp>
 
 #include "SoftwareDeviceBase.hxx"
-#include "renderer3d.hxx"
+#include "render-utilities.hxx"
+#include "raytracer3d.hxx"
 
 
 class RaytracerDevice : public xen::sren::SoftwareDeviceBase {

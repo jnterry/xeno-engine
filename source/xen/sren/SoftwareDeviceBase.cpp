@@ -10,7 +10,7 @@
 #define XEN_SREN_SOFTWAREDEVICEBASE_CPP
 
 #include "SoftwareDeviceBase.hxx"
-#include "renderer3d.hxx"
+#include "render-utilities.hxx"
 #include "RenderTargetImpl.hxx"
 
 #include "../graphics/Window.hxx"

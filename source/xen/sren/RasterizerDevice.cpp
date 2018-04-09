@@ -15,8 +15,8 @@
 #include <xen/sren/SoftwareDevice.hpp>
 
 #include "SoftwareDeviceBase.hxx"
-#include "renderer3d.hxx"
-
+#include "render-utilities.hxx"
+#include "rasterizer3d.hxx"
 
 class RasterizerDevice : public xen::sren::SoftwareDeviceBase {
 public:

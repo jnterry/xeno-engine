@@ -1,13 +1,13 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \brief Contains implementation of renderer3d rasterization
+/// \brief Contains implementation for 3d rasterization
 ///
 /// \ingroup sren
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_GRAPHICS_SREN_RENDERER3D_RASTERIZER_CPP
-#define XEN_GRAPHICS_SREN_RENDERER3D_RASTERIZER_CPP
+#ifndef XEN_GRAPHICS_SREN_RASTERIZER3D_CPP
+#define XEN_GRAPHICS_SREN_RASTERIZER3D_CPP
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/math/quaternion.hpp>
@@ -18,7 +18,8 @@
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/core/array.hpp>
 
-#include "renderer3d.hxx"
+#include "rasterizer3d.hxx"
+#include "render-utilities.hxx"
 #include "RenderTargetImpl.hxx"
 
 #include <cstring>

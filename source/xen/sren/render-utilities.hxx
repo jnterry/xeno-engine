@@ -6,8 +6,8 @@
 /// \ingroup sren
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_GRAPHICS_SREN_RENDERER3D_HPP
-#define XEN_GRAPHICS_SREN_RENDERER3D_HPP
+#ifndef XEN_GRAPHICS_SREN_RENDERUTILITIES_HPP
+#define XEN_GRAPHICS_SREN_RENDERUTILITIES_HPP
 
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
@@ -37,33 +37,6 @@ namespace xen{
 		/// to the specified color
 		/////////////////////////////////////////////////////////////////////
 		void clear(RenderTargetImpl& target, const xen::Aabb2u& viewport, Color color);
-
-		/////////////////////////////////////////////////////////////////////
-		/// \brief Performs a set of render commands using software rasterizer
-		/// \param target The RenderTarget to draw to
-		/// \param viewport The region of the RenderTarget that may be modified
-		/// Represented in pixel values
-		/// \param params The 3d camera and other rendering parameters used to
-		/// view the scene
-		/// \param commands Array of render commands to perform
-		/////////////////////////////////////////////////////////////////////
-		void renderRasterize(xen::sren::RenderTargetImpl&       target,
-		                     const xen::Aabb2u&                 viewport,
-		                     const xen::RenderParameters3d&     params,
-		                     const xen::Array<RenderCommand3d>& commands);
-
-		/////////////////////////////////////////////////////////////////////
-		/// \brief Performs a set of render commands use software raytracer
-		/// \param target The RenderTarget to draw to
-		/// \param viewport The region of the RenderTarget that may be modified
-		/// Represented in pixel values
-		/// \param camera The 3d camera used to view the scene
-		/// \param commands Array of render commands to perform
-		/////////////////////////////////////////////////////////////////////
-		void renderRaytrace (xen::sren::RenderTargetImpl&       target,
-		                     const xen::Aabb2u&                 viewport,
-		                     const xen::RenderParameters3d&     params,
-		                     const xen::Array<RenderCommand3d>& commands);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Draws debug view of a camera (eg, origin, up dir, look dir, etc),
