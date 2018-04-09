@@ -24,7 +24,6 @@
 #include <xen/gl/GlDevice.hpp>
 #include <xen/gl/Texture.hpp>
 
-#include "utilities.hpp"
 #include "../common.cpp"
 
 xen::RenderParameters3d render_params;
