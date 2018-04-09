@@ -50,8 +50,8 @@ namespace xen {
 		/// \param vertex_count Number of vertices to draw
 		/////////////////////////////////////////////////////////////////////
 		void rasterizePointsModel(xen::sren::RenderTargetImpl&        target,
-		                          const xen::RenderParameters3d&      params,
 		                          const xen::Aabb2r&                  viewport,
+		                          const xen::RenderParameters3d&      params,
 		                          const Mat4r&                        m_matrix,
 		                          const Mat4r&                        vp_matrix,
 		                          const xen::Color4f                  color,
@@ -71,6 +71,25 @@ namespace xen {
 		                        const xen::LineSegment4f&     line_color);
 
 		/////////////////////////////////////////////////////////////////////
+		/// \brief Rasterizes a set of lines in model space
+		/// \param vertex_count The number of vertices to draw, length of
+		/// pos_model and color_buffer arrays must be at least this long
+		/// \param stride The offset between the start vertex of each line
+		/// Set to 1 to replicate OpenGL's LINE_STRIP, and 2 to replicate LINES
+		/////////////////////////////////////////////////////////////////////
+		void rasterizeLinesModel(xen::sren::RenderTargetImpl&  target,
+		                         const xen::Aabb2r&            viewport,
+		                         const xen::RenderParameters3d params,
+		                         const Mat4r&                  m_matrix,
+		                         const Mat4r&                  vp_matrix,
+		                         const xen::Color4f            color,
+		                         const Vec3r*                  pos_model,
+		                         const xen::Color*             color_buffer,
+		                         const u32                     vertex_count,
+		                         const u32                     stride = 2);
+
+
+		/////////////////////////////////////////////////////////////////////
 		/// \brief Rasterizes a single triangle defined in model space to the screen
 		/////////////////////////////////////////////////////////////////////
 		void rasterizeTriangleModel(xen::sren::RenderTargetImpl&  target,
@@ -82,7 +101,21 @@ namespace xen {
 		                            const xen::Triangle3r&        tri_normal_model,
 		                            xen::Triangle4f               tri_color);
 
-
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Rasterizes a set of triangles in model space to the screen
+		/// \param normal_model Vertex normals in model space. May be nullptr
+		/// \param color_buffer Per vertex colors, may be nullptr
+		/////////////////////////////////////////////////////////////////////
+		void rasterizeTrianglesModel(xen::sren::RenderTargetImpl&  target,
+		                             const xen::Aabb2r&            viewport,
+		                             const xen::RenderParameters3d params,
+		                             const Mat4r&                  m_matrix,
+		                             const Mat4r&                  vp_matrix,
+		                             const xen::Color4f            base_color,
+		                             const Vec3r*                  pos_model,
+		                             const Vec3r*                  normal_model,
+		                             const xen::Color*             color_buffer,
+		                             const u32                     vertex_count);
 	}
 }
 

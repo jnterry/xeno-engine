@@ -346,8 +346,8 @@ namespace xen {
 namespace sren {
 
 void rasterizePointsModel(xen::sren::RenderTargetImpl&        target,
-                          const xen::RenderParameters3d&      params,
                           const xen::Aabb2r&                  viewport,
+                          const xen::RenderParameters3d&      params,
                           const Mat4r&                        m_matrix,
                           const Mat4r&                        vp_matrix,
                           const xen::Color4f                  color,
@@ -475,7 +475,33 @@ void rasterizeLineModel(xen::sren::RenderTargetImpl&  target,
 	}
 } // end of function rasterizeLineModel
 
-void rasterizeTriangleModel(xen::sren::RenderTargetImpl& target,
+void rasterizeLinesModel(xen::sren::RenderTargetImpl&  target,
+                         const xen::Aabb2r&            viewport,
+                         const xen::RenderParameters3d params,
+                         const Mat4r&                  m_matrix,
+                         const Mat4r&                  vp_matrix,
+                         const xen::Color4f            base_color,
+                         const Vec3r*                  pos_model,
+                         const xen::Color*             color_buffer,
+                         const u32                     vertex_count,
+                         const u32                     stride){
+	for(u32 i = 0; i < vertex_count - 1; i += stride){
+		LineSegment3r* line_model = (LineSegment3r*)(&pos_model[i]);
+		LineSegment4f  line_color = { base_color, base_color };
+
+		if(color_buffer != nullptr){
+			line_color.p1 *= xen::makeColor4f(color_buffer[i+0]);
+			line_color.p2 *= xen::makeColor4f(color_buffer[i+1]);
+		}
+
+		rasterizeLineModel(target, viewport, params,
+		                   m_matrix, vp_matrix,
+		                   *line_model, line_color
+		                  );
+	}
+} // end of rasterize lines model
+
+void rasterizeTriangleModel(xen::sren::RenderTargetImpl&   target,
                             const xen::Aabb2r&             viewport,
                             const xen::RenderParameters3d  params,
                             const Mat4r&                   m_matrix,
@@ -638,6 +664,49 @@ void rasterizeTriangleModel(xen::sren::RenderTargetImpl& target,
 	}
 } // end of function rasterizeTriangleModel
 
+
+void rasterizeTrianglesModel(xen::sren::RenderTargetImpl&  target,
+                             const xen::Aabb2r&            viewport,
+                             const xen::RenderParameters3d params,
+                             const Mat4r&                  m_matrix,
+                             const Mat4r&                  vp_matrix,
+                             const xen::Color4f            base_color,
+                             const Vec3r*                  pos_model,
+                             const Vec3r*                  normal_model,
+                             const xen::Color*             color_buffer,
+                             const u32                     vertex_count){
+
+	Triangle3r tri_normal_model_default = {
+		Vec3r::Origin,
+		Vec3r::Origin,
+		Vec3r::Origin,
+	};
+
+	for(u32 i = 0; i < vertex_count - 1; i += 3){
+		Triangle3r* tri_world = (Triangle3r*)(&pos_model[i]);
+		Triangle3r* tri_normal_model;
+
+		if(normal_model != nullptr){
+			tri_normal_model = (Triangle3r*)(&normal_model[i]);
+		} else {
+			// :TODO: Compute triangle normals instead?
+			tri_normal_model = &tri_normal_model_default;
+		}
+
+		xen::Triangle4f tri_color = { base_color, base_color, base_color };
+		if(color_buffer != nullptr){
+			tri_color.p1 *= makeColor4f(color_buffer[i+0]);
+			tri_color.p2 *= makeColor4f(color_buffer[i+1]);
+			tri_color.p3 *= makeColor4f(color_buffer[i+2]);
+		}
+
+		rasterizeTriangleModel(target, viewport, params,
+		                       m_matrix, vp_matrix,
+		                       *tri_world, *tri_normal_model, tri_color
+		                      );
+	}
+} // end of rasterize triangles model
+
 void renderRasterize(xen::sren::RenderTargetImpl& target, const xen::Aabb2u& viewport,
                      const RenderParameters3d& params,
                      const xen::Array<RenderCommand3d>& commands){
@@ -655,8 +724,6 @@ void renderRasterize(xen::sren::RenderTargetImpl& target, const xen::Aabb2u& vie
 	xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 
 	Mat4r vp_matrix = xen::getViewProjectionMatrix(params.camera, view_region.max - view_region.min);
-
-	int stride = 0;
 
 	const RenderCommand3d* cmd;
 	for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
@@ -680,70 +747,35 @@ void renderRasterize(xen::sren::RenderTargetImpl& target, const xen::Aabb2u& vie
 
 		switch(cmd->primitive_type){
 		case xen::PrimitiveType::POINTS:
-			rasterizePointsModel(target, params, view_region,
-			                     cmd->model_matrix, vp_matrix,
-			                     cmd->color,
-			                     cmd->immediate.position, cmd->immediate.color,
+			rasterizePointsModel(target, view_region, params,
+			                     cmd->model_matrix, vp_matrix, cmd->color,
+			                     cmd->immediate.position,
+			                     cmd->immediate.color,
 			                     cmd->immediate.vertex_count);
 			break;
 		case xen::PrimitiveType::LINES:
-			stride = 2;
-			goto do_render_lines;
+		  rasterizeLinesModel(target, view_region, params,
+		                      cmd->model_matrix, vp_matrix, cmd->color,
+		                      cmd->immediate.position,
+		                      cmd->immediate.color,
+		                      cmd->immediate.vertex_count,
+		                      2); //advance by 2 vertices for each line drawn
 			break;
 		case xen::PrimitiveType::LINE_STRIP:
-			stride = 1;
-		do_render_lines:
-			for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += stride){
-				LineSegment3r* line_model = (LineSegment3r*)(&cmd->immediate.position[i]);
-				LineSegment4f  line_color = { cmd->color, cmd->color };
-
-				if(cmd->immediate.color != nullptr){
-					line_color.p1 *= xen::makeColor4f(cmd->immediate.color[i+0]);
-					line_color.p2 *= xen::makeColor4f(cmd->immediate.color[i+1]);
-				}
-
-				rasterizeLineModel(target, view_region, params,
-				                   cmd->model_matrix, vp_matrix,
-				                   *line_model, line_color
-				                   );
-			}
+			rasterizeLinesModel(target, view_region, params,
+			                    cmd->model_matrix, vp_matrix, cmd->color,
+			                    cmd->immediate.position,
+			                    cmd->immediate.color,
+			                    cmd->immediate.vertex_count,
+			                    1); //advance by 1 vertex for each line drawn
 			break;
 		case xen::PrimitiveType::TRIANGLES: {
-
-			Triangle3r tri_normal_model_default = {
-				Vec3r::Origin,
-				Vec3r::Origin,
-				Vec3r::Origin,
-			};
-
-			for(u32 i = 0; i < cmd->immediate.vertex_count - 1; i += 3){
-				Triangle3r* tri_world = (Triangle3r*)(&cmd->immediate.position[i]);
-				Triangle3r* tri_normal_model;
-
-				if(cmd->immediate.normal != nullptr){
-					tri_normal_model = (Triangle3r*)(&cmd->immediate.normal[i]);
-				} else {
-					tri_normal_model = &tri_normal_model_default;
-				}
-
-				xen::Triangle4f tri_color = {
-					cmd->color,
-					cmd->color,
-					cmd->color,
-				};
-
-				if(cmd->immediate.color != nullptr){
-					tri_color.p1 *= makeColor4f(cmd->immediate.color[i+0]);
-					tri_color.p2 *= makeColor4f(cmd->immediate.color[i+1]);
-					tri_color.p3 *= makeColor4f(cmd->immediate.color[i+2]);
-				}
-
-				rasterizeTriangleModel(target, view_region, params,
-				                       cmd->model_matrix, vp_matrix,
-				                       *tri_world, *tri_normal_model, tri_color
-				                       );
-			}
-
+			rasterizeTrianglesModel(target, view_region, params,
+			                        cmd->model_matrix, vp_matrix, cmd->color,
+			                        cmd->immediate.position,
+			                        cmd->immediate.normal,
+			                        cmd->immediate.color,
+			                        cmd->immediate.vertex_count);
 			break;
 		}
 		default:
