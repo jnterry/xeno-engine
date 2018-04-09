@@ -1,9 +1,15 @@
+////////////////////////////////////////////////////////////////////////////////
+//                        Part of Xeno Engine                                 //
+////////////////////////////////////////////////////////////////////////////////
+/// \brief Contains unit tests for xen::Matrix
+///
+/// \ingroup unit_tests
+////////////////////////////////////////////////////////////////////////////////
+
 #include <xen/math/matrix.hpp>
 #include <xen/math/vector.hpp>
 #include "ostream_operators.hpp"
 #include <catch.hpp>
-
-
 
 TEST_CASE("Mat4r - Translation Generation", "[Matrix][math]"){
 	#define TRANSLATION_TEST(a, b) CHECK(((a) * xen::Translation3d(b)) == ((a) + (b)))
