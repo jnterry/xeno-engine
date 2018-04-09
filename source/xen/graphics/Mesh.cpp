@@ -260,7 +260,7 @@ namespace xen {
 		return result;
 	}
 
-	u08 findMeshAspect(MeshData* mesh_data, VertexAttribute::_Flags aspect){
+	u08 findMeshAttrib(const MeshData* mesh_data, VertexAttribute::_Flags aspect){
 		for(u08 i = 0; i < mesh_data->attrib_count; ++i){
 			if((mesh_data->attrib_types[i] & VertexAttribute::_AspectMask) == aspect){
 				return i;

@@ -94,7 +94,7 @@ namespace xen{
 	/// \return Index of the attribute storing that aspect.
 	/// Returns MeshData::BAD_ATTRIB_INDEX if no such attribute exists
 	/////////////////////////////////////////////////////////////////////
-	u08 findMeshAspect(MeshData* mesh_data, VertexAttribute::_Flags aspect);
+	u08 findMeshAttrib(const MeshData* mesh_data, VertexAttribute::_Flags aspect);
 }
 
 #endif
