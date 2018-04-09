@@ -16,6 +16,7 @@
 #include <xen/sren/SoftwareDevice.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/graphics/Image.hpp>
+#include <xen/math/geometry.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/memory/utilities.hpp>
 #include <xen/core/array.hpp>
@@ -55,7 +56,18 @@ public:
 		// to uploading to the gpu in a gl device
 		xen::initMeshGeometrySource(mesh_geom, mesh_data, mesh_allocator);
 
-		// :TODO: compute normal data if missing
+		if(mesh_geom->normal == nullptr){
+			for(u32 i = 0; i < mesh_geom->vertex_count; i += 3){
+				mesh_geom->normal = (Vec3r*)mesh_allocator->allocate
+					(sizeof(Vec3r) * mesh_geom->vertex_count);
+
+				xen::Triangle3r* tri = (xen::Triangle3r*)&mesh_geom->position[i];
+				Vec3r normal = xen::computeNormal(*tri);
+				mesh_geom->normal[i+0] = normal;
+				mesh_geom->normal[i+1] = normal;
+				mesh_geom->normal[i+2] = normal;
+			}
+		}
 
 		return this->makeHandle<xen::Mesh::HANDLE_ID>(slot, 0);
 	}
@@ -125,9 +137,9 @@ public:
 
 		xen::ptrAdvance(&render_scratch_arena.next_byte,
 		                sizeof(xen::sren::RaytracerModel) * scene.models.size);
-		////////////////////////////////////////////////////////////////////////////
 
-		// Now we have generated the scene we can render it...
+		////////////////////////////////////////////////////////////////////////////
+		// Render the scene
 		xen::sren::renderRaytrace(*this->getRenderTargetImpl(target),
 		                          viewport,
 		                          params,
