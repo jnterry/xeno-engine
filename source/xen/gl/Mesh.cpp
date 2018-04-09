@@ -90,7 +90,8 @@ xen::gl::MeshHeader* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 	for(u08 i = 0; i < md.attrib_count; ++i){
 		result->attribute_types[i] = md.attrib_types[i];
 
-		if((xen::VertexAttribute::_AspectPosition ^ (md.attrib_types[i] & xen::VertexAttribute::_AspectMask)) == 0){
+		if((xen::VertexAttribute::_AspectPosition ==
+		    (md.attrib_types[i] & xen::VertexAttribute::_AspectMask))){
 			XenAssert(position_index == 255, "Mesh can only have single position attribute");
 			XenAssert(md.attrib_data[i] != nullptr, "Mesh's position data cannot be inferred");
 			position_index = i;
