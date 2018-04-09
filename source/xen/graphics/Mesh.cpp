@@ -29,39 +29,38 @@ namespace {
 		u08 normal;
 		u08 color;
 		u08 texcoord;
-		static const u08 BAD_INDEX = 255;
 	};
 
 	VertexAttributeAspects findVertexAttributeAspectIndices(xen::VertexAttribute::Type* types,
 	                                                         u32 attrib_count){
 		VertexAttributeAspects result = {
-			VertexAttributeAspects::BAD_INDEX,
-			VertexAttributeAspects::BAD_INDEX,
-			VertexAttributeAspects::BAD_INDEX,
-			VertexAttributeAspects::BAD_INDEX
+			xen::MeshData::BAD_ATTRIB_INDEX,
+			xen::MeshData::BAD_ATTRIB_INDEX,
+			xen::MeshData::BAD_ATTRIB_INDEX,
+			xen::MeshData::BAD_ATTRIB_INDEX,
 		};
 
 		for(u32 i = 0; i < attrib_count; ++i){
 			switch(types[i] & xen::VertexAttribute::_AspectMask){
 			case xen::VertexAttribute::_AspectPosition:
-				XenAssert(result.position == VertexAttributeAspects::BAD_INDEX,
+				XenAssert(result.position == xen::MeshData::BAD_ATTRIB_INDEX,
 				          "We don't support multiple positions per vertex");
 				result.position = i;
 				break;
 			case xen::VertexAttribute::_AspectNormal:
-				XenAssert(result.normal == VertexAttributeAspects::BAD_INDEX,
+				XenAssert(result.normal == xen::MeshData::BAD_ATTRIB_INDEX,
 				          "We don't support multiple normals per vertex");
 				result.normal = i;
 				break;
 			case xen::VertexAttribute::_AspectColor:
 				// :TODO: multiple color channels
-				XenAssert(result.color == VertexAttributeAspects::BAD_INDEX,
+				XenAssert(result.color == xen::MeshData::BAD_ATTRIB_INDEX,
 				          "We don't support multiple colors per vertex... YET");
 				result.color = i;
 				break;
 			case xen::VertexAttribute::_AspectTexCoord:
 				// :TODO: multiple texture channels
-				XenAssert(result.texcoord == VertexAttributeAspects::BAD_INDEX,
+				XenAssert(result.texcoord == xen::MeshData::BAD_ATTRIB_INDEX,
 				          "We don't support multiple tex coords per vertex... YET");
 				result.texcoord = i;
 				break;
@@ -103,19 +102,19 @@ namespace {
 		xen::Triangle4f* buffer_color    = nullptr;
 		xen::Triangle2f* buffer_texcoord = nullptr;
 
-		if(aspect.position != VertexAttributeAspects::BAD_INDEX &&
+		if(aspect.position != xen::MeshData::BAD_ATTRIB_INDEX &&
 		   mesh->HasPositions()){
 			buffer_position = xen::reserveTypeArray<xen::Triangle3r>(arena, num_triangles);
 		}
-		if(aspect.normal   != VertexAttributeAspects::BAD_INDEX &&
+		if(aspect.normal   != xen::MeshData::BAD_ATTRIB_INDEX &&
 		   mesh->HasNormals()){
 			buffer_normal = xen::reserveTypeArray<xen::Triangle3r>(arena, num_triangles);
 		}
-		if(aspect.color    != VertexAttributeAspects::BAD_INDEX &&
+		if(aspect.color    != xen::MeshData::BAD_ATTRIB_INDEX &&
 		   mesh->HasVertexColors(0)){
 			buffer_color = xen::reserveTypeArray<xen::Triangle4f>(arena, num_triangles);
 		}
-		if(aspect.texcoord != VertexAttributeAspects::BAD_INDEX &&
+		if(aspect.texcoord != xen::MeshData::BAD_ATTRIB_INDEX &&
 		   mesh->HasTextureCoords(0)){
 			buffer_texcoord = xen::reserveTypeArray<xen::Triangle2f>(arena, num_triangles);
 
@@ -259,6 +258,15 @@ namespace xen {
 		aiReleaseImport(scene);
 
 		return result;
+	}
+
+	u08 findMeshAspect(MeshData* mesh_data, VertexAttribute::_Flags aspect){
+		for(u08 i = 0; i < mesh_data->attrib_count; ++i){
+			if((mesh_data->attrib_types[i] & VertexAttribute::_AspectMask) == aspect){
+				return i;
+			}
+		}
+		return MeshData::BAD_ATTRIB_INDEX;
 	}
 }
 
