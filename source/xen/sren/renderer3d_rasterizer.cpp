@@ -355,6 +355,18 @@ namespace {
 		}
 		xen::Aabb2u region = (xen::Aabb2u)region_r;
 
+		// Divide for perspective correct interpolation
+		// https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/perspective-correct-interpolation-vertex-attributes
+		tri_world.p1        /= tri_screen.p1.z;
+		tri_world.p2        /= tri_screen.p2.z;
+		tri_world.p3        /= tri_screen.p3.z;
+		tri_normal_world.p1 /= tri_screen.p1.z;
+		tri_normal_world.p2 /= tri_screen.p2.z;
+		tri_normal_world.p3 /= tri_screen.p3.z;
+		colors.p1           /= tri_screen.p1.z;
+		colors.p2           /= tri_screen.p2.z;
+		colors.p3           /= tri_screen.p3.z;
+
 		// If we call min.x, 0 and max.x, 1 then incr_x is the amount we increase
 		// by when we move 1 pixel
 		real incr_x = 1.0_r / (real)(region.max.x - region.min.x);
@@ -450,13 +462,22 @@ namespace {
 
 				u32 pixel_index = pixel_index_base + x;
 
-				xen::Color4f color        = evaluateBarycentricCoordinates(colors,     bary);
-				Vec3r        depth        = evaluateBarycentricCoordinates(tri_screen, bary);
-				Vec3r        pos_world    = evaluateBarycentricCoordinates(tri_world,  bary);
-				Vec3r        normal_world = Vec3r::Origin; // :TODO: compute
+				real depth = (tri_screen.p1.z * bary.x +
+				              tri_screen.p2.z * bary.y +
+				              tri_screen.p3.z * bary.z);
 
-				if (depth.z < target.depth[pixel_index]) {
-					target.depth[pixel_index] = depth.z;
+				xen::Color4f color        = evaluateBarycentricCoordinates(colors,           bary);
+				Vec3r        pos_world    = evaluateBarycentricCoordinates(tri_world,        bary);
+				Vec3r        normal_world = evaluateBarycentricCoordinates(tri_normal_world, bary);
+
+				// Correct for perspective correct interpolation
+				// https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/perspective-correct-interpolation-vertex-attributes
+				color        *= depth;
+				pos_world    *= depth;
+				normal_world *= depth;
+
+				if (depth < target.depth[pixel_index]) {
+					target.depth[pixel_index] = depth;
 					target.color[pixel_index] = _fragmentShader(params,
 					                                            pos_world,
 					                                            normal_world,
