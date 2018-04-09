@@ -14,6 +14,10 @@
 
 #include <xen/sren/PostProcessor.hpp>
 
+// Recommended values for constants to determine presence of edge
+#define EDGE_THRESHOLD_MIN 0.0312
+#define EDGE_THRESHOLD_MAX 0.125
+
 namespace xen {
 	namespace sren {
 
@@ -22,10 +26,30 @@ namespace xen {
 		}
 
 		void fxaaStep(Framebuffer& fb, int x, int y, Vec2r inverseScreenSize) {
-			// Luma at the current fragment
 			int currentPixel = y*fb.size.x + x;
 
+			// Luma at the current fragment
 			float lumaCenter = rgb2luma(fb.color[currentPixel].rgb);
+			// :TODO: What to do if these are out of bounds?
+			// Luma at the four direct neighbours of the current fragment.
+			float lumaDown   = rgb2luma(fb.color[(y+1)*fb.size.x + (x  )].rgb);
+			float lumaUp     = rgb2luma(fb.color[(y-1)*fb.size.x + (x  )].rgb);
+			float lumaLeft   = rgb2luma(fb.color[(y  )*fb.size.x + (x-1)].rgb);
+			float lumaRight  = rgb2luma(fb.color[(y  )*fb.size.x + (x+1)].rgb);
+
+			// Find the maximum and minimum luma around the current fragment.
+			float lumaMin = min(lumaCenter, lumaDown, lumaUp, lumaLeft, lumaRight);
+			float lumaMax = max(lumaCenter, lumaDown, lumaUp, lumaLeft, lumaRight);
+			// Compute the delta.
+			float lumaRange = lumaMax - lumaMin;
+
+			// If the luma variation is lower that a threshold (or if we are in a really dark area),
+			// we are not on an edge, don't perform any AA.
+			if(lumaRange < max(EDGE_THRESHOLD_MIN,lumaMax*EDGE_THRESHOLD_MAX)){
+    		return;
+			}
+			// :TODO: Complete FXAA tutorial, as above
+			//        Finsished as far as "Estimating gradient and choosing edge direction"
 		}
 
 		void PostProcessorAntialias::process(Framebuffer& fb) {
@@ -35,6 +59,7 @@ namespace xen {
 				for(u32 i = 0; i < fb.size.x; ++i){
 					int currentPixel = j*fb.size.x + i;
 
+					// :TODO: Remove these
 			  	fb.color[currentPixel].r = 1.0f - fb.color[currentPixel].r;
 			  	fb.color[currentPixel].g = 1.0f - fb.color[currentPixel].g;
 			  	fb.color[currentPixel].b = 1.0f - fb.color[currentPixel].b;
