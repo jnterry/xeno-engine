@@ -711,12 +711,12 @@ void renderRasterize(xen::sren::RenderTargetImpl& target, const xen::Aabb2u& vie
                      const RenderParameters3d& params,
                      const xen::Array<RenderCommand3d>& commands){
 
-	#ifdef XEN_DEBUG_ADDITIONAL_CHECKS
+	//////////////////////////////////////////////////////////////////////////////
+	// Generate view projection matrix
 	if(!xen::isCameraValid(params.camera)){
 		printf("ERROR: Camera is not valid, skipping rendering\n");
 		return;
 	}
-	#endif
 
 	// Find the actual view_region we wish to draw to. This is the
 	// intersection of the actual target, and the user specified viewport
@@ -725,17 +725,16 @@ void renderRasterize(xen::sren::RenderTargetImpl& target, const xen::Aabb2u& vie
 
 	Mat4r vp_matrix = xen::getViewProjectionMatrix(params.camera, view_region.max - view_region.min);
 
+	if(xen::isnan(vp_matrix)){
+		// :TODO: log
+		printf("ERROR: vp_matrix contains NaN elements, skipping rendering\n");
+		return;
+	}
+	//////////////////////////////////////////////////////////////////////////////
+
 	const RenderCommand3d* cmd;
 	for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 		cmd = &commands[cmd_index];
-
-#ifdef XEN_DEBUG_ADDITIONAL_CHECKS
-		if(xen::isnan(vp_matrix)){
-			printf("ERROR: MVP matrix contains NaN elements, skipping command %i\n",
-			       cmd_index);
-			continue;
-		}
-#endif
 
 		Color4f base_color = cmd->color;
 		base_color.rgb *= params.ambient_light;
