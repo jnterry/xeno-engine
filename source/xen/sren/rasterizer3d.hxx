@@ -9,6 +9,7 @@
 #ifndef XEN_SREN_RASTERIZER3D_HXX
 #define XEN_SREN_RASTERIZER3D_HXX
 
+#include <xen/graphics/Mesh_types.hpp>
 #include <xen/math/geometry_types.hpp>
 #include <xen/math/vertex_group_types.hpp>
 
@@ -17,6 +18,14 @@ namespace xen {
 
 	namespace sren {
 		struct RenderTargetImpl;
+
+		struct RasterizerMesh : public MeshGeometrySource {
+			// nothing here yet...
+			//
+			// - Bounding box to cull off screen meshes?
+			// - can we sort the geometry to make rendering more efficient somehow?
+			// - anything we can pre-compute?
+		};
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Performs a set of render commands using software rasterizer

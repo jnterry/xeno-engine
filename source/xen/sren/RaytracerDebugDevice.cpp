@@ -107,7 +107,7 @@ public:
 		camera_z.up_dir   =  Vec3r::UnitY;
 	}
 
-	xen::Mesh createMesh(const xen::MeshData& mesh_data) override {
+	xen::Mesh createMesh(const xen::MeshData* mesh_data) override {
 		// :TODO: implement
 		return xen::makeNullHandle<xen::Mesh>();
 	}

@@ -66,7 +66,7 @@ int main(int argc, char** argv){
 
 	xen::MeshData* mesh_data_bunny = xen::createEmptyMeshData(arena, vertex_spec);
 	xen::loadMeshFile(mesh_data_bunny, arena, "bunny.obj");
-	xen::Mesh mesh_bunny = device->createMesh(*mesh_data_bunny);
+	xen::Mesh mesh_bunny = device->createMesh(mesh_data_bunny);
 
 	void* mesh_cube_attrib_data[] = {
 		xen::TestMeshGeometry_UnitCube.position,
@@ -78,7 +78,7 @@ int main(int argc, char** argv){
 	mesh_data_cube.attrib_types = vertex_spec.elements;
 	mesh_data_cube.vertex_count = 3 * 2 * 6; // (3 vert per tri) * (2 tri per face) * (6 faces)
 	mesh_data_cube.attrib_data  = mesh_cube_attrib_data;
-	xen::Mesh mesh_cube = device->createMesh(mesh_data_cube);
+	xen::Mesh mesh_cube = device->createMesh(&mesh_data_cube);
 
 	xen::RawImage          test_image   = xen::loadImage(arena, "test.bmp");
 	xen::gl::createTexture(&test_image);

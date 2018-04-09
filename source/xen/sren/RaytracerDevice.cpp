@@ -30,7 +30,7 @@ public:
 		// no-op
 	}
 
-	xen::Mesh createMesh(const xen::MeshData& mesh_data) override {
+	xen::Mesh createMesh(const xen::MeshData* mesh_data) override {
 	  return xen::makeNullHandle<xen::Mesh>();
 		// :TODO: implement
 		return xen::makeNullHandle<xen::Mesh>();

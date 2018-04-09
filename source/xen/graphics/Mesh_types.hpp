@@ -27,6 +27,10 @@ namespace xen{
 	// - Make Vertex Attrib / Attribute naming consistent
 	// - Probably have a lot of repeated code
 	//   - Also check in the graphics devices themselves
+	// - VertexAttribute should be a bitfield so we can do
+	//   .aspect, .type and .channels but still used the named constant
+	//   approach so we dont have to support arbitary combinations. Do this
+	//   using static instances (like Vec3r::Origin)
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Struct containing pointers to data stored in main memory

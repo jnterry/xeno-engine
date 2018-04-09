@@ -44,6 +44,7 @@ namespace xen {
 		}
 
 		RenderTarget SoftwareDeviceBase::createRenderTarget (Vec2u size, Window* window){
+			// :TODO:COMP::ISSUE_31: object pool with automatic handles / resizeable pool
 			u32 slot = xen::reserveSlot(this->render_targets);
 			RenderTargetImpl* target = &this->render_targets.slots[slot].item;
 

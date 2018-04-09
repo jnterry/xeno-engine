@@ -252,7 +252,8 @@ namespace {
 			}
 		}
 
-		xen::Mesh createMesh(const xen::MeshData& mesh_data){
+		xen::Mesh createMesh(const xen::MeshData* mesh_data){
+			// :TODO:COMP:ISSUE_31: Object pool helper
 			u32 slot;
 			for(slot = 0; slot < xen::size(mesh_store); ++slot){
 				if(mesh_store[slot] == nullptr){
@@ -261,7 +262,7 @@ namespace {
 			}
 			XenAssert(slot < xen::size(mesh_store), "Mesh store full, cannot create new mesh");
 
-			mesh_store[slot] = xen::gl::createMesh(mesh_header_arena, mesh_data);
+			mesh_store[slot] = xen::gl::createMesh(mesh_header_arena, *mesh_data);
 
 			return makeHandle<xen::Mesh::HANDLE_ID>(slot, 0);
 		}
