@@ -3,6 +3,10 @@
 #include "../common.cpp"
 #include "cornell-box.hpp"
 
+// Locations for the boxes in the cornell scene
+const Vec3r tall_box_center  = {-0.15_r,  0.0_r, -0.10_r};
+const Vec3r short_box_center = { 0.18_r,  0.0_r,  0.18_r};
+
 xen::Camera3dCylinder                  camera;
 xen::RenderParameters3d                render_params;
 xen::FixedArray<xen::LightSource3d, 2> scene_lights;
@@ -10,6 +14,53 @@ xen::FixedArray<xen::LightSource3d, 2> scene_lights;
 xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
 xen::Mesh                                      mesh_cornell_walls;
 xen::Mesh                                      mesh_cube;
+xen::Mesh                                      mesh_axes;
+
+xen::FixedArray<xen::RenderCommand3d, 5> render_commands;
+
+void initRenderCommands(){
+	xen::clearToZero(render_commands);
+
+	render_commands[0].primitive_type  = xen::PrimitiveType::LINES;
+	render_commands[0].color           = xen::Color::WHITE4f;
+	render_commands[0].model_matrix    = xen::Scale3d(100_r);
+	render_commands[0].geometry_source = xen::RenderCommand3d::MESH;
+	render_commands[0].mesh            = mesh_axes;
+
+	render_commands[1].primitive_type  = xen::PrimitiveType::TRIANGLES;
+	render_commands[1].color           = xen::Color::WHITE4f;
+	render_commands[1].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
+	                                      xen::Rotation3dy(180_deg)
+	                                      );
+	render_commands[1].geometry_source = xen::RenderCommand3d::MESH;
+	render_commands[1].mesh            = mesh_cornell_walls;
+
+	render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
+	render_commands[2].color           = Vec4r{ 0.15_r, 0.15_r, 0.75_r, 1.0_r };
+	render_commands[2].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
+	                                      xen::Scale3d      (0.3_r, 0.6_r, 0.3_r  ) *
+	                                      xen::Rotation3dy  (15_deg               ) *
+	                                      xen::Translation3d(tall_box_center      )
+	                                     );
+	render_commands[2].geometry_source = xen::RenderCommand3d::MESH;
+	render_commands[2].mesh            = mesh_cube;
+
+	render_commands[3].primitive_type  = xen::PrimitiveType::TRIANGLES;
+  render_commands[3].color           = Vec4r{ 0.75_r, 0.15_r, 0.15_r, 1.0_r };
+	render_commands[3].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
+	                                      xen::Scale3d      (0.3_r, 0.3_r, 0.3_r  ) *
+	                                      xen::Rotation3dy  (-18_deg              ) *
+	                                      xen::Translation3d(short_box_center     )
+	                                     );
+	render_commands[3].geometry_source = xen::RenderCommand3d::MESH;
+	render_commands[3].mesh            = mesh_cube;
+
+	render_commands[4].primitive_type  = xen::PrimitiveType::TRIANGLES;
+	render_commands[4].color           = xen::Color::RED4f;
+	render_commands[4].model_matrix    = Mat4r::Identity;
+	render_commands[4].geometry_source = xen::RenderCommand3d::MESH;
+	render_commands[4].mesh            = mesh_cube;
+}
 
 void initCamera(){
 	camera.z_near   = 0.001;
@@ -52,6 +103,8 @@ void initMeshes(xen::GraphicsDevice* device){
 	// graphics devices?
 	mesh_cube = device->createMesh(xen::TestMeshGeometry_UnitCube,
 	                               vertex_spec);
+	mesh_axes = device->createMesh(xen::TestMeshGeometry_Axes,
+	                               vertex_spec);
 }
 
 int main(int argc, char** argv){
@@ -61,53 +114,7 @@ int main(int argc, char** argv){
 	initCamera();
 	initSceneLights();
 	initMeshes(app.device);
-
-	// Locations for the boxes in the cornell scene
-	Vec3r tall_box_center  = {-0.15_r,  0.0_r, -0.10_r};
-	Vec3r short_box_center = { 0.18_r,  0.0_r,  0.18_r};
-
-	xen::FixedArray<xen::RenderCommand3d, 5> render_commands;
-	xen::clearToZero(render_commands);
-
-	render_commands[0].primitive_type  = xen::PrimitiveType::LINES;
-	render_commands[0].color           = xen::Color::WHITE4f;
-	render_commands[0].model_matrix    = xen::Scale3d(100_r);
-	render_commands[0].geometry_source = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[0].immediate       = xen::TestMeshGeometry_Axes;
-
-	render_commands[1].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	render_commands[1].color           = xen::Color::WHITE4f;
-	render_commands[1].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
-	                                      xen::Rotation3dy(180_deg)
-	                                      );
-	render_commands[1].geometry_source = xen::RenderCommand3d::MESH;
-	render_commands[1].mesh            = mesh_cornell_walls;
-
-	render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	render_commands[2].color           = Vec4r{ 0.15_r, 0.15_r, 0.75_r, 1.0_r };
-	render_commands[2].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
-	                                      xen::Scale3d      (0.3_r, 0.6_r, 0.3_r  ) *
-	                                      xen::Rotation3dy  (15_deg               ) *
-	                                      xen::Translation3d(tall_box_center      )
-	                                     );
-	render_commands[2].geometry_source = xen::RenderCommand3d::MESH;
-	render_commands[2].mesh            = mesh_cube;
-
-	render_commands[3].primitive_type  = xen::PrimitiveType::TRIANGLES;
-  render_commands[3].color           = Vec4r{ 0.75_r, 0.15_r, 0.15_r, 1.0_r };
-	render_commands[3].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
-	                                      xen::Scale3d      (0.3_r, 0.3_r, 0.3_r  ) *
-	                                      xen::Rotation3dy  (-18_deg              ) *
-	                                      xen::Translation3d(short_box_center     )
-	                                     );
-	render_commands[3].geometry_source = xen::RenderCommand3d::MESH;
-	render_commands[3].mesh            = mesh_cube;
-
-	render_commands[4].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	render_commands[4].color           = xen::Color::RED4f;
-	render_commands[4].model_matrix    = Mat4r::Identity;
-	render_commands[4].geometry_source = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[4].immediate       = xen::TestMeshGeometry_UnitCube;
+	initRenderCommands();
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
 
