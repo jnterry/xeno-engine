@@ -61,8 +61,8 @@ int main(int argc, char** argv){
 
 	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
 	vertex_spec[0] = xen::VertexAttribute::Position3r;
-	vertex_spec[1] = xen::VertexAttribute::Color3f;
-	vertex_spec[2] = xen::VertexAttribute::Normal3r;
+	vertex_spec[1] = xen::VertexAttribute::Normal3r;
+	vertex_spec[2] = xen::VertexAttribute::Color3f;
 
 	xen::MeshData* mesh_data_bunny = xen::createEmptyMeshData(arena, vertex_spec);
 	xen::loadMeshFile(mesh_data_bunny, arena, "bunny.obj");
@@ -70,8 +70,8 @@ int main(int argc, char** argv){
 
 	void* mesh_cube_attrib_data[] = {
 		xen::TestMeshGeometry_UnitCube.position,
-		nullptr, // xen::TestMeshGeometry_UnitCube.normal,
-		nullptr, // &xen::TestMeshGeometry_UnitCube.normal,
+		xen::TestMeshGeometry_UnitCube.normal,
+		xen::TestMeshGeometry_UnitCube.color,
 	};
   xen::MeshData mesh_data_cube;
 	mesh_data_cube.attrib_count = 3;
