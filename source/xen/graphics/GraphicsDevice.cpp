@@ -47,6 +47,36 @@ namespace xen {
 		return created_devices[id];
 	}
 
+	Mesh GraphicsDevice::createMesh(const MeshGeometrySource& mesh_geom,
+	                                const VertexSpec&         vertex_spec){
+
+		// max number of attribs is 255, so allocate that much stack space
+		void* attrib_data[255];
+
+		for(u32 i = 0; i < xen::size(vertex_spec); ++i){
+			switch(vertex_spec[i]){
+			case xen::VertexAttribute::Position3r:
+				attrib_data[i] = mesh_geom.position;
+				break;
+			case xen::VertexAttribute::Normal3r:
+				attrib_data[i] = mesh_geom.normal;
+				break;
+			case xen::VertexAttribute::Color4b:
+				attrib_data[i] = mesh_geom.color;
+				break;
+			default: break;
+			}
+		}
+
+		xen::MeshData mesh_data;
+		mesh_data.attrib_count = xen::size(vertex_spec);
+		mesh_data.attrib_types = vertex_spec.elements;
+		mesh_data.vertex_count = mesh_geom.vertex_count;
+		mesh_data.attrib_data  = attrib_data;
+
+		return this->createMesh(&mesh_data);
+	}
+
 	void GraphicsDevice::clear(Window* window, xen::Color color){
 		if(window->is_open){
 			clear(window->render_target, color);

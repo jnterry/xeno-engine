@@ -45,35 +45,13 @@ void initMeshes(xen::GraphicsDevice* device){
 	vertex_spec[1] = xen::VertexAttribute::Normal3r;
 	vertex_spec[2] = xen::VertexAttribute::Color4b;
 
-	{
-		void* mesh_cornell_walls_attrib_data[xen::size(vertex_spec)] = {
-			MeshGeometry_CornellBoxWalls.position,
-			MeshGeometry_CornellBoxWalls.normal,
-			MeshGeometry_CornellBoxWalls.color,
-		};
-		xen::MeshData mesh_data_cornell_walls;
-		mesh_data_cornell_walls.attrib_count = xen::size(vertex_spec);
-		mesh_data_cornell_walls.attrib_types = vertex_spec.elements;
-		mesh_data_cornell_walls.vertex_count = MeshGeometry_CornellBoxWalls.vertex_count;
-		mesh_data_cornell_walls.attrib_data  = mesh_cornell_walls_attrib_data;
-		mesh_cornell_walls = device->createMesh(&mesh_data_cornell_walls);
-	}
+	mesh_cornell_walls = device->createMesh(MeshGeometry_CornellBoxWalls,
+	                                        vertex_spec);
 
-	{
-		// :TODO:COMP: Automatically load the test meshes at startup for all
-		// graphics devices?
-		void* mesh_cube_attrib_data[xen::size(vertex_spec)] = {
-			xen::TestMeshGeometry_UnitCube.position,
-			xen::TestMeshGeometry_UnitCube.normal,
-			xen::TestMeshGeometry_UnitCube.color,
-		};
-		xen::MeshData mesh_data_cube;
-		mesh_data_cube.attrib_count = xen::size(vertex_spec);
-		mesh_data_cube.attrib_types = vertex_spec.elements;
-		mesh_data_cube.vertex_count = xen::TestMeshGeometry_UnitCube.vertex_count;
-		mesh_data_cube.attrib_data  = mesh_cube_attrib_data;
-		mesh_cube                   = device->createMesh(&mesh_data_cube);
-	}
+	// :TODO:COMP: Automatically load the test meshes at startup for all
+	// graphics devices?
+	mesh_cube = device->createMesh(xen::TestMeshGeometry_UnitCube,
+	                               vertex_spec);
 }
 
 int main(int argc, char** argv){

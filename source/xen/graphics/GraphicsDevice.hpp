@@ -15,6 +15,7 @@
 #include <xen/graphics/GraphicsDevice_types.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/math/geometry_types.hpp>
+#include <xen/core/array.hpp>
 
 namespace xen {
 	struct MeshData;
@@ -69,6 +70,22 @@ namespace xen {
 		/// in future with this GraphicsDevice to render the mesh
 		/////////////////////////////////////////////////////////////////////
 		virtual Mesh createMesh(const MeshData* mesh_data) = 0;
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Uploads mesh data to the graphics device
+		///
+		/// \param mesh_geom   The mesh's geometry
+		/// \param vertex_spec The vertex spec for the created mesh. The created
+		/// mesh may rely on this memory, do not free while the mesh exists.
+		///
+	  /// \return Mesh Handle to the created mesh, this handle may be used
+		/// in future with this GraphicsDevice to render the mesh
+		///
+		/// \todo :TODO: -> remove the limitation of created mesh relying on
+		/// vertex_spec
+		/////////////////////////////////////////////////////////////////////
+		Mesh createMesh(const MeshGeometrySource& mesh_geom,
+		                const VertexSpec&         vertex_spec);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Destroys a Mesh previously created by this GraphicsDevice
