@@ -265,8 +265,12 @@ namespace {
 			// but how do "programable pipeline" in software / other devices?
 			this->prog = loadShader(mesh_header_arena);
 
-			XEN_CHECK_GL(glEnable(GL_DEPTH_TEST));
-			XEN_CHECK_GL(glDepthFunc(GL_LESS));
+			XEN_CHECK_GL(glEnable   (GL_DEPTH_TEST));
+			XEN_CHECK_GL(glDepthFunc(GL_LESS      ));
+
+			XEN_CHECK_GL(glEnable   (GL_CULL_FACE ));
+			XEN_CHECK_GL(glFrontFace(GL_CCW       ));
+			XEN_CHECK_GL(glCullFace (GL_BACK      ));
 
 			// :TODO: -> needed to use vertex array in core context, but don't know anything
 			// more about this than that fact. See:
