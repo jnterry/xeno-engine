@@ -39,7 +39,7 @@ ExampleApplication createApplication(const char* window_title,
 		bool option_picked  = false;
 		int backend         = 0;
 
-		// change to 1 to disable picking a backend - default_backend will be used
+		// change to 0 to disable picking a backend - default_backend will be used
 		#if 1
 		printf("Select graphics backend\n");
 		printf("-----------------------\n");
