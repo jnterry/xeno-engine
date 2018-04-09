@@ -74,7 +74,7 @@ xen::gl::MeshHeader* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 	xen::MemoryTransaction transaction(arena);
 	xen::gl::MeshHeader* result = pushMeshHeader(arena, md.attrib_count);
 
-	result->num_triangles = md.vertex_count / 3;
+	result->vertex_count = md.vertex_count;
 
 	u32 gpu_buffer_size =   0;
 	u08 position_index  = 255; // index of attrib representing position
@@ -124,9 +124,9 @@ xen::gl::MeshHeader* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 	// Reserve space for data
 	XEN_CHECK_GL(glBufferData(GL_ARRAY_BUFFER, gpu_buffer_size, nullptr, GL_STATIC_DRAW));
 
-	printf("Created mesh, gpu_buf: %i, num faces: %i, bounds:(%f, %f, %f) -> (%f, %f, %f)\n",
+	printf("Created mesh, gpu_buf: %i, num verts: %i, bounds:(%f, %f, %f) -> (%f, %f, %f)\n",
 	       gpu_buffer,
-	       result->num_triangles,
+	       result->vertex_count,
 	       result->bounds.min.x, result->bounds.min.y, result->bounds.min.z,
 	       result->bounds.max.x, result->bounds.max.y, result->bounds.max.z
 	      );

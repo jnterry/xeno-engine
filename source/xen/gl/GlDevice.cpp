@@ -171,7 +171,7 @@ namespace {
 			}
 		}
 
-		XEN_CHECK_GL(glDrawArrays(GL_TRIANGLES, 0, mesh->num_triangles * 3));
+		XEN_CHECK_GL(glDrawArrays(GL_TRIANGLES, 0, mesh->vertex_count));
 	}
 
 	class GlDevice : public xen::GraphicsDevice {

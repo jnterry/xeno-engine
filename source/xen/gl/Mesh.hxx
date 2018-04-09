@@ -74,14 +74,20 @@ namespace xen{
 		#pragma GCC diagnostic pop // re-enable -Wpedantic
 
 		/// \brief Type representing a mesh stored in some GpuBuffer which can be rendered
+		///
+		/// :TODO:COMP: -> can we just use xen::MeshData
+		/// either have pointers to attrib_data be pointers to attribute_sources
+		/// or probably better, make it a template class to say what we are storing
+		/// per attribute (either pointer to data buffer, instance of VertexAttributeSource,
+		/// etc)
 		struct MeshHeader{
 			// :TODO: support indexed meshes
 
 			// :TODO: support template param for type representing bounds min/max, so can
-			// support 2d or 3d meshes (or would we just always use quads in 2d with transparency?
+			// support 2d or 3d meshes
 
-			/// \brief The number of triangles in this mesh
-			u32                    num_triangles;
+			/// \brief The number of vertices in this mesh
+			u32                    vertex_count;
 
 			/// \brief The bounding box of the geometry for this mesh
 			Aabb3r                 bounds;
