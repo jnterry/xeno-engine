@@ -99,15 +99,10 @@ int main(int argc, char** argv){
 	render_cmds[CMD_BUNNY ].geometry_source = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_BUNNY ].mesh            = mesh_bunny;
 
-	model_mat = Mat4r::Identity;
-
-		model_mat *= xen::Translation3d(0, -0.5, 0);
-		render_cmds[CMD_FLOOR].model_matrix = model_mat;
-
 	render_cmds[CMD_FLOOR ].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_cmds[CMD_FLOOR ].color           = xen::Color::WHITE4f;
 	render_cmds[CMD_FLOOR ].model_matrix    = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
-	                                           xen::Scale3d(60, 0.1, 60) *
+	                                           xen::Scale3d(60, 0.5, 60) *
 	                                           xen::Translation3d(0, -0.5_r, 0)
 	                                          );
 	render_cmds[CMD_FLOOR ].geometry_source = xen::RenderCommand3d::MESH;
