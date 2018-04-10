@@ -92,6 +92,14 @@ namespace xen{
 
 		/// \brief Destroys a mesh, cleaning up all its resources
 		//void destroyMesh(const char* mesh);
+
+		/// \brief Updates data stored for a single attribute of an existing mesh
+		void updateMeshAttribData(xen::gl::MeshGlData* mesh,
+		                          u32                  attrib_index,
+		                          void*                new_data,
+		                          u32                  start_vertex,
+		                          u32                  end_vertex
+		                         );
 	}
 }
 

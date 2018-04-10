@@ -334,13 +334,16 @@ namespace {
 			return makeHandle<xen::Mesh::HANDLE_ID>(slot, 0);
 		}
 
-		void updateMeshAttribData(xen::Mesh mesh,
+		void updateMeshAttribData(xen::Mesh mesh_handle,
 		                          u32 attrib_index,
 		                          void* new_data,
 		                          u32 start_vertex,
 		                          u32 end_vertex
 		                          ) {
-			// :TODO: implement
+			xen::gl::MeshGlData* mesh = mesh_store[mesh_handle._id];
+			xen::gl::updateMeshAttribData(mesh, attrib_index, new_data,
+			                              start_vertex, end_vertex
+			                             );
 		}
 
 		void destroyMesh(xen::Mesh mesh) {

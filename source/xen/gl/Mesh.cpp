@@ -119,7 +119,7 @@ xen::gl::MeshGlData* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 	}
 
 	///////////////////////////////////////////////
-	// Reserve space for data
+	// reserve space
 	XEN_CHECK_GL(glBufferData(GL_ARRAY_BUFFER, gpu_buffer_size, nullptr, GL_STATIC_DRAW));
 
 	printf("Created mesh, gpu_buf: %i, num verts: %i, bounds:(%f, %f, %f) -> (%f, %f, %f)\n",
@@ -153,6 +153,53 @@ xen::gl::MeshGlData* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 	// Return Result
 	transaction.commit();
 	return result;
+}
+
+void xen::gl::updateMeshAttribData(xen::gl::MeshGlData* mesh,
+                                   u32                  attrib_index,
+                                   void*                new_data,
+                                   u32                  start_vertex,
+                                   u32                  end_vertex
+                                   ){
+
+	end_vertex = xen::min(end_vertex, mesh->vertex_count);
+	if(end_vertex < start_vertex){ return; }
+
+	VertexAttributeSource* attrib_source = &mesh->attrib_sources[attrib_index];
+
+	u32 attrib_size = xen::getVertexAttributeSize(mesh->attrib_types[attrib_index]);
+
+	if(attrib_source->buffer == 0){
+
+		// Then no existing data for this attribute, so create a new one
+
+		if(start_vertex != 0 || end_vertex != mesh->vertex_count){
+			// :TODO: log
+			printf("WARN: Updating mesh attrib %i but there is no existing data and "
+			       "the new data set is not complete\n", attrib_index);
+		}
+
+		XEN_CHECK_GL(glGenBuffers(1, &attrib_source->buffer));
+		XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, attrib_source->buffer));
+
+		// :TODO: here we create the buffer as dynamic draw
+		// If a buffer already exists as created by createMesh it will be
+		// GL_STATIC_DRAW. Do we want to allow the user to hint which attributes
+		// are likely to be changed so segregate dynamic data into its own buffer?
+
+		XEN_CHECK_GL(glBufferData(GL_ARRAY_BUFFER, attrib_size * mesh->vertex_count,
+		                          nullptr, GL_DYNAMIC_DRAW));
+	} else {
+		XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, attrib_source->buffer));
+	}
+
+
+	XEN_CHECK_GL(glBufferSubData(GL_ARRAY_BUFFER,
+	                             attrib_source->offset + (start_vertex * attrib_size),
+	                             (end_vertex - start_vertex) * attrib_size,
+	                             new_data
+	                            )
+	            );
 }
 
 #endif
