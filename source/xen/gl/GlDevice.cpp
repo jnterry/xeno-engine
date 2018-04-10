@@ -369,12 +369,19 @@ namespace {
 			int emissive_color_loc    = xen::gl::getUniformLocation(prog, "emissive_color"   );
 			int camera_pos_loc        = xen::gl::getUniformLocation(prog, "camera_position"  );
 
-			xen::gl::setUniform(point_light_pos_loc,   params.lights[0].point.position);
-			xen::gl::setUniform(point_light_color_loc, params.lights[0].color);
+			if(xen::size(params.lights) && params.lights.elements != nullptr){
+				// :TODO: support multiple lights
+				xen::gl::setUniform(point_light_pos_loc,   params.lights[0].point.position);
+				xen::gl::setUniform(point_light_color_loc, params.lights[0].color);
+
+				xen::gl::setUniform(emissive_color_loc,    Vec4f::Origin);
+			} else {
+				xen::gl::setUniform(point_light_pos_loc,   Vec3r::Origin);
+				xen::gl::setUniform(point_light_color_loc, Vec4f::Origin);
+				xen::gl::setUniform(emissive_color_loc,    xen::Color::WHITE4f);
+			}
 
 			xen::gl::setUniform(camera_pos_loc, xen::getCameraPosition(params.camera));
-
-			xen::gl::setUniform(emissive_color_loc, Vec4r::Origin);
 
 			Mat4r vp_mat = (getViewMatrix(params.camera) *
 
