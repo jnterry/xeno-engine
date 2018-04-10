@@ -17,25 +17,10 @@ namespace xen {
 	namespace sren {
 		struct RenderTargetImpl;
 
-
 		struct RaytracerMesh : public MeshHeader, MeshAttribArrays {
 			// Anything else?
 			// - can we sort the geometry to make rendering more efficient somehow?
 			// - anything we can pre-compute?
-			//
-			// :TODO:
-			// Ideally we would have Raytracer and Rasterizer use the same mesh type,
-			// since then common operations can be shared (eg, culling all outside of
-			// view frustrum based on bounds, mesh creation/updating/etc)
-			// -> currently this is the case, the code is all a copy paste job for
-			//    both types
-			//    (raytracer createMesh additionally computes normals, other than that
-			//     code is identical, could just enforce normals for rasterizer as
-			//     well and then remove branches in rasterization code...)
-			// This also makes it easier to have some sort of hybrid rendering scheme
-			// that uses both rasterization and raytracing (currently raytracer falls
-			// back to using rasterization for lines and points)
-
 		};
 
 		/////////////////////////////////////////////////////////////////////
