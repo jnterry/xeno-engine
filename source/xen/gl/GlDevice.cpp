@@ -74,6 +74,17 @@ namespace {
 
 		  }*/
 
+	GLenum xenPrimitiveTypeToGl(xen::PrimitiveType type){
+		switch(type){
+		case xen::PrimitiveType::POINTS     : return GL_POINTS;
+		case xen::PrimitiveType::LINES      : return GL_LINES;
+		case xen::PrimitiveType::LINE_STRIP : return GL_LINE_STRIP;
+		case xen::PrimitiveType::TRIANGLES  : return GL_TRIANGLES;
+		}
+		XenInvalidCodePath("Unhandled xen::PrimtiveType in GlDevice");
+		return 0;
+	}
+
 	xen::gl::ShaderProgram* loadShader(xen::ArenaLinear& arena){
 		XenTempArena(scratch, 8196);
 
@@ -99,7 +110,8 @@ namespace {
 	}
 
 
-	void renderMesh(const xen::gl::MeshGlData* mesh){
+	void renderMesh(xen::PrimitiveType primitive_type,
+	                const xen::gl::MeshGlData* mesh){
 		for(int i = 0; i < mesh->attrib_count; ++i){
 			if(mesh->attrib_sources[i].buffer){
 				XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->attrib_sources[i].buffer));
@@ -171,7 +183,9 @@ namespace {
 			}
 		}
 
-		XEN_CHECK_GL(glDrawArrays(GL_TRIANGLES, 0, mesh->vertex_count));
+		XEN_CHECK_GL(glDrawArrays(xenPrimitiveTypeToGl(primitive_type),
+		                          0,
+		                          mesh->vertex_count));
 	}
 
 	class GlDevice : public xen::GraphicsDevice {
@@ -379,7 +393,7 @@ namespace {
 				xen::gl::setUniform(mvp_mat_loc,        cmd->model_matrix * vp_mat);
 				xen::gl::setUniform(model_mat_loc,      cmd->model_matrix);
 				xen::gl::setUniform(emissive_color_loc, cmd->emissive_color);
-				renderMesh(mesh_store[cmd->mesh._id]);
+				renderMesh(cmd->primitive_type, mesh_store[cmd->mesh._id]);
 			}
 		}
 		/// @}
