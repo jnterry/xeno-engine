@@ -18,7 +18,9 @@
 #include <xen/sren/SoftwareDevice.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/graphics/Image.hpp>
+#include <xen/graphics/TestMeshes.hpp>
 #include <xen/math/geometry.hpp>
+#include <xen/math/matrix.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/memory/utilities.hpp>
 #include <xen/core/array.hpp>
@@ -105,7 +107,7 @@ public:
 				model->emissive_color   = cmd->color;
 				model->model_matrix     = cmd->model_matrix;
 				model->inv_model_matrix = xen::getInverse(cmd->model_matrix);
-
+				model->aabb_world       = xen::getTransformed(model->mesh->bounds, cmd->model_matrix);
 				break;
 			}
 			default:
@@ -141,6 +143,24 @@ public:
 			printf("ERROR: vp_matrix contains NaN elements, skipping rendering\n");
 			return;
 		}
+
+
+		////////////////////////////////////////////////////////////////////////////
+		// Render debug of the triangle meshes bounding boxes
+		#if 0
+		for(u32 i = 0; i < xen::size(scene.models); ++i){
+			Mat4r m_matrix = (xen::Scale3d      (xen::getSize(scene.models[i].aabb_world)) *
+			                  xen::Translation3d(scene.models[i].aabb_world.min)
+			                 );
+			rasterizeLinesModel(target, view_region, params,
+			                    m_matrix, vp_matrix, xen::Color::RED4f,
+			                    xen::TestMeshGeometry_UnitCubeLines.position,
+			                    xen::TestMeshGeometry_UnitCubeLines.color,
+			                    xen::TestMeshGeometry_UnitCubeLines.vertex_count,
+			                    2); //advance by 2 vertex for each line drawn
+		}
+		#endif
+		////////////////////////////////////////////////////////////////////////////
 
 		////////////////////////////////////////////////////////////////////////////
 		// Render the non triangles in the scene
