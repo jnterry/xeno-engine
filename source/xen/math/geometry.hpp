@@ -384,6 +384,36 @@ namespace xen{
 		}
 	}
 
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Determines the point on some ray r which is closest to the
+	/// point p
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	Vec3<T> getClosestPointOnRay(Ray3<T> r, Vec3<T> p){
+		T factor = xen::dot(r.direction, p - r.origin);
+
+		// ensure we aren't moving along ray in wrong direction
+		factor = xen::max((T)0, factor);
+
+		return r.origin + factor * r.direction;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Determines the minimum distance between a ray and some point
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	T getDistanceSqBetweenRayAndPoint(Ray3<T> r, Vec3<T> p){
+		T factor = xen::dot(r.direction, p - r.origin);
+
+		if(factor < 0){
+			return xen::distanceSq(r.origin, p);
+		} else {
+			// This line works on its own for full lines, but a ray is a half line...
+			// Can we avoid branch?
+			return xen::magSq(xen::cross(r.direction, p - r.origin));
+		}
+	}
+
 	template<typename T_LHS, typename T_RHS>
 	T_LHS getIntersection(const T_LHS& lhs, const T_RHS& rhs){
 		T_LHS result = lhs;
