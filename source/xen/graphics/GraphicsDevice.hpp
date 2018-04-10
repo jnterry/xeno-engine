@@ -110,9 +110,9 @@ namespace xen {
 		/// vertex_spec. This is in software devices which don't make deep copy
 		/// (not sure about gl device?)
 		/////////////////////////////////////////////////////////////////////
-		Mesh createMeshFromBuffers(const VertexSpec&         vertex_spec,
-		                           u32                       vertex_count,
-		                           ...);
+		Mesh createMesh(const VertexSpec&         vertex_spec,
+		                u32                       vertex_count,
+		                ...);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Destroys a Mesh previously created by this GraphicsDevice

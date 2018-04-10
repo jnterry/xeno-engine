@@ -55,11 +55,11 @@ void initMeshes(xen::GraphicsDevice* device){
 			parallel_lines_pbuf[(xi*LINE_COUNT_SQRT + yi) * 2 + 1] = {x, y, 1};
 		}
 	}
-	mesh_parallel_lines = device->createMeshFromBuffers(vertex_spec,
-	                                                    XenArrayLength(parallel_lines_pbuf),
-	                                                    parallel_lines_pbuf,
-	                                                    nullptr
-	                                                    );
+	mesh_parallel_lines = device->createMesh(vertex_spec,
+	                                         XenArrayLength(parallel_lines_pbuf),
+	                                         parallel_lines_pbuf,
+	                                         nullptr
+	                                        );
 }
 
 int main(int argc, char** argv){

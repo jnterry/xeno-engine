@@ -81,9 +81,9 @@ namespace xen {
 		return this->createMesh(&mesh_data);
 	}
 
-	Mesh GraphicsDevice::createMeshFromBuffers(const VertexSpec& vertex_spec,
-	                                           u32               vertex_count,
-	                                           ...){
+	Mesh GraphicsDevice::createMesh(const VertexSpec& vertex_spec,
+	                                u32               vertex_count,
+	                                ...){
 
 
 
