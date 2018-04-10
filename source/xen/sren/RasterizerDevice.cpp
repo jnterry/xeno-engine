@@ -111,7 +111,7 @@ public:
 	            ) override {
 		xen::sren::RenderTargetImpl& target = *this->getRenderTargetImpl(target_handle);
 
-		//////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////
 		// Generate view projection matrix
 		if(!xen::isCameraValid(params.camera)){
 			printf("ERROR: Camera is not valid, skipping rendering\n");
@@ -130,7 +130,7 @@ public:
 			printf("ERROR: vp_matrix contains NaN elements, skipping rendering\n");
 			return;
 		}
-		//////////////////////////////////////////////////////////////////////////////
+		////////////////////////////////////////////////////////////////////////////
 
 		const xen::RenderCommand3d* cmd;
 		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
