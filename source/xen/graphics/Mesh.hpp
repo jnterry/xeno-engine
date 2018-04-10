@@ -98,14 +98,13 @@ namespace xen{
 	u08 findMeshAttrib(const MeshData* mesh_data, VertexAttribute::_Flags aspect);
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Initialises a MeshGeometrySource from some MeshData instance
+	/// \brief Fills a MeshAttribArrays struct with data, allocating space used
+	/// by each array using the specified allocator and making a deep copy of the
+	/// corresponding data in mesh_data
 	///
-	/// This creates a deep copy of all data, allocating space using the specified
-	/// allocator
-	///
-	/// \note Any existing data in the MeshGeometrySource will be overwritten,
-	/// make sure it isn't pointing to memory not managed by anything else
-	/// or this will be a memory leak
+	/// \note Any existing data in the MeshAttribArrays will be overwritten,
+	/// this will cause a memory leak if any of the attribute are pointing to
+	/// memory not managed by anything else!
 	///
 	/// \note The allocated memory may be freed by passing the MeshGeometrySource
 	/// to freeMeshGeometrySourceData
@@ -114,18 +113,18 @@ namespace xen{
 	/// \param mesh_data The source of data to copy into the MeshGeometrySource
 	/// \param allocator The allocator with which to get memory to store mesh data
 	/////////////////////////////////////////////////////////////////////
-	void initMeshGeometrySource(MeshGeometrySource* result,
-	                            const MeshData*     mesh_data,
-	                            Allocator*          allocator
-	                           );
+	void fillMeshAttribArrays(MeshAttribArrays* result,
+	                          const MeshData*   mesh_data,
+	                          Allocator*        allocator
+	                          );
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Frees any non-null pointers in the specified MeshGeometrySource
 	/// by deallocating the memory using the specified Allocator
 	/// \note This DOES NOT free the actual MeshGeometrySource instance
 	/////////////////////////////////////////////////////////////////////
-	void freeMeshGeometrySourceData(MeshGeometrySource* mesh,
-	                                Allocator* allocator);
+	void freeMeshAttribArrays(MeshAttribArrays* mesh,
+	                          Allocator*        allocator);
 }
 
 #endif

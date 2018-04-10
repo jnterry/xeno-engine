@@ -42,18 +42,19 @@ public:
 	xen::Mesh createMesh(const xen::MeshData* mesh_data) override {
 		// :TODO:COMP:ISSUE_31: object pool with automatic handles / resizeable pool
 		u32 slot = xen::reserveSlot(this->mesh_pool);
-		xen::MeshGeometrySource* mesh_geom = &this->mesh_pool.slots[slot].item;
+		xen::sren::RasterizerMesh* mesh_geom = &this->mesh_pool.slots[slot].item;
 
 		// Allocate storage and copy over attributes, this is equivalent
 		// to uploading to the gpu in a gl device
-		xen::initMeshGeometrySource(mesh_geom, mesh_data, mesh_allocator);
+		xen::fillMeshAttribArrays(mesh_geom, mesh_data, mesh_allocator);
+		mesh_geom->vertex_count = mesh_data->vertex_count;
 
 		return this->makeHandle<xen::Mesh::HANDLE_ID>(slot, 0);
 	}
 
 	void destroyMesh(xen::Mesh mesh) override {
-		xen::freeMeshGeometrySourceData(&this->mesh_pool.slots[mesh._id].item,
-		                                mesh_allocator);
+		xen::freeMeshAttribArrays(&this->mesh_pool.slots[mesh._id].item,
+		                          mesh_allocator);
 		xen::freeSlot(this->mesh_pool, mesh._id);
 	}
 

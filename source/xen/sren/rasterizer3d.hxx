@@ -19,10 +19,8 @@ namespace xen {
 	namespace sren {
 		struct RenderTargetImpl;
 
-		struct RasterizerMesh : public MeshGeometrySource {
-			// nothing here yet...
-			//
-			// - Bounding box to cull off screen meshes?
+		struct RasterizerMesh : public MeshHeader, MeshAttribArrays {
+			// Anything else?
 			// - can we sort the geometry to make rendering more efficient somehow?
 			// - anything we can pre-compute?
 		};
