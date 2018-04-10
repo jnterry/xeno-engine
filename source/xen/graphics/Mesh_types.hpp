@@ -23,10 +23,13 @@ namespace xen{
 	// :TODO:REF:
 	// Need a big clean up of the mesh code - was originally designed for
 	// OpenGL only and then split into common code and that specific to GL
-	//
+	// Theres a lot of concepts flying around, and conversions between them.
+	// - Do we need flexible mesh data representations, as well as fixed
+	//   representations
+	//   - When meta type system is implemented can we use that for flexible
+	//     representation?
+	//   - Probably have a lot of repeated code
 	// - Make Vertex Attrib / Attribute naming consistent
-	// - Probably have a lot of repeated code
-	//   - Also check in the graphics devices themselves
 	// - VertexAttribute should be a bitfield so we can do
 	//   .aspect, .type and .channels but still used the named constant
 	//   approach so we dont have to support arbitary combinations. Do this
@@ -156,12 +159,11 @@ namespace xen{
 
 	typedef xen::Array<xen::VertexAttribute::Type> VertexSpec;
 
+
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Represents mesh data stored in main memory. This allows for
-	/// manipulations to be performed by the CPU, but the data IS NOT
-	/// in an appropriate format for rendering systems to draw the mesh
+	/// \brief Meta data about a Mesh
 	/////////////////////////////////////////////////////////////////////
-	struct MeshData {
+	struct MeshHeader {
 		/// \brief Index reserved to represent an invalid attribute index
 		static const constexpr u08 BAD_ATTRIB_INDEX = 255;
 
@@ -171,16 +173,27 @@ namespace xen{
 		/// \brief The types of each mesh attribute
 		VertexAttribute::Type* attrib_types;
 
-		/// \brief The data for each of this mesh's attributes
-		/// Array of length attrib_count, where each element is a void*
-		/// to the first byte of the data representing that attribute
-		void**                 attrib_data;
-
 		/// \brief Number of vertices in the mesh
 		u32                    vertex_count;
 
 		/// \brief The bounding box of this mesh
 		xen::Aabb3r            bounds;
+
+		// :TODO: support indexed meshes
+	};
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents mesh data stored in main memory. This allows for
+	/// manipulations to be performed by the CPU, but the data IS NOT
+	/// in an appropriate format for rendering systems to draw the mesh
+	/////////////////////////////////////////////////////////////////////
+	struct MeshData : public MeshHeader {
+		/// \brief The data for each of this mesh's attributes
+		///
+		/// Array of length attrib_count, where each element is a void*
+		/// to the first byte of the data representing that attribute
+		/// or nullptr if no data is stored for that attribute
+		void** attrib_data;
 	};
 }
 

@@ -99,19 +99,19 @@ namespace {
 	}
 
 
-	void renderMesh(const xen::gl::MeshHeader* mesh){
-		for(int i = 0; i < mesh->attribute_count; ++i){
-			if(mesh->attribute_sources[i].buffer){
-				XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->attribute_sources[i].buffer));
+	void renderMesh(const xen::gl::MeshGlData* mesh){
+		for(int i = 0; i < mesh->attrib_count; ++i){
+			if(mesh->attrib_sources[i].buffer){
+				XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->attrib_sources[i].buffer));
 				XEN_CHECK_GL(glEnableVertexAttribArray(i));
 
-				GLint component_count = (mesh->attribute_types[i] &
+				GLint component_count = (mesh->attrib_types[i] &
 				                         xen::VertexAttribute::_ComponentCountMask
 				                        );
 
 				GLenum component_type;
 				GLboolean normalized = GL_FALSE;
-				switch(mesh->attribute_types[i] & xen::VertexAttribute::_TypeMask){
+				switch(mesh->attrib_types[i] & xen::VertexAttribute::_TypeMask){
 				case xen::VertexAttribute::_TypeFloat:
 					component_type = GL_FLOAT;
 					break;
@@ -131,31 +131,31 @@ namespace {
 				                                   component_count,
 				                                   component_type,
 				                                   normalized,
-				                                   mesh->attribute_sources[i].stride,
-				                                   (void*)mesh->attribute_sources[i].offset
+				                                   mesh->attrib_sources[i].stride,
+				                                   (void*)mesh->attrib_sources[i].offset
 				                                   )
 				             );
 			} else {
 				printf("Using constant value for attribute: %i\n", i);
 				XEN_CHECK_GL(glDisableVertexAttribArray(i));
 
-				switch(mesh->attribute_types[i]){
+				switch(mesh->attrib_types[i]){
 				case xen::VertexAttribute::Position3r:
 				case xen::VertexAttribute::Normal3r:
 					#if XEN_USE_DOUBLE_PRECISION
-					XEN_CHECK_GL(glVertexAttrib3dv(i, &mesh->attribute_sources[i].vec3r[0]));
+					XEN_CHECK_GL(glVertexAttrib3dv(i, &mesh->attrib_sources[i].vec3r[0]));
 					#else
-					XEN_CHECK_GL(glVertexAttrib3fv(i, &mesh->attribute_sources[i].vec3r[0]));
+					XEN_CHECK_GL(glVertexAttrib3fv(i, &mesh->attrib_sources[i].vec3r[0]));
 					#endif
 					break;
 				case xen::VertexAttribute::TexCoord2f:
-					XEN_CHECK_GL(glVertexAttrib2fv(i, &mesh->attribute_sources[i].vec2f[0]));
+					XEN_CHECK_GL(glVertexAttrib2fv(i, &mesh->attrib_sources[i].vec2f[0]));
 					break;
 				case xen::VertexAttribute::Color3f:
-					XEN_CHECK_GL(glVertexAttrib3fv(i, &mesh->attribute_sources[i].color3f[0]));
+					XEN_CHECK_GL(glVertexAttrib3fv(i, &mesh->attrib_sources[i].color3f[0]));
 					break;
 				case xen::VertexAttribute::Color4b: {
-					xen::Color color = mesh->attribute_sources[i].color4b;
+					xen::Color color = mesh->attrib_sources[i].color4b;
 					XEN_CHECK_GL(glVertexAttrib4f
 					             (i,
 					              xen::mapToRange<u32, float>(0, 255, 0.0f, 1.0f, color.r),
@@ -178,7 +178,7 @@ namespace {
 	private:
 		xen::Allocator* main_allocator;
 
-		xen::FixedArray<xen::gl::MeshHeader*, 256> mesh_store;
+		xen::FixedArray<xen::gl::MeshGlData*, 256> mesh_store;
 		xen::ArenaLinear mesh_header_arena;
 
 		xen::FixedArray<xen::gl::RenderTargetImpl*, 128> render_targets;

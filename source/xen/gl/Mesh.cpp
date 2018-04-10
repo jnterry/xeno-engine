@@ -19,16 +19,16 @@
 #include "gl_header.hxx"
 
 namespace{
-	xen::gl::MeshHeader* pushMeshHeader(xen::ArenaLinear& arena, u32 attrib_count){
+	xen::gl::MeshGlData* pushMeshGlData(xen::ArenaLinear& arena, u32 attrib_count){
 		xen::MemoryTransaction transaction(arena);
 
-		xen::gl::MeshHeader* result = xen::reserveType<xen::gl::MeshHeader>(arena);
+		xen::gl::MeshGlData* result = xen::reserveType<xen::gl::MeshGlData>(arena);
 
 		if(!xen::isValid(arena)){ return nullptr; }
 
-		result->attribute_count     = attrib_count;
-		result->attribute_types     = xen::reserveTypeArray<xen::VertexAttribute::Type    >(arena, attrib_count);
-		result->attribute_sources   = xen::reserveTypeArray<xen::gl::VertexAttributeSource>(arena, attrib_count);
+		result->attrib_count   = attrib_count;
+		result->attrib_types   = xen::reserveTypeArray<xen::VertexAttribute::Type    >(arena, attrib_count);
+		result->attrib_sources = xen::reserveTypeArray<xen::gl::VertexAttributeSource>(arena, attrib_count);
 
 		transaction.commit();
 		return result;
@@ -68,11 +68,11 @@ namespace{
 	}
 }
 
-xen::gl::MeshHeader* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::MeshData& md){
+xen::gl::MeshGlData* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::MeshData& md){
 	XenAssert(md.vertex_count % 3 == 0, "Mesh must be created from collection of triangles");
 
 	xen::MemoryTransaction transaction(arena);
-	xen::gl::MeshHeader* result = pushMeshHeader(arena, md.attrib_count);
+	xen::gl::MeshGlData* result = pushMeshGlData(arena, md.attrib_count);
 
 	result->vertex_count = md.vertex_count;
 
@@ -88,7 +88,7 @@ xen::gl::MeshHeader* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 	///////////////////////////////////////////////
 	// Set up mesh attributes, work out where to store data in gpu buffer
 	for(u08 i = 0; i < md.attrib_count; ++i){
-		result->attribute_types[i] = md.attrib_types[i];
+		result->attrib_types[i] = md.attrib_types[i];
 
 		if((xen::VertexAttribute::_AspectPosition ==
 		    (md.attrib_types[i] & xen::VertexAttribute::_AspectMask))){
@@ -98,14 +98,14 @@ xen::gl::MeshHeader* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 		}
 
 		if(md.attrib_data[i] == nullptr){
-			result->attribute_sources[i] = getDefaultVertexAttributeSource(md.attrib_types[i]);
+			result->attrib_sources[i] = getDefaultVertexAttributeSource(md.attrib_types[i]);
 			continue;
 		}
 
-		result->attribute_sources[i].buffer = gpu_buffer;
-		result->attribute_sources[i].offset = gpu_buffer_size;
-		result->attribute_sources[i].stride = getVertexAttributeSize(md.attrib_types[i]);
-		gpu_buffer_size += result->attribute_sources[i].stride * md.vertex_count;
+		result->attrib_sources[i].buffer = gpu_buffer;
+		result->attrib_sources[i].offset = gpu_buffer_size;
+		result->attrib_sources[i].stride = getVertexAttributeSize(md.attrib_types[i]);
+		gpu_buffer_size += result->attrib_sources[i].stride * md.vertex_count;
 	}
 
 	///////////////////////////////////////////////
@@ -139,13 +139,13 @@ xen::gl::MeshHeader* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 			continue;
 		}
 
-		result->attribute_sources[i].buffer = gpu_buffer;
+		result->attrib_sources[i].buffer = gpu_buffer;
 
 		const void* data_source = md.attrib_data[i];
 
 		XEN_CHECK_GL(glBufferSubData(GL_ARRAY_BUFFER,
-		                             result->attribute_sources[i].offset,
-		                             getVertexAttributeSize(result->attribute_types[i]) * md.vertex_count,
+		                             result->attrib_sources[i].offset,
+		                             getVertexAttributeSize(result->attrib_types[i]) * md.vertex_count,
 		                             data_source
 		                             )
 		            );

@@ -73,41 +73,22 @@ namespace xen{
 
 		#pragma GCC diagnostic pop // re-enable -Wpedantic
 
-		/// \brief Type representing a mesh stored in some GpuBuffer which can be rendered
-		///
-		/// :TODO:COMP: -> can we just use xen::MeshData
-		/// either have pointers to attrib_data be pointers to attribute_sources
-		/// or probably better, make it a template class to say what we are storing
-		/// per attribute (either pointer to data buffer, instance of VertexAttributeSource,
-		/// etc)
-		struct MeshHeader{
-			// :TODO: support indexed meshes
-
-			// :TODO: support template param for type representing bounds min/max, so can
-			// support 2d or 3d meshes
-
-			/// \brief The number of vertices in this mesh
-			u32                    vertex_count;
-
-			/// \brief The bounding box of the geometry for this mesh
-			Aabb3r                 bounds;
-
-			/// \brief The number of attributes per vertex of this mesh
-			u08                    attribute_count;
-
-			/// \brief The types of attributes of this mesh
-			VertexAttribute::Type* attribute_types;
-
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Type representing a mesh stored in some set of GpuBuffers which
+		/// can be rendered by OpenGL
+		/////////////////////////////////////////////////////////////////////
+		struct MeshGlData : public xen::MeshHeader{
 			/// \brief The data sources for attributes of this mesh
-			VertexAttributeSource* attribute_sources;
+			///
+			/// Pointer to first element of array where each element is the source
+			/// of the data for that attribute
+			VertexAttributeSource* attrib_sources;
 		};
-
-		#pragma GCC diagnostic pop // re-enable -Wpedantic
 
 		/// \brief Creates a mesh from segregated buffers of data for each attribute
 		/// \param arena     Arena in which resulting MeshHeader instance is stored
 		/// \param mesh_data The data for the Mesh as stored on the CPU
-		MeshHeader* createMesh(ArenaLinear& arena, const MeshData& md);
+		MeshGlData* createMesh(ArenaLinear& arena, const MeshData& md);
 
 		/// \brief Destroys a mesh, cleaning up all its resources
 		//void destroyMesh(const char* mesh);
