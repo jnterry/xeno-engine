@@ -24,7 +24,6 @@ void initRenderCommands(){
 	render_commands[0].primitive_type  = xen::PrimitiveType::LINES;
 	render_commands[0].color           = xen::Color::WHITE4f;
 	render_commands[0].model_matrix    = xen::Scale3d(100_r);
-	render_commands[0].geometry_source = xen::RenderCommand3d::MESH;
 	render_commands[0].mesh            = mesh_axes;
 
 	render_commands[1].primitive_type  = xen::PrimitiveType::TRIANGLES;
@@ -32,7 +31,6 @@ void initRenderCommands(){
 	render_commands[1].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
 	                                      xen::Rotation3dy(180_deg)
 	                                      );
-	render_commands[1].geometry_source = xen::RenderCommand3d::MESH;
 	render_commands[1].mesh            = mesh_cornell_walls;
 
 	render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
@@ -42,7 +40,6 @@ void initRenderCommands(){
 	                                      xen::Rotation3dy  (15_deg               ) *
 	                                      xen::Translation3d(tall_box_center      )
 	                                     );
-	render_commands[2].geometry_source = xen::RenderCommand3d::MESH;
 	render_commands[2].mesh            = mesh_cube;
 
 	render_commands[3].primitive_type  = xen::PrimitiveType::TRIANGLES;
@@ -52,13 +49,11 @@ void initRenderCommands(){
 	                                      xen::Rotation3dy  (-18_deg              ) *
 	                                      xen::Translation3d(short_box_center     )
 	                                     );
-	render_commands[3].geometry_source = xen::RenderCommand3d::MESH;
 	render_commands[3].mesh            = mesh_cube;
 
 	render_commands[4].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_commands[4].color           = xen::Color::RED4f;
 	render_commands[4].model_matrix    = Mat4r::Identity;
-	render_commands[4].geometry_source = xen::RenderCommand3d::MESH;
 	render_commands[4].mesh            = mesh_cube;
 }
 

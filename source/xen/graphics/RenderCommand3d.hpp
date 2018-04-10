@@ -50,18 +50,6 @@ namespace xen{
 	/// some object to the screen
 	/////////////////////////////////////////////////////////////////////
 	struct RenderCommand3d {
-		/// \brief Enumeration of the possible sources of geometry for a rendering
-		/// operation
-		enum GeometrySource {
-			// Do we really want to support immediate mode rendering?
-			// its slow, but useful for testing
-			IMMEDIATE,
-
-			MESH,
-
-			// :TODO: Implicit surfaces
-		};
-
 		/// \brief The diffuse color to use
 		Color4f color;
 
@@ -75,17 +63,8 @@ namespace xen{
 		/// \brief The type of primitive to be drawn by this command
 		PrimitiveType primitive_type;
 
-		/// \brief The source of the geometry for this command
-		GeometrySource geometry_source;
-
-		/// \brief Extra data dependent on the source field
-		union {
-			/// \brief Extra data used if source is Immediate
-			xen::MeshGeometrySource immediate;
-
-			/// \brief A handle to a mesh to be drawn, used if source is Mesh
-			xen::Mesh mesh;
-		};
+		/// \brief A handle to a mesh to be drawn, used if source is Mesh
+		xen::Mesh mesh;
 	};
 
 	/////////////////////////////////////////////////////////////////////

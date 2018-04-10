@@ -112,15 +112,7 @@ public:
 				xen::sren::RaytracerModel* model = &scene.models[scene.models.size];
 				++scene.models.size;
 
-				switch(cmd->geometry_source){
-				case xen::RenderCommand3d::IMMEDIATE:
-					model->mesh = &cmd->immediate;
-					break;
-				case xen::RenderCommand3d::MESH:
-					model->mesh = &this->mesh_pool.slots[cmd->mesh._id].item;
-					break;
-				}
-
+				model->mesh             = &this->mesh_pool.slots[cmd->mesh._id].item;
 				model->color            = cmd->color;
 				model->emissive_color   = cmd->color;
 				model->model_matrix     = cmd->model_matrix;

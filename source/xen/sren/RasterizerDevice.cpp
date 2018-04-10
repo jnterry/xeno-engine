@@ -92,17 +92,7 @@ public:
 			xen::Color4f base_color = cmd->color;
 			base_color.rgb *= params.ambient_light;
 
-			/////////////////////////////////////////////////////////////////
-			// Determine the source for the geometry to draw based on the cmd
-			const xen::MeshGeometrySource* geom = nullptr;
-			switch(cmd->geometry_source){
-			case xen::RenderCommand3d::IMMEDIATE:
-				geom = &cmd->immediate;
-				break;
-			case xen::RenderCommand3d::MESH:
-				geom = &this->mesh_pool.slots[cmd->mesh._id].item;
-				break;
-			}
+			const xen::sren::RasterizerMesh* mesh = &this->mesh_pool.slots[cmd->mesh._id].item;
 
 			/////////////////////////////////////////////////////////////////
 			// Do the drawing, based on primitive type
@@ -110,33 +100,33 @@ public:
 			case xen::PrimitiveType::POINTS:
 				rasterizePointsModel(target, view_region, params,
 				                     cmd->model_matrix, vp_matrix, cmd->color,
-				                     geom->position,
-				                     geom->color,
-				                     geom->vertex_count);
+				                     mesh->position,
+				                     mesh->color,
+				                     mesh->vertex_count);
 				break;
 			case xen::PrimitiveType::LINES:
 				rasterizeLinesModel(target, view_region, params,
 				                    cmd->model_matrix, vp_matrix, cmd->color,
-				                    geom->position,
-				                    geom->color,
-				                    geom->vertex_count,
+				                    mesh->position,
+				                    mesh->color,
+				                    mesh->vertex_count,
 				                    2); //advance by 2 vertices for each line drawn
 				break;
 			case xen::PrimitiveType::LINE_STRIP:
 				rasterizeLinesModel(target, view_region, params,
 				                    cmd->model_matrix, vp_matrix, cmd->color,
-				                    geom->position,
-				                    geom->color,
-				                    geom->vertex_count,
+				                    mesh->position,
+				                    mesh->color,
+				                    mesh->vertex_count,
 				                    1); //advance by 1 vertex for each line drawn
 				break;
 			case xen::PrimitiveType::TRIANGLES: {
 				rasterizeTrianglesModel(target, view_region, params,
 				                        cmd->model_matrix, vp_matrix, cmd->color,
-				                        geom->position,
-				                        geom->normal,
-				                        geom->color,
-				                        geom->vertex_count);
+				                        mesh->position,
+				                        mesh->normal,
+				                        mesh->color,
+				                        mesh->vertex_count);
 				break;
 			}
 			default:

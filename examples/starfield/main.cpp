@@ -60,13 +60,11 @@ int main(int argc, char** argv){
 	render_commands[0].primitive_type         = xen::PrimitiveType::LINES;
 	render_commands[0].color                  = xen::Color::WHITE4f;
 	render_commands[0].model_matrix           = xen::Scale3d(100_r);
-	render_commands[0].geometry_source        = xen::RenderCommand3d::MESH;
 	render_commands[0].mesh                   = mesh_axes;
 
 	render_commands[1].primitive_type         = xen::PrimitiveType::POINTS;
 	render_commands[1].color                  = xen::Color::WHITE4f;
 	render_commands[1].model_matrix           = Mat4r::Identity;
-	render_commands[1].geometry_source        = xen::RenderCommand3d::MESH;
 	render_commands[1].mesh                   = mesh_stars;
 
 	render_commands[2].primitive_type         = xen::PrimitiveType::LINES;
@@ -74,7 +72,6 @@ int main(int argc, char** argv){
 	render_commands[2].model_matrix           = (xen::Scale3d(200_r) *
 	                                             xen::Translation3d(-100.0_r, -100.0_r, -100.0_r)
 	                                            );
-	render_commands[2].geometry_source        = xen::RenderCommand3d::MESH;
 	render_commands[2].mesh                   = mesh_cube_lines;
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
@@ -107,8 +104,9 @@ int main(int argc, char** argv){
 				star_positions[i].z -= 200.0f;
 			}
 		}
+		//app.device->updateMeshAttribData(mesh_stars, 0, star_positions);
 
-	  app.device->clear      (app.window, xen::Color::BLACK);
+		app.device->clear      (app.window, xen::Color{20,20,20,255});
 		app.device->render     (app.window, viewport, render_params, render_commands);
 		app.device->swapBuffers(app.window);
 	}

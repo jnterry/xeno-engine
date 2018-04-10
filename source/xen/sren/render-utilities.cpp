@@ -178,6 +178,12 @@ namespace xen {
 			xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
 			xen::clearToZero(render_commands);
 
+			// :TODO: not sure how to do this after mesh refactor
+			//  -> auto load test meshes and use them?
+			//     cube lines transformed by inverse view matrix for camera view frustrum
+			//     axes mesh for camera local axes, etc
+
+			/*
 			render_commands[0].primitive_type         = xen::PrimitiveType::LINES;
 			render_commands[0].color                  = xen::Color::MAGENTA4f;
 			render_commands[0].model_matrix           = Mat4r::Identity;
@@ -203,7 +209,7 @@ namespace xen {
 			xen::RenderParameters3d params = {};
 			params.camera = view_camera;
 
-			xen::sren::renderRasterize(target, viewport, params, render_commands);
+			xen::sren::renderRasterize(target, viewport, params, render_commands);*/
 		}
 	}
 }

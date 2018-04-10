@@ -68,19 +68,16 @@ int main(int argc, char** argv){
 	render_commands[0].primitive_type         = xen::PrimitiveType::LINES;
 	render_commands[0].color                  = xen::Color::WHITE4f;
 	render_commands[0].model_matrix           = xen::Scale3d(100_r);
-	render_commands[0].geometry_source        = xen::RenderCommand3d::MESH;
 	render_commands[0].mesh                   = mesh_axes;
 
 	render_commands[1].primitive_type         = xen::PrimitiveType::TRIANGLES;
 	render_commands[1].color                  = xen::Color::WHITE4f;
 	render_commands[1].model_matrix           = xen::Scale3d(1, 1, 1);
-	render_commands[1].geometry_source        = xen::RenderCommand3d::MESH;
 	render_commands[1].mesh                   = mesh_triangles;
 
 	render_commands[2].primitive_type         = xen::PrimitiveType::TRIANGLES;
 	render_commands[2].color                  = xen::Color::WHITE4f;
 	render_commands[2].model_matrix           = xen::Scale3d(1, 1, 1);
-	render_commands[2].geometry_source        = xen::RenderCommand3d::MESH;
 	render_commands[2].mesh                   = mesh_cube;
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };

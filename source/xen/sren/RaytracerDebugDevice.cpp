@@ -142,7 +142,9 @@ public:
 
 		xen::sren::clear(target, viewport_main, xen::Color::BLACK);
 
-		// :TODO: need to generate a raytracer scene
+		// :TODO: after mesh refactor the older rendering functions have been
+		// removed not sure how to implement this now...
+
 		//xen::sren::renderRaytrace(target, viewport_main, params, commands);
 
 		xen::RenderParameters3d my_params = params;
@@ -153,7 +155,7 @@ public:
 		my_params.camera = camera_x;
 
 		xen::sren::clear(target, viewport_x, xen::Color::BLACK);
-		xen::sren::renderRasterize(target, viewport_x, my_params, commands);
+		//xen::sren::renderRasterize(target, viewport_x, my_params, commands);
 		xen::sren::renderCameraDebug(target, viewport_x, camera_x, params.camera,
 		                             debug_camera_distance * 0.3_r);
 
@@ -163,7 +165,7 @@ public:
 		my_params.camera = camera_y;
 
 		xen::sren::clear(target, viewport_y, xen::Color::BLACK);
-		xen::sren::renderRasterize(target, viewport_y, my_params, commands);
+		//xen::sren::renderRasterize(target, viewport_y, my_params, commands);
 		xen::sren::renderCameraDebug(target, viewport_y, camera_y, params.camera,
 		                             debug_camera_distance * 0.3_r);
 
@@ -173,7 +175,7 @@ public:
 		my_params.camera = camera_z;
 
 		xen::sren::clear(target, viewport_z, xen::Color::BLACK);
-		xen::sren::renderRasterize(target, viewport_z, my_params, commands);
+		//xen::sren::renderRasterize(target, viewport_z, my_params, commands);
 		xen::sren::renderCameraDebug(target, viewport_z, camera_z, params.camera,
 		                             debug_camera_distance * 0.3_r);
 	}
