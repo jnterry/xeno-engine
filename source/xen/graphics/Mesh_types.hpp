@@ -36,25 +36,52 @@ namespace xen{
 	//   using static instances (like Vec3r::Origin)
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Struct containing pointers to data stored in main memory
-	/// representing mesh geometry.
+	/// \brief Container for pointers to in memory arrays of attribute data
+	/// for some mesh
+	///
+	/// \note MeshVertexData should ususally be used in place of this type.
+	/// This is used when the number of vertices is implicit, or is stored
+	/// elsewhere
 	///
 	/// This struct is designed to represent a mesh with a fixed format - IE:
 	/// the number and type of vertex attributes cannot be changed. Use the
 	/// other types in this file for more flexibility - but more complexity
 	/////////////////////////////////////////////////////////////////////
-	struct MeshGeometrySource {
-		/// \brief Number of vertices to draw
-		u32 vertex_count;
-
-		/// \brief The positions of each vertex. Array length = vertex_count
+	struct MeshAttribArrays {
+		/// \brief The positions of each vertex
 		Vec3r* position;
 
-		/// \brief The normals of each vertex. Array length = vertex_count
+		/// \brief The normals of each vertex
 		Vec3r* normal;
 
-		/// \brief The colors of each vertex. Array length = vertex_count
+		/// \brief The colors of each vertex
 		Color* color;
+
+		inline MeshAttribArrays(Vec3r* p, Vec3r* n, Color* c)
+			: position(p), normal(n), color(c){
+			// no-op
+		}
+	};
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Struct representing the minimum amount of data to represent
+	/// a Mesh stored in CPU memory. IE, a set of vertex arrays
+	///
+	/// This struct is designed to represent a mesh with a fixed format - IE:
+	/// the number and type of vertex attributes cannot be changed. Use the
+	/// other types in this file for more flexibility - but more complexity
+	///
+	/// \todo :TODO: better name?
+	/////////////////////////////////////////////////////////////////////
+	struct MeshGeometrySource : public MeshAttribArrays {
+		/// \brief Number of vertices in this mesh. Length of any non nullptr
+		/// attrib arrays is equal to this count.
+		u32 vertex_count;
+
+		inline MeshGeometrySource(u32 vertex_count, Vec3r* p, Vec3r* n, Color* c)
+			: MeshAttribArrays(p, n, c), vertex_count(vertex_count){
+			// no-op
+		}
 	};
 
 	/////////////////////////////////////////////////////////////////////
@@ -161,7 +188,7 @@ namespace xen{
 
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Meta data about a Mesh
+	/// \brief Meta data about some Mesh
 	/////////////////////////////////////////////////////////////////////
 	struct MeshHeader {
 		/// \brief Index reserved to represent an invalid attribute index
