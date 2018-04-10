@@ -14,7 +14,7 @@ int main(int argc, char** argv){
 	xen::FixedArray<xen::LightSource3d, 1> scene_lights;
 
 	scene_lights[0].type           = xen::LightSource3d::POINT;
-	scene_lights[0].point.position = {10.0_r, 0.2_r, -10.0_r};
+	scene_lights[0].point.position = {10.0_r, 0.2_r, 10.0_r};
 	scene_lights[0].color          = xen::Color::WHITE4f;
 	scene_lights[0].attenuation    = {0.0f, 0.0f, 0.01f};
 
@@ -41,13 +41,9 @@ int main(int argc, char** argv){
 	vertex_spec[2] = xen::VertexAttribute::Color4b;
 
 	Vec3r mesh_verts[] = {
-		Vec3r{ 0_r, 0_r, 0_r },
-		Vec3r{ 1_r, 0_r, 0_r },
-		Vec3r{ 0_r, 1_r, 0_r },
-
-		Vec3r{ 1_r, 0_r, 0_r },
-		Vec3r{ 0_r, 0_r, 0_r },
-		Vec3r{ 0_r, 0_r, 1_r },
+		Vec3r::Origin,  Vec3r::UnitX,   Vec3r::UnitY,
+		Vec3r::UnitX,   Vec3r::Origin,  Vec3r::UnitZ,
+		Vec3r::UnitX,   Vec3r::Origin, -Vec3r::UnitZ,
 	};
 
 	xen::Color mesh_colors[] = {
@@ -58,6 +54,10 @@ int main(int argc, char** argv){
 		xen::Color::YELLOW4f,
 		xen::Color::YELLOW4f,
 		xen::Color::YELLOW4f,
+
+		xen::Color::CYAN4f,
+		xen::Color::CYAN4f,
+		xen::Color::CYAN4f,
 	};
 
 	xen::Mesh mesh_triangles  = app.device->createMesh(vertex_spec,
@@ -89,10 +89,7 @@ int main(int argc, char** argv){
 
 	render_commands[2].primitive_type         = xen::PrimitiveType::TRIANGLES;
 	render_commands[2].color                  = xen::Color::WHITE4f;
-	render_commands[2].model_matrix           = (xen::Scale3d(50_r) *
-	                                             xen::Rotation3dy(90_deg)
-	                                             // * xen::Translation3d(-75.0_r, -75.0_r, -75.0_r)
-	                                            );
+	render_commands[2].model_matrix           = xen::Scale3d(50_r);
 	render_commands[2].mesh                   = mesh_triangles;
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
