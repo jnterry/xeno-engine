@@ -52,6 +52,21 @@ public:
 		xen::fillMeshAttribArrays(mesh_geom, mesh_data, mesh_allocator);
 		mesh_geom->vertex_count = mesh_data->vertex_count;
 
+		////////////////////////////////////////////////////////////////////////////
+		// Compute face normals
+		if(mesh_geom->normal == nullptr && mesh_data->vertex_count % 3 == 0){
+			for(u32 i = 0; i < mesh_geom->vertex_count; i += 3){
+				mesh_geom->normal = (Vec3r*)mesh_allocator->allocate
+					(sizeof(Vec3r) * mesh_geom->vertex_count);
+
+				xen::Triangle3r* tri = (xen::Triangle3r*)&mesh_geom->position[i];
+				Vec3r normal = xen::computeNormal(*tri);
+				mesh_geom->normal[i+0] = normal;
+				mesh_geom->normal[i+1] = normal;
+				mesh_geom->normal[i+2] = normal;
+			}
+		}
+
 		return this->makeHandle<xen::Mesh::HANDLE_ID>(slot, 0);
 	}
 

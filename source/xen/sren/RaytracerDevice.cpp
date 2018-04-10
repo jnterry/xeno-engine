@@ -65,8 +65,7 @@ public:
 
 		////////////////////////////////////////////////////////////////////////////
 		// Compute face normals
-		// :TODO: this relies on the mesh being a set of triangles
-		if(mesh_geom->normal == nullptr){
+		if(mesh_geom->normal == nullptr && mesh_data->vertex_count % 3 == 0){
 			for(u32 i = 0; i < mesh_geom->vertex_count; i += 3){
 				mesh_geom->normal = (Vec3r*)mesh_allocator->allocate
 					(sizeof(Vec3r) * mesh_geom->vertex_count);
@@ -212,8 +211,6 @@ public:
 
 		////////////////////////////////////////////////////////////////////////////
 		// Render the non triangles in the scene
-
-
 		for(u32 i = 0; i < xen::size(commands); ++i){
 			u32 cmd_index = non_triangle_cmds[i];
 			const xen::RenderCommand3d* cmd = &commands[cmd_index];
