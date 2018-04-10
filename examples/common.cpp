@@ -18,7 +18,6 @@ const char* ExampleApplication::BACKEND_NAMES[Backend::COUNT] = {
 	"Software Rasterizer",
 	"Software Raytracer",
 	"OpenGL",
-	"Rasterizer Depth Debug",
 	"Raytracer Camera Debug",
 };
 
@@ -107,9 +106,6 @@ ExampleApplication createApplication(const char* window_title,
 			window_size.y = 800;
 			app.device = xen::createRaytracerDebugDevice(app.arena,
 			                                             10, &Vec3r::Origin);
-			break;
-		case ExampleApplication::Backend::RASTERIZER_DEPTH_DEBUG:
-			printf("\nNot implemented\n\n");
 			break;
 		default:
 			printf("\nInvalid choice, please select an option from the list\n\n");
