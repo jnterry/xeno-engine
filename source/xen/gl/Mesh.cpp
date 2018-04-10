@@ -69,8 +69,6 @@ namespace{
 }
 
 xen::gl::MeshGlData* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::MeshData& md){
-	XenAssert(md.vertex_count % 3 == 0, "Mesh must be created from collection of triangles");
-
 	xen::MemoryTransaction transaction(arena);
 	xen::gl::MeshGlData* result = pushMeshGlData(arena, md.attrib_count);
 
