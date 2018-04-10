@@ -74,18 +74,45 @@ namespace xen {
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Uploads mesh data to the graphics device
 		///
-		/// \param mesh_geom   The mesh's geometry
 		/// \param vertex_spec The vertex spec for the created mesh. The created
 		/// mesh may rely on this memory, do not free while the mesh exists.
+		///
+		/// \param mesh_geom   The mesh's geometry
 		///
 	  /// \return Mesh Handle to the created mesh, this handle may be used
 		/// in future with this GraphicsDevice to render the mesh
 		///
 		/// \todo :TODO: -> remove the limitation of created mesh relying on
-		/// vertex_spec
+		/// vertex_spec. This is in software devices which don't make deep copy
+		/// (not sure about gl device?)
 		/////////////////////////////////////////////////////////////////////
-		Mesh createMesh(const MeshGeometrySource& mesh_geom,
-		                const VertexSpec&         vertex_spec);
+		Mesh createMesh(const VertexSpec&         vertex_spec,
+		                const MeshGeometrySource& mesh_geom
+		                );
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Uploads mesh data to the graphics device
+		///
+	  /// \param vertex_spec The vertex spec for the created mesh. The created
+		/// mesh may rely on this memory, do not free while the mesh exists.
+		///
+		/// \param vertex_count The number of vertices, IE: the lengths of the
+		/// vertex_data arrays
+		///
+		/// \param  varargs list of void* representing pointer to first
+		/// element of data buffer for each vertex attribute. This function expects
+		/// the length of the varargs list to be equal to the length of vertex_spec
+		///
+	  /// \return Mesh Handle to the created mesh, this handle may be used
+		/// in future with this GraphicsDevice to render the mesh
+		///
+		/// \todo :TODO: -> remove the limitation of created mesh relying on
+		/// vertex_spec. This is in software devices which don't make deep copy
+		/// (not sure about gl device?)
+		/////////////////////////////////////////////////////////////////////
+		Mesh createMeshFromBuffers(const VertexSpec&         vertex_spec,
+		                           u32                       vertex_count,
+		                           ...);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Destroys a Mesh previously created by this GraphicsDevice

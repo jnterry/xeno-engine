@@ -96,13 +96,16 @@ void initMeshes(xen::GraphicsDevice* device){
 	vertex_spec[1] = xen::VertexAttribute::Normal3r;
 	vertex_spec[2] = xen::VertexAttribute::Color4b;
 
-	mesh_cornell_walls = device->createMesh(MeshGeometry_CornellBoxWalls,
-	                                        vertex_spec);
+	mesh_cornell_walls = device->createMesh(vertex_spec,
+	                                        MeshGeometry_CornellBoxWalls
+	                                       );
 
-	mesh_cube = device->createMesh(xen::TestMeshGeometry_UnitCube,
-	                               vertex_spec);
-	mesh_axes = device->createMesh(xen::TestMeshGeometry_Axes,
-	                               vertex_spec);
+	mesh_cube = device->createMesh(vertex_spec,
+	                               xen::TestMeshGeometry_UnitCube
+	                              );
+	mesh_axes = device->createMesh(vertex_spec,
+	                               xen::TestMeshGeometry_Axes
+	                              );
 }
 
 int main(int argc, char** argv){

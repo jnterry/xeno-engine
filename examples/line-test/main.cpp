@@ -44,26 +44,22 @@ void initMeshes(xen::GraphicsDevice* device){
 	vertex_spec[0] = xen::VertexAttribute::Position3r;
 	vertex_spec[1] = xen::VertexAttribute::Color4b;
 
+	mesh_axes = device->createMesh(vertex_spec, xen::TestMeshGeometry_Axes);
+
 	for(int xi = 0; xi < LINE_COUNT_SQRT; ++xi){
 		real x = (real)xi / (real)LINE_COUNT_SQRT;
 		for(int yi = 0; yi < LINE_COUNT_SQRT; ++yi){
-		  real y = (real)yi / (real)LINE_COUNT_SQRT;
+			real y = (real)yi / (real)LINE_COUNT_SQRT;
 
 			parallel_lines_pbuf[(xi*LINE_COUNT_SQRT + yi) * 2 + 0] = {x, y, 0};
 			parallel_lines_pbuf[(xi*LINE_COUNT_SQRT + yi) * 2 + 1] = {x, y, 1};
 		}
 	}
-
-	mesh_axes = device->createMesh(xen::TestMeshGeometry_Axes, vertex_spec);
-
-	xen::MeshGeometrySource mesh_parallel_lines_geom = {
-		LINE_COUNT * 2,      // vertex count
-		parallel_lines_pbuf, // positions
-		nullptr,             // normals
-		nullptr,             // colors
-	};
-	mesh_parallel_lines = device->createMesh(mesh_parallel_lines_geom,
-	                                         vertex_spec);
+	mesh_parallel_lines = device->createMeshFromBuffers(vertex_spec,
+	                                                    XenArrayLength(parallel_lines_pbuf),
+	                                                    parallel_lines_pbuf,
+	                                                    nullptr
+	                                                    );
 }
 
 int main(int argc, char** argv){

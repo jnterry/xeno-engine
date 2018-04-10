@@ -10,10 +10,13 @@
 #ifndef XEN_GRAPHICS_GRAPHICSDEVICE_CPP
 #define XEN_GRAPHICS_GRAPHICSDEVICE_CPP
 
-#include <xen/core/intrinsics.hpp>
-#include <xen/graphics/GraphicsDevice.hpp>
-
 #include "Window.hxx"
+
+#include <xen/graphics/GraphicsDevice.hpp>
+#include <xen/math/geometry.hpp>
+#include <xen/core/intrinsics.hpp>
+
+#include <cstdarg>
 
 namespace {
 	/// \brief Map from device id to a pointer to the device
@@ -47,8 +50,9 @@ namespace xen {
 		return created_devices[id];
 	}
 
-	Mesh GraphicsDevice::createMesh(const MeshGeometrySource& mesh_geom,
-	                                const VertexSpec&         vertex_spec){
+	Mesh GraphicsDevice::createMesh(const VertexSpec&         vertex_spec,
+	                                const MeshGeometrySource& mesh_geom
+	                                ){
 
 		// max number of attribs is 255, so allocate that much stack space
 		void* attrib_data[255];
@@ -75,6 +79,49 @@ namespace xen {
 		mesh_data.attrib_data  = attrib_data;
 
 		return this->createMesh(&mesh_data);
+	}
+
+	Mesh GraphicsDevice::createMeshFromBuffers(const VertexSpec& vertex_spec,
+	                                           u32               vertex_count,
+	                                           ...){
+
+
+
+		void* attrib_data[255]; // Can only have up to 255 attributes in mesh
+
+		MeshData md;
+
+		md.attrib_count = xen::size(vertex_spec);
+		md.vertex_count = vertex_count;
+		md.attrib_data  = attrib_data;
+
+		// Its fine to do this const cast since we use md as a const later on,
+		// an we don't modify the vertex_spec in this function
+		md.attrib_types = const_cast<xen::VertexAttribute::Type*>(&vertex_spec[0]);
+
+		Vec3r* pbuf = nullptr;
+
+		va_list args;
+		va_start(args, vertex_count);
+		for(u32 i = 0; i < xen::size(vertex_spec); ++i){
+			attrib_data[i] = va_arg(args, void*);
+			if(vertex_spec[i] == xen::VertexAttribute::Position3r){
+				pbuf = (Vec3r*)attrib_data[i];
+			}
+		}
+		va_end(args);
+
+		XenAssert(pbuf != nullptr, "Expected mesh to have position data");
+
+		md.bounds = xen::Aabb3r::MaxMinBox;
+		for(u32 i = 0; i < vertex_count; ++i){
+			xen::addPoint(md.bounds, pbuf[i]);
+		}
+
+		// ensure we use md as const to prevent above const_cast from being invalid
+		// if createMesh is ever changed to take non const pointer
+		const MeshData* md_const = &md;
+		return this->createMesh(md_const);
 	}
 
 	void GraphicsDevice::clear(Window* window, xen::Color color){
