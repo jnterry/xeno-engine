@@ -93,6 +93,7 @@ public:
 	            const xen::RenderParameters3d& params,
 	            const xen::Array<xen::RenderCommand3d> commands
 	            ) override {
+		xen::resetArena(render_scratch_arena);
 
 		////////////////////////////////////////////////////////////////////////////
 		// Build up the RaytracerScene by consolidating all triangle drawing
