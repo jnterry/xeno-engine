@@ -115,6 +115,28 @@ namespace xen {
 		                ...);
 
 		/////////////////////////////////////////////////////////////////////
+		/// \brief Updates the attribute data for a particular attribute of some
+		/// mesh
+		///
+		/// \param mesh The mesh whose data you wish to modify
+		/// \param attrib_index The index of the attribute you wish to modify
+		/// \param new_data     Pointer to the new data for the attribute
+		/// \param start_index  The first vertex you wish to modify, defaults to 0
+		/// \param end_vertex   The last vertex you wish to modify, defaults to max int
+		/// Note that end_vertex is clamped to be less than or equal to the number of
+		/// vertices in the mesh.
+		///
+		/// \note new_data should contain data for at least (end_vertex - start_vertex)
+		/// vertices
+		/////////////////////////////////////////////////////////////////////
+		virtual void updateMeshAttribData(Mesh mesh,
+		                                  u32 attrib_index,
+		                                  void* new_data,
+		                                  u32 start_vertex = 0,
+		                                  u32 end_vertex   = 0xFFFFFFFF
+		                                 ) = 0;
+
+		/////////////////////////////////////////////////////////////////////
 		/// \brief Destroys a Mesh previously created by this GraphicsDevice
 		/// freeing all associated hardware resources
 		/////////////////////////////////////////////////////////////////////

@@ -44,6 +44,9 @@ public:
 		u32 slot = xen::reserveSlot(this->mesh_pool);
 		xen::sren::RasterizerMesh* mesh_geom = &this->mesh_pool.slots[slot].item;
 
+		// Copy over the common elements
+		*((xen::MeshHeader*)mesh_geom) = *((xen::MeshHeader*)mesh_data);
+
 		// Allocate storage and copy over attributes, this is equivalent
 		// to uploading to the gpu in a gl device
 		xen::fillMeshAttribArrays(mesh_geom, mesh_data, mesh_allocator);
@@ -56,6 +59,44 @@ public:
 		xen::freeMeshAttribArrays(&this->mesh_pool.slots[mesh._id].item,
 		                          mesh_allocator);
 		xen::freeSlot(this->mesh_pool, mesh._id);
+	}
+
+	void updateMeshAttribData(xen::Mesh mesh_handle,
+	                          u32 attrib_index,
+	                          void* new_data,
+	                          u32 start_vertex,
+	                          u32 end_vertex
+	                          ) {
+		xen::sren::RasterizerMesh* mesh = &this->mesh_pool.slots[mesh_handle._id].item;
+
+        end_vertex = xen::min(end_vertex, mesh->vertex_count);
+		if(end_vertex < start_vertex){ return; }
+
+		void** attrib_data = nullptr;
+		switch(mesh->attrib_types[attrib_index]){
+		case xen::VertexAttribute::Position3r:
+			attrib_data = (void**)&mesh->position;
+			break;
+		case xen::VertexAttribute::Normal3r:
+			attrib_data = (void**)&mesh->normal;
+			break;
+		case xen::VertexAttribute::Color4b:
+			attrib_data = (void**)&mesh->color;
+			break;
+		default:
+			XenInvalidCodePath("Attempt to update unsupported mesh attribute type");
+			return;
+		}
+
+		u32 attrib_size = xen::getVertexAttributeSize(mesh->attrib_types[attrib_index]);
+		if(*attrib_data == nullptr){
+			*attrib_data = mesh_allocator->allocate(attrib_size * mesh->vertex_count);
+		}
+
+		memcpy(xen::ptrGetAdvanced(*attrib_data, start_vertex * attrib_size),
+		       new_data,
+		       (end_vertex - start_vertex) * attrib_size
+		      );
 	}
 
 	void render(xen::RenderTarget target_handle,

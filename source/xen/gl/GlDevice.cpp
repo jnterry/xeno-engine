@@ -334,6 +334,15 @@ namespace {
 			return makeHandle<xen::Mesh::HANDLE_ID>(slot, 0);
 		}
 
+		void updateMeshAttribData(xen::Mesh mesh,
+		                          u32 attrib_index,
+		                          void* new_data,
+		                          u32 start_vertex,
+		                          u32 end_vertex
+		                          ) {
+			// :TODO: implement
+		}
+
 		void destroyMesh(xen::Mesh mesh) {
 			// :TODO: IMPLEMENT - currently resource link, GPU buffers needs destroying
 			mesh_store[mesh._id] = nullptr;

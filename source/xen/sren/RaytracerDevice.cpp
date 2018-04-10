@@ -79,6 +79,15 @@ public:
 		xen::freeSlot(this->mesh_pool, mesh._id);
 	}
 
+	void updateMeshAttribData(xen::Mesh mesh,
+	                          u32 attrib_index,
+	                          void* new_data,
+	                          u32 start_vertex,
+	                          u32 end_vertex
+	                          ) {
+		// :TODO: implement
+	}
+
 	void render(xen::RenderTarget target,
 	            const xen::Aabb2u& viewport,
 	            const xen::RenderParameters3d& params,
