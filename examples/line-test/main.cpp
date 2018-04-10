@@ -5,6 +5,67 @@ xen::RenderParameters3d render_params;
 #define LINE_COUNT_SQRT (50)
 #define LINE_COUNT      (LINE_COUNT_SQRT * LINE_COUNT_SQRT)
 
+xen::FixedArray<xen::VertexAttribute::Type, 2> vertex_spec;
+xen::Mesh mesh_axes;
+xen::Mesh mesh_parallel_lines;
+
+Vec3r parallel_lines_pbuf[LINE_COUNT * 2];
+xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
+
+void initRenderCommands(){
+	xen::clearToZero(render_commands);
+
+	render_commands[0].primitive_type         = xen::PrimitiveType::LINES;
+	render_commands[0].color                  = xen::Color::WHITE4f;
+	render_commands[0].model_matrix           = xen::Scale3d(100_r);
+	render_commands[0].geometry_source        = xen::RenderCommand3d::MESH;
+	render_commands[0].mesh                   = mesh_axes;
+
+	render_commands[1].primitive_type         = xen::PrimitiveType::LINES;
+	render_commands[1].color                  = xen::Color::YELLOW4f;
+	render_commands[1].model_matrix           = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
+	                                             xen::Scale3d(50_r, 50_r, 10_r) *
+	                                             xen::Rotation3dy( 30_deg)
+	                                            );
+	render_commands[1].geometry_source        = xen::RenderCommand3d::MESH;
+	render_commands[1].mesh                   = mesh_parallel_lines;
+
+	render_commands[2].primitive_type         = xen::PrimitiveType::LINES;
+	render_commands[2].color                  = xen::Color::MAGENTA4f;
+	render_commands[2].model_matrix           = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
+	                                             xen::Scale3d(50_r, 50_r, 10_r) *
+	                                             xen::Rotation3dy(-30_deg)
+	                                            );
+	render_commands[2].geometry_source        = xen::RenderCommand3d::MESH;
+	render_commands[2].mesh                   = mesh_parallel_lines;
+}
+
+void initMeshes(xen::GraphicsDevice* device){
+	vertex_spec[0] = xen::VertexAttribute::Position3r;
+	vertex_spec[1] = xen::VertexAttribute::Color4b;
+
+	for(int xi = 0; xi < LINE_COUNT_SQRT; ++xi){
+		real x = (real)xi / (real)LINE_COUNT_SQRT;
+		for(int yi = 0; yi < LINE_COUNT_SQRT; ++yi){
+		  real y = (real)yi / (real)LINE_COUNT_SQRT;
+
+			parallel_lines_pbuf[(xi*LINE_COUNT_SQRT + yi) * 2 + 0] = {x, y, 0};
+			parallel_lines_pbuf[(xi*LINE_COUNT_SQRT + yi) * 2 + 1] = {x, y, 1};
+		}
+	}
+
+	mesh_axes = device->createMesh(xen::TestMeshGeometry_Axes, vertex_spec);
+
+	xen::MeshGeometrySource mesh_parallel_lines_geom = {
+		LINE_COUNT * 2,      // vertex count
+		parallel_lines_pbuf, // positions
+		nullptr,             // normals
+		nullptr,             // colors
+	};
+	mesh_parallel_lines = device->createMesh(mesh_parallel_lines_geom,
+	                                         vertex_spec);
+}
+
 int main(int argc, char** argv){
 	render_params.camera.z_near   =  0.001;
 	render_params.camera.z_far    =  1000;
@@ -15,45 +76,8 @@ int main(int argc, char** argv){
 
 	ExampleApplication app = createApplication("line-test", ExampleApplication::Backend::RASTERIZER);
 
-	Vec3r parallel_lines[LINE_COUNT * 2];
-	for(int xi = 0; xi < LINE_COUNT_SQRT; ++xi){
-		real x = (real)xi / (real)LINE_COUNT_SQRT;
-		for(int yi = 0; yi < LINE_COUNT_SQRT; ++yi){
-		  real y = (real)yi / (real)LINE_COUNT_SQRT;
-
-			parallel_lines[(xi*LINE_COUNT_SQRT + yi) * 2 + 0] = {x, y, 0};
-			parallel_lines[(xi*LINE_COUNT_SQRT + yi) * 2 + 1] = {x, y, 1};
-		}
-	}
-
-	xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
-	xen::clearToZero(render_commands);
-
-	render_commands[0].primitive_type         = xen::PrimitiveType::LINES;
-	render_commands[0].color                  = xen::Color::WHITE4f;
-	render_commands[0].model_matrix           = xen::Scale3d(100_r);
-	render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[0].immediate              = xen::TestMeshGeometry_Axes;
-
-	render_commands[1].primitive_type         = xen::PrimitiveType::LINES;
-	render_commands[1].color                  = xen::Color::YELLOW4f;
-	render_commands[1].model_matrix           = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
-	                                             xen::Scale3d(50_r, 50_r, 10_r) *
-	                                             xen::Rotation3dy( 30_deg)
-	                                            );
-	render_commands[1].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[1].immediate.position     = &parallel_lines[0];
-	render_commands[1].immediate.vertex_count = LINE_COUNT * 2;
-
-	render_commands[2].primitive_type         = xen::PrimitiveType::LINES;
-	render_commands[2].color                  = xen::Color::MAGENTA4f;
-	render_commands[2].model_matrix           = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
-	                                             xen::Scale3d(50_r, 50_r, 10_r) *
-	                                             xen::Rotation3dy(-30_deg)
-	                                            );
-	render_commands[2].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[2].immediate.position     = &parallel_lines[0];
-	render_commands[2].immediate.vertex_count = LINE_COUNT * 2;
+	initMeshes(app.device);
+	initRenderCommands();
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
 
@@ -78,7 +102,7 @@ int main(int argc, char** argv){
 		handleCameraInputPlane(render_params.camera, dt);
 
 		// Rendering
-		app.device->clear      (app.window, xen::Color::BLACK);
+	  app.device->clear      (app.window, xen::Color{20, 20, 20, 255});
 		app.device->render     (app.window, viewport, render_params, render_commands);
 		app.device->swapBuffers(app.window);
 	}

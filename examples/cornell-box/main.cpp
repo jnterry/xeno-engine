@@ -99,8 +99,6 @@ void initMeshes(xen::GraphicsDevice* device){
 	mesh_cornell_walls = device->createMesh(MeshGeometry_CornellBoxWalls,
 	                                        vertex_spec);
 
-	// :TODO:COMP: Automatically load the test meshes at startup for all
-	// graphics devices?
 	mesh_cube = device->createMesh(xen::TestMeshGeometry_UnitCube,
 	                               vertex_spec);
 	mesh_axes = device->createMesh(xen::TestMeshGeometry_Axes,
