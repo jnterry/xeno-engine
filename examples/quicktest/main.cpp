@@ -60,24 +60,24 @@ int main(int argc, char** argv){
 
 	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
 	vertex_spec[0] = xen::VertexAttribute::Position3r;
-	vertex_spec[1] = xen::VertexAttribute::Color3f;
-	vertex_spec[2] = xen::VertexAttribute::Normal3r;
+	vertex_spec[1] = xen::VertexAttribute::Normal3r;
+	vertex_spec[2] = xen::VertexAttribute::Color3f;
 
 	xen::MeshData* mesh_data_bunny = xen::createEmptyMeshData(arena, vertex_spec);
 	xen::loadMeshFile(mesh_data_bunny, arena, "bunny.obj");
-	xen::Mesh mesh_bunny = device->createMesh(*mesh_data_bunny);
+	xen::Mesh mesh_bunny = device->createMesh(mesh_data_bunny);
 
 	void* mesh_cube_attrib_data[] = {
 		xen::TestMeshGeometry_UnitCube.position,
-		nullptr, // xen::TestMeshGeometry_UnitCube.normal,
-		nullptr, // &xen::TestMeshGeometry_UnitCube.normal,
+		xen::TestMeshGeometry_UnitCube.normal,
+		xen::TestMeshGeometry_UnitCube.color,
 	};
   xen::MeshData mesh_data_cube;
 	mesh_data_cube.attrib_count = 3;
 	mesh_data_cube.attrib_types = vertex_spec.elements;
 	mesh_data_cube.vertex_count = 3 * 2 * 6; // (3 vert per tri) * (2 tri per face) * (6 faces)
 	mesh_data_cube.attrib_data  = mesh_cube_attrib_data;
-	xen::Mesh mesh_cube = device->createMesh(mesh_data_cube);
+	xen::Mesh mesh_cube = device->createMesh(&mesh_data_cube);
 
 	xen::RawImage          test_image   = xen::loadImage(arena, "test.bmp");
 	xen::gl::createTexture(&test_image);
@@ -95,49 +95,38 @@ int main(int argc, char** argv){
 	render_cmds[CMD_BUNNY ].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_cmds[CMD_BUNNY ].color           = xen::Color::RED4f;
 	render_cmds[CMD_BUNNY ].model_matrix    = Mat4r::Identity;
-	render_cmds[CMD_BUNNY ].geometry_source = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_BUNNY ].mesh            = mesh_bunny;
-
-	model_mat = Mat4r::Identity;
-
-		model_mat *= xen::Translation3d(0, -0.5, 0);
-		render_cmds[CMD_FLOOR].model_matrix = model_mat;
 
 	render_cmds[CMD_FLOOR ].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_cmds[CMD_FLOOR ].color           = xen::Color::WHITE4f;
 	render_cmds[CMD_FLOOR ].model_matrix    = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
-	                                           xen::Scale3d(60, 0.1, 60) *
+	                                           xen::Scale3d(60, 0.5, 60) *
 	                                           xen::Translation3d(0, -0.5_r, 0)
 	                                          );
-	render_cmds[CMD_FLOOR ].geometry_source = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_FLOOR ].mesh            = mesh_cube;
 
 	render_cmds[CMD_LIGHT ].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_cmds[CMD_LIGHT ].color           = xen::Color::RED4f;
 	render_cmds[CMD_LIGHT ].emissive_color  = xen::Color::RED4f;
 	render_cmds[CMD_LIGHT ].model_matrix    = Mat4r::Identity;
-	render_cmds[CMD_LIGHT ].geometry_source = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_LIGHT ].mesh            = mesh_cube;
 
 	render_cmds[CMD_AXIS_X].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_cmds[CMD_AXIS_X].color           = xen::Color::RED4f;
 	render_cmds[CMD_AXIS_X].emissive_color  = xen::Color::RED4f;
 	render_cmds[CMD_AXIS_X].model_matrix    = xen::Scale3d(15, 0.1, 0.1);
-	render_cmds[CMD_AXIS_X].geometry_source = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_AXIS_X].mesh            = mesh_cube;
 
 	render_cmds[CMD_AXIS_Y].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_cmds[CMD_AXIS_Y].color           = xen::Color::GREEN4f;
 	render_cmds[CMD_AXIS_Y].emissive_color  = xen::Color::GREEN4f;
 	render_cmds[CMD_AXIS_Y].model_matrix    = xen::Scale3d(0.1, 15, 0.1);
-	render_cmds[CMD_AXIS_Y].geometry_source = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_AXIS_Y].mesh            = mesh_cube;
 
 	render_cmds[CMD_AXIS_Z].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_cmds[CMD_AXIS_Z].color           = xen::Color::BLUE4f;
 	render_cmds[CMD_AXIS_Z].emissive_color  = xen::Color::BLUE4f;
 	render_cmds[CMD_AXIS_Z].model_matrix    = xen::Scale3d(0.1, 0.1, 15);
-	render_cmds[CMD_AXIS_Z].geometry_source = xen::RenderCommand3d::MESH;
 	render_cmds[CMD_AXIS_Z].mesh            = mesh_cube;
 
 	xen::Stopwatch timer;

@@ -6,8 +6,8 @@
 /// \ingroup sren
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_GRAPHICS_SREN_RENDERER3D_HPP
-#define XEN_GRAPHICS_SREN_RENDERER3D_HPP
+#ifndef XEN_GRAPHICS_SREN_RENDERUTILITIES_HPP
+#define XEN_GRAPHICS_SREN_RENDERUTILITIES_HPP
 
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
@@ -39,44 +39,19 @@ namespace xen{
 		void clear(RenderTargetImpl& target, const xen::Aabb2u& viewport, Color color);
 
 		/////////////////////////////////////////////////////////////////////
-		/// \brief Performs a set of render commands using software rasterizer
-		/// \param target The RenderTarget to draw to
-		/// \param viewport The region of the RenderTarget that may be modified
-		/// Represented in pixel values
-		/// \param params The 3d camera and other rendering parameters used to
-		/// view the scene
-		/// \param commands Array of render commands to perform
-		/////////////////////////////////////////////////////////////////////
-		void renderRasterize(xen::sren::RenderTargetImpl&       target,
-		                     const xen::Aabb2u&                 viewport,
-		                     const xen::RenderParameters3d&     params,
-		                     const xen::Array<RenderCommand3d>& commands);
-
-		/////////////////////////////////////////////////////////////////////
-		/// \brief Performs a set of render commands use software raytracer
-		/// \param target The RenderTarget to draw to
-		/// \param viewport The region of the RenderTarget that may be modified
-		/// Represented in pixel values
-		/// \param camera The 3d camera used to view the scene
-		/// \param commands Array of render commands to perform
-		/////////////////////////////////////////////////////////////////////
-		void renderRaytrace (xen::sren::RenderTargetImpl&       target,
-		                     const xen::Aabb2u&                 viewport,
-		                     const xen::RenderParameters3d&     params,
-		                     const xen::Array<RenderCommand3d>& commands);
-
-		/////////////////////////////////////////////////////////////////////
 		/// \brief Draws debug view of a camera (eg, origin, up dir, look dir, etc),
 		/// from some other camera's perspective
 		/// \param target      The render target to draw to
 		/// \param viewport    The area of the target to draw to
 		/// \param view_camera The camera to use as the perspective to draw from
 		/// \param camera      The camera to draw
+		/// \param scale       The scale of the camera to draw in world units
 		/////////////////////////////////////////////////////////////////////
 		void renderCameraDebug(xen::sren::RenderTargetImpl& target,
 		                       const xen::Aabb2u&           viewport,
 		                       const Camera3d&              view_camera,
-		                       const Camera3d&              camera);
+		                       const Camera3d&              camera,
+		                       real                         scale);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Computes the influence of a light of a particular color at

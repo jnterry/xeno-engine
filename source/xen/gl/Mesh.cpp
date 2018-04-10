@@ -19,16 +19,16 @@
 #include "gl_header.hxx"
 
 namespace{
-	xen::gl::MeshHeader* pushMeshHeader(xen::ArenaLinear& arena, u32 attrib_count){
+	xen::gl::MeshGlData* pushMeshGlData(xen::ArenaLinear& arena, u32 attrib_count){
 		xen::MemoryTransaction transaction(arena);
 
-		xen::gl::MeshHeader* result = xen::reserveType<xen::gl::MeshHeader>(arena);
+		xen::gl::MeshGlData* result = xen::reserveType<xen::gl::MeshGlData>(arena);
 
 		if(!xen::isValid(arena)){ return nullptr; }
 
-		result->attribute_count     = attrib_count;
-		result->attribute_types     = xen::reserveTypeArray<xen::VertexAttribute::Type    >(arena, attrib_count);
-		result->attribute_sources   = xen::reserveTypeArray<xen::gl::VertexAttributeSource>(arena, attrib_count);
+		result->attrib_count   = attrib_count;
+		result->attrib_types   = xen::reserveTypeArray<xen::VertexAttribute::Type    >(arena, attrib_count);
+		result->attrib_sources = xen::reserveTypeArray<xen::gl::VertexAttributeSource>(arena, attrib_count);
 
 		transaction.commit();
 		return result;
@@ -53,6 +53,9 @@ namespace{
 		case xen::VertexAttribute::Color3f:
 			source.color3f = xen::Color::WHITE4f.rgb;
 			break;
+		case xen::VertexAttribute::Color4b:
+			source.color4b = xen::Color::WHITE;
+			break;
 		case xen::VertexAttribute::TexCoord2f:
 			source.vec2f   = {0, 0 };
 			break;
@@ -65,13 +68,11 @@ namespace{
 	}
 }
 
-xen::gl::MeshHeader* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::MeshData& md){
-	XenAssert(md.vertex_count % 3 == 0, "Mesh must be created from collection of triangles");
-
+xen::gl::MeshGlData* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::MeshData& md){
 	xen::MemoryTransaction transaction(arena);
-	xen::gl::MeshHeader* result = pushMeshHeader(arena, md.attrib_count);
+	xen::gl::MeshGlData* result = pushMeshGlData(arena, md.attrib_count);
 
-	result->num_triangles = md.vertex_count / 3;
+	result->vertex_count = md.vertex_count;
 
 	u32 gpu_buffer_size =   0;
 	u08 position_index  = 255; // index of attrib representing position
@@ -85,23 +86,24 @@ xen::gl::MeshHeader* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 	///////////////////////////////////////////////
 	// Set up mesh attributes, work out where to store data in gpu buffer
 	for(u08 i = 0; i < md.attrib_count; ++i){
-		result->attribute_types[i] = md.attrib_types[i];
+		result->attrib_types[i] = md.attrib_types[i];
 
-		if((xen::VertexAttribute::_AspectPosition ^ (md.attrib_types[i] & xen::VertexAttribute::_AspectMask)) == 0){
+		if((xen::VertexAttribute::_AspectPosition ==
+		    (md.attrib_types[i] & xen::VertexAttribute::_AspectMask))){
 			XenAssert(position_index == 255, "Mesh can only have single position attribute");
 			XenAssert(md.attrib_data[i] != nullptr, "Mesh's position data cannot be inferred");
 			position_index = i;
 		}
 
 		if(md.attrib_data[i] == nullptr){
-			result->attribute_sources[i] = getDefaultVertexAttributeSource(md.attrib_types[i]);
+			result->attrib_sources[i] = getDefaultVertexAttributeSource(md.attrib_types[i]);
 			continue;
 		}
 
-		result->attribute_sources[i].buffer = gpu_buffer;
-		result->attribute_sources[i].offset = gpu_buffer_size;
-		result->attribute_sources[i].stride = getVertexAttributeSize(md.attrib_types[i]);
-		gpu_buffer_size += result->attribute_sources[i].stride * md.vertex_count;
+		result->attrib_sources[i].buffer = gpu_buffer;
+		result->attrib_sources[i].offset = gpu_buffer_size;
+		result->attrib_sources[i].stride = getVertexAttributeSize(md.attrib_types[i]);
+		gpu_buffer_size += result->attrib_sources[i].stride * md.vertex_count;
 	}
 
 	///////////////////////////////////////////////
@@ -117,12 +119,12 @@ xen::gl::MeshHeader* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 	}
 
 	///////////////////////////////////////////////
-	// Reserve space for data
+	// reserve space
 	XEN_CHECK_GL(glBufferData(GL_ARRAY_BUFFER, gpu_buffer_size, nullptr, GL_STATIC_DRAW));
 
-	printf("Created mesh, gpu_buf: %i, num faces: %i, bounds:(%f, %f, %f) -> (%f, %f, %f)\n",
+	printf("Created mesh, gpu_buf: %i, num verts: %i, bounds:(%f, %f, %f) -> (%f, %f, %f)\n",
 	       gpu_buffer,
-	       result->num_triangles,
+	       result->vertex_count,
 	       result->bounds.min.x, result->bounds.min.y, result->bounds.min.z,
 	       result->bounds.max.x, result->bounds.max.y, result->bounds.max.z
 	      );
@@ -135,13 +137,13 @@ xen::gl::MeshHeader* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 			continue;
 		}
 
-		result->attribute_sources[i].buffer = gpu_buffer;
+		result->attrib_sources[i].buffer = gpu_buffer;
 
 		const void* data_source = md.attrib_data[i];
 
 		XEN_CHECK_GL(glBufferSubData(GL_ARRAY_BUFFER,
-		                             result->attribute_sources[i].offset,
-		                             getVertexAttributeSize(result->attribute_types[i]) * md.vertex_count,
+		                             result->attrib_sources[i].offset,
+		                             getVertexAttributeSize(result->attrib_types[i]) * md.vertex_count,
 		                             data_source
 		                             )
 		            );
@@ -151,6 +153,53 @@ xen::gl::MeshHeader* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 	// Return Result
 	transaction.commit();
 	return result;
+}
+
+void xen::gl::updateMeshAttribData(xen::gl::MeshGlData* mesh,
+                                   u32                  attrib_index,
+                                   void*                new_data,
+                                   u32                  start_vertex,
+                                   u32                  end_vertex
+                                   ){
+
+	end_vertex = xen::min(end_vertex, mesh->vertex_count);
+	if(end_vertex < start_vertex){ return; }
+
+	VertexAttributeSource* attrib_source = &mesh->attrib_sources[attrib_index];
+
+	u32 attrib_size = xen::getVertexAttributeSize(mesh->attrib_types[attrib_index]);
+
+	if(attrib_source->buffer == 0){
+
+		// Then no existing data for this attribute, so create a new one
+
+		if(start_vertex != 0 || end_vertex != mesh->vertex_count){
+			// :TODO: log
+			printf("WARN: Updating mesh attrib %i but there is no existing data and "
+			       "the new data set is not complete\n", attrib_index);
+		}
+
+		XEN_CHECK_GL(glGenBuffers(1, &attrib_source->buffer));
+		XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, attrib_source->buffer));
+
+		// :TODO: here we create the buffer as dynamic draw
+		// If a buffer already exists as created by createMesh it will be
+		// GL_STATIC_DRAW. Do we want to allow the user to hint which attributes
+		// are likely to be changed so segregate dynamic data into its own buffer?
+
+		XEN_CHECK_GL(glBufferData(GL_ARRAY_BUFFER, attrib_size * mesh->vertex_count,
+		                          nullptr, GL_DYNAMIC_DRAW));
+	} else {
+		XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, attrib_source->buffer));
+	}
+
+
+	XEN_CHECK_GL(glBufferSubData(GL_ARRAY_BUFFER,
+	                             attrib_source->offset + (start_vertex * attrib_size),
+	                             (end_vertex - start_vertex) * attrib_size,
+	                             new_data
+	                            )
+	            );
 }
 
 #endif

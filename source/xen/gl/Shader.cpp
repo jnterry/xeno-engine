@@ -118,17 +118,18 @@ namespace xen{
 			GLint bytes_written;
 
 			pushStringNoTerminate(arena, "Vertex Shader:\n");
-			XEN_CHECK_GL(glGetShaderInfoLog(shader->vertex_shader, bytesRemaining(arena),
+			XEN_CHECK_GL(glGetShaderInfoLog(shader->vertex_shader, getBytesRemaining(arena),
 			                                &bytes_written, (GLchar*)arena.next_byte));
 			ptrAdvance(&arena.next_byte, bytes_written);
 
 			pushStringNoTerminate(arena, "Pixel Shader:\n");
-			XEN_CHECK_GL(glGetShaderInfoLog(shader->pixel_shader, bytesRemaining(arena),
+			XEN_CHECK_GL(glGetShaderInfoLog(shader->pixel_shader, getBytesRemaining(arena),
 			                                &bytes_written, (GLchar*)arena.next_byte));
 			ptrAdvance(&arena.next_byte, bytes_written);
 
 			pushStringNoTerminate(arena, "Program:\n");
-			XEN_CHECK_GL(glGetProgramInfoLog(shader->program, bytesRemaining(arena), &bytes_written, (GLchar*)arena.next_byte));
+			XEN_CHECK_GL(glGetProgramInfoLog(shader->program, getBytesRemaining(arena),
+			                                 &bytes_written, (GLchar*)arena.next_byte));
 			ptrAdvance(&arena.next_byte, bytes_written);
 
 			return result;

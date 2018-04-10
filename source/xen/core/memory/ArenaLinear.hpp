@@ -71,7 +71,13 @@ namespace xen{
 	bool isValid(ArenaLinear& arena);
 
 	/// \brief Determines how many bytes are unused in the specified arena
-	ptrdiff_t bytesRemaining(const ArenaLinear& arena);
+	u64 getBytesRemaining(const ArenaLinear& arena);
+
+	/// \brief Determines how many bytes have been used in the specified arena
+	u64 getBytesUsed(const ArenaLinear& arena);
+
+	/// \brief Determines the total size (in bytes) of the specified arena
+	u64 getSize(const ArenaLinear& arena);
 
 	/// \brief Pushes as much of the specified string as possible, truncating if nessacery.
 	/// Resulting string always null terminated

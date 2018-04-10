@@ -1,8 +1,8 @@
-#version 130
+#version 430
 
-in vec3 vert_pos;
-in vec3 vert_color;
-in vec3 vert_normal;
+layout(location = 0) in vec3 vert_pos;
+layout(location = 1) in vec3 vert_normal;
+layout(location = 2) in vec3 vert_color;
 
 varying vec3 color;
 varying vec3 normal;

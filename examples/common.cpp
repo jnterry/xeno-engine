@@ -39,7 +39,7 @@ ExampleApplication createApplication(const char* window_title,
 		bool option_picked  = false;
 		int backend         = 0;
 
-		// change to 1 to disable picking a backend - default_backend will be used
+		// change to 0 to disable picking a backend - default_backend will be used
 		#if 1
 		printf("Select graphics backend\n");
 		printf("-----------------------\n");
@@ -105,7 +105,8 @@ ExampleApplication createApplication(const char* window_title,
 		case ExampleApplication::Backend::RAYTRACER_CAMERA_DEBUG:
 			window_size.x = 800;
 			window_size.y = 800;
-			app.device = xen::createRaytracerDebugDevice(app.arena);
+			app.device = xen::createRaytracerDebugDevice(app.arena,
+			                                             10, &Vec3r::Origin);
 			break;
 		case ExampleApplication::Backend::RASTERIZER_DEPTH_DEBUG:
 			printf("\nNot implemented\n\n");

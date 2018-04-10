@@ -19,7 +19,7 @@ namespace xen {
 	/// This geometry is laid out in such a way it may be drawn using the
 	/// LINES PrimitiveType
 	/////////////////////////////////////////////////////////////////////
-	const extern ImmediateGeometrySource TestMeshGeometry_UnitCubeLines;
+	const extern MeshGeometrySource TestMeshGeometry_UnitCubeLines;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Geometry for a test mesh that represents the unit cube,
@@ -28,7 +28,7 @@ namespace xen {
 	/// This geometry is laid out in such a way it may be drawn using the
 	/// TRIANGLES PrimitiveType
 	/////////////////////////////////////////////////////////////////////
-	const extern ImmediateGeometrySource TestMeshGeometry_UnitCube;
+	const extern MeshGeometrySource TestMeshGeometry_UnitCube;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Geometry for a test mesh that represents the 3 axes as a line
@@ -40,7 +40,7 @@ namespace xen {
 	/// This geometry is laid out in such a way it may be drawn using the
 	/// LINES PrimitiveType
 	/////////////////////////////////////////////////////////////////////
-	const extern ImmediateGeometrySource TestMeshGeometry_Axes;
+	const extern MeshGeometrySource TestMeshGeometry_Axes;
 }
 
 #endif

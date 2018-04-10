@@ -49,28 +49,36 @@ int main(int argc, char** argv){
 		xen::Color::MAGENTA, xen::Color::YELLOW, xen::Color::CYAN,
 	};
 
+	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
+	vertex_spec[0] = xen::VertexAttribute::Position3r;
+	vertex_spec[1] = xen::VertexAttribute::Normal3r;
+	vertex_spec[2] = xen::VertexAttribute::Color4b;
+
+	xen::Mesh mesh_triangles = app.device->createMesh
+		(vertex_spec, XenArrayLength(test_triangles_pos),
+		 test_triangles_pos, nullptr, test_triangles_color);
+	xen::Mesh mesh_axes = app.device->createMesh
+		(vertex_spec, xen::TestMeshGeometry_Axes);
+	xen::Mesh mesh_cube = app.device->createMesh
+		(vertex_spec, xen::TestMeshGeometry_UnitCube);
+
 	xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
 	xen::clearToZero(render_commands);
 
 	render_commands[0].primitive_type         = xen::PrimitiveType::LINES;
 	render_commands[0].color                  = xen::Color::WHITE4f;
 	render_commands[0].model_matrix           = xen::Scale3d(100_r);
-	render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[0].immediate              = xen::TestMeshGeometry_Axes;
+	render_commands[0].mesh                   = mesh_axes;
 
 	render_commands[1].primitive_type         = xen::PrimitiveType::TRIANGLES;
 	render_commands[1].color                  = xen::Color::WHITE4f;
 	render_commands[1].model_matrix           = xen::Scale3d(1, 1, 1);
-	render_commands[1].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[1].immediate.position     = test_triangles_pos;
-	render_commands[1].immediate.color        = test_triangles_color;
-	render_commands[1].immediate.vertex_count = XenArrayLength(test_triangles_pos);
+	render_commands[1].mesh                   = mesh_triangles;
 
 	render_commands[2].primitive_type         = xen::PrimitiveType::TRIANGLES;
 	render_commands[2].color                  = xen::Color::WHITE4f;
 	render_commands[2].model_matrix           = xen::Scale3d(1, 1, 1);
-	render_commands[2].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[2].immediate              = xen::TestMeshGeometry_UnitCube;
+	render_commands[2].mesh                   = mesh_cube;
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
 
@@ -103,7 +111,7 @@ int main(int argc, char** argv){
 		                                  );
 
 		// Rendering
-		app.device->clear      (app.window, xen::Color::BLACK);
+		app.device->clear      (app.window, xen::Color{20,20,20,255});
 		app.device->render     (app.window, viewport, render_params, render_commands);
 		app.device->swapBuffers(app.window);
 	}

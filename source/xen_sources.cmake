@@ -81,9 +81,9 @@ set(XEN_HEADERS_GRAPHICS
 ## SREN Render Backend
 ##################################################
 set(XEN_SOURCES_SREN
-  ${CMAKE_CURRENT_LIST_DIR}/xen/sren/renderer3d_raytracer.cpp
-	${CMAKE_CURRENT_LIST_DIR}/xen/sren/renderer3d_rasterizer.cpp
-	${CMAKE_CURRENT_LIST_DIR}/xen/sren/renderer3d_utilities.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/xen/sren/raytracer3d.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/rasterizer3d.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/render-utilities.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/SoftwareDeviceBase.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RaytracerDevice.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RaytracerDebugDevice.cpp
@@ -100,7 +100,10 @@ set(XEN_HEADERS_SREN
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/Framebuffer.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/PostProcessor.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/SoftwareDeviceBase.hxx
-  ${CMAKE_CURRENT_LIST_DIR}/xen/sren/renderer3d.hxx
+  ${CMAKE_CURRENT_LIST_DIR}/xen/sren/rasterizer3d.hxx
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/raytracer3d.hxx
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/rasterizer3d.hxx
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/render-utilities.hxx
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RenderTargetImpl.hxx
 )
 

@@ -10,6 +10,7 @@
 #define XEN_SREN_SOFTWAREDEVICE_HPP
 
 #include <xen/core/array_types.hpp>
+#include <xen/math/vector_types.hpp>
 
 namespace xen {
 	struct ArenaLinear;
@@ -44,8 +45,16 @@ namespace xen {
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Creates a device which will debug the raytracer device by
 	/// drawing the same scene with the rasterizer from multiple angles
+	/// \param camera_distance Distance along each axis that debug cameras should
+	/// be placed at from the camera_center
+	/// \param camera_center Center point that debug cameras should look at. If
+	/// set to nullptr then position of the main render camera will be used as
+	/// center
 	/////////////////////////////////////////////////////////////////////
-	GraphicsDevice* createRaytracerDebugDevice(ArenaLinear& arena);
+	GraphicsDevice* createRaytracerDebugDevice(ArenaLinear& arena,
+	                                           real         camera_distance = 100,
+	                                           const Vec3r* camera_center   = nullptr
+	                                          );
 }
 
 #endif

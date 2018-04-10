@@ -10,7 +10,7 @@
 #define XEN_SREN_SOFTWAREDEVICEBASE_CPP
 
 #include "SoftwareDeviceBase.hxx"
-#include "renderer3d.hxx"
+#include "render-utilities.hxx"
 #include "RenderTargetImpl.hxx"
 
 #include "../graphics/Window.hxx"
@@ -44,6 +44,7 @@ namespace xen {
 		}
 
 		RenderTarget SoftwareDeviceBase::createRenderTarget (Vec2u size, Window* window){
+			// :TODO:COMP::ISSUE_31: object pool with automatic handles / resizeable pool
 			u32 slot = xen::reserveSlot(this->render_targets);
 			RenderTargetImpl* target = &this->render_targets.slots[slot].item;
 

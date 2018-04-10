@@ -29,39 +29,38 @@ namespace {
 		u08 normal;
 		u08 color;
 		u08 texcoord;
-		static const u08 BAD_INDEX = 255;
 	};
 
 	VertexAttributeAspects findVertexAttributeAspectIndices(xen::VertexAttribute::Type* types,
 	                                                         u32 attrib_count){
 		VertexAttributeAspects result = {
-			VertexAttributeAspects::BAD_INDEX,
-			VertexAttributeAspects::BAD_INDEX,
-			VertexAttributeAspects::BAD_INDEX,
-			VertexAttributeAspects::BAD_INDEX
+			xen::MeshData::BAD_ATTRIB_INDEX,
+			xen::MeshData::BAD_ATTRIB_INDEX,
+			xen::MeshData::BAD_ATTRIB_INDEX,
+			xen::MeshData::BAD_ATTRIB_INDEX,
 		};
 
 		for(u32 i = 0; i < attrib_count; ++i){
 			switch(types[i] & xen::VertexAttribute::_AspectMask){
 			case xen::VertexAttribute::_AspectPosition:
-				XenAssert(result.position == VertexAttributeAspects::BAD_INDEX,
+				XenAssert(result.position == xen::MeshData::BAD_ATTRIB_INDEX,
 				          "We don't support multiple positions per vertex");
 				result.position = i;
 				break;
 			case xen::VertexAttribute::_AspectNormal:
-				XenAssert(result.normal == VertexAttributeAspects::BAD_INDEX,
+				XenAssert(result.normal == xen::MeshData::BAD_ATTRIB_INDEX,
 				          "We don't support multiple normals per vertex");
 				result.normal = i;
 				break;
 			case xen::VertexAttribute::_AspectColor:
 				// :TODO: multiple color channels
-				XenAssert(result.color == VertexAttributeAspects::BAD_INDEX,
+				XenAssert(result.color == xen::MeshData::BAD_ATTRIB_INDEX,
 				          "We don't support multiple colors per vertex... YET");
 				result.color = i;
 				break;
 			case xen::VertexAttribute::_AspectTexCoord:
 				// :TODO: multiple texture channels
-				XenAssert(result.texcoord == VertexAttributeAspects::BAD_INDEX,
+				XenAssert(result.texcoord == xen::MeshData::BAD_ATTRIB_INDEX,
 				          "We don't support multiple tex coords per vertex... YET");
 				result.texcoord = i;
 				break;
@@ -103,19 +102,19 @@ namespace {
 		xen::Triangle4f* buffer_color    = nullptr;
 		xen::Triangle2f* buffer_texcoord = nullptr;
 
-		if(aspect.position != VertexAttributeAspects::BAD_INDEX &&
+		if(aspect.position != xen::MeshData::BAD_ATTRIB_INDEX &&
 		   mesh->HasPositions()){
 			buffer_position = xen::reserveTypeArray<xen::Triangle3r>(arena, num_triangles);
 		}
-		if(aspect.normal   != VertexAttributeAspects::BAD_INDEX &&
+		if(aspect.normal   != xen::MeshData::BAD_ATTRIB_INDEX &&
 		   mesh->HasNormals()){
 			buffer_normal = xen::reserveTypeArray<xen::Triangle3r>(arena, num_triangles);
 		}
-		if(aspect.color    != VertexAttributeAspects::BAD_INDEX &&
+		if(aspect.color    != xen::MeshData::BAD_ATTRIB_INDEX &&
 		   mesh->HasVertexColors(0)){
 			buffer_color = xen::reserveTypeArray<xen::Triangle4f>(arena, num_triangles);
 		}
-		if(aspect.texcoord != VertexAttributeAspects::BAD_INDEX &&
+		if(aspect.texcoord != xen::MeshData::BAD_ATTRIB_INDEX &&
 		   mesh->HasTextureCoords(0)){
 			buffer_texcoord = xen::reserveTypeArray<xen::Triangle2f>(arena, num_triangles);
 
@@ -208,6 +207,7 @@ namespace xen {
 		switch(type & VertexAttribute::_TypeMask){
 		case VertexAttribute::_TypeFloat  : result = sizeof(float ); break;
 		case VertexAttribute::_TypeDouble : result = sizeof(double); break;
+		case VertexAttribute::_TypeByte   : result = sizeof(u08   ); break;
 		default:
 			XenInvalidCodePath("Unhandled type in getVertexAttributeSize");
 			break;
@@ -259,6 +259,112 @@ namespace xen {
 		aiReleaseImport(scene);
 
 		return result;
+	}
+
+	u08 findMeshAttrib(const MeshData* mesh_data, VertexAttribute::_Flags aspect){
+		for(u08 i = 0; i < mesh_data->attrib_count; ++i){
+			if((mesh_data->attrib_types[i] & VertexAttribute::_AspectMask) == aspect){
+				return i;
+			}
+		}
+		return MeshData::BAD_ATTRIB_INDEX;
+	}
+
+	void fillMeshAttribArrays(MeshAttribArrays* mesh_geom,
+	                          const MeshData*   mesh_data,
+	                          Allocator*        allocator
+	                         ){
+		xen::clearToZero(mesh_geom);
+
+		u08 attrib_pos = xen::findMeshAttrib(mesh_data,
+		                                     xen::VertexAttribute::_AspectPosition
+		                                    );
+		u08 attrib_nor = xen::findMeshAttrib(mesh_data,
+		                                     xen::VertexAttribute::_AspectNormal
+		                                    );
+		u08 attrib_col = xen::findMeshAttrib(mesh_data,
+		                                     xen::VertexAttribute::_AspectColor
+		                                    );
+
+		XenAssert(attrib_pos != xen::MeshData::BAD_ATTRIB_INDEX,
+		          "Mesh must have position attribute");
+		XenAssert(mesh_data->attrib_data[attrib_pos] != nullptr,
+		          "Data source for position attribute must be non-null"
+		         );
+		{
+			XenAssert((mesh_data->attrib_types[attrib_pos] &
+			           xen::VertexAttribute::_TypeMask
+			           ) == xen::VertexAttribute::_TypeReal,
+			          "Expected position components to be reals"
+			          );
+			XenAssert((mesh_data->attrib_types[attrib_pos] &
+			           xen::VertexAttribute::_ComponentCountMask
+			           ) == 3,
+			          "Expected position attribute to have 3 channels"
+			          );
+			u32 byte_count_pos  = sizeof(Vec3r) * mesh_data->vertex_count;
+			mesh_geom->position = (Vec3r*)allocator->allocate(byte_count_pos);
+			memcpy(mesh_geom->position, mesh_data->attrib_data[attrib_pos], byte_count_pos);
+		}
+
+		if(attrib_nor != xen::MeshData::BAD_ATTRIB_INDEX &&
+		   mesh_data->attrib_data[attrib_nor] != nullptr
+		  ){
+			XenAssert((mesh_data->attrib_types[attrib_nor] &
+			           xen::VertexAttribute::_TypeMask
+			          ) == xen::VertexAttribute::_TypeReal,
+			          "Expected normal components to be reals"
+			         );
+			XenAssert((mesh_data->attrib_types[attrib_nor] &
+			           xen::VertexAttribute::_ComponentCountMask
+			           ) == 3,
+			          "Expected normal attribute to have 3 channels"
+			         );
+			u32 byte_count_nor  = sizeof(Vec3r) * mesh_data->vertex_count;
+			mesh_geom->normal   = (Vec3r*)allocator->allocate(byte_count_nor);
+			memcpy(mesh_geom->normal, mesh_data->attrib_data[attrib_nor], byte_count_nor);
+		}
+
+		if(attrib_col != xen::MeshData::BAD_ATTRIB_INDEX &&
+		    mesh_data->attrib_data[attrib_col] != nullptr
+		  ){
+			u32 byte_count_color  = sizeof(xen::Color) * mesh_data->vertex_count;
+			mesh_geom->color      = (xen::Color*)allocator->allocate(byte_count_color);
+
+			switch(mesh_data->attrib_types[attrib_col]){
+			case xen::VertexAttribute::Color3f: {
+				xen::Color3f* src_buf = (xen::Color3f*)mesh_data->attrib_data[attrib_col];
+				for(u32 i = 0; i < mesh_data->vertex_count; ++i){
+					mesh_geom->color[i] = xen::Color(src_buf[i]);
+				}
+				break;
+			}
+			case xen::VertexAttribute::Color4b: {
+				memcpy(mesh_geom->color, mesh_data->attrib_data[attrib_col], byte_count_color);
+				break;
+			}
+			default:
+				XenInvalidCodePath("Found bad color format in mesh");
+			}
+		}
+	}
+
+	void freeMeshAttribArrays(MeshAttribArrays* mesh,
+	                          Allocator* allocator){
+		if(mesh->position != nullptr){
+			allocator->deallocate(mesh->position);
+			mesh->position = nullptr;
+		}
+
+		if(mesh->normal != nullptr){
+			allocator->deallocate(mesh->normal);
+			mesh->normal = nullptr;
+		}
+
+		if(mesh->color != nullptr){
+			allocator->deallocate(mesh->color);
+			mesh->color = nullptr;
+		}
 	}
 }
 

@@ -15,6 +15,7 @@
 #include <xen/graphics/GraphicsDevice_types.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/math/geometry_types.hpp>
+#include <xen/core/array.hpp>
 
 namespace xen {
 	struct MeshData;
@@ -54,6 +55,8 @@ namespace xen {
 		/////////////////////////////////////////////////////////////////////
 		virtual ~GraphicsDevice();
 
+		inline u08 getId(){ return this->id; }
+
 		// :TODO: create render target
 		// :TDOO: create window
 
@@ -68,7 +71,72 @@ namespace xen {
 		/// \return Mesh Handle to the created mesh, this handle may be used
 		/// in future with this GraphicsDevice to render the mesh
 		/////////////////////////////////////////////////////////////////////
-		virtual Mesh createMesh(const MeshData& mesh_data) = 0;
+		virtual Mesh createMesh(const MeshData* mesh_data) = 0;
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Uploads mesh data to the graphics device
+		///
+		/// \param vertex_spec The vertex spec for the created mesh. The created
+		/// mesh may rely on this memory, do not free while the mesh exists.
+		///
+		/// \param mesh_geom   The mesh's geometry
+		///
+	  /// \return Mesh Handle to the created mesh, this handle may be used
+		/// in future with this GraphicsDevice to render the mesh
+		///
+		/// \todo :TODO: -> remove the limitation of created mesh relying on
+		/// vertex_spec. This is in software devices which don't make deep copy
+		/// (not sure about gl device?)
+		/////////////////////////////////////////////////////////////////////
+		Mesh createMesh(const VertexSpec&         vertex_spec,
+		                const MeshGeometrySource& mesh_geom
+		                );
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Uploads mesh data to the graphics device
+		///
+	  /// \param vertex_spec The vertex spec for the created mesh. The created
+		/// mesh may rely on this memory, do not free while the mesh exists.
+		///
+		/// \param vertex_count The number of vertices, IE: the lengths of the
+		/// vertex_data arrays
+		///
+		/// \param  varargs list of void* representing pointer to first
+		/// element of data buffer for each vertex attribute. This function expects
+		/// the length of the varargs list to be equal to the length of vertex_spec
+		///
+	  /// \return Mesh Handle to the created mesh, this handle may be used
+		/// in future with this GraphicsDevice to render the mesh
+		///
+		/// \todo :TODO: -> remove the limitation of created mesh relying on
+		/// vertex_spec. This is in software devices which don't make deep copy
+		/// (not sure about gl device?)
+		/////////////////////////////////////////////////////////////////////
+		Mesh createMesh(const VertexSpec&         vertex_spec,
+		                u32                       vertex_count,
+		                ...);
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Updates the attribute data for a particular attribute of some
+		/// mesh
+		///
+		/// \param mesh The mesh whose data you wish to modify
+		/// \param attrib_index The index of the attribute you wish to modify
+		/// \param new_data     Pointer to the new data for the attribute
+		/// \param start_index  The first vertex you wish to modify, defaults to 0
+		/// \param end_vertex   The last vertex you wish to modify, defaults to max int
+		/// Note that end_vertex is clamped to be less than or equal to the number of
+		/// vertices in the mesh.
+		///
+		/// \note new_data should contain data for at least (end_vertex - start_vertex)
+		/// vertices
+		/////////////////////////////////////////////////////////////////////
+		virtual void updateMeshAttribData(Mesh mesh,
+		                                  u32 attrib_index,
+		                                  void* new_data,
+		                                  u32 start_vertex = 0,
+		                                  u32 end_vertex   = 0xFFFFFFFF
+		                                 ) = 0;
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Destroys a Mesh previously created by this GraphicsDevice

@@ -24,26 +24,12 @@ int main(int argc, char** argv){
 	camera.target = Vec3r::Origin;
 	camera.angle  = 0.0_deg;
 
-  scene_lights[0].type           = xen::LightSource3d::POINT;
-	scene_lights[0].point.position = {50_r, 50_r, 50_r};
-	scene_lights[0].color          = xen::Color::WHITE4f;
-	scene_lights[0].color.a        = 1_r;
-	scene_lights[0].attenuation    = {0.0f, 0.0f, 0.001f};
-
-	scene_lights[1].type           = xen::LightSource3d::POINT;
-	scene_lights[1].point.position = {-50_r, -50_r, -50_r};
-	scene_lights[1].color          = xen::Color::WHITE4f;
-	scene_lights[1].color.a        = 1_r;
-	scene_lights[1].attenuation    = {0.0f, 0.0f, 0.001f};
-
 	xen::clearToZero(&render_params);
-	render_params.ambient_light = xen::Color3f(0.4f, 0.4f, 0.4f);
-	render_params.lights        = scene_lights;
+	render_params.ambient_light = xen::Color3f(1.0f, 1.0f, 1.0f);
 
 	ExampleApplication app = createApplication("starfield",
 	                                           ExampleApplication::Backend::RASTERIZER
 	                                           );
-
 
 	for(u32 i = 0; i < STAR_COUNT; ++i){
 		star_positions[i].x = xen::randf(-100, 100);
@@ -56,30 +42,37 @@ int main(int argc, char** argv){
 		star_colors[i].a = 255;
 	}
 
+	xen::FixedArray<xen::VertexAttribute::Type, 2> vertex_spec;
+	vertex_spec[0] = xen::VertexAttribute::Position3r;
+	vertex_spec[1] = xen::VertexAttribute::Color4b;
+
+	xen::Mesh mesh_stars = app.device->createMesh
+		(vertex_spec, STAR_COUNT,
+		 star_positions, star_colors);
+	xen::Mesh mesh_axes = app.device->createMesh
+		(vertex_spec, xen::TestMeshGeometry_Axes);
+	xen::Mesh mesh_cube_lines = app.device->createMesh
+		(vertex_spec, xen::TestMeshGeometry_UnitCubeLines);
+
 	xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
 	xen::clearToZero(render_commands);
 
 	render_commands[0].primitive_type         = xen::PrimitiveType::LINES;
 	render_commands[0].color                  = xen::Color::WHITE4f;
 	render_commands[0].model_matrix           = xen::Scale3d(100_r);
-	render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[0].immediate              = xen::TestMeshGeometry_Axes;
+	render_commands[0].mesh                   = mesh_axes;
 
 	render_commands[1].primitive_type         = xen::PrimitiveType::POINTS;
 	render_commands[1].color                  = xen::Color::WHITE4f;
 	render_commands[1].model_matrix           = Mat4r::Identity;
-	render_commands[1].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[1].immediate.position     = star_positions;
-	render_commands[1].immediate.color        = star_colors;
-	render_commands[1].immediate.vertex_count = STAR_COUNT;
+	render_commands[1].mesh                   = mesh_stars;
 
 	render_commands[2].primitive_type         = xen::PrimitiveType::LINES;
 	render_commands[2].color                  = xen::Color::CYAN4f;
 	render_commands[2].model_matrix           = (xen::Scale3d(200_r) *
 	                                             xen::Translation3d(-100.0_r, -100.0_r, -100.0_r)
 	                                            );
-	render_commands[2].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[2].immediate              = xen::TestMeshGeometry_UnitCubeLines;
+	render_commands[2].mesh                   = mesh_cube_lines;
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
 
@@ -111,8 +104,9 @@ int main(int argc, char** argv){
 				star_positions[i].z -= 200.0f;
 			}
 		}
+		app.device->updateMeshAttribData(mesh_stars, 0, star_positions);
 
-	  app.device->clear      (app.window, xen::Color::BLACK);
+		app.device->clear      (app.window, xen::Color{20,20,20,255});
 		app.device->render     (app.window, viewport, render_params, render_commands);
 		app.device->swapBuffers(app.window);
 	}

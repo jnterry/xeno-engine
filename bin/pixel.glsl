@@ -1,4 +1,4 @@
-#version 130
+#version 430
 
 varying vec3 color;
 varying vec3 world_position;
@@ -7,7 +7,7 @@ varying vec3 model_position;
 
 out vec4 out_color;
 
-uniform vec3 ambient_light   = vec3(0.01, 0.01, 0.01);
+uniform vec3 ambient_light   = vec3(0.1, 0.1, 0.1);
 uniform vec3 camera_position = vec3(0,0,0);
 
 uniform vec3 point_light_pos         = vec3(0,0,0);
