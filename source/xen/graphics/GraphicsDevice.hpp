@@ -55,6 +55,8 @@ namespace xen {
 		/////////////////////////////////////////////////////////////////////
 		virtual ~GraphicsDevice();
 
+		inline u08 getId(){ return this->id; }
+
 		// :TODO: create render target
 		// :TDOO: create window
 

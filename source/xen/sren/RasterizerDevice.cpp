@@ -19,104 +19,42 @@
 #include "SoftwareDeviceBase.hxx"
 #include "render-utilities.hxx"
 #include "rasterizer3d.hxx"
+#include "MeshStore.hxx"
 
 #include <cstring>
 
 class RasterizerDevice : public xen::sren::SoftwareDeviceBase {
 private:
-	xen::Allocator*                         mesh_allocator;
-	xen::ArenaPool<xen::sren::RasterizerMesh> mesh_pool;
+	xen::sren::MeshStore<xen::sren::RasterizerMesh> mesh_store;
 public:
 	~RasterizerDevice(){
-
+		this->mesh_store.destroyAllMeshes();
 	}
 
 	RasterizerDevice(xen::Array<xen::sren::PostProcessor*> post_processors)
 		: SoftwareDeviceBase(post_processors),
-		mesh_allocator(main_allocator),
-		mesh_pool(xen::createArenaPool<xen::sren::RasterizerMesh>(main_allocator, 1024))
+		  mesh_store(this, main_allocator)
 	{
 		// no-op
 	}
 
-	xen::Mesh createMesh(const xen::MeshData* mesh_data) override {
-		// :TODO:COMP:ISSUE_31: object pool with automatic handles / resizeable pool
-		u32 slot = xen::reserveSlot(this->mesh_pool);
-		xen::sren::RasterizerMesh* mesh_geom = &this->mesh_pool.slots[slot].item;
 
-		// Copy over the common elements
-		*((xen::MeshHeader*)mesh_geom) = *((xen::MeshHeader*)mesh_data);
-
-		// Allocate storage and copy over attributes, this is equivalent
-		// to uploading to the gpu in a gl device
-		xen::fillMeshAttribArrays(mesh_geom, mesh_data, mesh_allocator);
-		mesh_geom->vertex_count = mesh_data->vertex_count;
-
-		////////////////////////////////////////////////////////////////////////////
-		// Compute face normals
-		if(mesh_geom->normal == nullptr && mesh_data->vertex_count % 3 == 0){
-			for(u32 i = 0; i < mesh_geom->vertex_count; i += 3){
-				mesh_geom->normal = (Vec3r*)mesh_allocator->allocate
-					(sizeof(Vec3r) * mesh_geom->vertex_count);
-
-				xen::Triangle3r* tri = (xen::Triangle3r*)&mesh_geom->position[i];
-				Vec3r normal = xen::computeNormal(*tri);
-				mesh_geom->normal[i+0] = normal;
-				mesh_geom->normal[i+1] = normal;
-				mesh_geom->normal[i+2] = normal;
-			}
-		}
-
-		return this->makeHandle<xen::Mesh::HANDLE_ID>(slot, 0);
+	xen::Mesh createMesh(const xen::MeshData* mesh_data) override{
+		return this->mesh_store.createMesh(mesh_data);
 	}
-
-	void destroyMesh(xen::Mesh mesh) override {
-		xen::freeMeshAttribArrays(&this->mesh_pool.slots[mesh._id].item,
-		                          mesh_allocator);
-		xen::freeSlot(this->mesh_pool, mesh._id);
+	void      destroyMesh         (xen::Mesh mesh) override{
+		this->mesh_store.destroyMesh(mesh);
 	}
-
-	void updateMeshAttribData(xen::Mesh mesh_handle,
-	                          u32 attrib_index,
-	                          void* new_data,
-	                          u32 start_vertex,
-	                          u32 end_vertex
-	                          ) {
-		xen::sren::RasterizerMesh* mesh = &this->mesh_pool.slots[mesh_handle._id].item;
-
-		end_vertex = xen::min(end_vertex, mesh->vertex_count);
-		if(end_vertex < start_vertex){ return; }
-
-		void** attrib_data = nullptr;
-		switch(mesh->attrib_types[attrib_index]){
-		case xen::VertexAttribute::Position3r:
-			attrib_data = (void**)&mesh->position;
-			break;
-		case xen::VertexAttribute::Normal3r:
-			attrib_data = (void**)&mesh->normal;
-			break;
-		case xen::VertexAttribute::Color4b:
-			attrib_data = (void**)&mesh->color;
-			break;
-		default:
-			XenInvalidCodePath("Attempt to update unsupported mesh attribute type");
-			return;
-		}
-
-		u32 attrib_size = xen::getVertexAttributeSize(mesh->attrib_types[attrib_index]);
-		if(*attrib_data == nullptr){
-			*attrib_data = mesh_allocator->allocate(attrib_size * mesh->vertex_count);
-			if(start_vertex != 0 || end_vertex != mesh->vertex_count){
-				// :TODO: log
-				printf("WARN: Updating mesh attrib %i but there is no existing data and "
-				       "the new data set is not complete\n", attrib_index);
-			}
-		}
-
-		memcpy(xen::ptrGetAdvanced(*attrib_data, start_vertex * attrib_size),
-		       new_data,
-		       (end_vertex - start_vertex) * attrib_size
-		      );
+	void      updateMeshAttribData(xen::Mesh mesh,
+	                               u32   attrib_index,
+	                               void* new_data,
+	                               u32   start_vertex,
+	                               u32   end_vertex) override{
+		this->mesh_store.updateMeshAttribData(mesh,
+		                                      attrib_index,
+		                                      new_data,
+		                                      start_vertex,
+		                                      end_vertex);
 	}
 
 	void render(xen::RenderTarget target_handle,
@@ -154,7 +92,7 @@ public:
 			xen::Color4f base_color = cmd->color;
 			base_color.rgb *= params.ambient_light;
 
-			const xen::sren::RasterizerMesh* mesh = &this->mesh_pool.slots[cmd->mesh._id].item;
+			const xen::sren::RasterizerMesh* mesh = this->mesh_store.getMesh(cmd->mesh);
 
 			/////////////////////////////////////////////////////////////////
 			// Do the drawing, based on primitive type

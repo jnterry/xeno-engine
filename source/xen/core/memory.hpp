@@ -11,6 +11,7 @@
 #define XEN_CORE_MEMORY_HPP
 
 #include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/core/memory/ArenaPool.hpp>
 #include <xen/core/memory/utilities.hpp>
 #include <xen/core/memory/Allocator.hpp>
 
