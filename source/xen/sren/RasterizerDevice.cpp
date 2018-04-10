@@ -69,7 +69,7 @@ public:
 	                          ) {
 		xen::sren::RasterizerMesh* mesh = &this->mesh_pool.slots[mesh_handle._id].item;
 
-        end_vertex = xen::min(end_vertex, mesh->vertex_count);
+		end_vertex = xen::min(end_vertex, mesh->vertex_count);
 		if(end_vertex < start_vertex){ return; }
 
 		void** attrib_data = nullptr;
@@ -91,6 +91,11 @@ public:
 		u32 attrib_size = xen::getVertexAttributeSize(mesh->attrib_types[attrib_index]);
 		if(*attrib_data == nullptr){
 			*attrib_data = mesh_allocator->allocate(attrib_size * mesh->vertex_count);
+			if(start_vertex != 0 || end_vertex != mesh->vertex_count){
+				// :TODO: log
+				printf("WARN: Updating mesh attrib %i but there is no existing data and "
+				       "the new data set is not complete\n", attrib_index);
+			}
 		}
 
 		memcpy(xen::ptrGetAdvanced(*attrib_data, start_vertex * attrib_size),
