@@ -37,34 +37,57 @@
 
 * Extensions
 
-	Due to the way we have structured this coursework some extensions apply to all rendering backend, and others apply only to specific backends. Below we outline those that apply to each specifically, as well as those extensions which are shared between all rendering backends.
+	Due to the way we have structured this coursework some extensions apply to all rendering backends, and others apply only to specific backends. Below we outline those that apply to each specifically, as well as those extensions which are shared between all rendering backends.
+
+	:TODO: ensure all of these extensions have a reference to which demo application shows them off
+
+** Shared
+
+	 These are extensions which have been implemented for both the software raytracer and rasterizer.
+
+	 - Per Vertex Attributes
+		 - Colors and normals are specified per vertex rather than per triangle
+		 - These values are interpolated across the surface of a triangle using perspective correct interpolation
+		 - see =triangle-test= for a demo of per vertex colors
+		 - :TODO: demo for per vertex normals (sphere rendering?)
+	 - Arbitrary viewpoints
+		 - :TODO: demonstrate by fixing the camera debug view
+		 - Rendering can be performed in arbitrary viewpoints of a render target
+	 - Post Processing Pipeline
+		 - The software rendering backends support applying "post-processing" steps after the image has been rendered
+		 - :TODO: what post processors have we actually implemented?
+		 - :TODO: write to depth buffer in raytracer to support fog
+		 - :TODO: demoed by what?
 
 ** Raytracer
 
-   - :TODO: Efficient search structure for finding intersections in geometry
+	 - Optimizations
+	   - Pre-generating a "scene"
+			 - :TODO: extend this
+		 - :TODO: simd?
 
 ** Rasterizer
 
 	 - Multiple primitive types
-		 - Software rasterizer supports multiple primitive types (definitions taken from opengl, but implemented in software)
-		 - We support: TRIANGLES, LINES, LINE_STRIP, POINTS
-		 - Note that the Raytracer backend will fall back to using the rasterizer for all primative types except TRIANGLES
+		 - Rasterizer can render lines and points as well as just triangles
+		 - We support: TRIANGLES, LINES, LINE_STRIP, POINTS (as defined by the OpenGL standard - but we have implemented them in software)
+		 - Note that the raytracer backend will fall back to using the rasterizer for all primative types except TRIANGLES since it doesn't make sense to ray trace points or lines which are infinitely thin
+			 - :TODO: if we defined thickness for these primitives it actually would make sense to ray trace them...
 	 - Full clipping pipeline
 		 - All primitive types are clipped by the engine such that the camera can be moved without segfaults, all geometry not in view is not drawn
 		 - Geometry partially on and partially off of the screen is clipped to the viewport
 
-** Shared
+** Meta Extensions
 
-	 - Per Vertex Colors
-		 - Both the software rasterizer and software raytracer support per vertex colors, rather than just per triangle colors. These colors are blended together
-	 - Mesh Loader
-		 - :TODO: flexible mesh system which can represent meshes with arbitrary number of attributes, each of an arbitrary type
-		 - Using assimp library to load mesh formats such as obj
+	 - Mesh System and Loading
+		 - Flexible mesh system which can represent meshes with an arbitary number of attributes (eg position data, normal data, color data, etc) potentially each having a different type
+		 - Use of assimp library to load mesh files (such as obj)
 	 - Windowing System
 		 - Low level implementation of window management, event polling etc using raw operating system calls with no reliance on external libraries
 		 - Implementation for both X11 and windows
 		 - SIMD optimization for transforming floating framebuffer to byte pixels to display
 		 - :TODO: add SDL implementation and benchmark
-	 - Post Processing Pipeline
-		 - The software rendering backends support applying "post-processing" steps after the image has been rendered
-		 - :TODO: what post processors have we actually implemented?
+	 - Own math library
+
+	 - OpenGL Backend
+		 - ???
