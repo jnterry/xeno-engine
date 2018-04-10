@@ -35,6 +35,11 @@ int main(int argc, char** argv){
 	                                           ExampleApplication::Backend::RAYTRACER
 	                                          );
 
+	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
+	vertex_spec[0] = xen::VertexAttribute::Position3r;
+	vertex_spec[1] = xen::VertexAttribute::Normal3r;
+	vertex_spec[2] = xen::VertexAttribute::Color4b;
+
 	Vec3r mesh_verts[] = {
 		Vec3r{ 0_r, 0_r, 0_r },
 		Vec3r{ 1_r, 0_r, 0_r },
@@ -55,6 +60,15 @@ int main(int argc, char** argv){
 		xen::Color::YELLOW4f,
 	};
 
+	xen::Mesh mesh_triangles  = app.device->createMesh(vertex_spec,
+	                                                   XenArrayLength(mesh_colors),
+	                                                   mesh_verts, nullptr, mesh_colors);
+	xen::Mesh mesh_cube_lines = app.device->createMesh(vertex_spec,
+	                                                   xen::TestMeshGeometry_UnitCubeLines);
+	xen::Mesh mesh_axes       = app.device->createMesh(vertex_spec,
+	                                                   xen::TestMeshGeometry_Axes);
+
+
 	static_assert(XenArrayLength(mesh_verts) == XenArrayLength(mesh_colors),
 	              "Expected equal number of positions and colors"
 	             );
@@ -64,16 +78,16 @@ int main(int argc, char** argv){
 	render_commands[0].primitive_type         = xen::PrimitiveType::LINES;
 	render_commands[0].color                  = xen::Color::WHITE4f;
 	render_commands[0].model_matrix           = xen::Scale3d(100_r);
-	render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[0].immediate              = xen::TestMeshGeometry_Axes;
+	render_commands[0].geometry_source        = xen::RenderCommand3d::MESH;
+	render_commands[0].mesh                   = mesh_axes;
 
 	render_commands[1].primitive_type         = xen::PrimitiveType::LINES;
 	render_commands[1].color                  = xen::Color::CYAN4f;
 	render_commands[1].model_matrix           = (xen::Scale3d(200_r) *
 	                                             xen::Translation3d(-100.0_r, -100.0_r, -100.0_r)
 	                                            );
-	render_commands[1].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[1].immediate              = xen::TestMeshGeometry_UnitCubeLines;
+	render_commands[1].geometry_source        = xen::RenderCommand3d::MESH;
+	render_commands[1].mesh                   = mesh_cube_lines;
 
 	render_commands[2].primitive_type         = xen::PrimitiveType::TRIANGLES;
 	render_commands[2].color                  = xen::Color::WHITE4f;
@@ -81,10 +95,8 @@ int main(int argc, char** argv){
 	                                             xen::Rotation3dy(90_deg)
 	                                             // * xen::Translation3d(-75.0_r, -75.0_r, -75.0_r)
 	                                            );
-	render_commands[2].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-	render_commands[2].immediate.position     = mesh_verts;
-	render_commands[2].immediate.color        = mesh_colors;
-	render_commands[2].immediate.vertex_count = XenArrayLength(mesh_verts);
+	render_commands[2].geometry_source        = xen::RenderCommand3d::MESH;
+	render_commands[2].mesh                   = mesh_triangles;
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
 
@@ -110,7 +122,7 @@ int main(int argc, char** argv){
 		handleCameraInputCylinder(camera, dt);
 		render_params.camera = xen::generateCamera3d(camera);
 
-		app.device->clear      (app.window, xen::Color::BLACK);
+		app.device->clear      (app.window, xen::Color{20,20,20,255});
 		app.device->render     (app.window, viewport, render_params, render_commands);
 		app.device->swapBuffers(app.window);
 	}
