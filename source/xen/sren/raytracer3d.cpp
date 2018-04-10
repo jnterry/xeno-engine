@@ -24,7 +24,6 @@
 #include <cstring>
 #include <cstdlib>
 
-
 namespace xen {
 namespace sren {
 

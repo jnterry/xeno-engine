@@ -15,6 +15,16 @@ if(XEN_DEBUG_ADDITIONAL_CHECKS)
 endif()
 ################################################################################
 
+
+################################################################################
+option(XEN_COMPILER_OPTIMIZATIONS "If set the compiler optimizations will be enabled" OFF)
+
+if(XEN_COMPILER_OPTIMIZATIONS)
+	message("Enabling optimizations")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+endif()
+################################################################################
+
 # :TODO: configure if XenCheckGl should be used
 # 0 -> no gl checks
 # 1 -> gl error callback
