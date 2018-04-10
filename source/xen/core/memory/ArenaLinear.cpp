@@ -34,8 +34,16 @@ namespace xen{
 		return ((uptr)arena.next_byte) <= ((uptr)arena.end+1);
 	}
 
-	ptrdiff_t bytesRemaining(const ArenaLinear& arena){
-		return ptrDiff(arena.next_byte, arena.end);
+	// The casts to u64 are safe  since we know these differences are
+	// positive based on the direction
+  u64 getBytesRemaining(const ArenaLinear& arena){
+	  return (u64)ptrDiff(arena.next_byte, arena.end);
+	}
+	u64 getBytesUsed     (const ArenaLinear& arena){
+		return (u64)ptrDiff(arena.start, arena.next_byte) - 1;
+	}
+	u64 getSize          (const ArenaLinear& arena){
+		return (u64)ptrDiff(arena.start, arena.end);
 	}
 
 	void* reserveBytes(ArenaLinear& arena, size_t num_bytes, u32 align){

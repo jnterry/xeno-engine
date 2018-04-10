@@ -36,7 +36,7 @@ namespace xen{
 		char* start = (char*)ptrGetAlignedForward(arena.next_byte, align);
 		ptrdiff_t buffer_length = ptrDiff(start, arena.end);
 		if(buffer_length > 0){
-			size_t bytes_written = formatDateTime(dt, start, bytesRemaining(arena), format);
+			size_t bytes_written = formatDateTime(dt, start, getBytesRemaining(arena), format);
 			ptrAdvance(&arena.next_byte, bytes_written);
 
 			transaction.commit();

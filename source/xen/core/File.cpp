@@ -31,7 +31,7 @@ namespace xen{
 			return {0};
 		}
 
-		u64 arena_space = bytesRemaining(arena);
+		u64 arena_space = getBytesRemaining(arena);
 
 		fseek(file, 0, SEEK_END);
 		s64 file_size = ftell(file);
