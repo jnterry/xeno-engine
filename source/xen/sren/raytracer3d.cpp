@@ -228,9 +228,12 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 				// Get the barycentric coordinates of the intersection
 				Vec3r bary = xen::getBarycentricCoordinates(ptri_model, intersection.pos_model);
 
-				XenDebugAssert(bary.x >= 0, "Expected barycentric x component to be positive");
-				XenDebugAssert(bary.y >= 0, "Expected barycentric y component to be positive");
-				XenDebugAssert(bary.z >= 0, "Expected barycentric z component to be positive");
+				#if XEN_DEBUG_CHECKS
+				if(bary.x < 0 || bary.y < 0 || bary.z < 0){
+					printf("Expected barycentric components to be positive, got:  "
+					       "(%f, %f, %f)\n", bary.x, bary.y, bary.z);
+				}
+				#endif
 
 				// If we have per vertex color information use it rather than WHITE
 				if(cbuf != nullptr){

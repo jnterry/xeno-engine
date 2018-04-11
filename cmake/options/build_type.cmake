@@ -7,11 +7,11 @@
 ################################################################################
 
 ################################################################################
-option(XEN_DEBUG_ADDITIONAL_CHECKS "If set then additional error checking code will be inserted. This may slow down the runtime but will add more infomative error messages. Note that this code does not attempt to fix any errors identified (but may bail out early, thus avoiding further issues such as crashes, infinite loops, etc)" OFF)
+option(XEN_DEBUG_CHECKS "If set then additional error checking code will be inserted. This may slow down the runtime but will add more infomative error messages. Note that this code does not attempt to fix any errors identified (but may bail out early, thus avoiding further issues such as crashes, infinite loops, etc)" OFF)
 
-if(XEN_DEBUG_ADDITIONAL_CHECKS)
+if(XEN_DEBUG_CHECKS)
 	message("Enabling slow checks")
-	add_definitions(-DXEN_DEBUG_ADDITIONAL_CHECKS=1)
+	add_definitions(-DXEN_DEBUG_CHECKS=1)
 endif()
 ################################################################################
 
