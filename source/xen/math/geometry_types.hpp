@@ -18,6 +18,12 @@ namespace xen {
 	/////////////////////////////////////////////////////////////////////
 	template<u32 T_DIM, typename T>
 	struct Aabb{
+		/// \brief The type of the vectors making up this Aabb
+		typedef Vec<T_DIM, T> VectorType;
+
+		/// \brief The type of individual coordinates making up this Aabb
+		typedef T             ElementType;
+
 		Vec<T_DIM, T> min;
 		Vec<T_DIM, T> max;
 

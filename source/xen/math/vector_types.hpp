@@ -59,6 +59,8 @@ namespace xen{
 	/////////////////////////////////////////////////////////////////////
 	template<u32 T_DIM, typename T>
 	struct Vec{
+		typedef T ElementType;
+
 		T elements[T_DIM];
 
 		T&       operator[](u32 index)       { return this->elements[index]; }
@@ -67,6 +69,8 @@ namespace xen{
 
 	template<typename T>
 	struct Vec<2,T>{
+		typedef T ElementType;
+
 		union{
 			T elements[2];
 			struct{ T x, y; };
@@ -99,6 +103,8 @@ namespace xen{
 
 	template<typename T>
 	struct Vec<3,T>{
+		typedef T ElementType;
+
 		Vec<3,T>(){}
 		Vec<3,T>(T nx, T ny, T nz) : x(nx), y(ny), z(nz) {}
 		union{
@@ -143,6 +149,8 @@ namespace xen{
 
 	template<typename T>
 	struct Vec<4,T>{
+		typedef T ElementType;
+
 		Vec<4,T>(){}
 		Vec<4,T>(T nx, T ny, T nz, T nw) : x(nx), y(ny), z(nz), w(nw){}
 		union{
