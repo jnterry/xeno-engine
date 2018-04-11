@@ -100,6 +100,7 @@ set(XEN_HEADERS_SREN
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/Framebuffer.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/PostProcessor.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/SoftwareDeviceBase.hxx
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RaytracerDevice.hxx
   ${CMAKE_CURRENT_LIST_DIR}/xen/sren/rasterizer3d.hxx
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/raytracer3d.hxx
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/rasterizer3d.hxx

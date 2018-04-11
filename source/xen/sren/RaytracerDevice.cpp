@@ -11,18 +11,13 @@
 
 #include "SoftwareDeviceBase.hxx"
 #include "render-utilities.hxx"
-#include "raytracer3d.hxx"
 #include "rasterizer3d.hxx" // fall back to rasterizer for lines and points
-#include "MeshStore.hxx"
+#include "RaytracerDevice.hxx"
 
 #include <xen/sren/SoftwareDevice.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
-#include <xen/graphics/Image.hpp>
-#include <xen/graphics/TestMeshes.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/math/matrix.hpp>
-#include <xen/core/memory/ArenaLinear.hpp>
-#include <xen/core/memory/utilities.hpp>
 #include <xen/core/array.hpp>
 
 #include <cstring>
@@ -129,6 +124,16 @@ public:
 
 		xen::ptrAdvance(&render_scratch_arena.next_byte,
 		                sizeof(xen::sren::RaytracerModel) * scene.models.size);
+
+		this->doRender(target, viewport, params, commands, non_triangle_cmds, scene);
+	};
+
+	void doRender(xen::sren::RenderTargetImpl&           target,
+	              const xen::Aabb2u&                     viewport,
+	              const xen::RenderParameters3d&         params,
+	              const xen::Array<xen::RenderCommand3d> commands,
+	              const xen::Array<u32>                  non_triangle_cmds,
+	              const xen::sren::RaytracerScene&       scene){
 
 		////////////////////////////////////////////////////////////////////////////
 		// Render the triangles in the scene
