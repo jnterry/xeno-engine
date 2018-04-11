@@ -51,8 +51,8 @@
 		 - see =triangle-test= for a demo of per vertex colors
 		 - :TODO: demo for per vertex normals (sphere rendering?)
 	 - Arbitrary viewpoints
-		 - :TODO: demonstrate by fixing the camera debug view
 		 - Rendering can be performed in arbitrary viewpoints of a render target
+		 - Try running the =cornell-box= demo with the device "Raytracer Camera Debug" to see a demonstration
 	 - Post Processing Pipeline
 		 - The software rendering backends support applying "post-processing" steps after the image has been rendered
 		 - :TODO: what post processors have we actually implemented?
