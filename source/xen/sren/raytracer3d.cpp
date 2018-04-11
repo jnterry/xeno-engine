@@ -230,7 +230,7 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 
 				#if XEN_DEBUG_CHECKS
 				if(bary.x < 0 || bary.y < 0 || bary.z < 0){
-					printf("Expected barycentric components to be positive, got:  "
+					printf("WARN: Expected barycentric components to be positive, got:  "
 					       "(%f, %f, %f)\n", bary.x, bary.y, bary.z);
 				}
 				#endif
@@ -247,17 +247,7 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 					pixel_color = evaluateBarycentricCoordinates(ctri, bary);
 				}
 
-				Vec3r pixel_normal_model;
-				if(nbuf_model != nullptr){
-					pixel_normal_model = nbuf_model[buf_index];
-				} else {
-					// :TODO: lets not support immediate rendering
-					// have the device store meshes, and force normal information, since
-					// we CANNOT do sensible lighting calculations without it...
-					//
-					// THIS MEANS WINDING ORDER MATTERS!!!
-					pixel_normal_model = xen::computeTriangleNormal(ptri_model);
-				}
+				Vec3r pixel_normal_model = nbuf_model[buf_index];
 				pixel_normal_world = xen::normalized(pixel_normal_model *
 				                                     scene.models[intersection.model_index].model_matrix
 				                                     );
