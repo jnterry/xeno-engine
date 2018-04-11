@@ -9,9 +9,6 @@
 // GPU based example of FXAA: http://blog.simonrodriguez.fr/articles/30-07-2016_implementing_fxaa.html
 // FXAA Whitepaper: http://developer.download.nvidia.com/assets/gamedev/files/sdk/11/FXAA_WhitePaper.pdf
 
-// :TODO: when making pixel access, if float does not land exactly on pixel:
-//        lerp between four nearest pixels, weighted by distance to each -> bilinear filtering
-//        This gives 'free' interpolation
 // :TODO: What to do if Any luma are out of bounds, such as pixels on edges?
 // :TODO: Check if top left or bottom left is fb[0], if bottom left then swap lumaUp and lumaDown
 // :TODO: Define QUALITY(i) -> currently don't know how
@@ -21,6 +18,7 @@
 
 #include <xen/sren/PostProcessor.hpp>
 #include <xen/math/utilities.hpp>
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -29,6 +27,8 @@
 #define EDGE_THRESHOLD_MAX 0.125
 // Maximum length of edge in each direction
 #define ITERATIONS         12
+// Value for antialiasing subpixel lines
+#define SUBPIXEL_QUALITY 0.75
 
 namespace xen {
 	namespace sren {
@@ -39,7 +39,6 @@ namespace xen {
 
 		/// brief: get color of a position between pixels by bilinear filtering 4 nearest pixels
 		// :TODO: May want to just pass in specific pixels to this function
-		// :TODO: Any bugs may be here
 		Vec3f blendColor(Framebuffer& fb, Vec2r subPixelLocation){
 			real ratioVertical   = (subPixelLocation.x) - floor(subPixelLocation.x);
 		  real ratioHorizontal = (subPixelLocation.y) - floor(subPixelLocation.y);
@@ -57,12 +56,17 @@ namespace xen {
 			return lerp(colorLeft, colorRight, ratioHorizontal);
 		}
 
+		real clip(real n, real lower, real upper) {
+		  return max(lower, min(n, upper));
+		}
+
 		void fxaaStep(Framebuffer& fb, int x, int y, Vec2r inverseScreenSize) {
 			int currentPixelIndex = y*fb.size.x + x;
 
 			// Luma at the current fragment
 			real lumaCenter = rgb2luma(fb.color[currentPixelIndex].rgb);
 
+			// :TODO: Determine what to do when pixels are on edge of the image
 			// Luma at the four direct neighbours of the current fragment.
 			real lumaDown   = rgb2luma(fb.color[(y+1)*fb.size.x + (x  )].rgb);
 			real lumaUp     = rgb2luma(fb.color[(y-1)*fb.size.x + (x  )].rgb);
@@ -222,21 +226,39 @@ namespace xen {
 			// If the luma variation is incorrect, do not offset.
 			real finalOffset = correctVariation ? pixelOffset : 0.0;
 
-			// :TODO: Continue tutorial from 'Subpixel antialiasing'
+			// Sub-pixel shifting
+			// Full weighted average of the luma over the 3x3 neighborhood.
+			real lumaAverage = (1.0/12.0) * (2.0 * (lumaDownUp + lumaLeftRight) + lumaLeftCorners + lumaRightCorners);
+			// Ratio of the delta between the global average and the center luma, over the luma range in the 3x3 neighborhood.
+			real subPixelOffset1 = clip(abs(lumaAverage - lumaCenter)/lumaRange,0.0,1.0);
+			real subPixelOffset2 = (-2.0 * subPixelOffset1 + 3.0) * subPixelOffset1 * subPixelOffset1;
+			// Compute a sub-pixel offset based on this delta.
+			real subPixelOffsetFinal = subPixelOffset2 * subPixelOffset2 * SUBPIXEL_QUALITY;
+
+			// Pick the biggest of the two offsets.
+			finalOffset = max(finalOffset,subPixelOffsetFinal);
+
+			// Compute the final UV coordinates.
+			Vec2r finalUv = Vec2r{x,y};
+			if(isHorizontal){
+			    finalUv.y += finalOffset * stepLength;
+			} else {
+			    finalUv.x += finalOffset * stepLength;
+			}
+
+			// Read the color at the new UV coordinates, and use it.
+			Vec3f finalColor = blendColor(fb, finalUv);
+
+			fb.color[currentPixelIndex].r = finalColor.r;
+			fb.color[currentPixelIndex].g = finalColor.g;
+			fb.color[currentPixelIndex].b = finalColor.b;
 		}
 
 		void PostProcessorAntialias::process(Framebuffer& fb) {
 			Vec2r inverseScreenSize = {1.0/fb.size.x, 1.0/fb.size.y};
-
-			for(u32 j = 0; j < fb.size.y; ++j){
-				for(u32 i = 0; i < fb.size.x; ++i){
-					int currentPixel = j*fb.size.x + i;
-
-					// :TODO: Remove these
-			  	fb.color[currentPixel].r = 1.0f - fb.color[currentPixel].r;
-			  	fb.color[currentPixel].g = 1.0f - fb.color[currentPixel].g;
-			  	fb.color[currentPixel].b = 1.0f - fb.color[currentPixel].b;
-
+			// :TODO: Fix these loops to be between 0 and size; changed to this for test purposes
+			for(u32 j = 1; j < fb.size.y-1; ++j){
+				for(u32 i = 1; i < fb.size.x-1; ++i){
 					fxaaStep(fb, i, j, inverseScreenSize);
 				}
 			}
