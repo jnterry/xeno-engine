@@ -54,6 +54,11 @@ namespace xen {
 		struct RaytracerScene {
 			/// \brief The models in the scene
 			xen::Array<RaytracerModel> models;
+
+			/// \brief Index of the first shadow caster in the models array.
+			/// All models before this point DO NOT cast shadows. All those
+			/// after do.
+			u32 first_shadow_caster;
 		};
 
 		/////////////////////////////////////////////////////////////////////
@@ -85,15 +90,18 @@ namespace xen {
 		/// \param ray_world The ray to cast, represented in world space
 		/// \param scene     The scene to cast the ray into
 		/// \param result    Data about the resulting intersection
+		/// \param skip_non_shadow_casters If true then any models that do not
+		/// cast shadows will be skipped
 		///
 		/// \return True if an intersection was found, false otherwise
 		///
 		/// \note Contents of result struct is undefined after this function
 		/// if it returns false
 		/////////////////////////////////////////////////////////////////////
-		bool castRayIntoScene(const xen::Ray3r& ray_world,
+		bool castRayIntoScene(const xen::Ray3r&     ray_world,
 		                      const RaytracerScene& scene,
-		                      SceneRayCastResult& result);
+		                      SceneRayCastResult&   result,
+		                      bool                  skip_non_shadow_casters = false);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Performs a set of render commands use software raytracer
@@ -103,10 +111,10 @@ namespace xen {
 		/// \param camera The 3d camera used to view the scene
 		/// \param scene  The scene to render
 		/////////////////////////////////////////////////////////////////////
-		void renderRaytrace (xen::sren::RenderTargetImpl&       target,
-		                     const xen::Aabb2u&                 viewport,
-		                     const xen::RenderParameters3d&     params,
-		                     const RaytracerScene&              scene);
+		void renderRaytrace (xen::sren::RenderTargetImpl&   target,
+		                     const xen::Aabb2u&             viewport,
+		                     const xen::RenderParameters3d& params,
+		                     const RaytracerScene&          scene);
 	}
 }
 

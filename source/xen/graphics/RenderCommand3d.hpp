@@ -11,6 +11,7 @@
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/array_types.hpp>
+#include <xen/core/bits.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/math/matrix_types.hpp>
 #include <xen/graphics/Color.hpp>
@@ -65,6 +66,28 @@ namespace xen{
 
 		/// \brief A handle to a mesh to be drawn, used if source is Mesh
 		xen::Mesh mesh;
+
+		/// \brief Enumeration of "extra" misc flags that may be set for a command
+		struct Flags : public xen::BitField<u08, 1> {
+			using BitField::BitField; // use constructors of parent
+			enum Values {
+
+				/// \brief If set then the geometry rendered by this command
+				/// will not block light, and hence will not cast shadows
+				///
+				/// \note Flag is to disable rather than enable since geometry should
+				/// cast shadows by default and we want the struct to have sensible
+				/// defaults if zero initialised
+				DisableShadowCast = 1,
+
+				// :TODO:
+				// CullBackFace,
+				// CullFrontFace,
+			};
+		};
+
+		/// \brief Extra flags for the command
+		Flags flags;
 	};
 
 	/////////////////////////////////////////////////////////////////////

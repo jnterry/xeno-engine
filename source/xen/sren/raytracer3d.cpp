@@ -29,7 +29,8 @@ namespace sren {
 
 bool castRayIntoScene(const xen::Ray3r& ray_world,
                       const RaytracerScene& scene,
-                      SceneRayCastResult& result){
+                      SceneRayCastResult& result,
+                      bool skip_non_shadow_casters){
 
 	result.dist_sq_world = std::numeric_limits<real>::max();
 	bool found_intersection = false;
@@ -45,8 +46,12 @@ bool castRayIntoScene(const xen::Ray3r& ray_world,
 		1.0_r / ray_world.direction.z,
 	};
 
+	u32 start_index = scene.first_shadow_caster * skip_non_shadow_casters;
+
 	// Loop over all objects in scene
-	for(u32 model_index = 0; model_index < xen::size(scene.models); ++model_index){
+	for(u32 model_index = start_index;
+	    model_index < xen::size(scene.models);
+	    ++model_index){
 		const xen::sren::RaytracerModel& model = scene.models[model_index];
 
 		////////////////////////////////////////////////////////////////////////////
@@ -279,7 +284,7 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 						                                     intersection.pos_world
 						                                     );
 
-						if(castRayIntoScene(shadow_ray, scene, shadow_intersection) &&
+						if(castRayIntoScene(shadow_ray, scene, shadow_intersection, true) &&
 						   light_dist_sq > shadow_intersection.dist_sq_world){
 							// Then there is geometry between the intersection.pos_world and
 							// this light. Hence the light source is blocked

@@ -88,8 +88,9 @@ public:
 		                                                       );
 
 		xen::sren::RaytracerScene scene;
-		scene.models.size     = 0;
-		scene.models.elements =
+		scene.models.size         = 0;
+		scene.first_shadow_caster = 0;
+		scene.models.elements     =
 			(xen::sren::RaytracerModel*)xen::ptrGetAlignedForward(render_scratch_arena.next_byte,
 			                                                      alignof(xen::sren::RaytracerModel)
 			                                                     );
@@ -101,6 +102,15 @@ public:
 			case xen::PrimitiveType::TRIANGLES: {
 				xen::sren::RaytracerModel* model = &scene.models[scene.models.size];
 				++scene.models.size;
+
+				if(cmd->flags & xen::RenderCommand3d::Flags::DisableShadowCast){
+					// We want to sort the scene so all non-shadow casters are
+					// at the front of the array
+					xen::sren::RaytracerModel* model_swap = &scene.models[scene.first_shadow_caster];
+					++scene.first_shadow_caster;
+					*model = *model_swap;
+					model = model_swap;
+				}
 
 				model->mesh             = this->mesh_store.getMesh(cmd->mesh);
 				model->color            = cmd->color;
@@ -122,6 +132,8 @@ public:
 
 		////////////////////////////////////////////////////////////////////////////
 		// Render the triangles in the scene
+		printf("Raytracing scene with %li models (%i non-shadow casters)\n",
+		       xen::size(scene.models), scene.first_shadow_caster);
 		xen::sren::renderRaytrace(target, viewport, params, scene);
 
 		////////////////////////////////////////////////////////////////////////////
