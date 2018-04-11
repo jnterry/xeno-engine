@@ -57,6 +57,9 @@ namespace xen {
 		// max number of attribs is 255, so allocate that much stack space
 		void* attrib_data[255];
 
+		/////////////////////////////////////////////////////////////////
+		// Construct attrib data array based on vertex_spec and what we
+		// have available in mesh_geom
 		for(u32 i = 0; i < xen::size(vertex_spec); ++i){
 			switch(vertex_spec[i]){
 			case xen::VertexAttribute::Position3r:
@@ -72,11 +75,20 @@ namespace xen {
 			}
 		}
 
+		/////////////////////////////////////////////////////////////////
+		// Set mesh data fields
 		xen::MeshData mesh_data;
 		mesh_data.attrib_count = xen::size(vertex_spec);
 		mesh_data.attrib_types = vertex_spec.elements;
 		mesh_data.vertex_count = mesh_geom.vertex_count;
 		mesh_data.attrib_data  = attrib_data;
+
+		/////////////////////////////////////////////////////////////////
+		// Compute mesh bounding box
+		mesh_data.bounds = xen::Aabb3r::MaxMinBox;
+		for(u32 i = 0; i < mesh_geom.vertex_count; ++i){
+			xen::addPoint(mesh_data.bounds, mesh_geom.position[i]);
+		}
 
 		return this->createMesh(&mesh_data);
 	}
@@ -113,10 +125,13 @@ namespace xen {
 
 		XenAssert(pbuf != nullptr, "Expected mesh to have position data");
 
+		/////////////////////////////////////////////////////////////////
+		// Compute mesh bounding box
 		md.bounds = xen::Aabb3r::MaxMinBox;
 		for(u32 i = 0; i < vertex_count; ++i){
 			xen::addPoint(md.bounds, pbuf[i]);
 		}
+		/////////////////////////////////////////////////////////////////
 
 		// ensure we use md as const to prevent above const_cast from being invalid
 		// if createMesh is ever changed to take non const pointer

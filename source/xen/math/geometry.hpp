@@ -66,6 +66,19 @@ namespace xen{
 	}
 
 	template<typename T>
+	Aabb3<T> getTransformed(const Aabb3<T> aabb, const xen::Matrix<4,4,T> mat){
+		Vec3r a = aabb.min * mat;
+		Vec3r b = aabb.max * mat;
+
+		Aabb3<T> result = Aabb3<T>::MaxMinBox;
+		result.min = xen::min(a, b);
+		result.max = xen::max(a, b);
+
+		return result;
+
+	}
+
+	template<typename T>
 	bool contains(Aabb2<T> aabb, Vec2<T> point){
 		return aabb.min.x <= point.x && point.x <= aabb.max.x &&
 		       aabb.min.y <= point.y && point.y <= aabb.max.y;
@@ -384,6 +397,36 @@ namespace xen{
 		} else {
 			// This means that there is a line intersection but not a ray intersection.
 			return false;
+		}
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Determines the point on some ray r which is closest to the
+	/// point p
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	Vec3<T> getClosestPointOnRay(Ray3<T> r, Vec3<T> p){
+		T factor = xen::dot(r.direction, p - r.origin);
+
+		// ensure we aren't moving along ray in wrong direction
+		factor = xen::max((T)0, factor);
+
+		return r.origin + factor * r.direction;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Determines the minimum distance between a ray and some point
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	T getDistanceSqBetweenRayAndPoint(Ray3<T> r, Vec3<T> p){
+		T factor = xen::dot(r.direction, p - r.origin);
+
+		if(factor < 0){
+			return xen::distanceSq(r.origin, p);
+		} else {
+			// This line works on its own for full lines, but a ray is a half line...
+			// Can we avoid branch?
+			return xen::magSq(xen::cross(r.direction, p - r.origin));
 		}
 	}
 

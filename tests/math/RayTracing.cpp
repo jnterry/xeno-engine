@@ -114,3 +114,39 @@ TEST_CASE("Ray Triangle Intersection 3d", "[math][Ray][Triangle]"){
 		CHECK(result == Vec3r{5,7,8});
 	}
 }
+
+TEST_CASE("getClosestPointOnRay", "[math][Ray][Vector]"){
+	SECTION("Ray from origin in x dir"){
+		xen::Ray3r r;
+		r.origin    = Vec3r::Origin;
+		r.direction = Vec3r::UnitX;
+
+		CHECK(xen::getClosestPointOnRay(r, Vec3r{-1.0_r,  0.0_r,  0.0_r}) ==
+		      Vec3r::Origin);
+		CHECK(xen::getClosestPointOnRay(r, Vec3r{ 0.0_r,  0.0_r,  0.0_r}) ==
+		      Vec3r::Origin);
+		CHECK(xen::getClosestPointOnRay(r, Vec3r{ 1.0_r,  0.0_r,  0.0_r}) ==
+		      Vec3r::UnitX);
+		CHECK(xen::getClosestPointOnRay(r, Vec3r{ 1.0_r,  1.0_r,  0.0_r}) ==
+		      Vec3r::UnitX);
+		CHECK(xen::getClosestPointOnRay(r, Vec3r{ 1.0_r,  5.0_r,  0.0_r}) ==
+		      Vec3r::UnitX);
+		CHECK(xen::getClosestPointOnRay(r, Vec3r{ 1.0_r,  1.0_r,  1.0_r}) ==
+		      Vec3r::UnitX);
+	}
+}
+
+TEST_CASE("getDistanceSqBetweenRayAndPoint", "[math][Ray][Vector]"){
+	SECTION("Ray from origin in x dir"){
+		xen::Ray3r r;
+		r.origin    = Vec3r::Origin;
+		r.direction = Vec3r::UnitX;
+
+		CHECK(xen::getDistanceSqBetweenRayAndPoint(r, Vec3r{-1.0_r,  0.0_r,  0.0_r}) ==  1);
+		CHECK(xen::getDistanceSqBetweenRayAndPoint(r, Vec3r{ 0.0_r,  0.0_r,  0.0_r}) ==  0);
+		CHECK(xen::getDistanceSqBetweenRayAndPoint(r, Vec3r{ 1.0_r,  0.0_r,  0.0_r}) ==  0);
+		CHECK(xen::getDistanceSqBetweenRayAndPoint(r, Vec3r{ 1.0_r,  1.0_r,  0.0_r}) ==  1);
+		CHECK(xen::getDistanceSqBetweenRayAndPoint(r, Vec3r{ 1.0_r,  5.0_r,  0.0_r}) == 25);
+		CHECK(xen::getDistanceSqBetweenRayAndPoint(r, Vec3r{ 1.0_r,  1.0_r,  1.0_r}) ==  2);
+	}
+}

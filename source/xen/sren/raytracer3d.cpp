@@ -24,7 +24,6 @@
 #include <cstring>
 #include <cstdlib>
 
-
 namespace xen {
 namespace sren {
 
@@ -35,10 +34,51 @@ bool castRayIntoScene(const xen::Ray3r& ray_world,
 	result.dist_sq_world = std::numeric_limits<real>::max();
 	bool found_intersection = false;
 
+	// pre-compute division once per ray -> used for aabb intersection
+	// see: https://tavianator.com/fast-branchless-raybounding-box-intersections/
+	//
+	// note also we don't need to check for divides by 0, since the resulting
+	// infinities will still work in the comparison operations later...
+	Vec3r ray_world_dir_inv = Vec3r{
+		1.0_r / ray_world.direction.x,
+		1.0_r / ray_world.direction.y,
+		1.0_r / ray_world.direction.z,
+	};
+
 	// Loop over all objects in scene
 	for(u32 model_index = 0; model_index < xen::size(scene.models); ++model_index){
 		const xen::sren::RaytracerModel& model = scene.models[model_index];
 
+		////////////////////////////////////////////////////////////////////////////
+		// Check if the ray intersects the model's aabb in world space.
+		// If not we can immediately skip checking this model
+		// See: https://tavianator.com/fast-branchless-raybounding-box-intersections-part-2-nans/
+		{
+			xen::Aabb3r b = model.aabb_world;
+			xen::Ray3r  r = ray_world;
+
+			real t1 = (b.min.x - r.origin.x) * ray_world_dir_inv.x;
+			real t2 = (b.max.x - r.origin.x) * ray_world_dir_inv.x;
+
+			real tmin = min(t1, t2);
+			real tmax = max(t1, t2);
+
+			for(u32 i = 1; i < 3; ++i){
+				t1 = (b.min[i] - r.origin[i]) * ray_world_dir_inv[i];
+				t2 = (b.max[i] - r.origin[i]) * ray_world_dir_inv[i];
+
+				tmin = xen::max(tmin, xen::min(t1, t2, tmax));
+				tmax = xen::min(tmax, xen::max(t1, t2, tmin));
+			}
+
+			if(tmax < xen::max(0.0_r, tmin)){
+				continue;
+			}
+		}
+
+		////////////////////////////////////////////////////////////////////////////
+
+		////////////////////////////////////////////////////////////////////////////
 		// Compute the ray in model space
 		//
 		// This is faster (2 vertices to define a ray) than transforming the mesh

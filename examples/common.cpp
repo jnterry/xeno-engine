@@ -95,7 +95,7 @@ ExampleApplication createApplication(const char* window_title,
 			app.device = xen::createRasterizerDevice(app.arena, post_processors);
 			break;
 		case ExampleApplication::Backend::RAYTRACER:
-			window_size = {128, 128};
+			window_size = {400, 400};
 			app.device = xen::createRaytracerDevice(app.arena, post_processors);
 			break;
 		case ExampleApplication::Backend::OPENGL:

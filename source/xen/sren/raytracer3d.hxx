@@ -43,8 +43,8 @@ namespace xen {
 			/// \brief Inverse of the model_matrix
 			Mat4r inv_model_matrix;
 
-			// :TODO:
-			// bounding box, bounding sphere...
+			/// \brief The aabb of the model in world space
+			Aabb3r aabb_world;
 		};
 
 		/////////////////////////////////////////////////////////////////////
