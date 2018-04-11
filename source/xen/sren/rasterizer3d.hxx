@@ -108,6 +108,18 @@ namespace xen {
 		                             const Vec3r*                  normal_model,
 		                             const xen::Color*             color_buffer,
 		                             const u32                     vertex_count);
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Rasterizes the specified mesh using the specified material
+		/////////////////////////////////////////////////////////////////////
+		void rasterizeMesh(xen::sren::RenderTargetImpl&   target,
+		                   const xen::Aabb2r&             viewport,
+		                   const xen::RenderParameters3d  params,
+		                   const Mat4r&                   m_matrix,
+		                   const Mat4r&                   vp_matrix,
+		                   const xen::MeshGeometrySource& mesh,
+		                   const xen::Material&           material);
+
 	}
 }
 

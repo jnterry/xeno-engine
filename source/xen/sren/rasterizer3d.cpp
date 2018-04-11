@@ -707,6 +707,55 @@ void rasterizeTrianglesModel(xen::sren::RenderTargetImpl&  target,
 	}
 } // end of rasterize triangles model
 
+
+void rasterizeMesh(xen::sren::RenderTargetImpl&   target,
+                   const xen::Aabb2r&             viewport,
+                   const xen::RenderParameters3d  params,
+                   const Mat4r&                   m_matrix,
+                   const Mat4r&                   vp_matrix,
+                   const xen::MeshGeometrySource& mesh,
+                   const xen::Material&           material){
+
+	switch(material.primitive_type){
+	case xen::PrimitiveType::POINTS:
+		rasterizePointsModel(target, viewport, params,
+		                     m_matrix, vp_matrix, material.color,
+		                     mesh.position,
+		                     mesh.color,
+		                     mesh.vertex_count);
+		break;
+	case xen::PrimitiveType::LINES:
+		rasterizeLinesModel(target, viewport, params,
+		                    m_matrix, vp_matrix, material.color,
+		                    mesh.position,
+		                    mesh.color,
+		                    mesh.vertex_count,
+		                    2); //advance by 2 vertices for each line drawn
+		break;
+	case xen::PrimitiveType::LINE_STRIP:
+		rasterizeLinesModel(target, viewport, params,
+		                    m_matrix, vp_matrix, material.color,
+		                    mesh.position,
+		                    mesh.color,
+		                    mesh.vertex_count,
+		                    1); //advance by 1 vertex for each line drawn
+		break;
+	case xen::PrimitiveType::TRIANGLES: {
+		rasterizeTrianglesModel(target, viewport, params,
+		                        m_matrix, vp_matrix, material.color,
+		                        mesh.position,
+		                        mesh.normal,
+		                        mesh.color,
+		                        mesh.vertex_count);
+		break;
+	}
+	default:
+		XenInvalidCodePath("Unhandled render command type in rasterizer device");
+		break;
+	}
+
+} // end of rasterize mesh
+
 } // end of namespace sren
 } // end of namespace xen
 
