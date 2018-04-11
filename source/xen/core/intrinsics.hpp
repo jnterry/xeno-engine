@@ -47,9 +47,9 @@
 		XenBreak(__VAR_ARGS__); \
 	}
 
-#if XEN_DEBUG_ADDITIONAL_CHECKS
+#if XEN_DEBUG_CHECKS
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Behaves as XenAssert when XEN_DEBUG_ADDITIONAL is defined,
+	/// \brief Behaves as XenAssert when XEN_DEBUG_CHECKS is defined,
 	/// otherwise is defined to be a no-op
 	/// \see XenAssert
 	/////////////////////////////////////////////////////////////////////

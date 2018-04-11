@@ -11,6 +11,7 @@
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/array_types.hpp>
+#include <xen/core/bits.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/math/matrix_types.hpp>
 #include <xen/graphics/Color.hpp>
@@ -45,11 +46,7 @@ namespace xen{
 		// TRIANGLE_STRIP
 	};
 
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Represents a single rendering operation which will draw
-	/// some object to the screen
-	/////////////////////////////////////////////////////////////////////
-	struct RenderCommand3d {
+	struct Material {
 		/// \brief The diffuse color to use
 		Color4f color;
 
@@ -57,14 +54,46 @@ namespace xen{
 		/// as a brightness modifier
 		Color4f emissive_color;
 
+		/// \brief Enumeration of "extra" misc flags that may be set for a command
+		struct Flags : public xen::BitField<u08, 1> {
+			using BitField::BitField; // use constructors of parent
+			enum Values {
+
+				/// \brief If set then the geometry rendered by this command
+				/// will not block light, and hence will not cast shadows
+				///
+				/// \note Flag is to disable rather than enable since geometry should
+				/// cast shadows by default and we want the struct to have sensible
+				/// defaults if zero initialised
+				DisableShadowCast = 1,
+
+				// :TODO:
+				// CullBackFace,
+				// CullFrontFace,
+			};
+		};
+
+		/// \brief Extra flags for the command
+		Flags flags;
+	};
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents a single rendering operation which will draw
+	/// some object to the screen
+	/// \todo :TODO: Should this refer to a material rather than inheriting from
+	/// one? This means we can batch all commands with same material by comparing
+	/// pointer address only (if switching materials has a cost, eg in opengl when
+	/// changing shader uniforms...)
+	/////////////////////////////////////////////////////////////////////
+	struct RenderCommand3d : public Material{
 		/// \brief Matrix to transform from world space to model space
 		Mat4r model_matrix;
 
-		/// \brief The type of primitive to be drawn by this command
-		PrimitiveType primitive_type;
-
 		/// \brief A handle to a mesh to be drawn, used if source is Mesh
 		xen::Mesh mesh;
+
+		/// \brief The type of primitive to be drawn by this command
+		PrimitiveType primitive_type;
 	};
 
 	/////////////////////////////////////////////////////////////////////

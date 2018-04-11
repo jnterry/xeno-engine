@@ -29,7 +29,8 @@ namespace sren {
 
 bool castRayIntoScene(const xen::Ray3r& ray_world,
                       const RaytracerScene& scene,
-                      SceneRayCastResult& result){
+                      SceneRayCastResult& result,
+                      bool skip_non_shadow_casters){
 
 	result.dist_sq_world = std::numeric_limits<real>::max();
 	bool found_intersection = false;
@@ -45,8 +46,12 @@ bool castRayIntoScene(const xen::Ray3r& ray_world,
 		1.0_r / ray_world.direction.z,
 	};
 
+	u32 start_index = scene.first_shadow_caster * skip_non_shadow_casters;
+
 	// Loop over all objects in scene
-	for(u32 model_index = 0; model_index < xen::size(scene.models); ++model_index){
+	for(u32 model_index = start_index;
+	    model_index < xen::size(scene.models);
+	    ++model_index){
 		const xen::sren::RaytracerModel& model = scene.models[model_index];
 
 		////////////////////////////////////////////////////////////////////////////
@@ -215,7 +220,7 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 			               "bounds of the vertex list");
 
 			// Compute surface properties at intersection point
-			xen::Color4f pixel_color        = xen::Color::WHITE4f;
+			xen::Color4f pixel_color        = scene.models[intersection.model_index].color;
 			Vec3r        pixel_normal_world = Vec3r::Origin;
 			{
 				Vec3r* pbuf_model = scene.models[intersection.model_index].mesh->position;
@@ -228,9 +233,12 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 				// Get the barycentric coordinates of the intersection
 				Vec3r bary = xen::getBarycentricCoordinates(ptri_model, intersection.pos_model);
 
-				XenDebugAssert(bary.x >= 0, "Expected barycentric x component to be positive");
-				XenDebugAssert(bary.y >= 0, "Expected barycentric y component to be positive");
-				XenDebugAssert(bary.z >= 0, "Expected barycentric z component to be positive");
+				#if XEN_DEBUG_CHECKS
+				if(bary.x < 0 || bary.y < 0 || bary.z < 0){
+					printf("WARN: Expected barycentric components to be positive, got:  "
+					       "(%f, %f, %f)\n", bary.x, bary.y, bary.z);
+				}
+				#endif
 
 				// If we have per vertex color information use it rather than WHITE
 				if(cbuf != nullptr){
@@ -241,20 +249,10 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 					ctri.p2 = xen::makeColor4f(cbuf[buf_index + 1]);
 					ctri.p3 = xen::makeColor4f(cbuf[buf_index + 2]);
 
-					pixel_color = evaluateBarycentricCoordinates(ctri, bary);
+					pixel_color *= evaluateBarycentricCoordinates(ctri, bary);
 				}
 
-				Vec3r pixel_normal_model;
-				if(nbuf_model != nullptr){
-					pixel_normal_model = nbuf_model[buf_index];
-				} else {
-					// :TODO: lets not support immediate rendering
-					// have the device store meshes, and force normal information, since
-					// we CANNOT do sensible lighting calculations without it...
-					//
-					// THIS MEANS WINDING ORDER MATTERS!!!
-					pixel_normal_model = xen::computeTriangleNormal(ptri_model);
-				}
+				Vec3r pixel_normal_model = nbuf_model[buf_index];
 				pixel_normal_world = xen::normalized(pixel_normal_model *
 				                                     scene.models[intersection.model_index].model_matrix
 				                                     );
@@ -286,7 +284,7 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 						                                     intersection.pos_world
 						                                     );
 
-						if(castRayIntoScene(shadow_ray, scene, shadow_intersection) &&
+						if(castRayIntoScene(shadow_ray, scene, shadow_intersection, true) &&
 						   light_dist_sq > shadow_intersection.dist_sq_world){
 							// Then there is geometry between the intersection.pos_world and
 							// this light. Hence the light source is blocked
