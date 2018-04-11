@@ -19,7 +19,7 @@ namespace xen {
 	namespace sren {
 		struct RenderTargetImpl;
 
-		struct RasterizerMesh : public MeshHeader, MeshAttribArrays {
+		struct RasterizerMesh : public MeshHeader, MeshGeometrySource {
 			// Anything else?
 			// - can we sort the geometry to make rendering more efficient somehow?
 			// - anything we can pre-compute?

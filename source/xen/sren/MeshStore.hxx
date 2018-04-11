@@ -21,16 +21,11 @@
 namespace xen {
 namespace sren {
 
-
-struct MeshBase : public MeshHeader, MeshAttribArrays{
-	// Nothing else in common to both raytracer and rasterizer meshes...
-};
-
 /////////////////////////////////////////////////////////////////////
 /// \brief Class which manages the meshes owned by some software device
 ///
 /// \tparam T_MESH The type of the mesh object to manage. It is expected
-/// that T_MESH is derived from MeshBase
+/// that T_MESH is derived from both MeshHeader and MeshGeometrySource
 /////////////////////////////////////////////////////////////////////
 template<typename T_MESH>
 class MeshStore {

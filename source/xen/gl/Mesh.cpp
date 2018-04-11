@@ -70,8 +70,8 @@ namespace{
 
 xen::gl::MeshGlData* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::MeshData& md){
 	xen::MemoryTransaction transaction(arena);
-	xen::gl::MeshGlData* result = pushMeshGlData(arena, md.attrib_count);
 
+	xen::gl::MeshGlData* result = pushMeshGlData(arena, md.attrib_count);
 	result->vertex_count = md.vertex_count;
 
 	u32 gpu_buffer_size =   0;
