@@ -14,6 +14,7 @@
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/math/geometry.hpp>
+#include <xen/math/vector.hpp>
 #include <xen/core/File.hpp>
 #include <xen/graphics/Mesh.hpp>
 
@@ -24,6 +25,56 @@
 #include <assimp/color4.h>
 
 namespace {
+	/// \brief Recenters a mesh such that its local origin is at the center of
+	/// its aabb
+	void processMeshVertexPositionsAndComputeBounds(xen::MeshData* mesh,
+	                                                xen::MeshLoadFlags flags){
+		u08 pos_attrib_index = findMeshAttrib(mesh, xen::VertexAttribute::_AspectPosition);
+		if(pos_attrib_index == xen::MeshData::BAD_ATTRIB_INDEX){ return; }
+
+		Vec3r* pbuf = (Vec3r*)mesh->attrib_data[pos_attrib_index];
+
+	  mesh->bounds = xen::computeBoundingBox(pbuf, mesh->vertex_count);
+
+	  Vec3r bounds_size   = xen::getSize  (mesh->bounds);
+	  Vec3r bounds_center = xen::getCenter(mesh->bounds);
+
+		bool recenter = ((flags & xen::MeshLoadFlags::CENTER_ORIGIN) &&
+		                 (bounds_center != Vec3r::Origin)
+		                );
+
+		real max_dim = xen::maxDimension(bounds_size);
+		bool rescale  = ((flags & xen::MeshLoadFlags::SCALE_UNIT_SIZE) &&
+		                 (max_dim != 1)
+		                );
+
+		if(!recenter && !rescale){ return; }
+
+		Vec3r pre_scale     = -bounds_center;
+		Vec3r scale_factors = Vec3r{1,1,1};
+		if(rescale){
+			scale_factors = Vec3r{ 1_r / max_dim,
+			                       1_r / max_dim,
+			                       1_r / max_dim };
+		}
+		Vec3r post_scale = -pre_scale;
+		if(recenter){
+			post_scale = Vec3r::Origin;
+		}
+		for(u32 i = 0; i < mesh->vertex_count; ++i){
+			pbuf[i] += pre_scale;
+			pbuf[i] *= scale_factors;
+			pbuf[i] -= post_scale;
+		}
+
+		mesh->bounds.min += pre_scale;
+		mesh->bounds.min *= scale_factors;
+		mesh->bounds.min -= post_scale;
+		mesh->bounds.max += pre_scale;
+		mesh->bounds.max *= scale_factors;
+		mesh->bounds.max -= post_scale;
+	}
+
 	struct VertexAttributeAspects {
 		u08 position;
 		u08 normal;
@@ -239,7 +290,8 @@ namespace xen {
 		return result;
 	}
 
-	bool loadMeshFile(MeshData* md, ArenaLinear& arena, const char* path){
+	bool loadMeshFile(MeshData* md, ArenaLinear& arena, const char* path,
+	                  MeshLoadFlags flags){
 		const aiScene* scene = aiImportFile(path,
 		                                    aiProcess_Triangulate
 		                                    );
@@ -257,6 +309,8 @@ namespace xen {
 		}
 
 		aiReleaseImport(scene);
+
+		processMeshVertexPositionsAndComputeBounds(md, flags);
 
 		return result;
 	}

@@ -158,6 +158,22 @@ namespace xen{
 		return result;
 	}
 
+	template<u32 T_DIM, typename T>
+	inline T minDimension(const Vec<T_DIM, T>& v){
+		T min = v[0];
+		for(u32 i = 1; i < T_DIM; ++i){ min = xen::min(min, v[i]); }
+		return min;
+	}
+
+	template<u32 T_DIM, typename T>
+	inline T maxDimension(const Vec<T_DIM, T>& v){
+		T max = v[0];
+		for(u32 i = 1; i < T_DIM; ++i){ max = xen::max(max, v[i]); }
+		return max;
+	}
+
+
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Finds element-wise minimum of two vectors
 	/////////////////////////////////////////////////////////////////////

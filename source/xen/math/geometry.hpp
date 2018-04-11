@@ -468,8 +468,13 @@ namespace xen{
 	/// aabb along each dimension
 	/////////////////////////////////////////////////////////////////////
 	template<u32 T_DIM, typename T>
-	Vec<T_DIM, T> getSize(Aabb<T_DIM, T> aabb){
+	inline Vec<T_DIM, T> getSize(Aabb<T_DIM, T> aabb){
 		return aabb.max - aabb.min;
+	}
+
+	template<u32 T_DIM, typename T>
+	inline Vec<T_DIM, T> getCenter(Aabb<T_DIM, T> aabb){
+		return aabb.min + (xen::getSize(aabb) / (T)2);
 	}
 
 	template<u32 T_DIM, typename T>
@@ -512,6 +517,15 @@ namespace xen{
 		aabb.min = xen::min(aabb.min, p);
 		aabb.max = xen::max(aabb.max, p);
 		return aabb;
+	}
+
+	template<u32 T_DIM, typename T>
+	Aabb<T_DIM, T> computeBoundingBox(Vec<T_DIM, T>* ps, u64 p_count){
+		Aabb<T_DIM, T> result = Aabb<T_DIM, T>::MaxMinBox;
+		for(u64 i = 0; i < p_count; ++i){
+			xen::addPoint(result, ps[i]);
+		}
+		return result;
 	}
 
 	//////////////////////////////////////////////////////////////////////////////

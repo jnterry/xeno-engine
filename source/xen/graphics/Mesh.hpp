@@ -14,6 +14,7 @@
 #include <xen/math/vector_types.hpp>
 #include <xen/math/geometry_types.hpp>
 #include <xen/core/intrinsics.hpp>
+#include <xen/core/bits.hpp>
 #include <xen/core/array_types.hpp>
 #include <xen/config.hpp>
 
@@ -27,21 +28,26 @@ namespace xen{
 	u32 getVertexAttributeSize(VertexAttribute::Type type);
 
 	/// \brief Additional flags which modify how mesh loading is performed
-	struct MeshLoadFlags {
+	struct MeshLoadFlags : public xen::BitField<u08, 4> {
+		using BitField::BitField;
+
 		enum Values{
 			NONE             = 0x00,
 
 			/// \brief Indicates that normals should be generated if not present
 			/// in the mesh file
-			GENERATE_NORMALS = 0x01,
+			//GENERATE_NORMALS = 0x01,
 
 			/// \brief Indicates that smooth normals should be generated such that
 			/// normal of each vertex is average of all faces the vertex is a part of
-		  SMOOTH_NORMALS = 0x02,
+			//SMOOTH_NORMALS = 0x02,
 
 			/// \brief Modifies vertex positions such that center of mesh (according to bounding box)
 			/// is at the origin
-			//CENTER_ORIGIN   = 0x04,
+			CENTER_ORIGIN   = 0x04,
+
+			/// \brief Scales the mesh such that its largest dimension is of unit length
+			SCALE_UNIT_SIZE = 0x08,
 		};
 	};
 
@@ -85,7 +91,8 @@ namespace xen{
 	/// occur if the arena if not large enough to fully contain the meshes vertex
 	/// data
 	/////////////////////////////////////////////////////////////////////
-	bool loadMeshFile(MeshData* result, ArenaLinear& arena, const char* path);
+	bool loadMeshFile(MeshData* result, ArenaLinear& arena, const char* path,
+	                  MeshLoadFlags flags = MeshLoadFlags::NONE);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Returns the index of the first attribute representing the
