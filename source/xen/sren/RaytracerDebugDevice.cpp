@@ -83,6 +83,41 @@ private:
 		viewport_y.min    += viewport_whole.min;
 		viewport_z.min    += viewport_whole.min;
 	}
+
+	void renderDebugView(xen::sren::RenderTargetImpl&           target,
+	                     const xen::Aabb2u&                     viewport,
+	                     const xen::RenderParameters3d&         params,
+	                     const xen::Array<xen::RenderCommand3d> commands,
+	                     xen::Camera3d                          view_camera){
+
+		xen::Aabb2r viewport_r = xen::cast<xen::Aabb2r>(viewport);
+
+		view_camera.z_near   = params.camera.z_near;
+		view_camera.z_far    = params.camera.z_far;
+		view_camera.fov_y    = params.camera.fov_y;
+
+		xen::RenderParameters3d my_params = params;
+		my_params.camera = view_camera;
+
+		Mat4r vp_matrix = xen::getViewProjectionMatrix(view_camera, viewport);
+
+		/////////////////////////////////////////////////
+		// Render the scene geometry
+		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
+			rasterizeMesh(target, viewport_r, params,
+			              commands[cmd_index].model_matrix, vp_matrix,
+			              *this->mesh_store.getMesh(commands[cmd_index].mesh),
+			              commands[cmd_index]);
+		}
+
+		/////////////////////////////////////////////////
+		// Render geometry for the camera we are debugging
+		xen::sren::renderCameraDebug(target, viewport,
+		                             view_camera, params.camera,
+		                             debug_camera_distance * 0.3_r
+		                            );
+	}
+
 public:
 	~RaytracerDebugDevice(){
 		// no-op
@@ -128,48 +163,23 @@ public:
 		camera_z.position = center_point + Vec3r::UnitZ * debug_camera_distance;
 		////////////////////////////////////////////////////////////////////////////
 
-		xen::sren::clear(target, viewport, xen::Color::WHITE);
-
+		xen::sren::clear(target, viewport,      xen::Color::WHITE);
 		xen::sren::clear(target, viewport_main, xen::Color::BLACK);
+		xen::sren::clear(target, viewport_x,    xen::Color::BLACK);
+		xen::sren::clear(target, viewport_y,    xen::Color::BLACK);
+		xen::sren::clear(target, viewport_z,    xen::Color::BLACK);
 
-		// :TODO: after mesh refactor the older rendering functions have been
-		// removed not sure how to implement this now...
-
+		/////////////////////////////////////////////////////////
+		// Render the raytraced portion to the main view
 		RaytracerDevice::doRender(target, viewport_main, params,
 		                          commands, non_triangle_cmds,
 		                          scene);
 
-		xen::RenderParameters3d my_params = params;
-
-		camera_x.z_near   = params.camera.z_near;
-		camera_x.z_far    = params.camera.z_far;
-		camera_x.fov_y    = params.camera.fov_y;
-		my_params.camera = camera_x;
-
-		xen::sren::clear(target, viewport_x, xen::Color::BLACK);
-		//xen::sren::renderRasterize(target, viewport_x, my_params, commands);
-		xen::sren::renderCameraDebug(target, viewport_x, camera_x, params.camera,
-		                             debug_camera_distance * 0.3_r);
-
-		camera_y.z_near   = params.camera.z_near;
-		camera_y.z_far    = params.camera.z_far;
-		camera_y.fov_y    = params.camera.fov_y;
-		my_params.camera = camera_y;
-
-		xen::sren::clear(target, viewport_y, xen::Color::BLACK);
-		//xen::sren::renderRasterize(target, viewport_y, my_params, commands);
-		xen::sren::renderCameraDebug(target, viewport_y, camera_y, params.camera,
-		                             debug_camera_distance * 0.3_r);
-
-		camera_z.z_near   = params.camera.z_near;
-		camera_z.z_far    = params.camera.z_far;
-		camera_z.fov_y    = params.camera.fov_y;
-		my_params.camera = camera_z;
-
-		xen::sren::clear(target, viewport_z, xen::Color::BLACK);
-		//xen::sren::renderRasterize(target, viewport_z, my_params, commands);
-		xen::sren::renderCameraDebug(target, viewport_z, camera_z, params.camera,
-		                             debug_camera_distance * 0.3_r);
+		/////////////////////////////////////////////////////////
+		// Render the debug cameras, using rasterizer for quicker rendering
+		renderDebugView(target, viewport_x, params, commands, camera_x);
+		renderDebugView(target, viewport_y, params, commands, camera_y);
+		renderDebugView(target, viewport_z, params, commands, camera_z);
 	}
 };
 

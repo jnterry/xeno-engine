@@ -27,8 +27,8 @@ xen::sren::RaytracerDevice::~RaytracerDevice(){
 
 xen::sren::RaytracerDevice::RaytracerDevice(xen::Array<xen::sren::PostProcessor*> post_processors)
 	: SoftwareDeviceBase(post_processors),
-	  mesh_store(this, main_allocator),
-	  render_scratch_arena(xen::createArenaLinear(*main_allocator, xen::megabytes(8)))
+	  render_scratch_arena(xen::createArenaLinear(*main_allocator, xen::megabytes(8))),
+	  mesh_store(this, main_allocator)
 {
 	// no-op
 }

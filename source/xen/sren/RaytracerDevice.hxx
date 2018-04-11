@@ -22,12 +22,12 @@ namespace sren {
 
 class RaytracerDevice : public xen::sren::SoftwareDeviceBase {
 private:
-	xen::sren::MeshStore<xen::sren::RaytracerMesh> mesh_store;
-
 	///< \brief Scratch space for per render call temporary data
 	xen::ArenaLinear                         render_scratch_arena;
 
 protected:
+	xen::sren::MeshStore<xen::sren::RaytracerMesh> mesh_store;
+
 	/// \brief Called by render after the scene has been generated to actually
 	/// fill the target with pixels
 	virtual void doRender(xen::sren::RenderTargetImpl&           target,
