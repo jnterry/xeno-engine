@@ -75,6 +75,9 @@ namespace xen{
 
 		/// \brief Extra flags for the command
 		Flags flags;
+
+		/// \brief The type of primitive to draw the mesh as
+		PrimitiveType primitive_type;
 	};
 
 	/////////////////////////////////////////////////////////////////////
@@ -91,9 +94,6 @@ namespace xen{
 
 		/// \brief A handle to a mesh to be drawn, used if source is Mesh
 		xen::Mesh mesh;
-
-		/// \brief The type of primitive to be drawn by this command
-		PrimitiveType primitive_type;
 	};
 
 	/////////////////////////////////////////////////////////////////////
