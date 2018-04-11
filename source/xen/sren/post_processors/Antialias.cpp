@@ -198,6 +198,31 @@ namespace xen {
 			  }
 			}
 
+			// Compute the distances to each extremity of the edge.
+			real distance1 = isHorizontal ? (x - uv1.x) : (y - uv1.y);
+			real distance2 = isHorizontal ? (uv2.x - x) : (uv2.y - y);
+
+			// In which direction is the extremity of the edge closer ?
+			bool isDirection1 = distance1 < distance2;
+			real distanceFinal = min(distance1, distance2);
+
+			// Length of the edge.
+			real edgeThickness = (distance1 + distance2);
+
+			// UV offset: read in the direction of the closest side of the edge.
+			real pixelOffset = - distanceFinal / edgeThickness + 0.5;
+
+			// Is the luma at center smaller than the local average ?
+			bool isLumaCenterSmaller = lumaCenter < lumaLocalAverage;
+
+			// If the luma at center is smaller than at its neighbour, the delta luma at each end should be positive (same variation).
+			// (in the direction of the closer side of the edge.)
+			bool correctVariation = ((isDirection1 ? lumaEnd1 : lumaEnd2) < 0.0) != isLumaCenterSmaller;
+
+			// If the luma variation is incorrect, do not offset.
+			real finalOffset = correctVariation ? pixelOffset : 0.0;
+
+			// :TODO: Continue tutorial from 'Subpixel antialiasing'
 		}
 
 		void PostProcessorAntialias::process(Framebuffer& fb) {
