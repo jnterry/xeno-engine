@@ -85,54 +85,11 @@ public:
 		}
 		////////////////////////////////////////////////////////////////////////////
 
-		const xen::RenderCommand3d* cmd;
 		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
-			cmd = &commands[cmd_index];
-
-			xen::Color4f base_color = cmd->color;
-			base_color.rgb *= params.ambient_light;
-
-			const xen::sren::RasterizerMesh* mesh = this->mesh_store.getMesh(cmd->mesh);
-
-			/////////////////////////////////////////////////////////////////
-			// Do the drawing, based on primitive type
-			switch(cmd->primitive_type){
-			case xen::PrimitiveType::POINTS:
-				rasterizePointsModel(target, view_region, params,
-				                     cmd->model_matrix, vp_matrix, cmd->color,
-				                     mesh->position,
-				                     mesh->color,
-				                     mesh->vertex_count);
-				break;
-			case xen::PrimitiveType::LINES:
-				rasterizeLinesModel(target, view_region, params,
-				                    cmd->model_matrix, vp_matrix, cmd->color,
-				                    mesh->position,
-				                    mesh->color,
-				                    mesh->vertex_count,
-				                    2); //advance by 2 vertices for each line drawn
-				break;
-			case xen::PrimitiveType::LINE_STRIP:
-				rasterizeLinesModel(target, view_region, params,
-				                    cmd->model_matrix, vp_matrix, cmd->color,
-				                    mesh->position,
-				                    mesh->color,
-				                    mesh->vertex_count,
-				                    1); //advance by 1 vertex for each line drawn
-				break;
-			case xen::PrimitiveType::TRIANGLES: {
-				rasterizeTrianglesModel(target, view_region, params,
-				                        cmd->model_matrix, vp_matrix, cmd->color,
-				                        mesh->position,
-				                        mesh->normal,
-				                        mesh->color,
-				                        mesh->vertex_count);
-				break;
-			}
-			default:
-				XenInvalidCodePath("Unhandled render command type in rasterizer device");
-				break;
-			}
+			rasterizeMesh(target, view_region, params,
+			              commands[cmd_index].model_matrix, vp_matrix,
+			              *this->mesh_store.getMesh(commands[cmd_index].mesh),
+			              commands[cmd_index]);
 		}
 	}
 };

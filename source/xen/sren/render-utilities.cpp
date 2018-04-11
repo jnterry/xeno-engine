@@ -62,18 +62,6 @@ namespace xen {
 		                       real            camera_scale
 		                       ) {
 
-			// :TODO: not sure how to do this after mesh refactor
-			//  -> auto load test meshes and use them?
-			//     cube lines transformed by inverse view matrix for camera view frustrum
-			//     axes mesh for camera local axes, etc
-
-			#if 0
-
-
-			LineSegment3r camera_primary_axis = { camera.position,
-			                                      camera.position + camera.look_dir * xen::length(camera.position)
-			};
-
 			Vec3r camera_local_axes[] = {
 				camera.position, camera.position,
 				camera.position, camera.position,
@@ -152,9 +140,9 @@ namespace xen {
 			                                    xen::tan(fov_y / (real)target_size.y) * camera.z_near
 			                                   );
 
-			camera_local_axes[1] += cam_xaxis * camera_scale * 0.3_r;
-			camera_local_axes[3] += cam_yaxis * camera_scale * 0.3_r;
-			camera_local_axes[5] += cam_zaxis * camera_scale * 0.3_r;
+			camera_local_axes[1] += cam_xaxis * camera_scale * 0.6_r;
+			camera_local_axes[3] += cam_yaxis * camera_scale * 0.6_r;
+			camera_local_axes[5] += cam_zaxis * camera_scale * 0.6_r;
 
 			Vec2s target_pos;
 			int ray_index = 0;
@@ -182,37 +170,24 @@ namespace xen {
 
 			//////////////////////////////////////////////////////////////////////////
 
-			xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
-			xen::clearToZero(render_commands);
-
-			/*
-			render_commands[0].primitive_type         = xen::PrimitiveType::LINES;
-			render_commands[0].color                  = xen::Color::MAGENTA4f;
-			render_commands[0].model_matrix           = Mat4r::Identity;
-			render_commands[0].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-			render_commands[0].immediate.position     = &camera_primary_axis.vertices[0];
-			render_commands[0].immediate.vertex_count = 2;
-
-		  render_commands[1].primitive_type         = xen::PrimitiveType::LINES;
-			render_commands[1].color                  = xen::Color::WHITE4f;
-			render_commands[1].model_matrix           = Mat4r::Identity;
-			render_commands[1].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-			render_commands[1].immediate.position     = camera_local_axes;
-			render_commands[1].immediate.color        = camera_local_axes_colors;
-			render_commands[1].immediate.vertex_count = XenArrayLength(camera_local_axes);
-
-			render_commands[2].primitive_type         = xen::PrimitiveType::LINES;
-			render_commands[2].color                  = xen::Color::WHITE4f;
-			render_commands[2].model_matrix           = Mat4r::Identity;
-			render_commands[2].geometry_source        = xen::RenderCommand3d::IMMEDIATE;
-			render_commands[2].immediate.position     = &camera_corner_rays[0];
-			render_commands[2].immediate.vertex_count = 8;
+			Mat4r vp_matrix = xen::getViewProjectionMatrix(view_camera, viewport);
 
 			xen::RenderParameters3d params = {};
 			params.camera = view_camera;
 
-			xen::sren::renderRasterize(target, viewport, params, render_commands);*/
-			#endif
+			xen::sren::rasterizeLinesModel(target, view_region, params,
+			                               Mat4r::Identity, vp_matrix,
+			                               xen::Color::WHITE4f,
+			                               camera_local_axes,
+			                               camera_local_axes_colors,
+			                               XenArrayLength(camera_local_axes));
+
+			xen::sren::rasterizeLinesModel(target, view_region, params,
+			                               Mat4r::Identity, vp_matrix,
+			                               xen::Color::WHITE4f,
+			                               camera_corner_rays,
+			                               nullptr, // color buffer
+			                               XenArrayLength(camera_corner_rays));
 		}
 	}
 }

@@ -200,9 +200,6 @@ namespace xen{
 		/// \brief The types of each mesh attribute
 		VertexAttribute::Type* attrib_types;
 
-		/// \brief Number of vertices in the mesh
-		u32                    vertex_count;
-
 		/// \brief The bounding box of this mesh
 		xen::Aabb3r            bounds;
 
@@ -221,6 +218,9 @@ namespace xen{
 		/// to the first byte of the data representing that attribute
 		/// or nullptr if no data is stored for that attribute
 		void** attrib_data;
+
+		/// \brief Number of vertices in the mesh
+		u32 vertex_count;
 	};
 }
 

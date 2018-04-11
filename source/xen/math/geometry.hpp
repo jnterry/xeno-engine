@@ -21,6 +21,22 @@
 #include "impl/swizzles.hxx"
 
 namespace xen{
+
+	// :TODO: more of these cast operations
+	// Also vectors can currently be casted using cast operator,
+	// use xen::cast instead and make it consistent???
+	// -> operators have to be defined within the class which is
+	// annoying due to template specializations
+	// or is standard cast syntax preferable -> xen::cast makes
+	// it more obvious something non standard is going on
+	template<typename T_OUT, u32 T_DIM, typename T_IN>
+  T_OUT cast(const Aabb<T_DIM, T_IN>& aabb) {
+		return {
+			(typename T_OUT::VectorType)(aabb.min),
+			(typename T_OUT::VectorType)(aabb.max)
+		};
+	}
+
 	template<u32 T_DIM, typename T>
 	Aabb<T_DIM, T>& translate(Aabb<T_DIM, T>& aabb, Vec<T_DIM, T> delta){
 		aabb.min += delta;
