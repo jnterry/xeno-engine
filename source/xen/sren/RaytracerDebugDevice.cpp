@@ -9,20 +9,19 @@
 #ifndef XEN_SREN_RAYTRACERDEBUGDEVICE_CPP
 #define XEN_SREN_RAYTRACERDEBUGDEVICE_CPP
 
+#include "RaytracerDevice.hxx"
+#include "rasterizer3d.hxx"
+#include "raytracer3d.hxx"
+#include "RenderTargetImpl.hxx"
+#include "render-utilities.hxx"
+
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
-#include <xen/graphics/Image.hpp>
 #include <xen/sren/SoftwareDevice.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/core/intrinsics.hpp>
 
-#include "SoftwareDeviceBase.hxx"
-#include "render-utilities.hxx"
-#include "rasterizer3d.hxx"
-#include "raytracer3d.hxx"
-#include "RenderTargetImpl.hxx"
-
-class RaytracerDebugDevice : public xen::sren::SoftwareDeviceBase {
+class RaytracerDebugDevice : public xen::sren::RaytracerDevice {
 private:
 	xen::Camera3d         camera_x;
 	xen::Camera3d         camera_y;
@@ -49,7 +48,7 @@ private:
 			(viewport_whole_size.y - viewport_padding * 3 ) / 2
 		};
 
-		u32 raytrace_size = xen::min<u32>(128, viewport_size.x, viewport_size.y);
+		u32 raytrace_size = xen::min<u32>(300, viewport_size.x, viewport_size.y);
 
 		viewport_main = xen::makeAabbFromMinAndSize
 			(
@@ -86,11 +85,11 @@ private:
 	}
 public:
 	~RaytracerDebugDevice(){
-
+		// no-op
 	}
 
 	RaytracerDebugDevice(real camera_distance, const Vec3r* camera_center)
-		: SoftwareDeviceBase(xen::Array<xen::sren::PostProcessor*>::EmptyArray),
+		: RaytracerDevice(xen::Array<xen::sren::PostProcessor*>::EmptyArray),
 		  debug_camera_distance(camera_distance),
 		  debug_camera_center  (camera_center)
 	{
@@ -107,29 +106,12 @@ public:
 		camera_z.up_dir   =  Vec3r::UnitY;
 	}
 
-	xen::Mesh createMesh(const xen::MeshData* mesh_data) override {
-		// :TODO: implement
-		return xen::makeNullHandle<xen::Mesh>();
-	}
-
-	void destroyMesh(xen::Mesh mesh) override {
-		// :TODO: implement
-	}
-
-	void updateMeshAttribData(xen::Mesh mesh,
-	                          u32 attrib_index,
-	                          void* new_data,
-	                          u32 start_vertex,
-	                          u32 end_vertex
-	                          ) {
-		// :TODO: implement
-	}
-
-	void render(xen::RenderTarget render_target,
-	            const xen::Aabb2u& viewport,
-	            const xen::RenderParameters3d& params,
-	            const xen::Array<xen::RenderCommand3d> commands
-	            ) override {
+	virtual void doRender(xen::sren::RenderTargetImpl&           target,
+	                      const xen::Aabb2u&                     viewport,
+	                      const xen::RenderParameters3d&         params,
+	                      const xen::Array<xen::RenderCommand3d> commands,
+	                      const xen::Array<u32>                  non_triangle_cmds,
+	                      const xen::sren::RaytracerScene&       scene){
 
 		////////////////////////////////////////////////////////////////////////////
 		// Update viewport and cameras
@@ -144,7 +126,6 @@ public:
 		camera_x.position = center_point + Vec3r::UnitX * debug_camera_distance;
 		camera_y.position = center_point + Vec3r::UnitY * debug_camera_distance;
 		camera_z.position = center_point + Vec3r::UnitZ * debug_camera_distance;
-		xen::sren::RenderTargetImpl& target = *this->getRenderTargetImpl(render_target);
 		////////////////////////////////////////////////////////////////////////////
 
 		xen::sren::clear(target, viewport, xen::Color::WHITE);
@@ -154,7 +135,9 @@ public:
 		// :TODO: after mesh refactor the older rendering functions have been
 		// removed not sure how to implement this now...
 
-		//xen::sren::renderRaytrace(target, viewport_main, params, commands);
+		RaytracerDevice::doRender(target, viewport_main, params,
+		                          commands, non_triangle_cmds,
+		                          scene);
 
 		xen::RenderParameters3d my_params = params;
 
