@@ -217,9 +217,9 @@ namespace {
 		tri_normal_world.p1 /= tri_screen.p1.z;
 		tri_normal_world.p2 /= tri_screen.p2.z;
 		tri_normal_world.p3 /= tri_screen.p3.z;
-		colors.p1           /= tri_screen.p1.z;
-		colors.p2           /= tri_screen.p2.z;
-		colors.p3           /= tri_screen.p3.z;
+		colors.p1           /= (float)tri_screen.p1.z;
+		colors.p2           /= (float)tri_screen.p2.z;
+		colors.p3           /= (float)tri_screen.p3.z;
 
 		// If we call min.x, 0 and max.x, 1 then incr_x is the amount we increase
 		// by when we move 1 pixel
@@ -326,7 +326,7 @@ namespace {
 
 				// Correct for perspective correct interpolation
 				// https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/perspective-correct-interpolation-vertex-attributes
-				color        *= depth;
+				color        *= (float)depth;
 				pos_world    *= depth;
 				normal_world *= depth;
 

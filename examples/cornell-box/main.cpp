@@ -34,7 +34,7 @@ void initRenderCommands(){
 	render_commands[1].mesh            = mesh_cornell_walls;
 
 	render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	render_commands[2].color           = Vec4r{ 0.15_r, 0.15_r, 0.75_r, 1.0_r };
+	render_commands[2].color           = Vec4f{ 0.15f, 0.15f, 0.75f, 1.0f };
 	render_commands[2].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
 	                                      xen::Scale3d      (0.3_r, 0.6_r, 0.3_r  ) *
 	                                      xen::Rotation3dy  (15_deg               ) *
@@ -43,7 +43,7 @@ void initRenderCommands(){
 	render_commands[2].mesh            = mesh_cube;
 
 	render_commands[3].primitive_type  = xen::PrimitiveType::TRIANGLES;
-  render_commands[3].color           = Vec4r{ 0.75_r, 0.15_r, 0.15_r, 1.0_r };
+  render_commands[3].color           = Vec4f{ 0.75f, 0.15f, 0.15f, 1.0_r };
 	render_commands[3].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
 	                                      xen::Scale3d      (0.3_r, 0.3_r, 0.3_r  ) *
 	                                      xen::Rotation3dy  (-18_deg              ) *
