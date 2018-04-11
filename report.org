@@ -63,7 +63,8 @@
 
 	 - Optimizations
 	   - Pre-generating a "scene"
-			 - :TODO: extend this
+			 - Sorting by whether shadow casting
+			 - Segregating triangles from other primitive types
 		 - :TODO: simd?
 
 ** Rasterizer
