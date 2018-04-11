@@ -182,7 +182,8 @@ namespace xen{
 				return false;
 			}
 
-			T x, y;
+			T x = 0;
+			T y = 0;
 
 			PointOutCode outcode_out = outcode_p1 ? outcode_p1 : outcode_p2;
 
@@ -252,7 +253,9 @@ namespace xen{
 				return false;
 			}
 
-			T x, y, z;
+			T x = 0;
+			T y = 0;
+			T z = 0;
 
 			PointOutCode outcode_out = outcode_p1 ? outcode_p1 : outcode_p2;
 

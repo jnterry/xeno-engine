@@ -49,7 +49,11 @@ namespace xen{
 		}
 
 		u8* data = (u8*)xen::reserveBytes(arena, (u64)file_size + 1);
-		fread(data, (u64)file_size, 1, file);
+		size_t bytes_read = fread(data, (u64)file_size, 1, file);
+		if(bytes_read != (u64)file_size){
+			printf("FILE: read unexpected number of bytes for: %s\n", path);
+			return {0};
+		}
 		data[file_size] = '\0';
 		fclose(file);
 
