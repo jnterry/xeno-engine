@@ -11,8 +11,9 @@
 #define XEN_GRAPHICS_CAMERA3D_HPP
 
 #include <xen/core/intrinsics.hpp>
-#include <xen/math/vector_types.hpp>
+#include <xen/math/vector.hpp>
 #include <xen/math/matrix.hpp>
+#include <xen/math/geometry_types.hpp>
 
 namespace xen {
 
@@ -140,14 +141,15 @@ namespace xen {
 	/// \see getViewMatrix
 	/////////////////////////////////////////////////////////////////////
 	Mat4r getProjectionMatrix(const ProjectionPerspective& p, Vec2r viewport_size);
+	inline Mat4r getProjectionMatrix(const ProjectionPerspective& p, Aabb2u viewport){
+		return getProjectionMatrix(p, (Vec2r)(viewport.max - viewport.min));
+	}
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Helper function which generates a standard Camera3d from some
 	/// other and then calls getViewProjectionMatrix
 	///
 	/// \public \memberof Camera3d
-	///
-	/// \overload getViewProjectionMatrix
 	///
 	/// \see getViewMatrix
 	/// \see getProjectionMatrix
@@ -156,6 +158,11 @@ namespace xen {
 	Mat4r getViewProjectionMatrix(const T_CAM& cam, Vec2r viewport_size){
 		Camera3d c = generateCamera3d(cam);
 		return getViewMatrix(c) * getProjectionMatrix(c, viewport_size);
+	}
+
+	template<typename T_CAM>
+	Mat4r getViewProjectionMatrix(const T_CAM& cam, Aabb2u viewport){
+		return getViewProjectionMatrix(cam, (Vec2r)(viewport.max - viewport.min));
 	}
 
 	/////////////////////////////////////////////////////////////////////
