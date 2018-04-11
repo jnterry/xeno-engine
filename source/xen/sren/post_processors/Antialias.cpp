@@ -20,7 +20,9 @@
 #define XEN_SREN_POSTPROCESSORS_ANTIALIAS_CPP
 
 #include <xen/sren/PostProcessor.hpp>
+#include <xen/math/utilities.hpp>
 #include <stdlib.h>
+#include <math.h>
 
 // Recommended values for constants to determine presence of edge
 #define EDGE_THRESHOLD_MIN 0.0312
@@ -30,9 +32,29 @@
 
 namespace xen {
 	namespace sren {
-
+		/// brief: get luma of a given color value
 		real rgb2luma(Vec3f rgb){
 		    return sqrt(dot(rgb, Vec3f(0.299, 0.587, 0.114)));
+		}
+
+		/// brief: get color of a position between pixels by bilinear filtering 4 nearest pixels
+		// :TODO: May want to just pass in specific pixels to this function
+		// :TODO: Any bugs may be here
+		Vec3f blendColor(Framebuffer& fb, Vec2r subPixelLocation){
+			real ratioVertical   = (subPixelLocation.x) - floor(subPixelLocation.x);
+		  real ratioHorizontal = (subPixelLocation.y) - floor(subPixelLocation.y);
+
+			// find color average of left pair of pixels
+			int topLeftIndex    = floor(subPixelLocation.y)*fb.size.x + floor(subPixelLocation.x);
+			int bottomLeftIndex = ceil(subPixelLocation.y)*fb.size.x  + floor(subPixelLocation.x);
+			Vec3f colorLeft = lerp(fb.color[topLeftIndex].rgb, fb.color[bottomLeftIndex].rgb, ratioVertical);
+
+			// find color average of right pair of pixels
+			int topRightIndex    = floor(subPixelLocation.y)*fb.size.x + ceil(subPixelLocation.x);
+			int bottomRightIndex = ceil(subPixelLocation.y)*fb.size.x  + ceil(subPixelLocation.x);
+			Vec3f colorRight = lerp(fb.color[topRightIndex].rgb, fb.color[bottomRightIndex].rgb, ratioVertical);
+
+			return lerp(colorLeft, colorRight, ratioHorizontal);
 		}
 
 		void fxaaStep(Framebuffer& fb, int x, int y, Vec2r inverseScreenSize) {
@@ -112,22 +134,22 @@ namespace xen {
 			}
 
 			// Shift UV in the correct direction by half a pixel.
-			Vec2r currentPixel = Vec2r{x,y};
+			Vec2r currentUv = Vec2r{x,y};
 			if(isHorizontal){
-    		currentPixel.y += stepLength * 0.5;
+    		currentUv.y += stepLength * 0.5;
 			} else {
-    		currentPixel.x += stepLength * 0.5;
+    		currentUv.x += stepLength * 0.5;
 			}
 
 			// Compute offset (for each iteration step) in the right direction.
 			Vec2r offset = isHorizontal ? Vec2r{inverseScreenSize.x, 0.0} : Vec2r{0.0,inverseScreenSize.y};
 			// Compute UVs to explore on each side of the edge, orthogonally. The QUALITY allows us to step faster.
-			Vec2r uv1 = currentPixel - offset;
-			Vec2r uv2 = currentPixel + offset;
+			Vec2r uv1 = currentUv - offset;
+			Vec2r uv2 = currentUv + offset;
 
 			// Read the lumas at both current extremities of the exploration segment, and compute the delta wrt to the local average luma.
-			real lumaEnd1 = rgb2luma(fb.color[(uv1.y)*fb.size.x + (uv1.x)].rgb);
-			real lumaEnd2 = rgb2luma(fb.color[(uv2.y)*fb.size.x + (uv2.x)].rgb);
+			real lumaEnd1 = rgb2luma(blendColor(fb, uv1));
+			real lumaEnd2 = rgb2luma(blendColor(fb, uv2));
 			lumaEnd1 -= lumaLocalAverage;
 			lumaEnd2 -= lumaLocalAverage;
 
@@ -150,12 +172,12 @@ namespace xen {
 			  for(int i = 2; i < ITERATIONS; i++){
 			    // If needed, read luma in 1st direction, compute delta.
 			    if(!reached1){
-			      lumaEnd1 = rgb2luma(fb.color[(uv1.y)*fb.size.x + (uv1.x)].rgb);
+			      lumaEnd1 = rgb2luma(blendColor(fb, uv1));
 			      lumaEnd1 = lumaEnd1 - lumaLocalAverage;
 			    }
 			    // If needed, read luma in opposite direction, compute delta.
 			    if(!reached2){
-			      lumaEnd2 = rgb2luma(fb.color[(uv2.y)*fb.size.x + (uv2.x)].rgb);
+			      lumaEnd2 = rgb2luma(blendColor(fb, uv2));
 			      lumaEnd2 = lumaEnd2 - lumaLocalAverage;
 			    }
 			    // If the luma deltas at the current extremities is larger than the local gradient, we have eached he side of the edge.
