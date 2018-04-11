@@ -220,7 +220,7 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 			               "bounds of the vertex list");
 
 			// Compute surface properties at intersection point
-			xen::Color4f pixel_color        = xen::Color::WHITE4f;
+			xen::Color4f pixel_color        = scene.models[intersection.model_index].color;
 			Vec3r        pixel_normal_world = Vec3r::Origin;
 			{
 				Vec3r* pbuf_model = scene.models[intersection.model_index].mesh->position;
@@ -249,7 +249,7 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 					ctri.p2 = xen::makeColor4f(cbuf[buf_index + 1]);
 					ctri.p3 = xen::makeColor4f(cbuf[buf_index + 2]);
 
-					pixel_color = evaluateBarycentricCoordinates(ctri, bary);
+					pixel_color *= evaluateBarycentricCoordinates(ctri, bary);
 				}
 
 				Vec3r pixel_normal_model = nbuf_model[buf_index];

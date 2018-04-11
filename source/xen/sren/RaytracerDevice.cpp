@@ -132,8 +132,6 @@ public:
 
 		////////////////////////////////////////////////////////////////////////////
 		// Render the triangles in the scene
-		printf("Raytracing scene with %li models (%i non-shadow casters)\n",
-		       xen::size(scene.models), scene.first_shadow_caster);
 		xen::sren::renderRaytrace(target, viewport, params, scene);
 
 		////////////////////////////////////////////////////////////////////////////
