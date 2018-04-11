@@ -46,26 +46,13 @@ namespace xen{
 		// TRIANGLE_STRIP
 	};
 
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Represents a single rendering operation which will draw
-	/// some object to the screen
-	/////////////////////////////////////////////////////////////////////
-	struct RenderCommand3d {
+	struct Material {
 		/// \brief The diffuse color to use
 		Color4f color;
 
 		/// \brief The emissive color of the surface, a/w component is interpreted
 		/// as a brightness modifier
 		Color4f emissive_color;
-
-		/// \brief Matrix to transform from world space to model space
-		Mat4r model_matrix;
-
-		/// \brief The type of primitive to be drawn by this command
-		PrimitiveType primitive_type;
-
-		/// \brief A handle to a mesh to be drawn, used if source is Mesh
-		xen::Mesh mesh;
 
 		/// \brief Enumeration of "extra" misc flags that may be set for a command
 		struct Flags : public xen::BitField<u08, 1> {
@@ -88,6 +75,25 @@ namespace xen{
 
 		/// \brief Extra flags for the command
 		Flags flags;
+	};
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents a single rendering operation which will draw
+	/// some object to the screen
+	/// \todo :TODO: Should this refer to a material rather than inheriting from
+	/// one? This means we can batch all commands with same material by comparing
+	/// pointer address only (if switching materials has a cost, eg in opengl when
+	/// changing shader uniforms...)
+	/////////////////////////////////////////////////////////////////////
+	struct RenderCommand3d : public Material{
+		/// \brief Matrix to transform from world space to model space
+		Mat4r model_matrix;
+
+		/// \brief A handle to a mesh to be drawn, used if source is Mesh
+		xen::Mesh mesh;
+
+		/// \brief The type of primitive to be drawn by this command
+		PrimitiveType primitive_type;
 	};
 
 	/////////////////////////////////////////////////////////////////////
