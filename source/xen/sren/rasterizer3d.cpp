@@ -129,8 +129,8 @@ namespace {
 		return out_screen;
 	}
 
-	xen::Quad3r _convertToScreenSpaceQuadOLD(const xen::Quad3r in_clip,
-		                                    const xen::Aabb2r& viewport){
+	xen::Quad3r _convertToScreenSpaceQuadOLD(const xen::Quad4r in_clip,
+	                                         const xen::Aabb2r& viewport){
 		xen::Quad3r out_screen = xen::swizzle<'x','y','z'>(in_clip);
 
 		out_screen += Vec3r{1,1,0};                                 // convert to [0, 2] space
@@ -319,7 +319,7 @@ namespace {
 
 				real depth = (tri_screen.p1.z * bary.x +
 				              tri_screen.p2.z * bary.y +
-				              tri_screen.p3.z * bary.z);
+				              tri_screen.p3.z * bary.z );
 
 				xen::Color4f color        = evaluateBarycentricCoordinates(colors,           bary);
 				Vec3r        pos_world    = evaluateBarycentricCoordinates(tri_world,        bary);
@@ -494,25 +494,26 @@ void rasterizeLinesModel(const RasterizationContext& cntx,
 
 // :TODO:OPT: profile -> is passing by reference faster?
 void rasterizeTriangleModel(const RasterizationContext& cntx,
-                            Triangle3r                  tri_model,
-                            Triangle3r                  tri_normal_model,
-                            Triangle4f                  tri_color){
+                            Triangle3r                  tri_pos_model,
+                            Triangle3r                  tri_nor_model,
+                            Triangle4f                  tri_color
+                           ){
 
-	xen::Triangle3r tri_world        = tri_model        * cntx.m_matrix;
-	xen::Triangle3r tri_normal_world = tri_normal_model * cntx.m_matrix;
+	xen::Triangle3r tri_pos_world = tri_pos_model * cntx.m_matrix;
+	xen::Triangle3r tri_nor_world = tri_nor_model * cntx.m_matrix;
 
 	// Model matrix may change scale of normals - re-normalise
-	tri_normal_world.p1 = xen::normalized(tri_normal_world.p1);
-	tri_normal_world.p2 = xen::normalized(tri_normal_world.p2);
-	tri_normal_world.p3 = xen::normalized(tri_normal_world.p3);
+	tri_nor_world.p1 = xen::normalized(tri_nor_world.p1);
+	tri_nor_world.p2 = xen::normalized(tri_nor_world.p2);
+	tri_nor_world.p3 = xen::normalized(tri_nor_world.p3);
 
-	xen::Triangle4r tri_clip         = xen::toHomo(tri_world) * cntx.vp_matrix;
+	xen::Triangle4r tri_pos_clip = xen::toHomo(tri_pos_world) * cntx.vp_matrix;
 
 	// Work out which points are behind the camera
 	u08 points_behind = 0;
-	points_behind |= (tri_clip.p1.z < 0) << 0;
-	points_behind |= (tri_clip.p2.z < 0) << 1;
-	points_behind |= (tri_clip.p3.z < 0) << 2;
+	points_behind |= (tri_pos_clip.p1.z < 0) << 0;
+	points_behind |= (tri_pos_clip.p2.z < 0) << 1;
+	points_behind |= (tri_pos_clip.p3.z < 0) << 2;
 
 	///////////////////////////////////////////////////////////////////
 	// Render the triangle(s)
@@ -522,29 +523,31 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 		return;
 	case 0: { // 000 - all points in front of camera
 		// Do perspective divide (into normalized device coordinates -> [-1, 1]
-		tri_clip.p1.xy /= (tri_clip.p1.w);
-		tri_clip.p2.xy /= (tri_clip.p2.w);
-		tri_clip.p3.xy /= (tri_clip.p3.w);
+		tri_pos_clip.p1.xy /= (tri_pos_clip.p1.w);
+		tri_pos_clip.p2.xy /= (tri_pos_clip.p2.w);
+		tri_pos_clip.p3.xy /= (tri_pos_clip.p3.w);
 
-		xen::Triangle3r tri_screen =
-			_convertToScreenSpaceTriOLD(tri_clip, *cntx.viewport);
+		xen::Triangle3r tri_pos_screen =
+			_convertToScreenSpaceTriOLD(tri_pos_clip, *cntx.viewport);
 
 		_renderTriangleScreen(cntx,
-		                      tri_world, tri_normal_world,
-		                      tri_screen, tri_color
+		                      tri_pos_world,  tri_nor_world,
+		                      tri_pos_screen, tri_color
 		                     );
 		return;
 	}
 
 	case 3:   // 011
-		xen::swap(tri_clip.p1,         tri_clip.p3        );
-		xen::swap(tri_normal_world.p1, tri_normal_world.p3);
-		xen::swap(tri_color.p1,        tri_color.p3       );
+		xen::swap(tri_pos_clip .p1, tri_pos_clip .p3);
+		xen::swap(tri_pos_world.p1, tri_pos_world.p3);
+		xen::swap(tri_nor_world.p1, tri_nor_world.p3);
+		xen::swap(tri_color    .p1, tri_color    .p3);
 		goto do_draw_2_behind;
 	case 5:   // 101
-		xen::swap(tri_clip.p1,         tri_clip.p2 );
-		xen::swap(tri_normal_world.p1, tri_normal_world.p2);
-		xen::swap(tri_color.p1,        tri_color.p2);
+		xen::swap(tri_pos_clip .p1, tri_pos_clip .p2);
+		xen::swap(tri_pos_world.p1, tri_pos_world.p2);
+		xen::swap(tri_nor_world.p1, tri_nor_world.p2);
+		xen::swap(tri_color    .p1, tri_color    .p2);
 		goto do_draw_2_behind;
 	case 6:   // 110
 	do_draw_2_behind: {
@@ -555,37 +558,44 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 			// Move point p2 and p3 along the line connecting them to p1 such that z
 			// component becomes 0
 
-			Vec4r delta_p2 = (tri_clip.p1 - tri_clip.p2);
-			real  frac_p2  = ((-tri_clip.p2.z / delta_p2.z));
-			tri_clip.p2   += delta_p2 * frac_p2;
-			tri_color.p2  += (tri_color.p1 - tri_color.p2) * frac_p2;
+			Vec4r delta_p2 = (tri_pos_clip.p1 - tri_pos_clip.p2);
+			real  frac_p2  = ((-tri_pos_clip.p2.z / delta_p2.z));
+			tri_pos_clip .p2  += (delta_p2                           ) * frac_p2;
+			tri_pos_world.p2  += (tri_pos_world.p1 - tri_pos_world.p2) * frac_p2;
+			tri_nor_world.p2  += (tri_nor_world.p1 - tri_nor_world.p2) * frac_p2;
+			tri_color    .p2  += (tri_color    .p1 - tri_color    .p2) * frac_p2;
 
-			Vec4r delta_p3 = (tri_clip.p1 - tri_clip.p3);
-			real  frac_p3  = ((-tri_clip.p3.z / delta_p3.z));
-			tri_clip.p3   += delta_p3 * frac_p3;
-			tri_color.p3  += (tri_color.p1 - tri_color.p3) * frac_p3;
+			Vec4r delta_p3 = (tri_pos_clip.p1 - tri_pos_clip.p3);
+			real  frac_p3  = ((-tri_pos_clip.p3.z / delta_p3.z));
+			tri_pos_clip .p3  += (delta_p3                           ) * frac_p3;
+			tri_pos_world.p3  += (tri_pos_world.p1 - tri_pos_world.p3) * frac_p3;
+			tri_nor_world.p3  += (tri_nor_world.p1 - tri_nor_world.p3) * frac_p3;
+			tri_color    .p3  += (tri_color    .p1 - tri_color    .p3) * frac_p3;
 
 			// Do perspective divide (into normalized device coordinates -> [-1, 1]
-			tri_clip.p1.xy /= (tri_clip.p1.w);
-			tri_clip.p2.xy /= (tri_clip.p2.w);
-			tri_clip.p3.xy /= (tri_clip.p3.w);
+			tri_pos_clip.p1.xy /= (tri_pos_clip.p1.w);
+			tri_pos_clip.p2.xy /= (tri_pos_clip.p2.w);
+			tri_pos_clip.p3.xy /= (tri_pos_clip.p3.w);
 
-			xen::Triangle3r tri_screen = _convertToScreenSpaceTriOLD(tri_clip, *cntx.viewport);
+			xen::Triangle3r tri_pos_screen =
+				_convertToScreenSpaceTriOLD(tri_pos_clip, *cntx.viewport);
 
 			_renderTriangleScreen(cntx,
-			                      tri_world, tri_normal_world,
-			                      tri_screen, tri_color);
+			                      tri_pos_world, tri_nor_world,
+			                      tri_pos_screen, tri_color);
 			return;
 		}
 	case 1: // 001
-		xen::swap(tri_clip.p1,         tri_clip.p3        );
-		xen::swap(tri_normal_world.p1, tri_normal_world.p3);
-		xen::swap(tri_color.p1,        tri_color.p3       );
+		xen::swap(tri_pos_clip .p1, tri_pos_clip .p3);
+		xen::swap(tri_pos_world.p1, tri_pos_world.p3);
+		xen::swap(tri_nor_world.p1, tri_nor_world.p3);
+		xen::swap(tri_color    .p1, tri_color    .p3);
 		goto do_draw_1_behind;
 	case 2: // 010
-		xen::swap(tri_clip.p2,         tri_clip.p3        );
-		xen::swap(tri_normal_world.p2, tri_normal_world.p3);
-		xen::swap(tri_color.p2,        tri_color.p3       );
+		xen::swap(tri_pos_clip .p2, tri_pos_clip .p3);
+		xen::swap(tri_pos_world.p2, tri_pos_world.p3);
+		xen::swap(tri_nor_world.p2, tri_nor_world.p3);
+		xen::swap(tri_color    .p2, tri_color    .p3);
 		goto do_draw_1_behind;
 	case 4: // 100
 	do_draw_1_behind: {
@@ -598,35 +608,40 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 			//Vec4r delta_p3 = (tri_clip.p1 - tri_clip.p3);
 			//tri_clip.p3 += delta_p3 * ((-tri_clip.p3.z / delta_p3.z));
 
-			Vec4r delta_p1       = (tri_clip.p1 - tri_clip.p3);
-			real  frac_p1        = ((-tri_clip.p3.z / delta_p1.z));
-			Vec4r p3_slide_to_p1 = (tri_clip.p3 + (delta_p1 * frac_p1));
+			Vec4r delta_p1       = (tri_pos_clip.p1 - tri_pos_clip.p3);
+			real  frac_p1        = ((-tri_pos_clip.p3.z / delta_p1.z));
+			Vec4r p3_slide_to_p1 = (tri_pos_clip.p3 + (delta_p1 * frac_p1));
 
-			Vec4r delta_p2       = (tri_clip.p2 - tri_clip.p3);
-			real  frac_p2        = ((-tri_clip.p3.z / delta_p2.z));
-			Vec4r p3_slide_to_p2 = (tri_clip.p3 + (delta_p2 * frac_p2));
+			Vec4r delta_p2       = (tri_pos_clip.p2 - tri_pos_clip.p3);
+			real  frac_p2        = ((-tri_pos_clip.p3.z / delta_p2.z));
+			Vec4r p3_slide_to_p2 = (tri_pos_clip.p3 + (delta_p2 * frac_p2));
 
-			xen::VertexGroup3r<4> quad_screen;
-			tri_clip.p1.xy /= (tri_clip.p1.w);
-			quad_screen.vertices[0] = tri_clip.p1.xyz;
-			p3_slide_to_p1.xy /= p3_slide_to_p1.w;
-			quad_screen.vertices[1] = p3_slide_to_p1.xyz;
-			tri_clip.p2.xy /= tri_clip.p2.w;
-			quad_screen.vertices[2] = tri_clip.p2.xyz;
-			p3_slide_to_p2.xy /= p3_slide_to_p2.w;
-			quad_screen.vertices[3] = p3_slide_to_p2.xyz;
+			xen::VertexGroup4r<4> quad_pos_clip;
+			quad_pos_clip.vertices[0] = tri_pos_clip.p1;
+			quad_pos_clip.vertices[1] = p3_slide_to_p1;
+			quad_pos_clip.vertices[2] = tri_pos_clip.p2;
+			quad_pos_clip.vertices[3] = p3_slide_to_p2;
 
-			xen::VertexGroup3r<4> quad_world;
-			quad_world.vertices[0] = tri_world.p1;
-			quad_world.vertices[1] = tri_world.p3 + (tri_world.p1 - tri_world.p3) * frac_p1;
-			quad_world.vertices[2] = tri_world.p2;
-			quad_world.vertices[3] = tri_world.p3 + (tri_world.p2 - tri_world.p3) * frac_p2;
+			// perspective divide
+			quad_pos_clip.vertices[0].xy /= quad_pos_clip.vertices[0].w;
+			quad_pos_clip.vertices[1].xy /= quad_pos_clip.vertices[1].w;
+			quad_pos_clip.vertices[2].xy /= quad_pos_clip.vertices[2].w;
+			quad_pos_clip.vertices[3].xy /= quad_pos_clip.vertices[3].w;
 
-			xen::VertexGroup3r<4> quad_normal_world;
-			quad_normal_world.vertices[0] = tri_normal_world.p1;
-			quad_normal_world.vertices[1] = tri_normal_world.p3 + (tri_normal_world.p1 - tri_normal_world.p3) * frac_p1;
-			quad_normal_world.vertices[2] = tri_normal_world.p2;
-			quad_normal_world.vertices[3] = tri_normal_world.p3 + (tri_normal_world.p2 - tri_normal_world.p3) * frac_p2;
+			xen::VertexGroup3r<4> quad_pos_screen =
+				_convertToScreenSpaceQuadOLD(quad_pos_clip, *cntx.viewport);
+
+			xen::VertexGroup3r<4> quad_pos_world;
+			quad_pos_world.vertices[0] = tri_pos_world.p1;
+			quad_pos_world.vertices[1] = tri_pos_world.p3 + (tri_pos_world.p1 - tri_pos_world.p3) * frac_p1;
+			quad_pos_world.vertices[2] = tri_pos_world.p2;
+			quad_pos_world.vertices[3] = tri_pos_world.p3 + (tri_pos_world.p2 - tri_pos_world.p3) * frac_p2;
+
+			xen::VertexGroup3r<4> quad_nor_world;
+			quad_nor_world.vertices[0] = tri_nor_world.p1;
+			quad_nor_world.vertices[1] = tri_nor_world.p3 + (tri_nor_world.p1 - tri_nor_world.p3) * frac_p1;
+			quad_nor_world.vertices[2] = tri_nor_world.p2;
+			quad_nor_world.vertices[3] = tri_nor_world.p3 + (tri_nor_world.p2 - tri_nor_world.p3) * frac_p2;
 
 			xen::VertexGroup4f<4> quad_colors;
 			quad_colors.vertices[0] = tri_color.p1;
@@ -634,19 +649,17 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 			quad_colors.vertices[2] = tri_color.p2;
 			quad_colors.vertices[3] = tri_color.p3 + (tri_color.p2 - tri_color.p3) * frac_p2;
 
-			quad_screen = _convertToScreenSpaceQuadOLD(quad_screen, *cntx.viewport);
-
 			_renderTriangleScreen(cntx,
-			                      *(xen::Triangle3r*)&quad_world.vertices [0],
-			                      *(xen::Triangle3r*)&quad_normal_world.vertices[0],
-			                      *(xen::Triangle3r*)&quad_screen.vertices[0],
-			                      *(xen::Triangle4f*)&quad_colors.vertices[0]
+			                      *(xen::Triangle3r*)&quad_pos_world .vertices[0],
+			                      *(xen::Triangle3r*)&quad_nor_world .vertices[0],
+			                      *(xen::Triangle3r*)&quad_pos_screen.vertices[0],
+			                      *(xen::Triangle4f*)&quad_colors    .vertices[0]
 			                      );
 			_renderTriangleScreen(cntx,
-			                      *(xen::Triangle3r*)&quad_world.vertices [1],
-			                      *(xen::Triangle3r*)&quad_normal_world.vertices[1],
-			                      *(xen::Triangle3r*)&quad_screen.vertices[1],
-			                      *(xen::Triangle4f*)&quad_colors.vertices[1]
+			                      *(xen::Triangle3r*)&quad_pos_world .vertices[1],
+			                      *(xen::Triangle3r*)&quad_nor_world .vertices[1],
+			                      *(xen::Triangle3r*)&quad_pos_screen.vertices[1],
+			                      *(xen::Triangle4f*)&quad_colors    .vertices[1]
 			                      );
 		}
 		return;
@@ -656,37 +669,23 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 
 void rasterizeTrianglesModel(const RasterizationContext& cntx,
                              const Vec3r*                pos_model,
-                             const Vec3r*                normal_model,
-                             const Color*                color_buffer,
+                             const Vec3r*                nor_model,
+                             const Color*                col_buffer,
                              const u32                   vertex_count){
 
-	Triangle3r tri_normal_model_default = {
-		Vec3r::Origin,
-		Vec3r::Origin,
-		Vec3r::Origin,
-	};
-
 	for(u32 i = 0; i < vertex_count - 1; i += 3){
-		Triangle3r* tri_world = (Triangle3r*)(&pos_model[i]);
-		Triangle3r* tri_normal_model;
-
-		if(normal_model != nullptr){
-			tri_normal_model = (Triangle3r*)(&normal_model[i]);
-		} else {
-			// :TODO: Compute triangle normals instead?
-			tri_normal_model = &tri_normal_model_default;
-		}
-
-		xen::Triangle4f tri_color = { xen::Color::WHITE4f,
+		Triangle3r* tri_pos_model = (Triangle3r*)(&pos_model[i]);
+		Triangle3r* tri_nor_model = (Triangle3r*)(&nor_model[i]);
+		Triangle4f  tri_col       = { xen::Color::WHITE4f,
 		                              xen::Color::WHITE4f,
 		                              xen::Color::WHITE4f };
-		if(color_buffer != nullptr){
-			tri_color.p1 = makeColor4f(color_buffer[i+0]);
-			tri_color.p2 = makeColor4f(color_buffer[i+1]);
-			tri_color.p3 = makeColor4f(color_buffer[i+2]);
+		if(col_buffer != nullptr){
+			tri_col.p1 = makeColor4f(col_buffer[i+0]);
+			tri_col.p2 = makeColor4f(col_buffer[i+1]);
+			tri_col.p3 = makeColor4f(col_buffer[i+2]);
 		}
 
-		rasterizeTriangleModel(cntx, *tri_world, *tri_normal_model, tri_color);
+		rasterizeTriangleModel(cntx, *tri_pos_model, *tri_nor_model, tri_col);
 	}
 } // end of rasterize triangles model
 
