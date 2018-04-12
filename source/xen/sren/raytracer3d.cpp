@@ -234,9 +234,13 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 				Vec3r bary = xen::getBarycentricCoordinates(ptri_model, intersection.pos_model);
 
 				#if XEN_DEBUG_CHECKS
-				if(bary.x < 0 || bary.y < 0 || bary.z < 0){
+				// Need to check if less that something slightly negative as else
+				// would get occasional false positive if any component is equal
+				// to -0
+				if(bary.x < -0.00001 || bary.y < -0.0001 || bary.z < -0.00001){
 					printf("WARN: Expected barycentric components to be positive, got:  "
 					       "(%f, %f, %f)\n", bary.x, bary.y, bary.z);
+					XenBreak();
 				}
 				#endif
 
