@@ -11,8 +11,9 @@
 
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
-#include <xen/math/geometry_types.hpp>
 #include <xen/math/utilities.hpp>
+#include <xen/math/geometry_types.hpp>
+#include <xen/math/matrix_types.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/core/array_types.hpp>
 
@@ -68,6 +69,16 @@ namespace xen{
 		xen::Color3f computeLightInfluence(xen::Color4f light_color,
 		                                   Vec3f        attenuation,
 		                                   real         distance_sq);
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Renders a bounding box to the screen
+		/////////////////////////////////////////////////////////////////////
+		void renderBoundingBox(xen::sren::RenderTargetImpl& target,
+		                       const xen::Aabb2r&           viewport,
+		                       const Mat4r&                 vp_matrix,
+		                       xen::Aabb3r                  aabb,
+		                       xen::Color4f                 color = xen::Color::RED4f
+		                      );
 
 	}
 

@@ -86,9 +86,13 @@ public:
 		////////////////////////////////////////////////////////////////////////////
 
 		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
+			auto mesh = this->mesh_store.getMesh(commands[cmd_index].mesh);
+			//renderBoundingBox(target, view_region, vp_matrix,
+			//                  xen::getTransformed(mesh->bounds, commands[cmd_index].model_matrix)
+			//                 );
 			rasterizeMesh(target, view_region, params,
 			              commands[cmd_index].model_matrix, vp_matrix,
-			              *this->mesh_store.getMesh(commands[cmd_index].mesh),
+			              *mesh,
 			              commands[cmd_index]);
 		}
 	}

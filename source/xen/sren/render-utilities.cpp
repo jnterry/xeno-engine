@@ -10,6 +10,7 @@
 #define XEN_SREN_RENDERUTILITIES_CPP
 
 #include <xen/graphics/Color.hpp>
+#include <xen/graphics/TestMeshes.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/core/array.hpp>
@@ -188,6 +189,23 @@ namespace xen {
 			                               camera_corner_rays,
 			                               nullptr, // color buffer
 			                               XenArrayLength(camera_corner_rays));
+		}
+
+		void renderBoundingBox(xen::sren::RenderTargetImpl& target,
+		                       const xen::Aabb2r&           viewport,
+		                       const Mat4r&                 vp_matrix,
+		                       xen::Aabb3r                  aabb,
+		                       xen::Color4f                 color){
+			Mat4r m_matrix = (xen::Scale3d      (xen::getSize(aabb)) *
+			                  xen::Translation3d(aabb.min          )
+			                 );
+			xen::RenderParameters3d params = {};
+			rasterizeLinesModel(target, viewport, params,
+			                    m_matrix, vp_matrix, color,
+			                    xen::TestMeshGeometry_UnitCubeLines.position,
+			                    xen::TestMeshGeometry_UnitCubeLines.color,
+			                    xen::TestMeshGeometry_UnitCubeLines.vertex_count,
+			                    2); //advance by 2 vertex for each line drawn
 		}
 	}
 }

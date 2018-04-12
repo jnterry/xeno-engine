@@ -155,15 +155,8 @@ void xen::sren::RaytracerDevice::doRender(xen::sren::RenderTargetImpl&          
 	// Render debug of the triangle meshes bounding boxes
 	#if 0
 	for(u32 i = 0; i < xen::size(scene.models); ++i){
-		Mat4r m_matrix = (xen::Scale3d      (xen::getSize(scene.models[i].aabb_world)) *
-		                  xen::Translation3d(scene.models[i].aabb_world.min)
-		                  );
-		rasterizeLinesModel(target, view_region, params,
-		                    m_matrix, vp_matrix, xen::Color::RED4f,
-		                    xen::TestMeshGeometry_UnitCubeLines.position,
-		                    xen::TestMeshGeometry_UnitCubeLines.color,
-		                    xen::TestMeshGeometry_UnitCubeLines.vertex_count,
-		                    2); //advance by 2 vertex for each line drawn
+		xen::sren::renderBoundingBox(target, view_region, vp_matrix,
+		                             scene.models[i].aabb_world, xen::Color::RED4f);
 	}
 	#endif
 	////////////////////////////////////////////////////////////////////////////
