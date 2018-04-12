@@ -162,7 +162,6 @@ namespace {
 
 
 
-		xen::Color3f total_light = Vec3f::Origin; //uniforms.ambient_light;
 		xen::Color3f total_light = uniforms.ambient_light;
 		total_light += (uniforms.emissive_color.rgb * uniforms.emissive_color.a);
 
