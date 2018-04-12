@@ -53,6 +53,8 @@
 	 - Arbitrary viewpoints
 		 - Rendering can be performed in arbitrary viewpoints of a render target
 		 - Try running the =cornell-box= demo with the device "Raytracer Camera Debug" to see a demonstration
+	 - Arbitrary number of lights
+		 - The engine supports multiple dynamic point lights per scene
 	 - Post Processing Pipeline
 		 - The software rendering backends support applying "post-processing" steps after the image has been rendered
 		 - :TODO: what post processors have we actually implemented?
@@ -83,6 +85,7 @@
 	 - Mesh System and Loading
 		 - Flexible mesh system which can represent meshes with an arbitary number of attributes (eg position data, normal data, color data, etc) potentially each having a different type
 		 - Use of assimp library to load mesh files (such as obj)
+		 - Additional "load flags" can be specified to manipulate the mesh as it loads, eg generating normals, centering the local origin to be at (0,0,0), etc
 	 - Windowing System
 		 - Low level implementation of window management, event polling etc using raw operating system calls with no reliance on external libraries
 		 - Implementation for both X11 and windows

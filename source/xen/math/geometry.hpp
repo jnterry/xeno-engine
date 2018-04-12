@@ -507,7 +507,7 @@ namespace xen{
 	}
 
 	template<u32 T_DIM, typename T>
-	Aabb<T_DIM, T> computeBoundingBox(Vec<T_DIM, T>* ps, u64 p_count){
+	Aabb<T_DIM, T> computeBoundingBox(const Vec<T_DIM, T>* ps, u64 p_count){
 		Aabb<T_DIM, T> result = Aabb<T_DIM, T>::MaxMinBox;
 		for(u64 i = 0; i < p_count; ++i){
 			xen::addPoint(result, ps[i]);

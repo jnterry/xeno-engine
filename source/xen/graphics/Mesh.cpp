@@ -50,12 +50,10 @@ namespace {
 
 		if(!recenter && !rescale){ return; }
 
-		Vec3r pre_scale     = -bounds_center;
-		Vec3r scale_factors = Vec3r{1,1,1};
+		Vec3r pre_scale    = -bounds_center;
+		real  scale_factor = 1;
 		if(rescale){
-			scale_factors = Vec3r{ 1_r / max_dim,
-			                       1_r / max_dim,
-			                       1_r / max_dim };
+			scale_factor = 1_r / max_dim;
 		}
 		Vec3r post_scale = -pre_scale;
 		if(recenter){
@@ -63,16 +61,21 @@ namespace {
 		}
 		for(u32 i = 0; i < mesh->vertex_count; ++i){
 			pbuf[i] += pre_scale;
-			pbuf[i] *= scale_factors;
-			pbuf[i] -= post_scale;
+			pbuf[i] *= scale_factor;
+			pbuf[i] += post_scale;
 		}
 
 		mesh->bounds.min += pre_scale;
-		mesh->bounds.min *= scale_factors;
-		mesh->bounds.min -= post_scale;
+		mesh->bounds.min *= scale_factor;
+		mesh->bounds.min += post_scale;
 		mesh->bounds.max += pre_scale;
-		mesh->bounds.max *= scale_factors;
-		mesh->bounds.max -= post_scale;
+		mesh->bounds.max *= scale_factor;
+		mesh->bounds.max += post_scale;
+
+		mesh->bounds = xen::computeBoundingBox(pbuf, mesh->vertex_count);
+		//XenDebugAssert(real_bounds == mesh->bounds,
+		                //               "Something went wrong with mesh position manipulation"
+		                //              );
 	}
 
 	struct VertexAttributeAspects {
