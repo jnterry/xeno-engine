@@ -176,7 +176,31 @@ TEST_CASE("Aabb Swizzles", "[math][Aabb][swizzle]"){
 	}
 }
 
+TEST_CASE("computeAabb", "[math][Aabb]"){
+
+	SECTION("2d unit axes") {
+		CHECK(xen::computeBoundingBox(Vec2r::UnitAxes, 3) == xen::Aabb2r{{0,0}, {1,1}});
+	}
+
+	SECTION("3d unit axes") {
+		CHECK(xen::computeBoundingBox(Vec3r::UnitAxes, 3) == xen::Aabb3r{{0,0,0}, {1,1,1}});
+	}
+
+	SECTION("3d arbitrary") {
+		Vec3r ps[] = {
+			Vec3r{- 5,  10,  20},
+			Vec3r{  1,   3,   8},
+			Vec3r{  1,  25, - 7},
+			Vec3r{  6,  -2, - 6},
+			Vec3r{  0,  -4,   9},
+		};
+		CHECK(xen::computeBoundingBox(ps, 3) == xen::Aabb3r{{-5, 3,-7}, {1,25,20}});
+		CHECK(xen::computeBoundingBox(ps, 5) == xen::Aabb3r{{-5,-4,-7}, {6,25,20}});
+	}
+}
+
 
 // :TODO: aabb3 intersections
-// :TOOD: translations
+// :TODO: translations
+// :TODO: transformations
 // :TODO: area
