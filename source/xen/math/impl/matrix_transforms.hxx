@@ -40,11 +40,14 @@ namespace xen{
 		real s = xen::sin(-a);
 		return { c,-s,0,0,  s,c,0,0,  0,0,1,0,  0,0,0,1 };
 	}
-	inline Mat4r Translation3d(real x, real y, real z){ return { 1,0,0,0,  0,1,0,0,  0,0,1,0,  x,y,z,1}; }
-	inline Mat4r Translation3d(Vec3r v               ){ return Translation3d(v.x, v.y, v.z);             }
-	inline Mat4r Scale3d      (real x, real y, real z){ return { x,0,0,0,  0,y,0,0,  0,0,z,0,  0,0,0,1}; }
-	inline Mat4r Scale3d      (Vec3r factors         ){ return Scale3d(factors.x, factors.y, factors.z); }
-	inline Mat4r Scale3d      (real  factors         ){ return Scale3d(factors, factors, factors);       }
+	inline Mat4r Translation3d (real x, real y, real z){ return { 1,0,0,0,  0,1,0,0,  0,0,1,0,  x,y,z,1}; }
+	inline Mat4r Translation3dx(real x                ){ return { 1,0,0,0,  0,1,0,0,  0,0,1,0,  x,0,0,1}; }
+	inline Mat4r Translation3dy(        real y        ){ return { 1,0,0,0,  0,1,0,0,  0,0,1,0,  0,y,0,1}; }
+	inline Mat4r Translation3dz(                real z){ return { 1,0,0,0,  0,1,0,0,  0,0,1,0,  0,0,z,1}; }
+	inline Mat4r Translation3d (Vec3r v               ){ return Translation3d(v.x, v.y, v.z);             }
+	inline Mat4r Scale3d       (real x, real y, real z){ return { x,0,0,0,  0,y,0,0,  0,0,z,0,  0,0,0,1}; }
+	inline Mat4r Scale3d       (Vec3r factors         ){ return Scale3d(factors.x, factors.y, factors.z); }
+	inline Mat4r Scale3d       (real  factors         ){ return Scale3d(factors, factors, factors);       }
 
 	inline Mat4r createPerspectiveProjection(Angle fov_y, real width, real height, real z_near, real  z_far){
 		real aspectRatio = width/height;
