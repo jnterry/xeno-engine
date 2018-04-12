@@ -149,32 +149,33 @@ namespace {
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Performs fragment shader computations - IE: lighting
-	/// \todo texture lookup
-	/// \param params       The rendering parameters describing the whole scene
+	/// \param uniforms     Uniform variables being passed to the fragment shader
 	/// \param pos_world    The position of the point being filled in world space
 	/// \param normal_world The normal of the point being filled in world space
-	/// \param color        The base diffuse color of the point being filled
+	/// \param color        The diffuse color of the point being filled
 	/////////////////////////////////////////////////////////////////////
-	xen::Color4f _fragmentShader(const xen::RenderParameters3d& params,
-	                             Vec3r                          pos_world,
-	                             Vec3r                          normal_world,
-	                             xen::Color4f                   color){
+	// :TODO:OPT: profile -> is pass by reference faster?
+	xen::Color4f _fragmentShader(const xen::sren::FragmentUniforms& uniforms,
+	                             Vec3r                              pos_world,
+	                             Vec3r                              normal_world,
+	                             xen::Color4f                       color){
 
-		xen::Color4f result = xen::Color4f::Origin;
 
-		xen::Color3f total_light = params.ambient_light;
 
-		for(u32 i = 0; i < xen::size(params.lights); ++i){
-			if(params.lights[i].type != xen::LightSource3d::POINT){
+		xen::Color3f total_light = Vec3f::Origin; //uniforms.ambient_light;
+		total_light += (uniforms.emissive_color.rgb * uniforms.emissive_color.a);
+
+		for(u32 i = 0; i < xen::size(uniforms.lights); ++i){
+			if(uniforms.lights[i].type != xen::LightSource3d::POINT){
 				printf("WARN: Unsupported light type in rasterizer\n");
 				continue;
 			}
 
-			real dist_sq_world = xen::distanceSq(pos_world, params.lights[i].point.position);
+			real dist_sq_world = xen::distanceSq(pos_world, uniforms.lights[i].point.position);
 
 			total_light += xen::sren::computeLightInfluence
-				(params.lights[i].color,
-				 params.lights[i].attenuation,
+				(uniforms.lights[i].color,
+				 uniforms.lights[i].attenuation,
 				 dist_sq_world
 				);
 		}
@@ -185,26 +186,26 @@ namespace {
 			}
 		}
 
-		result.rgb = color.rgb * total_light;
+		xen::Color4f result = xen::Color4f::Origin;
+		result.rgb = uniforms.diffuse_color.rgb * color.rgb * total_light;
 		result.a   = 1;
 
 		return result;
 	}
 
-	void _renderTriangleScreen(xen::sren::RenderTargetImpl&   target,
-	                           const xen::Aabb2r&             viewport,
-	                           const xen::RenderParameters3d& params,
-	                           xen::Triangle3r                tri_world,
-	                           xen::Triangle3r                tri_normal_world,
-	                           xen::Triangle3r                tri_screen,
-	                           xen::Triangle4f                colors){
+	// :TODO:OPT: profile -> is passing by reference faster
+	void _renderTriangleScreen(const xen::sren::RasterizationContext& cntx,
+	                           xen::Triangle3r                        tri_world,
+	                           xen::Triangle3r                        tri_normal_world,
+	                           xen::Triangle3r                        tri_screen,
+	                           xen::Triangle4f                        colors){
 		xen::Triangle2r tri_screen_xy = xen::swizzle<'x','y'>(tri_screen);
 
 		xen::Aabb2r region_r = xen::Aabb2r::MaxMinBox;
 		xen::addPoint(region_r, tri_screen_xy.p1);
 		xen::addPoint(region_r, tri_screen_xy.p2);
 		xen::addPoint(region_r, tri_screen_xy.p3);
-		if(!xen::intersect(region_r, viewport)){
+		if(!xen::intersect(region_r, *cntx.viewport)){
 			return;
 		}
 		xen::Aabb2u region = (xen::Aabb2u)region_r;
@@ -241,7 +242,7 @@ namespace {
 
 		float frac_y = 0.0_r;
 		for(u32 y = region.min.y; y <= region.max.y; ++y, frac_y += incr_y){
-			u32 pixel_index_base = y*target.width;
+			u32 pixel_index_base = y * cntx.target->width;
 
 			Vec3r bary_left  = xen::lerp(bary_bottom_left,  bary_top_left,  frac_y);
 			Vec3r bary_right = xen::lerp(bary_bottom_right, bary_top_right, frac_y);
@@ -330,12 +331,12 @@ namespace {
 				pos_world    *= depth;
 				normal_world *= depth;
 
-				if (depth < target.depth[pixel_index]) {
-					target.depth[pixel_index] = depth;
-					target.color[pixel_index] = _fragmentShader(params,
-					                                            pos_world,
-					                                            normal_world,
-					                                            color);
+				if (depth < cntx.target->depth[pixel_index]) {
+					cntx.target->depth[pixel_index] = depth;
+					cntx.target->color[pixel_index] = _fragmentShader(cntx,
+					                                                  pos_world,
+					                                                  normal_world,
+					                                                  color);
 				}
 			}
 		}
@@ -345,15 +346,20 @@ namespace {
 namespace xen {
 namespace sren {
 
-void rasterizePointsModel(xen::sren::RenderTargetImpl&        target,
-                          const xen::Aabb2r&                  viewport,
-                          const xen::RenderParameters3d&      params,
-                          const Mat4r&                        m_matrix,
-                          const Mat4r&                        vp_matrix,
-                          const xen::Color4f                  color,
-                          const Vec3r*                        pos_model,
-                          const xen::Color*                   color_buffer,
-                          const u32                           vertex_count){
+void setPerCommandFragmentUniforms(FragmentUniforms& uniforms,
+                                   const Material&   material,
+                                   const Mat4r&      m_mat,
+                                   const Mat4r&      vp_mat){
+	uniforms.m_matrix       = m_mat;
+	uniforms.vp_matrix      = vp_mat;
+	uniforms.diffuse_color  = material.color;
+	uniforms.emissive_color = material.emissive_color;
+}
+
+void rasterizePointsModel(const RasterizationContext& cntx,
+                          const Vec3r*                pos_model,
+                          const Color*                color_buffer,
+                          const u32                   vertex_count){
 
 	bool colors_per_vertex = (color_buffer != nullptr);
 	if(!colors_per_vertex){
@@ -361,8 +367,8 @@ void rasterizePointsModel(xen::sren::RenderTargetImpl&        target,
 	}
 
 	for(u32 i = 0; i < vertex_count; ++i){
-		Vec4r point_world = xen::toHomo(pos_model[i]) * m_matrix;
-		Vec4r point_clip  = point_world * vp_matrix;
+		Vec4r point_world = xen::toHomo(pos_model[i]) * cntx.m_matrix;
+		Vec4r point_clip  = point_world * cntx.vp_matrix;
 
 		if(point_clip.x < -point_clip.w ||
 		   point_clip.x >  point_clip.w ||
@@ -374,35 +380,30 @@ void rasterizePointsModel(xen::sren::RenderTargetImpl&        target,
 			continue;
 		}
 
-		Vec3r point_screen = _convertToScreenSpace(point_clip, viewport);
+		Vec3r point_screen = _convertToScreenSpace(point_clip, *cntx.viewport);
 
-		u32 pixel_index = (u32)point_screen.y*target.width + (u32)point_screen.x;
+		u32 pixel_index = (u32)point_screen.y*cntx.target->width + (u32)point_screen.x;
 
-		if (point_screen.z > target.depth[pixel_index]){
+		if (point_screen.z > cntx.target->depth[pixel_index]){
 			// Then point is behind something else occupying this pixel
 			continue;
 		}
 
-		target.depth[pixel_index] = point_clip.z;
-		target.color[pixel_index] = _fragmentShader
-			(params,
+		cntx.target->depth[pixel_index] = point_clip.z;
+		cntx.target->color[pixel_index] = _fragmentShader
+			(cntx,
 			 point_world.xyz,
 			 Vec3r::Origin,
-			 xen::makeColor4f(color_buffer[i * colors_per_vertex]) * color
-			 );
+			 xen::makeColor4f(color_buffer[i * colors_per_vertex]));
 	}
 } // end of rasterizePointsModel
 
-void rasterizeLineModel(xen::sren::RenderTargetImpl&  target,
-                        const xen::Aabb2r&            viewport,
-                        const xen::RenderParameters3d params,
-                        const Mat4r&                  m_matrix,
-                        const Mat4r&                  vp_matrix,
-                        const xen::LineSegment3r&     line_model,
-                        const xen::LineSegment4f&     line_color){
+void rasterizeLineModel(const RasterizationContext& cntx,
+                        const LineSegment3r&        line_model,
+                        const LineSegment4f&        line_color){
 
-	xen::LineSegment3r line_world = line_model * m_matrix;
-	xen::LineSegment4r line_clip  = xen::toHomo(line_world) * vp_matrix;
+	xen::LineSegment3r line_world = line_model * cntx.m_matrix;
+	xen::LineSegment4r line_clip  = xen::toHomo(line_world) * cntx.vp_matrix;
 
 	///////////////////////////////////////////////////////////////////
 	// Do line clipping against z planes
@@ -435,9 +436,9 @@ void rasterizeLineModel(xen::sren::RenderTargetImpl&  target,
 	///////////////////////////////////////////////////////////////////
 	// Clip to the viewport
 	xen::LineSegment2r line_screen =
-		_convertToScreenSpaceOLD<xen::LineSegment4r, xen::LineSegment2r>(line_clip, viewport);
+		_convertToScreenSpaceOLD<xen::LineSegment4r, xen::LineSegment2r>(line_clip, *cntx.viewport);
 
-	if(!xen::intersect(line_screen, viewport)){
+	if(!xen::intersect(line_screen, *cntx.viewport)){
 		return;
 	}
 	if(line_screen.p1 == line_screen.p2){ return; }
@@ -457,68 +458,55 @@ void rasterizeLineModel(xen::sren::RenderTargetImpl&  target,
 		real lerp_factor = i / num_pixels;
 
 		// :TODO: should be u32 -> but cur.y or cur.z may be negative
-		s32  pixel_index = (s32)cur_screen.y*target.width + cur_screen.x;
+		s32  pixel_index = (s32)cur_screen.y*cntx.target->width + cur_screen.x;
 
 		real         depth      = xen::lerp(z_start, z_end, lerp_factor);
 		xen::Color4f base_color = xen::lerp(line_color,     lerp_factor);
 		Vec3r        pos_world  = xen::lerp(line_world,     lerp_factor);
 
-		if (depth < target.depth[pixel_index]) {
-			target.color[pixel_index] = _fragmentShader(params,
-			                                            pos_world,
-			                                            Vec3r::Origin,
-			                                            base_color
-			                                            );
-			target.depth[pixel_index] = depth;
+		if (depth < cntx.target->depth[pixel_index]) {
+			cntx.target->color[pixel_index] = _fragmentShader(cntx,
+			                                                  pos_world,
+			                                                  Vec3r::Origin,
+			                                                  base_color);
+			cntx.target->depth[pixel_index] = depth;
 		}
 		cur_screen += delta_screen;
 	}
 } // end of function rasterizeLineModel
 
-void rasterizeLinesModel(xen::sren::RenderTargetImpl&  target,
-                         const xen::Aabb2r&            viewport,
-                         const xen::RenderParameters3d params,
-                         const Mat4r&                  m_matrix,
-                         const Mat4r&                  vp_matrix,
-                         const xen::Color4f            base_color,
-                         const Vec3r*                  pos_model,
-                         const xen::Color*             color_buffer,
-                         const u32                     vertex_count,
-                         const u32                     stride){
+void rasterizeLinesModel(const RasterizationContext& cntx,
+                         const Vec3r*                pos_model,
+                         const Color*                color_buffer,
+                         const u32                   vertex_count,
+                         const u32                   stride){
 	for(u32 i = 0; i < vertex_count - 1; i += stride){
 		LineSegment3r* line_model = (LineSegment3r*)(&pos_model[i]);
-		LineSegment4f  line_color = { base_color, base_color };
-
+		LineSegment4f  line_color = { xen::Color::WHITE4f, xen::Color::WHITE4f };
 		if(color_buffer != nullptr){
-			line_color.p1 *= xen::makeColor4f(color_buffer[i+0]);
-			line_color.p2 *= xen::makeColor4f(color_buffer[i+1]);
+			line_color.p1 = xen::makeColor4f(color_buffer[i+0]);
+			line_color.p2 = xen::makeColor4f(color_buffer[i+1]);
 		}
 
-		rasterizeLineModel(target, viewport, params,
-		                   m_matrix, vp_matrix,
-		                   *line_model, line_color
-		                  );
+		rasterizeLineModel(cntx, *line_model, line_color);
 	}
 } // end of rasterize lines model
 
-void rasterizeTriangleModel(xen::sren::RenderTargetImpl&   target,
-                            const xen::Aabb2r&             viewport,
-                            const xen::RenderParameters3d  params,
-                            const Mat4r&                   m_matrix,
-                            const Mat4r&                   vp_matrix,
-                            const xen::Triangle3r&         tri_model,
-                            const xen::Triangle3r&         tri_normal_model,
-                            xen::Triangle4f                tri_color){
+// :TODO:OPT: profile -> is passing by reference faster?
+void rasterizeTriangleModel(const RasterizationContext& cntx,
+                            Triangle3r                  tri_model,
+                            Triangle3r                  tri_normal_model,
+                            Triangle4f                  tri_color){
 
-	xen::Triangle3r tri_world        = tri_model        * m_matrix;
-	xen::Triangle3r tri_normal_world = tri_normal_model * m_matrix;
+	xen::Triangle3r tri_world        = tri_model        * cntx.m_matrix;
+	xen::Triangle3r tri_normal_world = tri_normal_model * cntx.m_matrix;
 
 	// Model matrix may change scale of normals - re-normalise
 	tri_normal_world.p1 = xen::normalized(tri_normal_world.p1);
 	tri_normal_world.p2 = xen::normalized(tri_normal_world.p2);
 	tri_normal_world.p3 = xen::normalized(tri_normal_world.p3);
 
-	xen::Triangle4r tri_clip         = xen::toHomo(tri_world) * vp_matrix;
+	xen::Triangle4r tri_clip         = xen::toHomo(tri_world) * cntx.vp_matrix;
 
 	// Work out which points are behind the camera
 	u08 points_behind = 0;
@@ -539,11 +527,12 @@ void rasterizeTriangleModel(xen::sren::RenderTargetImpl&   target,
 		tri_clip.p3.xy /= (tri_clip.p3.w);
 
 		xen::Triangle3r tri_screen =
-			_convertToScreenSpaceTriOLD(tri_clip, viewport);
+			_convertToScreenSpaceTriOLD(tri_clip, *cntx.viewport);
 
-		_renderTriangleScreen(target, viewport, params,
+		_renderTriangleScreen(cntx,
 		                      tri_world, tri_normal_world,
-		                      tri_screen, tri_color);
+		                      tri_screen, tri_color
+		                     );
 		return;
 	}
 
@@ -581,9 +570,9 @@ void rasterizeTriangleModel(xen::sren::RenderTargetImpl&   target,
 			tri_clip.p2.xy /= (tri_clip.p2.w);
 			tri_clip.p3.xy /= (tri_clip.p3.w);
 
-			xen::Triangle3r tri_screen = _convertToScreenSpaceTriOLD(tri_clip, viewport);
+			xen::Triangle3r tri_screen = _convertToScreenSpaceTriOLD(tri_clip, *cntx.viewport);
 
-			_renderTriangleScreen(target, viewport, params,
+			_renderTriangleScreen(cntx,
 			                      tri_world, tri_normal_world,
 			                      tri_screen, tri_color);
 			return;
@@ -645,15 +634,15 @@ void rasterizeTriangleModel(xen::sren::RenderTargetImpl&   target,
 			quad_colors.vertices[2] = tri_color.p2;
 			quad_colors.vertices[3] = tri_color.p3 + (tri_color.p2 - tri_color.p3) * frac_p2;
 
-			quad_screen = _convertToScreenSpaceQuadOLD(quad_screen, viewport);
+			quad_screen = _convertToScreenSpaceQuadOLD(quad_screen, *cntx.viewport);
 
-			_renderTriangleScreen(target, viewport, params,
+			_renderTriangleScreen(cntx,
 			                      *(xen::Triangle3r*)&quad_world.vertices [0],
 			                      *(xen::Triangle3r*)&quad_normal_world.vertices[0],
 			                      *(xen::Triangle3r*)&quad_screen.vertices[0],
 			                      *(xen::Triangle4f*)&quad_colors.vertices[0]
 			                      );
-			_renderTriangleScreen(target, viewport, params,
+			_renderTriangleScreen(cntx,
 			                      *(xen::Triangle3r*)&quad_world.vertices [1],
 			                      *(xen::Triangle3r*)&quad_normal_world.vertices[1],
 			                      *(xen::Triangle3r*)&quad_screen.vertices[1],
@@ -665,16 +654,11 @@ void rasterizeTriangleModel(xen::sren::RenderTargetImpl&   target,
 } // end of function rasterizeTriangleModel
 
 
-void rasterizeTrianglesModel(xen::sren::RenderTargetImpl&  target,
-                             const xen::Aabb2r&            viewport,
-                             const xen::RenderParameters3d params,
-                             const Mat4r&                  m_matrix,
-                             const Mat4r&                  vp_matrix,
-                             const xen::Color4f            base_color,
-                             const Vec3r*                  pos_model,
-                             const Vec3r*                  normal_model,
-                             const xen::Color*             color_buffer,
-                             const u32                     vertex_count){
+void rasterizeTrianglesModel(const RasterizationContext& cntx,
+                             const Vec3r*                pos_model,
+                             const Vec3r*                normal_model,
+                             const Color*                color_buffer,
+                             const u32                   vertex_count){
 
 	Triangle3r tri_normal_model_default = {
 		Vec3r::Origin,
@@ -693,56 +677,47 @@ void rasterizeTrianglesModel(xen::sren::RenderTargetImpl&  target,
 			tri_normal_model = &tri_normal_model_default;
 		}
 
-		xen::Triangle4f tri_color = { base_color, base_color, base_color };
+		xen::Triangle4f tri_color = { xen::Color::WHITE4f,
+		                              xen::Color::WHITE4f,
+		                              xen::Color::WHITE4f };
 		if(color_buffer != nullptr){
-			tri_color.p1 *= makeColor4f(color_buffer[i+0]);
-			tri_color.p2 *= makeColor4f(color_buffer[i+1]);
-			tri_color.p3 *= makeColor4f(color_buffer[i+2]);
+			tri_color.p1 = makeColor4f(color_buffer[i+0]);
+			tri_color.p2 = makeColor4f(color_buffer[i+1]);
+			tri_color.p3 = makeColor4f(color_buffer[i+2]);
 		}
 
-		rasterizeTriangleModel(target, viewport, params,
-		                       m_matrix, vp_matrix,
-		                       *tri_world, *tri_normal_model, tri_color
-		                      );
+		rasterizeTriangleModel(cntx, *tri_world, *tri_normal_model, tri_color);
 	}
 } // end of rasterize triangles model
 
 
-void rasterizeMesh(xen::sren::RenderTargetImpl&   target,
-                   const xen::Aabb2r&             viewport,
-                   const xen::RenderParameters3d  params,
-                   const Mat4r&                   m_matrix,
-                   const Mat4r&                   vp_matrix,
-                   const xen::MeshGeometrySource& mesh,
-                   const xen::Material&           material){
+void rasterizeMesh(const RasterizationContext&    context,
+                   xen::PrimitiveType             primitive_type,
+                   const xen::MeshGeometrySource& mesh){
 
-	switch(material.primitive_type){
+	switch(primitive_type){
 	case xen::PrimitiveType::POINTS:
-		rasterizePointsModel(target, viewport, params,
-		                     m_matrix, vp_matrix, material.color,
+		rasterizePointsModel(context,
 		                     mesh.position,
 		                     mesh.color,
 		                     mesh.vertex_count);
 		break;
 	case xen::PrimitiveType::LINES:
-		rasterizeLinesModel(target, viewport, params,
-		                    m_matrix, vp_matrix, material.color,
+		rasterizeLinesModel(context,
 		                    mesh.position,
 		                    mesh.color,
 		                    mesh.vertex_count,
 		                    2); //advance by 2 vertices for each line drawn
 		break;
 	case xen::PrimitiveType::LINE_STRIP:
-		rasterizeLinesModel(target, viewport, params,
-		                    m_matrix, vp_matrix, material.color,
+		rasterizeLinesModel(context,
 		                    mesh.position,
 		                    mesh.color,
 		                    mesh.vertex_count,
 		                    1); //advance by 1 vertex for each line drawn
 		break;
 	case xen::PrimitiveType::TRIANGLES: {
-		rasterizeTrianglesModel(target, viewport, params,
-		                        m_matrix, vp_matrix, material.color,
+		rasterizeTrianglesModel(context,
 		                        mesh.position,
 		                        mesh.normal,
 		                        mesh.color,

@@ -13,6 +13,7 @@
 #include "rasterizer3d.hxx" // fall back to rasterizer for lines and points
 #include "RaytracerDevice.hxx"
 
+#include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/sren/SoftwareDevice.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/math/matrix.hpp>
@@ -163,14 +164,16 @@ void xen::sren::RaytracerDevice::doRender(xen::sren::RenderTargetImpl&          
 
 	////////////////////////////////////////////////////////////////////////////
 	// Render the non triangles in the scene
+	RasterizationContext context;
+	context.target   = &target;
+	context.viewport = &view_region;
 	for(u32 i = 0; i < xen::size(commands); ++i){
 		u32 cmd_index = non_triangle_cmds[i];
 		const xen::RenderCommand3d* cmd = &commands[cmd_index];
-
-		rasterizeMesh(target, view_region, params,
-		              cmd->model_matrix, vp_matrix,
-		              *this->mesh_store.getMesh(cmd->mesh),
-		              *cmd);
+		setPerCommandFragmentUniforms(context, *cmd,
+		                              cmd->model_matrix, vp_matrix
+		                             );
+		rasterizeMesh(context, cmd->primitive_type, *this->mesh_store.getMesh(cmd->mesh));
 	}
 
 	// :TODO: log trace

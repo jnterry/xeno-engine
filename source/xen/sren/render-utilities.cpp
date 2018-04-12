@@ -11,6 +11,7 @@
 
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/TestMeshes.hpp>
+#include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/core/array.hpp>
@@ -173,35 +174,35 @@ namespace xen {
 
 			Mat4r vp_matrix = xen::getViewProjectionMatrix(view_camera, viewport);
 
-			xen::RenderParameters3d params = {};
-			params.camera = view_camera;
+			RasterizationContext context;
+			context.camera          = view_camera;
+			context.target          = &target;
+			context.viewport        = &view_region;
+			context.m_matrix        = Mat4f::Identity;
+			context.vp_matrix       = vp_matrix;
+			context.diffuse_color   = xen::Color::WHITE4f;
+			context.emissive_color  = xen::Color::WHITE4f;
 
-			xen::sren::rasterizeLinesModel(target, view_region, params,
-			                               Mat4r::Identity, vp_matrix,
-			                               xen::Color::WHITE4f,
+			xen::sren::rasterizeLinesModel(context,
 			                               camera_local_axes,
 			                               camera_local_axes_colors,
 			                               XenArrayLength(camera_local_axes));
 
-			xen::sren::rasterizeLinesModel(target, view_region, params,
-			                               Mat4r::Identity, vp_matrix,
-			                               xen::Color::WHITE4f,
+			xen::sren::rasterizeLinesModel(context,
 			                               camera_corner_rays,
 			                               nullptr, // color buffer
 			                               XenArrayLength(camera_corner_rays));
 		}
 
-		void renderBoundingBox(xen::sren::RenderTargetImpl& target,
-		                       const xen::Aabb2r&           viewport,
-		                       const Mat4r&                 vp_matrix,
-		                       xen::Aabb3r                  aabb,
-		                       xen::Color4f                 color){
-			Mat4r m_matrix = (xen::Scale3d      (xen::getSize(aabb)) *
-			                  xen::Translation3d(aabb.min          )
-			                 );
-			xen::RenderParameters3d params = {};
-			rasterizeLinesModel(target, viewport, params,
-			                    m_matrix, vp_matrix, color,
+		// :TODO:*this probably shouldnt take a context...
+		void renderDebugBoundingBox(RasterizationContext context,
+		                            xen::Aabb3r          aabb,
+		                            xen::Color4f         color){
+			context.m_matrix      = (xen::Scale3d      (xen::getSize(aabb)) *
+			                         xen::Translation3d(aabb.min          )
+			                        );
+			context.diffuse_color = color;
+			rasterizeLinesModel(context,
 			                    xen::TestMeshGeometry_UnitCubeLines.position,
 			                    xen::TestMeshGeometry_UnitCubeLines.color,
 			                    xen::TestMeshGeometry_UnitCubeLines.vertex_count,

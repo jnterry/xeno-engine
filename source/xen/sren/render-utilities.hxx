@@ -9,6 +9,8 @@
 #ifndef XEN_GRAPHICS_SREN_RENDERUTILITIES_HPP
 #define XEN_GRAPHICS_SREN_RENDERUTILITIES_HPP
 
+#include "rasterizer3d.hxx"
+
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/math/utilities.hpp>
@@ -73,12 +75,10 @@ namespace xen{
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Renders a bounding box to the screen
 		/////////////////////////////////////////////////////////////////////
-		void renderBoundingBox(xen::sren::RenderTargetImpl& target,
-		                       const xen::Aabb2r&           viewport,
-		                       const Mat4r&                 vp_matrix,
-		                       xen::Aabb3r                  aabb,
-		                       xen::Color4f                 color = xen::Color::RED4f
-		                      );
+		void renderDebugBoundingBox(RasterizationContext context,
+		                            xen::Aabb3r          aabb,
+		                            xen::Color4f         color = xen::Color::RED4f
+		                           );
 
 	}
 

@@ -85,15 +85,25 @@ public:
 		}
 		////////////////////////////////////////////////////////////////////////////
 
+		xen::sren::RasterizationContext context;
+		context.target    = &target;
+		context.viewport  = &view_region;
+		*(xen::RenderParameters3d*)(&context) = params;
 		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
-			auto mesh = this->mesh_store.getMesh(commands[cmd_index].mesh);
+			const xen::RenderCommand3d& cmd = commands[cmd_index];
+
+			setPerCommandFragmentUniforms(context,
+			                              (xen::Material&)cmd,
+			                              cmd.model_matrix,
+			                              vp_matrix
+			                             );
+			auto mesh = this->mesh_store.getMesh(cmd.mesh);
+
 			//renderBoundingBox(target, view_region, vp_matrix,
 			//                  xen::getTransformed(mesh->bounds, commands[cmd_index].model_matrix)
 			//                 );
-			rasterizeMesh(target, view_region, params,
-			              commands[cmd_index].model_matrix, vp_matrix,
-			              *mesh,
-			              commands[cmd_index]);
+
+			rasterizeMesh(context, cmd.primitive_type, *mesh);
 		}
 	}
 };
