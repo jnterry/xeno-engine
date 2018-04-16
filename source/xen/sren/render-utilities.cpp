@@ -178,7 +178,7 @@ namespace xen {
 			context.camera          = view_camera;
 			context.target          = &target;
 			context.viewport        = &view_region;
-			context.m_matrix        = Mat4f::Identity;
+			context.m_matrix        = Mat4r::Identity;
 			context.vp_matrix       = vp_matrix;
 			context.diffuse_color   = xen::Color::WHITE4f;
 			context.emissive_color  = xen::Color::WHITE4f;
