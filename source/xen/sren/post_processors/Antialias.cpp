@@ -21,6 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <cstring>
 
 // Recommended values for constants to determine presence of edge
 #define EDGE_THRESHOLD_MIN 0.0312
@@ -29,6 +30,8 @@
 #define ITERATIONS         12
 // Value for antialiasing subpixel lines
 #define SUBPIXEL_QUALITY 0.75
+
+const float QUALITY[] = {1.5, 2.0, 2.0, 2.0, 2.0, 4.0, 8.0};
 
 namespace xen {
 	namespace sren {
@@ -56,11 +59,7 @@ namespace xen {
 			return lerp(colorLeft, colorRight, ratioHorizontal);
 		}
 
-		real clip(real n, real lower, real upper) {
-		  return max(lower, min(n, upper));
-		}
-
-		void fxaaStep(Framebuffer& fb, int x, int y, Vec2r inverseScreenSize) {
+		void fxaaStep(Framebuffer& fb, Framebuffer& fb_out, int x, int y, Vec2r inverseScreenSize) {
 			int currentPixelIndex = y*fb.size.x + x;
 
 			// Luma at the current fragment
@@ -79,11 +78,26 @@ namespace xen {
 			// Compute the delta.
 			real lumaRange = lumaMax - lumaMin;
 
+			/*
+			// DEBUG TODO
+
+			real lumaAverage_debug = (lumaDown + lumaUp + lumaLeft + lumaRight) / 4;
+
+			fb_out.color[currentPixelIndex].r = lumaAverage_debug;
+			fb_out.color[currentPixelIndex].g = lumaAverage_debug;
+			fb_out.color[currentPixelIndex].b = lumaAverage_debug;
+
+			return;
+			*/
+
 			// If the luma variation is lower that a threshold (or if we are in a really dark area),
 			// we are not on an edge, don't perform any AA.
 			if(lumaRange < max(EDGE_THRESHOLD_MIN,lumaMax*EDGE_THRESHOLD_MAX)){
     		return;
 			}
+
+			// DEBUG TODO
+			//printf("Getting past the bail out!\n");
 
 			// Query the 4 remaining corners lumas.
 			real lumaDownLeft  = rgb2luma(fb.color[(y+1)*fb.size.x + (x-1)].rgb);
@@ -101,12 +115,12 @@ namespace xen {
 			real lumaUpCorners = lumaUpRight + lumaUpLeft;
 
 			// Compute an estimation of the gradient along the horizontal and vertical axis.
-			real edgeHorizontal = std::abs(-2.0 * lumaLeft + lumaLeftCorners)
-			                    + std::abs(-2.0 * lumaCenter + lumaDownUp ) * 2.0
-													+ std::abs(-2.0 * lumaRight + lumaRightCorners);
-			real edgeVertical   = std::abs(-2.0 * lumaUp + lumaUpCorners)
-			                    + std::abs(-2.0 * lumaCenter + lumaLeftRight) * 2.0
-													+ std::abs(-2.0 * lumaDown + lumaDownCorners);
+			real edgeHorizontal = std::fabs(-2.0 * lumaLeft + lumaLeftCorners)
+			                    + std::fabs(-2.0 * lumaCenter + lumaDownUp ) * 2.0
+													+ std::fabs(-2.0 * lumaRight + lumaRightCorners);
+			real edgeVertical   = std::fabs(-2.0 * lumaUp + lumaUpCorners)
+			                    + std::fabs(-2.0 * lumaCenter + lumaLeftRight) * 2.0
+													+ std::fabs(-2.0 * lumaDown + lumaDownCorners);
 
 			// Is the local edge horizontal or vertical ?
 			bool isHorizontal = (edgeHorizontal >= edgeVertical);
@@ -119,10 +133,10 @@ namespace xen {
 			real gradient2 = luma2 - lumaCenter;
 
 			// Which direction is the steepest ?
-			bool is1Steepest = std::abs(gradient1) >= std::abs(gradient2);
+			bool is1Steepest = std::fabs(gradient1) >= std::fabs(gradient2);
 
 			// Gradient in the corresponding direction, normalized.
-			real gradientScaled = 0.25*max(std::abs(gradient1),std::abs(gradient2));
+			real gradientScaled = 0.25*max(std::fabs(gradient1),std::fabs(gradient2));
 			// Choose the step size (one pixel) according to the edge direction.
 			real stepLength = isHorizontal ? inverseScreenSize.y : inverseScreenSize.x;
 
@@ -158,8 +172,8 @@ namespace xen {
 			lumaEnd2 -= lumaLocalAverage;
 
 			// If the luma deltas at the current extremities are larger than the local gradient, we have reached the side of the edge.
-			bool reached1 = abs(lumaEnd1) >= gradientScaled;
-			bool reached2 = abs(lumaEnd2) >= gradientScaled;
+			bool reached1 = fabs(lumaEnd1) >= gradientScaled;
+			bool reached2 = fabs(lumaEnd2) >= gradientScaled;
 			bool reachedBoth = reached1 && reached2;
 
 			// If the side is not reached, we continue to explore in this direction.
@@ -185,16 +199,16 @@ namespace xen {
 			      lumaEnd2 = lumaEnd2 - lumaLocalAverage;
 			    }
 			    // If the luma deltas at the current extremities is larger than the local gradient, we have eached he side of the edge.
-			    reached1 = abs(lumaEnd1) >= gradientScaled;
-			    reached2 = abs(lumaEnd2) >= gradientScaled;
+			    reached1 = fabs(lumaEnd1) >= gradientScaled;
+			    reached2 = fabs(lumaEnd2) >= gradientScaled;
 			    reachedBoth = reached1 && reached2;
 
 			    // If the side is not reached, we continue to explore in this direction, with a variable quality.
 			    if(!reached1){
-			      uv1 -= offset;// * QUALITY(i);
+			      uv1 -= offset;// * QUALITY[i];
 			    }
 			    if(!reached2){
-			      uv2 += offset;// * QUALITY(i);
+			      uv2 += offset;// * QUALITY[i];
 			    }
 
 			    // If both sides have been reached, stop the exploration.
@@ -224,16 +238,28 @@ namespace xen {
 			bool correctVariation = ((isDirection1 ? lumaEnd1 : lumaEnd2) < 0.0) != isLumaCenterSmaller;
 
 			// If the luma variation is incorrect, do not offset.
+			// TODO: I think this is always triggering
 			real finalOffset = correctVariation ? pixelOffset : 0.0;
 
 			// Sub-pixel shifting
 			// Full weighted average of the luma over the 3x3 neighborhood.
 			real lumaAverage = (1.0/12.0) * (2.0 * (lumaDownUp + lumaLeftRight) + lumaLeftCorners + lumaRightCorners);
+
+			// DEBUG TODO
+			printf("lumaAverage: %f, lumaCenter: %f\n", lumaAverage, lumaCenter);
+
 			// Ratio of the delta between the global average and the center luma, over the luma range in the 3x3 neighborhood.
-			real subPixelOffset1 = clip(abs(lumaAverage - lumaCenter)/lumaRange,0.0,1.0);
+			real subPixelOffset1 = xen::clamp((real)fabs(lumaAverage - lumaCenter)/lumaRange,0.0_r,1.0_r);
 			real subPixelOffset2 = (-2.0 * subPixelOffset1 + 3.0) * subPixelOffset1 * subPixelOffset1;
+
+			// DEBUG TODO
+			printf("subPixelOffset1: %f, subPixelOffset2: %f\n", subPixelOffset1, subPixelOffset2);
+
 			// Compute a sub-pixel offset based on this delta.
 			real subPixelOffsetFinal = subPixelOffset2 * subPixelOffset2 * SUBPIXEL_QUALITY;
+
+			// DEBUG TODO
+			printf("finalOffset: %f, subPixelOffsetFinal: %f\n", finalOffset, subPixelOffsetFinal);
 
 			// Pick the biggest of the two offsets.
 			finalOffset = max(finalOffset,subPixelOffsetFinal);
@@ -246,20 +272,35 @@ namespace xen {
 			    finalUv.x += finalOffset * stepLength;
 			}
 
+			// DEBUG TODO
+			printf("For pixel: (%i, %i), finalUv: (%f, %f) \n", x, y, finalUv.x, finalUv.y);
+
 			// Read the color at the new UV coordinates, and use it.
 			Vec3f finalColor = blendColor(fb, finalUv);
 
-			fb.color[currentPixelIndex].r = finalColor.r;
-			fb.color[currentPixelIndex].g = finalColor.g;
-			fb.color[currentPixelIndex].b = finalColor.b;
+			fb_out.color[currentPixelIndex].r = finalColor.r;
+			fb_out.color[currentPixelIndex].g = finalColor.g;
+			fb_out.color[currentPixelIndex].b = finalColor.b;
 		}
 
 		void PostProcessorAntialias::process(Framebuffer& fb) {
 			Vec2r inverseScreenSize = {1.0/fb.size.x, 1.0/fb.size.y};
+
+			// Create a duplicate frame buffer
+			Framebuffer fb_copy;
+			fb_copy.width  = fb.width;
+			fb_copy.height = fb.height;
+
+			fb_copy.color = (Color4f*)malloc(fb_copy.height*fb_copy.width*sizeof(Color4f));
+			fb_copy.depth = (float*)malloc(fb_copy.height*fb_copy.width*sizeof(float));
+
+			memcpy(fb_copy.color, fb.color, (fb_copy.height*fb_copy.width*sizeof(Color4f)));
+			memcpy(fb_copy.depth, fb.depth, (fb_copy.height*fb_copy.width*sizeof(float)));
+
 			// :TODO: Fix these loops to be between 0 and size; changed to this for test purposes
 			for(u32 j = 1; j < fb.size.y-1; ++j){
 				for(u32 i = 1; i < fb.size.x-1; ++i){
-					fxaaStep(fb, i, j, inverseScreenSize);
+					fxaaStep(fb_copy, fb, i, j, inverseScreenSize);
 				}
 			}
 		}
