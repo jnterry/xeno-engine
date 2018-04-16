@@ -89,6 +89,11 @@ namespace xen{
 		return vec - ((dot(vec,norm) / magSq(norm)) * norm);
 	}
 
+	template<u32 T_DIM, typename T>
+	inline Vec<T_DIM, T> reflect(Vec<T_DIM, T> dir, Vec<T_DIM, T> normal){
+		return dir - 2 * (xen::dot(dir, normal) * normal);
+	}
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Converts from a 4d homogeneous coordinate space to a 3d
 	/// coordinate space
