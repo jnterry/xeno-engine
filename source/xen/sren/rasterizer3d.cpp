@@ -160,7 +160,13 @@ namespace {
 	                             Vec3r                              normal_world,
 	                             xen::Color4f                       color){
 
+		#if 1  // display normals
+		return xen::mkVec(((Vec3f)normal_world + (Vec3f{1,1,1}) / 2.0_r), 1.0_r);
+		#endif
 
+		#if 0 // display world position
+		return xen::mkVec(pos_world, 1.0_r);
+		#endif
 
 		xen::Color3f total_light = uniforms.ambient_light;
 		total_light += (uniforms.emissive_color.rgb * uniforms.emissive_color.a);
@@ -174,9 +180,12 @@ namespace {
 			real dist_sq_world = xen::distanceSq(pos_world, uniforms.lights[i].point.position);
 
 			total_light += xen::sren::computeLightInfluence
-				(uniforms.lights[i].color,
+				(uniforms.lights[i].point.position,
+				 uniforms.lights[i].color,
 				 uniforms.lights[i].attenuation,
-				 dist_sq_world
+				 dist_sq_world,
+				 uniforms.camera.position,
+				 pos_world, normal_world
 				);
 		}
 

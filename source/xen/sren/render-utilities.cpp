@@ -46,16 +46,41 @@ namespace xen {
 			}
 		}
 
-		xen::Color3f computeLightInfluence(xen::Color4f light_color,
+		xen::Color3f computeLightInfluence(Vec3r        light_pos,
+		                                   xen::Color4f light_color,
 		                                   Vec3f        attenuation_coefficents,
-		                                   real         distance_sq){
-			float attenuation = (attenuation_coefficents.x * 1.0 +
-			                     attenuation_coefficents.y * xen::sqrt(distance_sq) +
-			                     attenuation_coefficents.z * distance_sq
-			                     );
+		                                   real         distance_sq,
+		                                   Vec3r        eye_pos,
+		                                   Vec3r        pos_world,
+		                                   Vec3r        normal_world){
 
-			return (light_color / attenuation).rgb * light_color.w;
-		}
+			light_color.rgb *= light_color.a;
+
+			// Direction in which photons are travelling from the light
+			// source in order to hit this point
+			Vec3r light_dir = xen::normalized(pos_world - light_pos);
+
+			real diffuse_factor = xen::dot(normal_world, light_dir);
+			if(diffuse_factor < 0){ return Vec3f::Origin; }
+
+			Vec3r diffuse_color = light_color.rgb * diffuse_factor;
+
+			// Compare the reflection direction to the surface_to_eye direction. If
+			// they are equal we get mirror like bright specular reflection. The
+			// greater the angle the less the reflection
+			Vec3r surface_to_eye = xen::normalized(eye_pos - pos_world);
+			Vec3r reflection_dir = xen::reflect(light_dir, normal_world);
+
+			real specular_factor = xen::dot(surface_to_eye, reflection_dir);
+
+			Vec3r specular_color = Vec3r::Origin;
+			if (specular_factor > 0) {
+			  specular_factor = pow(specular_factor, 2.0_r);
+			  specular_color = light_color.rgb * specular_factor;
+			}
+
+			return diffuse_color + specular_color;
+    }
 
 		void renderCameraDebug(xen::sren::RenderTargetImpl& target,
 		                       const xen::Aabb2u& viewport,

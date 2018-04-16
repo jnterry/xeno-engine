@@ -296,9 +296,13 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 						}
 
 						total_light +=
-							xen::sren::computeLightInfluence(params.lights[i].color,
+							xen::sren::computeLightInfluence(params.lights[i].point.position,
+							                                 params.lights[i].color,
 							                                 params.lights[i].attenuation,
-							                                 light_dist_sq);
+							                                 light_dist_sq,
+							                                 params.camera.position,
+							                                 intersection.pos_world,
+							                                 pixel_normal_world);
 
 						break;
 					}

@@ -99,9 +99,11 @@ public:
 			                             );
 			auto mesh = this->mesh_store.getMesh(cmd.mesh);
 
-			//renderBoundingBox(target, view_region, vp_matrix,
-			//                  xen::getTransformed(mesh->bounds, commands[cmd_index].model_matrix)
-			//                 );
+			#if 0
+			renderDebugBoundingBox(context,
+			                       xen::getTransformed(mesh->bounds, commands[cmd_index].model_matrix)
+			                      );
+			#endif
 
 			rasterizeMesh(context, cmd.primitive_type, *mesh);
 		}
