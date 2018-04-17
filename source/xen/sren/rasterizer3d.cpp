@@ -203,11 +203,11 @@ namespace {
 	}
 
 	// :TODO:OPT: profile -> is passing by reference faster
-	void _renderTriangleScreen(const xen::sren::RasterizationContext& cntx,
-	                           xen::Triangle3r                        tri_world,
-	                           xen::Triangle3r                        tri_normal_world,
-	                           xen::Triangle3r                        tri_screen,
-	                           xen::Triangle4f                        colors){
+	void _rasterizeTriangleScreen(const xen::sren::RasterizationContext& cntx,
+	                              xen::Triangle3r                        tri_world,
+	                              xen::Triangle3r                        tri_normal_world,
+	                              xen::Triangle3r                        tri_screen,
+	                              xen::Triangle4f                        colors){
 		xen::Triangle2r tri_screen_xy = xen::swizzle<'x','y'>(tri_screen);
 
 		xen::Aabb2r region_r = xen::Aabb2r::MaxMinBox;
@@ -539,10 +539,10 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 		xen::Triangle3r tri_pos_screen =
 			_convertToScreenSpaceTriOLD(tri_pos_clip, *cntx.viewport);
 
-		_renderTriangleScreen(cntx,
-		                      tri_pos_world,  tri_nor_world,
-		                      tri_pos_screen, tri_color
-		                     );
+		_rasterizeTriangleScreen(cntx,
+		                         tri_pos_world,  tri_nor_world,
+		                         tri_pos_screen, tri_color
+		                        );
 		return;
 	}
 
@@ -589,9 +589,9 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 			xen::Triangle3r tri_pos_screen =
 				_convertToScreenSpaceTriOLD(tri_pos_clip, *cntx.viewport);
 
-			_renderTriangleScreen(cntx,
-			                      tri_pos_world, tri_nor_world,
-			                      tri_pos_screen, tri_color);
+			_rasterizeTriangleScreen(cntx,
+			                         tri_pos_world, tri_nor_world,
+			                         tri_pos_screen, tri_color);
 			return;
 		}
 	case 1: // 001
@@ -658,18 +658,18 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 			quad_colors.vertices[2] = tri_color.p2;
 			quad_colors.vertices[3] = tri_color.p3 + (tri_color.p2 - tri_color.p3) * frac_p2;
 
-			_renderTriangleScreen(cntx,
-			                      *(xen::Triangle3r*)&quad_pos_world .vertices[0],
-			                      *(xen::Triangle3r*)&quad_nor_world .vertices[0],
-			                      *(xen::Triangle3r*)&quad_pos_screen.vertices[0],
-			                      *(xen::Triangle4f*)&quad_colors    .vertices[0]
-			                      );
-			_renderTriangleScreen(cntx,
-			                      *(xen::Triangle3r*)&quad_pos_world .vertices[1],
-			                      *(xen::Triangle3r*)&quad_nor_world .vertices[1],
-			                      *(xen::Triangle3r*)&quad_pos_screen.vertices[1],
-			                      *(xen::Triangle4f*)&quad_colors    .vertices[1]
-			                      );
+			_rasterizeTriangleScreen(cntx,
+			                         *(xen::Triangle3r*)&quad_pos_world .vertices[0],
+			                         *(xen::Triangle3r*)&quad_nor_world .vertices[0],
+			                         *(xen::Triangle3r*)&quad_pos_screen.vertices[0],
+			                         *(xen::Triangle4f*)&quad_colors    .vertices[0]
+			                        );
+			_rasterizeTriangleScreen(cntx,
+			                         *(xen::Triangle3r*)&quad_pos_world .vertices[1],
+			                         *(xen::Triangle3r*)&quad_nor_world .vertices[1],
+			                         *(xen::Triangle3r*)&quad_pos_screen.vertices[1],
+			                         *(xen::Triangle4f*)&quad_colors    .vertices[1]
+			                        );
 		}
 		return;
 	}
