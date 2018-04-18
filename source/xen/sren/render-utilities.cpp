@@ -60,10 +60,10 @@ namespace xen {
 			// source in order to hit this point
 			Vec3r light_dir = xen::normalized(pos_world - light_pos);
 
-			real diffuse_factor = xen::dot(normal_world, light_dir);
+			float diffuse_factor = xen::dot(normal_world, light_dir);
 			if(diffuse_factor < 0){ return Vec3f::Origin; }
 
-			Vec3r diffuse_color = light_color.rgb * diffuse_factor;
+			Vec3f diffuse_color = light_color.rgb * diffuse_factor;
 
 			// Compare the reflection direction to the surface_to_eye direction. If
 			// they are equal we get mirror like bright specular reflection. The
@@ -71,9 +71,9 @@ namespace xen {
 			Vec3r surface_to_eye = xen::normalized(eye_pos - pos_world);
 			Vec3r reflection_dir = xen::reflect(light_dir, normal_world);
 
-			real specular_factor = xen::dot(surface_to_eye, reflection_dir);
+			float specular_factor = xen::dot(surface_to_eye, reflection_dir);
 
-			Vec3r specular_color = Vec3r::Origin;
+			Vec3f specular_color = Vec3f::Origin;
 			if (specular_factor > 0) {
 			  specular_factor = pow(specular_factor, 2.0_r);
 			  specular_color = light_color.rgb * specular_factor;
