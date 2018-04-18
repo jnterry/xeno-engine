@@ -55,12 +55,14 @@
 		 - Try running the =cornell-box= demo with the device "Raytracer Camera Debug" to see a demonstration
 	 - Arbitrary number of lights
 		 - The engine supports multiple dynamic point lights per scene
+		 - The only limit on number is desired performance and hardware capabilities (and having less than 2^32 so we can index them...)
 	 - Per mesh emissive lighting
 		 - Meshes can be assigned an emissive color
 		 - This can be seen in the torus demo, where the 4 cubes embedded in the floor apear to glow regardless of the light's positions
 		 - :TODO: test in raytracer
 	 - Post Processing Pipeline
 		 - The software rendering backends support applying "post-processing" steps after the image has been rendered
+		 - We also have a demo application which loads an image, applies a (set of) post processor(s) and then saves the result, without creating a window etc
 		 - :TODO: what post processors have we actually implemented?
 		 - :TODO: write to depth buffer in raytracer to support fog
 		 - :TODO: demoed by what?
@@ -96,6 +98,6 @@
 		 - SIMD optimization for transforming floating framebuffer to byte pixels to display
 		 - :TODO: add SDL implementation and benchmark
 	 - Own math library
-
+		 - We do not rely on GLM but instead have written all of our own maths from scratch
 	 - OpenGL Backend
 		 - ???
