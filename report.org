@@ -59,7 +59,7 @@
 	 - Per mesh emissive lighting
 		 - Meshes can be assigned an emissive color
 		 - This can be seen in the torus demo, where the 4 cubes embedded in the floor apear to glow regardless of the light's positions
-		 - :TODO: test in raytracer
+		 - Additionally the small yellow cube in the cornell box demo is emissive
 	 - Post Processing Pipeline
 		 - The software rendering backends support applying "post-processing" steps after the image has been rendered
 		 - We also have a demo application which loads an image, applies a (set of) post processor(s) and then saves the result, without creating a window etc

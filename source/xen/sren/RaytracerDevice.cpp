@@ -101,7 +101,7 @@ void xen::sren::RaytracerDevice::render(xen::RenderTarget target_handle,
 
 			model->mesh             = this->mesh_store.getMesh(cmd->mesh);
 			model->color            = cmd->color;
-			model->emissive_color   = cmd->color;
+			model->emissive_color   = cmd->emissive_color;
 			model->model_matrix     = cmd->model_matrix;
 			model->inv_model_matrix = xen::getInverse(cmd->model_matrix);
 			model->aabb_world       = xen::getTransformed(model->mesh->bounds, cmd->model_matrix);

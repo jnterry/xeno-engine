@@ -219,13 +219,15 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 			               "Expected intersection's triangle index to be within "
 			               "bounds of the vertex list");
 
+			const RaytracerModel& model = scene.models[intersection.model_index];
+
 			// Compute surface properties at intersection point
-			xen::Color4f pixel_color        = scene.models[intersection.model_index].color;
+			xen::Color4f pixel_color        = model.color;
 			Vec3r        pixel_normal_world = Vec3r::Origin;
 			{
-				Vec3r* pbuf_model = scene.models[intersection.model_index].mesh->position;
-				Vec3r* nbuf_model = scene.models[intersection.model_index].mesh->normal;
-				Color* cbuf       = scene.models[intersection.model_index].mesh->color;
+				Vec3r* pbuf_model = model.mesh->position;
+				Vec3r* nbuf_model = model.mesh->normal;
+				Color* cbuf       = model.mesh->color;
 				u32    buf_index = intersection.tri_index * 3;
 
 				xen::Triangle3r ptri_model = *(xen::Triangle3r*)&pbuf_model[buf_index];
@@ -257,13 +259,12 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 				}
 
 				Vec3r pixel_normal_model = nbuf_model[buf_index];
-				pixel_normal_world = xen::normalized(pixel_normal_model *
-				                                     scene.models[intersection.model_index].model_matrix
-				                                     );
+				pixel_normal_world = xen::normalized(pixel_normal_model * model.model_matrix);
 			}
 
 			// compute light hitting surface at intersection point
 			Color3f total_light = params.ambient_light;
+			total_light += model.emissive_color.rgb * model.emissive_color.a;
 			{
 				/////////////////////////////////////////////////////////////////////
 				// Cast shadow ray

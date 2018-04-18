@@ -16,7 +16,7 @@ xen::Mesh                                      mesh_cornell_walls;
 xen::Mesh                                      mesh_cube;
 xen::Mesh                                      mesh_axes;
 
-xen::FixedArray<xen::RenderCommand3d, 5> render_commands;
+xen::FixedArray<xen::RenderCommand3d, 6> render_commands;
 
 void initRenderCommands(){
 	xen::clearToZero(render_commands);
@@ -53,13 +53,23 @@ void initRenderCommands(){
 	                                     );
 	render_commands[3].mesh            = mesh_cube;
 
-	// Light source
 	render_commands[4].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	render_commands[4].color           = xen::Color::RED4f;
-	render_commands[4].model_matrix    = Mat4r::Identity;
+	render_commands[4].color           = xen::Color::YELLOW4f;
+	render_commands[4].emissive_color  = xen::Color::YELLOW4f;
+	render_commands[4].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r  ) *
+	                                      xen::Scale3d      (0.05_r, 0.05_r, 0.05_r ) *
+	                                      xen::Rotation3dy  (18_deg                 ) *
+	                                      xen::Translation3d(-0.1_r, 0.0_r, 0.2_r    )
+	                                     );
 	render_commands[4].mesh            = mesh_cube;
+
+	// Light source
+	render_commands[5].primitive_type  = xen::PrimitiveType::TRIANGLES;
+	render_commands[5].color           = xen::Color::RED4f;
+	render_commands[5].model_matrix    = Mat4r::Identity;
+	render_commands[5].mesh            = mesh_cube;
 	// This is geometry around a light source - don't block the emitted light!
-	render_commands[4].flags           = xen::RenderCommand3d::Flags::DisableShadowCast;
+	render_commands[5].flags           = xen::RenderCommand3d::Flags::DisableShadowCast;
 }
 
 void initCamera(){
@@ -146,7 +156,7 @@ int main(int argc, char** argv){
 		Vec3r light_1_pos = (tall_box_center +
 		                     xen::rotated(Vec3r{0.3_r, 0.5_r, 0.0_r}, Vec3r::UnitY, 90_deg * time)
 		                    );
-		render_commands[4].model_matrix = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
+		render_commands[5].model_matrix = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
 		                                   xen::Scale3d(0.03_r) *
 		                                   xen::Translation3d(light_1_pos)
 		                                  );
