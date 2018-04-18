@@ -27,12 +27,13 @@ namespace xen {
 			  misc_arena     (xen::createArenaLinear(*main_allocator, xen::megabytes(1))),
 			  render_targets (xen::createArenaPool<RenderTargetImpl>(main_allocator, 128))
 		{
-			// no-op
+			this->thpool = thpool_init(4);
 		}
 
 		SoftwareDeviceBase::~SoftwareDeviceBase(){
 			xen::destroyArenaLinear(*main_allocator, misc_arena);
 			delete main_allocator;
+			thpool_destroy(this->thpool);
 		}
 
 		RenderTargetImpl* SoftwareDeviceBase::getRenderTargetImpl(RenderTarget target){

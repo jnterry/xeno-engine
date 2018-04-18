@@ -120,6 +120,27 @@ void xen::sren::RaytracerDevice::render(xen::RenderTarget target_handle,
 	this->doRender(target, viewport, params, commands, non_triangle_cmds, scene);
 }
 
+
+// Data passed to a raytracer thread. This is just the parameters to
+// xen::sren::renderRaytracer
+struct ThreadRenderData {
+	xen::sren::RenderTargetImpl*     target;
+	xen::Aabb2u                      viewport;
+	xen::Aabb2u                      rendering_bounds;
+	const xen::RenderParameters3d*   params;
+	const xen::sren::RaytracerScene* scene;
+
+};
+// Function that should be called by each thread to perform a block of raytracing
+void threadDoRenderWork(void* voiddata){
+	ThreadRenderData* data = (ThreadRenderData*)voiddata;
+	xen::sren::renderRaytrace(*data->target,
+	                          data->viewport,
+	                          *data->params,
+	                          *data->scene,
+	                          data->rendering_bounds);
+}
+
 void xen::sren::RaytracerDevice::doRender(xen::sren::RenderTargetImpl&           target,
                                           const xen::Aabb2u&                     viewport,
                                           const xen::RenderParameters3d&         params,
@@ -129,7 +150,30 @@ void xen::sren::RaytracerDevice::doRender(xen::sren::RenderTargetImpl&          
 
 	////////////////////////////////////////////////////////////////////////////
 	// Render the triangles in the scene
-	xen::sren::renderRaytrace(target, viewport, params, scene);
+	ThreadRenderData thread_render_data[8];
+	u32 cur_y   = viewport.min.x;
+	u32 delta_y = (viewport.max.y - viewport.min.y) / XenArrayLength(thread_render_data);
+	for(u32 i = 0; i < XenArrayLength(thread_render_data); ++i){
+		thread_render_data[i].target        = &target;
+		thread_render_data[i].params        = &params;
+		thread_render_data[i].scene         = &scene;
+		thread_render_data[i].viewport = viewport;
+
+		thread_render_data[i].rendering_bounds.min.x = viewport.min.x;
+		thread_render_data[i].rendering_bounds.max.x = viewport.max.x;
+		thread_render_data[i].rendering_bounds.min.y = cur_y;
+		thread_render_data[i].rendering_bounds.max.y = cur_y + delta_y;
+		cur_y += delta_y;
+
+		if(i == XenArrayLength(thread_render_data)-1){
+			// The last block of work may have a few extra rows if the viewport
+			// height is not divisible by the number of work blocks
+			thread_render_data[i].rendering_bounds.max.y = viewport.max.y;
+		}
+
+		thpool_add_work(this->thpool, &threadDoRenderWork, &thread_render_data[i]);
+	}
+	thpool_wait    (this->thpool);
 
 	////////////////////////////////////////////////////////////////////////////
 	// Generate view projection matrix
