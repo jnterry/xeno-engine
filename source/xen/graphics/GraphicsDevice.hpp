@@ -20,6 +20,7 @@
 namespace xen {
 	struct MeshData;
 	struct Window;
+	struct RawImage;
 
 	// :TODO: do we really need the whole graphics device id system and
 	// getting devices by id?
@@ -143,6 +144,23 @@ namespace xen {
 		/// freeing all associated hardware resources
 		/////////////////////////////////////////////////////////////////////
 		virtual void destroyMesh(Mesh mesh) = 0;
+		/// @}
+
+
+		/// \defgroup Texture
+		/// @{
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Uploads mesh data to the graphics device
+		/// \return Mesh Handle to the created mesh, this handle may be used
+		/// in future with this GraphicsDevice
+		/////////////////////////////////////////////////////////////////////
+		virtual Texture createTexture(const RawImage* image) = 0;
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Destroys an existing Texture freeing associated resources
+		/////////////////////////////////////////////////////////////////////
+		virtual void destroyTexture(Texture texture) = 0;
 		/// @}
 
 		/// \defgroup Drawing Operations

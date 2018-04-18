@@ -350,6 +350,16 @@ namespace {
 			mesh_store[mesh._id] = nullptr;
 		}
 
+
+		xen::Texture createTexture(const xen::RawImage* image) override {
+			return xen::makeNullHandle<xen::Texture>();
+			// :TODO: implement
+		}
+
+		void destroyTexture(xen::Texture texture) override {
+			// :TODO: implement
+		}
+
 		void clear(xen::RenderTarget& render_target, xen::Color color) override {
 			xen::gl::RenderTargetImpl* target = getRenderTargetImpl(render_target);
 			xen::gl::makeCurrent(target);

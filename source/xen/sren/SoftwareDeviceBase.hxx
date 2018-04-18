@@ -30,6 +30,7 @@ namespace xen {
 			xen::ArenaLinear misc_arena;
 
 			xen::ArenaPool<RenderTargetImpl> render_targets;
+			xen::ArenaPool<RawImage        > textures;
 
 			/// \brief Creates a new RenderTarget with the specified size
 			RenderTarget      createRenderTarget (Vec2u size, Window* window);
@@ -59,7 +60,8 @@ namespace xen {
 			void    destroyWindow(Window* window) override;
 			void    swapBuffers(Window* window) override;
 
-
+			Texture createTexture (const RawImage* image) override;
+			void    destroyTexture(Texture texture      ) override;
 		};
 	}
 }

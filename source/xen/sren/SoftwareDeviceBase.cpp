@@ -39,6 +39,15 @@ namespace xen {
 			return &this->render_targets.slots[target._id].item;
 		}
 
+		Texture SoftwareDeviceBase::createTexture(const RawImage* image){
+			// :TODO: implement
+			return xen::makeNullHandle<Texture>();
+		}
+
+		void SoftwareDeviceBase::destroyTexture(Texture texture){
+			// :TODO: implement
+		}
+
 		void SoftwareDeviceBase::clear(xen::RenderTarget& target, xen::Color color){
 			xen::sren::clear(*this->getRenderTargetImpl(target), color);
 		}
