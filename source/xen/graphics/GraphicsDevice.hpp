@@ -145,9 +145,6 @@ namespace xen {
 		virtual void destroyMesh(Mesh mesh) = 0;
 		/// @}
 
-		// :TODO: have some way of updating an existing mesh for dynamic data
-		// generated on the CPU
-
 		/// \defgroup Drawing Operations
 		/// @{
 		/////////////////////////////////////////////////////////////////////
