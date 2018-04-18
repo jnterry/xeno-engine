@@ -104,17 +104,35 @@ namespace xen {
 		                      bool                  skip_non_shadow_casters = false);
 
 		/////////////////////////////////////////////////////////////////////
-		/// \brief Performs a set of render commands use software raytracer
+		/// \brief Performs a set of render commands using software raytracer
+		///
 		/// \param target The RenderTarget to draw to
+		///
 		/// \param viewport The region of the RenderTarget that may be modified
-		/// Represented in pixel values
+		/// represented in pixel values
+		///
 		/// \param camera The 3d camera used to view the scene
+		///
 		/// \param scene  The scene to render
+		///
+		/// \param rendering_bounds The bounds within the target that should be
+		/// rendered to. This allows this function to be called from multiple
+		/// threads with the same viewport but different rendering_bounds in order
+		/// to allow for multi-threaded raytracing. If not specified we assumes a
+		/// single threaded renderer and hence use the full viewport
 		/////////////////////////////////////////////////////////////////////
 		void renderRaytrace (xen::sren::RenderTargetImpl&   target,
 		                     const xen::Aabb2u&             viewport,
 		                     const xen::RenderParameters3d& params,
-		                     const RaytracerScene&          scene);
+		                     const RaytracerScene&          scene,
+		                     const xen::Aabb2u&             rendering_bounds);
+
+		inline void renderRaytrace (xen::sren::RenderTargetImpl&   target,
+		                            const xen::Aabb2u&             viewport,
+		                            const xen::RenderParameters3d& params,
+		                            const RaytracerScene&          scene){
+			renderRaytrace(target, viewport, params, scene, viewport);
+		}
 	}
 }
 

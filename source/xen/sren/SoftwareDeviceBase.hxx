@@ -18,6 +18,8 @@
 
 #include "RenderTargetImpl.hxx"
 
+#include <thpool.h>
+
 namespace xen {
 	namespace sren {
 		class PostProcessor;
@@ -30,6 +32,9 @@ namespace xen {
 			xen::ArenaLinear misc_arena;
 
 			xen::ArenaPool<RenderTargetImpl> render_targets;
+
+			// The threadpool used by this device
+			threadpool thpool;
 
 			/// \brief Creates a new RenderTarget with the specified size
 			RenderTarget      createRenderTarget (Vec2u size, Window* window);

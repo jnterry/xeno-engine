@@ -128,7 +128,8 @@ bool castRayIntoScene(const xen::Ray3r& ray_world,
 void renderRaytrace (xen::sren::RenderTargetImpl&       target,
                      const xen::Aabb2u&                 viewport,
                      const xen::RenderParameters3d&     params,
-                     const RaytracerScene&              scene
+                     const RaytracerScene&              scene,
+                     const xen::Aabb2u&                 rendering_bounds
                      ){
 
 	xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
@@ -186,11 +187,11 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 
 	//////////////////////////////////////////////////////////////////////////
 	// Loop over all pixels
-	Vec2s target_pos;
+	Vec2u target_pos;
 	SceneRayCastResult intersection;
 	SceneRayCastResult shadow_intersection;
-	for(target_pos.x = 0; target_pos.x < target_size.x; ++target_pos.x) {
-		for(target_pos.y = 0; target_pos.y < target_size.y; ++target_pos.y) {
+	for(target_pos.x = rendering_bounds.min.x; target_pos.x < rendering_bounds.max.x; ++target_pos.x) {
+		for(target_pos.y = rendering_bounds.min.y; target_pos.y < rendering_bounds.max.y; ++target_pos.y) {
 			/////////////////////////////////////////////////////////////////////
 			// Compute where the ray would intersect the image plane
 			Vec2r center_offset = ((Vec2r)target_size / 2.0_r) - (Vec2r)target_pos;
@@ -328,7 +329,7 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 
 			/////////////////////////////////////////////////////////////////////
 			// Color the pixel
-			Vec2s pixel_coord = target_pos + (Vec2s)view_region.min;
+			Vec2u pixel_coord = target_pos + (Vec2u)view_region.min;
 			target.color[pixel_coord.y*target.width + pixel_coord.x] = pixel_color;
 		}
 	}

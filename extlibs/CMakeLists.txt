@@ -40,3 +40,8 @@ if(WIN32)
 	set_target_properties(UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER "extlibs")
 	set_target_properties(zlibstatic                          PROPERTIES FOLDER "extlibs")
 endif()
+
+##########################################
+# thpool
+##########################################
+add_library(thpool STATIC "${CMAKE_CURRENT_LIST_DIR}/thpool/thpool.c")

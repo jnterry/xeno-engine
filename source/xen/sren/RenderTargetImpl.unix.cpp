@@ -226,18 +226,49 @@ namespace xen {
 			doPlatformRenderTargetInit(alloc, target, window);
 		}
 
-		void presentRenderTarget(Window* window, RenderTargetImpl& target){
+
+		struct ThreadGetImageWorkData {
+			xen::RawImage               raw_image;
+			xen::sren::RenderTargetImpl target;
+		};
+		void doThreadPresentRenderTarget(void* voiddata){
+			ThreadGetImageWorkData* data = (ThreadGetImageWorkData*)voiddata;
+			xen::sren::getImageFromFramebuffer(&data->target, data->raw_image);
+		}
+		void presentRenderTarget(Window* window, RenderTargetImpl& target, threadpool thpool){
 
 			// Make sure the previous frame has been presented before we go messing
 			// with the pixel values...
 			XSync(xen::impl::unix_display, True);
 
+			//////////////////////////////////////////////////////////////////////////
 			// Update the byte array we show on screen from the float array we do
 			// our rendering into
 			xen::RawImage raw_image;
 			raw_image.size = target.size;
 			raw_image.pixels = (Color*)target.ximage->data;
-			xen::sren::getImageFromFramebuffer(&target, raw_image);
+
+			ThreadGetImageWorkData work_data[8];
+			u32 cur_y   = 0;
+			u32 delta_y = target.height / XenArrayLength(work_data);
+			for(u32 i = 0; i < XenArrayLength(work_data); ++i){
+				xen::RawImage& sub_image = work_data[i].raw_image;
+
+				sub_image.size.x = raw_image.size.x;
+				sub_image.size.y = delta_y;
+				sub_image.pixels = &raw_image.pixels[raw_image.size.x * cur_y];
+
+				RenderTargetImpl& sub_target = work_data[i].target;
+				sub_target.width  = target.width;
+				sub_target.height = target.height;
+				sub_target.depth  = &target.depth[target.width * cur_y];
+				sub_target.color  = &target.color[target.width * cur_y];
+
+				thpool_add_work(thpool, &doThreadPresentRenderTarget, &work_data[i]);
+
+				cur_y += delta_y;
+			}
+			thpool_wait(thpool);
 
 			//////////////////////////////////////////////////////////////////////////
 			// Put the image on screen
