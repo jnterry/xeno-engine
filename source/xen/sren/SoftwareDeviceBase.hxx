@@ -42,6 +42,9 @@ namespace xen {
 			/// RenderTarget handle
 			RenderTargetImpl* getRenderTargetImpl(RenderTarget target);
 
+			/// \brief Retrieves the RawImage for a particular texture
+			RawImage* getTextureImpl(Texture texture);
+
 			/// \brief Resizes an existing render target. Note that contents of the
 			/// render target will be undefined after the resize, hence clear should
 			/// be called and then rendering be performed

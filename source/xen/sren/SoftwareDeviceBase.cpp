@@ -17,6 +17,9 @@
 
 #include <xen/sren/PostProcessor.hpp>
 #include <xen/core/array.hpp>
+#include <xen/graphics/Image.hpp>
+
+#include <cstring>
 
 namespace xen {
 	namespace sren {
@@ -25,7 +28,8 @@ namespace xen {
 			: post_processors(post_processors),
 			  main_allocator (new xen::AllocatorCounter<xen::AllocatorMalloc>()),
 			  misc_arena     (xen::createArenaLinear(*main_allocator, xen::megabytes(1))),
-			  render_targets (xen::createArenaPool<RenderTargetImpl>(main_allocator, 128))
+			  render_targets (xen::createArenaPool<RenderTargetImpl>(main_allocator,  128)),
+			  textures       (xen::createArenaPool<RawImage>        (main_allocator, 1024))
 		{
 			// no-op
 		}
@@ -39,13 +43,30 @@ namespace xen {
 			return &this->render_targets.slots[target._id].item;
 		}
 
+		RawImage* SoftwareDeviceBase::getTextureImpl(Texture texture){
+			return &this->textures.slots[texture._id].item;
+		}
+
 		Texture SoftwareDeviceBase::createTexture(const RawImage* image){
-			// :TODO: implement
-			return xen::makeNullHandle<Texture>();
+			u32 slot = xen::reserveSlot(textures);
+
+			Texture result = this->makeHandle<Texture::HANDLE_ID>(slot, 0);
+
+			RawImage* image_internal = this->getTextureImpl(result);
+
+			u32 num_bytes = sizeof(xen::Color) * image->width * image->height;
+
+			image_internal->size = image->size;
+			image_internal->pixels = (xen::Color*)main_allocator->allocate(num_bytes);
+			memcpy(image_internal->pixels, image->pixels, num_bytes);
+
+			return result;
 		}
 
 		void SoftwareDeviceBase::destroyTexture(Texture texture){
-			// :TODO: implement
+			RawImage* image = this->getTextureImpl(texture);
+			main_allocator->deallocate(image->pixels);
+			xen::freeSlot(textures, texture._id);
 		}
 
 		void SoftwareDeviceBase::clear(xen::RenderTarget& target, xen::Color color){
