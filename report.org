@@ -35,6 +35,24 @@
 	3. Running the command ~make~ in the build directory
 	4. Running the example executables which will have been placed in bin
 
+* External Libraries
+
+	All external code is found in the =/extlibs= directory, the libraries and their uses are outlined below:
+
+	- assimp
+		- Used for loading mesh files
+		- We convert the data into our own data structures on load for rendering
+	- stb_image
+		- Loading and reading image files into arrays of raw pixel values
+	- thpool
+		- Managing a pool of threads and work queue
+		- Queue entries consist of a function pointer of the signature fn(void*), and a void pointer to some data
+	- glew
+		- Used for loading gl extensions
+		- Used only in the OpenGL rendering backend
+
+  Note that we do not depend on SDL or GLM, we have implemented our own versions of both the these libraries.
+
 * Extensions
 
 	Due to the way we have structured this coursework some extensions apply to all rendering backends, and others apply only to specific backends. Below we outline those that apply to each specifically, as well as those extensions which are shared between all rendering backends.
@@ -81,6 +99,7 @@
 	   - Pre-generating a "scene"
 			 - Sorting by whether shadow casting
 			 - Segregating triangles from other primitive types
+			 - Together these avoid some branches per ray in the rendering code, which speeds up rendering since branch's are expensive if they cause branch misprediction
 		 - Threaded rendering
 			 - The view region is broken up into multiple blocks such that the work can be divided amongst multiple threads
 		 - :TODO: simd?
