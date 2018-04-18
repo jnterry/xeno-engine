@@ -168,8 +168,7 @@ int main(int argc, char** argv){
 	real last_time = 0;
 	printf("Entering main loop\n");
 
-	u32 frame_count = 0;
-	xen::Stopwatch frame_timer;
+	FpsCounter fps_counter;
 
 	while(xen::isWindowOpen(app.window)) {
 		real time = xen::asSeconds<real>(timer.getElapsedTime());
@@ -223,13 +222,7 @@ int main(int argc, char** argv){
 	  app.device->render     (app.window, viewport, render_params, render_commands);
 	  app.device->swapBuffers(app.window);
 
-	  ++frame_count;
-	  if(xen::asSeconds<real>(frame_timer.getElapsedTime()) > 0.5_r){
-		  real fps = frame_count / xen::asSeconds<real>(frame_timer.getElapsedTime());
-		  printf("FPS: %f\n", fps);
-		  frame_count = 0;
-		  frame_timer.restart();
-	  }
+	  fps_counter.update();
 	}
 	printf("Exiting main loop\n");
 

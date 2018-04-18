@@ -90,4 +90,20 @@ void handleCameraInputCylinder(xen::Camera3dCylinder& camera, real dt, real max_
 /////////////////////////////////////////////////////////////////////
 void handleCameraInputPlane   (xen::Camera3d& camera, real dt);
 
+/// \brief Utility for measuring fps
+struct FpsCounter {
+	/// \brief Internal timer to count time since last fps print
+	xen::Stopwatch timer;
+
+	/// \brief Counter for number of frames rendered since timer was last reset
+	u32            counter;
+
+	/// \brief Creates a new FpsCounter
+	FpsCounter();
+
+	/// \brief Increments the counter, prints the fps to stdout
+	/// every half a second
+	void update();
+};
+
 #endif

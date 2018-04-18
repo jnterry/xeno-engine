@@ -189,4 +189,19 @@ void handleCameraInputPlane(xen::Camera3d& camera, real dt) {
 	}
 }
 
+FpsCounter::FpsCounter() : counter (0) {
+	timer.restart();
+}
+
+void FpsCounter::update(){
+	++counter;
+
+	if(xen::asSeconds<real>(timer.getElapsedTime()) > 0.5_r){
+		real fps = counter / xen::asSeconds<real>(timer.getElapsedTime());
+		printf("FPS: %f\n", fps);
+		counter = 0;
+	  timer.restart();
+	}
+}
+
 #endif

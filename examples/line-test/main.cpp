@@ -77,12 +77,13 @@ int main(int argc, char** argv){
 	xen::Stopwatch timer;
 	real last_time = 0;
 	printf("Entering main loop\n");
+
+	FpsCounter fps_counter;
 	while(xen::isWindowOpen(app.window)) {
 		real time = xen::asSeconds<real>(timer.getElapsedTime());
 		real dt = time - last_time;
 		last_time = time;
 
-		printf("dt: %f\n", dt);
 		xen::WindowEvent* event;
 		while((event = xen::pollEvent(app.window)) != nullptr){
 			switch(event->type){
@@ -98,6 +99,8 @@ int main(int argc, char** argv){
 	  app.device->clear      (app.window, xen::Color{20, 20, 20, 255});
 		app.device->render     (app.window, viewport, render_params, render_commands);
 		app.device->swapBuffers(app.window);
+
+		fps_counter.update();
 	}
 	printf("Exiting main loop\n");
 
