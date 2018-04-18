@@ -423,6 +423,21 @@ namespace xen {
 			mesh->color = nullptr;
 		}
 	}
+
+	void computeFlatNormals(MeshData* mesh_data){
+		VertexAttributeAspects aspects = findVertexAttributeAspectIndices
+			(mesh_data->attrib_types, mesh_data->attrib_count);
+
+		Vec3r* pbuf = (Vec3r*)mesh_data->attrib_data[aspects.position];
+		Vec3r* nbuf = (Vec3r*)mesh_data->attrib_data[aspects.normal ];
+		for(u32 i = 0; i < mesh_data->vertex_count; i += 3){
+			xen::Triangle3r* ptri = (xen::Triangle3r*)&pbuf[i];
+			Vec3r normal = xen::computeNormal(*ptri);
+			nbuf[i+0] = normal;
+			nbuf[i+1] = normal;
+			nbuf[i+2] = normal;
+		}
+	}
 }
 
 #endif
