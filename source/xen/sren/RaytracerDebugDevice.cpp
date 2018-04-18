@@ -101,13 +101,18 @@ private:
 
 		Mat4r vp_matrix = xen::getViewProjectionMatrix(view_camera, viewport);
 
+		xen::sren::RasterizationContext context;
+		context.target    = &target;
+		context.viewport  = &viewport_r;
+		context.vp_matrix = vp_matrix;
+		*(xen::RenderParameters3d*)(&context) = params;
+
 		/////////////////////////////////////////////////
 		// Render the scene geometry
 		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
-			rasterizeMesh(target, viewport_r, params,
-			              commands[cmd_index].model_matrix, vp_matrix,
-			              *this->mesh_store.getMesh(commands[cmd_index].mesh),
-			              commands[cmd_index]);
+			rasterizeMesh(context,
+			              commands[cmd_index].primitive_type,
+			              *this->mesh_store.getMesh(commands[cmd_index].mesh));
 		}
 
 		/////////////////////////////////////////////////

@@ -10,6 +10,8 @@
 #define XEN_SREN_RENDERUTILITIES_CPP
 
 #include <xen/graphics/Color.hpp>
+#include <xen/graphics/TestMeshes.hpp>
+#include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/core/array.hpp>
@@ -44,9 +46,45 @@ namespace xen {
 			}
 		}
 
-		xen::Color3f computeLightInfluence(xen::Color4f light_color,
+		xen::Color3f computeLightInfluence(Vec3r        light_pos,
+		                                   xen::Color4f light_color,
 		                                   Vec3f        attenuation_coefficents,
-		                                   real         distance_sq){
+		                                   real         distance_sq,
+		                                   Vec3r        eye_pos,
+		                                   Vec3r        pos_world,
+		                                   Vec3r        normal_world){
+
+			light_color.rgb *= light_color.a;
+
+			// Direction in which photons are travelling from the light
+			// source in order to hit this point
+			Vec3r light_dir = xen::normalized(pos_world - light_pos);
+
+			float diffuse_factor = xen::dot(normal_world, light_dir);
+			if(diffuse_factor < 0){ return Vec3f::Origin; }
+
+			Vec3f diffuse_color = light_color.rgb * diffuse_factor;
+
+			// Compare the reflection direction to the surface_to_eye direction. If
+			// they are equal we get mirror like bright specular reflection. The
+			// greater the angle the less the reflection
+			Vec3r surface_to_eye = xen::normalized(eye_pos - pos_world);
+			Vec3r reflection_dir = xen::reflect(light_dir, normal_world);
+
+			float specular_factor = xen::dot(surface_to_eye, reflection_dir);
+
+			Vec3f specular_color = Vec3f::Origin;
+			if (specular_factor > 0) {
+			  specular_factor = pow(specular_factor, 2.0_r);
+			  specular_color = light_color.rgb * specular_factor;
+			}
+
+			return diffuse_color + specular_color;
+    }
+
+		xen::Color3f computeLightInfluenceSimple(xen::Color4f light_color,
+		                                         Vec3f        attenuation_coefficents,
+		                                         real         distance_sq){
 			float attenuation = (attenuation_coefficents.x * 1.0 +
 			                     attenuation_coefficents.y * xen::sqrt(distance_sq) +
 			                     attenuation_coefficents.z * distance_sq
@@ -54,6 +92,7 @@ namespace xen {
 
 			return (light_color / attenuation).rgb * light_color.w;
 		}
+
 
 		void renderCameraDebug(xen::sren::RenderTargetImpl& target,
 		                       const xen::Aabb2u& viewport,
@@ -172,22 +211,39 @@ namespace xen {
 
 			Mat4r vp_matrix = xen::getViewProjectionMatrix(view_camera, viewport);
 
-			xen::RenderParameters3d params = {};
-			params.camera = view_camera;
+			RasterizationContext context;
+			context.camera          = view_camera;
+			context.target          = &target;
+			context.viewport        = &view_region;
+			context.m_matrix        = Mat4r::Identity;
+			context.vp_matrix       = vp_matrix;
+			context.diffuse_color   = xen::Color::WHITE4f;
+			context.emissive_color  = xen::Color::WHITE4f;
 
-			xen::sren::rasterizeLinesModel(target, view_region, params,
-			                               Mat4r::Identity, vp_matrix,
-			                               xen::Color::WHITE4f,
+			xen::sren::rasterizeLinesModel(context,
 			                               camera_local_axes,
 			                               camera_local_axes_colors,
 			                               XenArrayLength(camera_local_axes));
 
-			xen::sren::rasterizeLinesModel(target, view_region, params,
-			                               Mat4r::Identity, vp_matrix,
-			                               xen::Color::WHITE4f,
+			xen::sren::rasterizeLinesModel(context,
 			                               camera_corner_rays,
 			                               nullptr, // color buffer
 			                               XenArrayLength(camera_corner_rays));
+		}
+
+		// :TODO:*this probably shouldnt take a context...
+		void renderDebugBoundingBox(RasterizationContext context,
+		                            xen::Aabb3r          aabb,
+		                            xen::Color4f         color){
+			context.m_matrix      = (xen::Scale3d      (xen::getSize(aabb)) *
+			                         xen::Translation3d(aabb.min          )
+			                        );
+			context.diffuse_color = color;
+			rasterizeLinesModel(context,
+			                    xen::TestMeshGeometry_UnitCubeLines.position,
+			                    xen::TestMeshGeometry_UnitCubeLines.color,
+			                    xen::TestMeshGeometry_UnitCubeLines.vertex_count,
+			                    2); //advance by 2 vertex for each line drawn
 		}
 	}
 }

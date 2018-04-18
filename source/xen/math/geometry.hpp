@@ -82,19 +82,6 @@ namespace xen{
 	}
 
 	template<typename T>
-	Aabb3<T> getTransformed(const Aabb3<T> aabb, const xen::Matrix<4,4,T> mat){
-		Vec3r a = aabb.min * mat;
-		Vec3r b = aabb.max * mat;
-
-		Aabb3<T> result = Aabb3<T>::MaxMinBox;
-		result.min = xen::min(a, b);
-		result.max = xen::max(a, b);
-
-		return result;
-
-	}
-
-	template<typename T>
 	bool contains(Aabb2<T> aabb, Vec2<T> point){
 		return aabb.min.x <= point.x && point.x <= aabb.max.x &&
 		       aabb.min.y <= point.y && point.y <= aabb.max.y;
@@ -468,8 +455,13 @@ namespace xen{
 	/// aabb along each dimension
 	/////////////////////////////////////////////////////////////////////
 	template<u32 T_DIM, typename T>
-	Vec<T_DIM, T> getSize(Aabb<T_DIM, T> aabb){
+	inline Vec<T_DIM, T> getSize(Aabb<T_DIM, T> aabb){
 		return aabb.max - aabb.min;
+	}
+
+	template<u32 T_DIM, typename T>
+	inline Vec<T_DIM, T> getCenter(Aabb<T_DIM, T> aabb){
+		return aabb.min + (xen::getSize(aabb) / (T)2);
 	}
 
 	template<u32 T_DIM, typename T>
@@ -512,6 +504,52 @@ namespace xen{
 		aabb.min = xen::min(aabb.min, p);
 		aabb.max = xen::max(aabb.max, p);
 		return aabb;
+	}
+
+	template<u32 T_DIM, typename T>
+	Aabb<T_DIM, T> computeBoundingBox(const Vec<T_DIM, T>* ps, u64 p_count){
+		Aabb<T_DIM, T> result = Aabb<T_DIM, T>::MaxMinBox;
+		for(u64 i = 0; i < p_count; ++i){
+			xen::addPoint(result, ps[i]);
+		}
+		return result;
+	}
+
+	template<typename T>
+	Aabb3<T> getTransformed(const Aabb3<T> aabb, const xen::Matrix<4,4,T> mat){
+		Vec3<T> p0 = Vec3<T>{ aabb.min.x, aabb.min.y, aabb.min.z };
+		Vec3<T> p1 = Vec3<T>{ aabb.min.x, aabb.min.y, aabb.max.z };
+		Vec3<T> p2 = Vec3<T>{ aabb.min.x, aabb.max.y, aabb.min.z };
+		Vec3<T> p3 = Vec3<T>{ aabb.min.x, aabb.max.y, aabb.max.z };
+		Vec3<T> p4 = Vec3<T>{ aabb.max.x, aabb.min.y, aabb.min.z };
+		Vec3<T> p5 = Vec3<T>{ aabb.max.x, aabb.min.y, aabb.max.z };
+		Vec3<T> p6 = Vec3<T>{ aabb.max.x, aabb.max.y, aabb.min.z };
+		Vec3<T> p7 = Vec3<T>{ aabb.max.x, aabb.max.y, aabb.max.z };
+
+		// :TODO:OPT: This is probably quite slow...
+		// matrix multipilication is like dot product of the vector by each
+		// column of the matrix -> we are likely recomputing the same stuff
+
+		p0 *= mat;
+		p1 *= mat;
+		p2 *= mat;
+		p3 *= mat;
+		p4 *= mat;
+		p5 *= mat;
+		p6 *= mat;
+		p7 *= mat;
+
+		Aabb3<T> result = Aabb3<T>::MaxMinBox;
+		xen::addPoint(result, p0);
+		xen::addPoint(result, p1);
+		xen::addPoint(result, p2);
+		xen::addPoint(result, p3);
+		xen::addPoint(result, p4);
+		xen::addPoint(result, p5);
+		xen::addPoint(result, p6);
+		xen::addPoint(result, p7);
+
+		return result;
 	}
 
 	//////////////////////////////////////////////////////////////////////////////

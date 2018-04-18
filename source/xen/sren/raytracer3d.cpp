@@ -234,9 +234,13 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 				Vec3r bary = xen::getBarycentricCoordinates(ptri_model, intersection.pos_model);
 
 				#if XEN_DEBUG_CHECKS
-				if(bary.x < 0 || bary.y < 0 || bary.z < 0){
+				// Need to check if less that something slightly negative as else
+				// would get occasional false positive if any component is equal
+				// to -0
+				if(bary.x < -0.00001 || bary.y < -0.0001 || bary.z < -0.00001){
 					printf("WARN: Expected barycentric components to be positive, got:  "
 					       "(%f, %f, %f)\n", bary.x, bary.y, bary.z);
+					XenBreak();
 				}
 				#endif
 
@@ -291,10 +295,23 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 							break;
 						}
 
-						total_light +=
-							xen::sren::computeLightInfluence(params.lights[i].color,
-							                                 params.lights[i].attenuation,
-							                                 light_dist_sq);
+						#if 0
+						total_light += xen::sren::computeLightInfluencePhong
+							( params.lights[i].point.position,
+							  params.lights[i].color,
+							  params.lights[i].attenuation,
+							  light_dist_sq,
+							  params.camera.position,
+							  intersection.pos_world,
+							  pixel_normal_world
+							);
+						#else
+						total_light += xen::sren::computeLightInfluenceSimple
+							( params.lights[i].color,
+							  params.lights[i].attenuation,
+							  light_dist_sq
+							);
+						#endif
 
 						break;
 					}

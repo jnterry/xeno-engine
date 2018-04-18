@@ -18,6 +18,7 @@ cornell-box
 triangle-test
 line-test
 post-processing
+torus
 
 # Ignore program output
 screenshot.bmp

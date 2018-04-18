@@ -9,10 +9,13 @@
 #ifndef XEN_GRAPHICS_SREN_RENDERUTILITIES_HPP
 #define XEN_GRAPHICS_SREN_RENDERUTILITIES_HPP
 
+#include "rasterizer3d.hxx"
+
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
-#include <xen/math/geometry_types.hpp>
 #include <xen/math/utilities.hpp>
+#include <xen/math/geometry_types.hpp>
+#include <xen/math/matrix_types.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/core/array_types.hpp>
 
@@ -56,6 +59,37 @@ namespace xen{
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Computes the influence of a light of a particular color at
 		/// some distance from it
+		///
+		/// \param light_pos The position of the light source
+		///
+		/// \param light_color The color of the light. w component is interpreted
+		/// as a modifier for brightness of the light where 1 means full brightness
+		/// and 0 means no light emitted.
+		///
+		/// \param attenuation - Vector representing the attenuation coefficients
+		/// of the light where x is some constant, y is a linear coefficient and
+		/// z is the quadratic coefficient
+		///
+		/// \param distance_sq The square of the distance between the light source
+		/// and the point it is illuminating
+		///
+		/// \param eye_pos The position of the virtual camera
+		///
+		/// \param pos_world The position of the surface being illuminated
+		///
+		/// \param normal_world The normal to the surface being illuminated
+		/////////////////////////////////////////////////////////////////////
+		xen::Color3f computeLightInfluencePhong(Vec3r        light_pos,
+		                                        xen::Color4f light_color,
+		                                        Vec3f        attenuation,
+		                                        real         distance_sq,
+		                                        Vec3r        eye_pos,
+		                                        Vec3r        pos_world,
+		                                        Vec3r        normal_world);
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Computes the influence of a light of a particular color at
+		/// some distance from it
 		/// \param light_color The color of the light. w component is interpreted
 		/// as a modifier for brightness of the light where 1 means full brightness
 		/// and 0 means no light emitted.
@@ -65,9 +99,18 @@ namespace xen{
 		/// \param distance_sq The square of the distance between the light source
 		/// and the point it is illuminating
 		/////////////////////////////////////////////////////////////////////
-		xen::Color3f computeLightInfluence(xen::Color4f light_color,
-		                                   Vec3f        attenuation,
-		                                   real         distance_sq);
+		xen::Color3f computeLightInfluenceSimple(xen::Color4f light_color,
+		                                         Vec3f        attenuation,
+		                                         real         distance_sq);
+
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Renders a bounding box to the screen
+		/////////////////////////////////////////////////////////////////////
+		void renderDebugBoundingBox(RasterizationContext context,
+		                            xen::Aabb3r          aabb,
+		                            xen::Color4f         color = xen::Color::RED4f
+		                           );
 
 	}
 

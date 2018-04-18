@@ -89,6 +89,11 @@ namespace xen{
 		return vec - ((dot(vec,norm) / magSq(norm)) * norm);
 	}
 
+	template<u32 T_DIM, typename T>
+	inline Vec<T_DIM, T> reflect(Vec<T_DIM, T> dir, Vec<T_DIM, T> normal){
+		return dir - 2 * (xen::dot(dir, normal) * normal);
+	}
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Converts from a 4d homogeneous coordinate space to a 3d
 	/// coordinate space
@@ -157,6 +162,22 @@ namespace xen{
 		}
 		return result;
 	}
+
+	template<u32 T_DIM, typename T>
+	inline T minDimension(const Vec<T_DIM, T>& v){
+		T min = v[0];
+		for(u32 i = 1; i < T_DIM; ++i){ min = xen::min(min, v[i]); }
+		return min;
+	}
+
+	template<u32 T_DIM, typename T>
+	inline T maxDimension(const Vec<T_DIM, T>& v){
+		T max = v[0];
+		for(u32 i = 1; i < T_DIM; ++i){ max = xen::max(max, v[i]); }
+		return max;
+	}
+
+
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Finds element-wise minimum of two vectors
