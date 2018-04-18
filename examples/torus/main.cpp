@@ -131,7 +131,7 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 	                  xen::MeshLoadFlags::SCALE_UNIT_SIZE
 	                 );
 	printf("Loaded torus mesh, %i faces\n", mesh_data_torus->vertex_count / 3);
-	xen::Mesh mesh_torus = device->createMesh(mesh_data_torus);
+	mesh_torus = device->createMesh(mesh_data_torus);
 	transaction.rollback();
 
 	mesh_cube  = device->createMesh(vertex_spec,
