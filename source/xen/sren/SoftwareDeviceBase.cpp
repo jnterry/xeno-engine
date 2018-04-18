@@ -118,7 +118,7 @@ namespace xen {
 				this->post_processors[i]->process(target);
 			}
 
-			xen::sren::presentRenderTarget(window, target);
+			xen::sren::presentRenderTarget(window, target, thpool);
 		}
 	}
 }

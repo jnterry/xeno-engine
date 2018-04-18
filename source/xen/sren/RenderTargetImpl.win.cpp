@@ -56,7 +56,7 @@ namespace xen {
 			doPlatformRenderTargetInit(alloc, target, window);
 		}
 
-		void presentRenderTarget(Window* window, RenderTargetImpl& target){
+		void presentRenderTarget(Window* window, RenderTargetImpl& target, threadpool thpool){
 			//////////////////////////////////////////////////////////////////////////
 			// Update the byte array we show on screen from the float array we do
 			// our rendering into
