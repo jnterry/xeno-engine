@@ -149,8 +149,8 @@ int main(int argc, char** argv){
 	initSceneLights();
 
 	ExampleApplication app = createApplication("torus",
-	                                           ExampleApplication::Backend::RASTERIZER,
-	                                           xen::makeArray(post_processors, XenArrayLength(post_processors))
+	                                           ExampleApplication::Backend::RASTERIZER
+	                                           //xen::makeArray(post_processors, XenArrayLength(post_processors))
 	                                          );
 
 	initMeshes(app.device, app.arena);
