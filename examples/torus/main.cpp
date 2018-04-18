@@ -134,8 +134,6 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 	xen::Mesh mesh_torus = device->createMesh(mesh_data_torus);
 	transaction.rollback();
 
-	mesh_torus = device->createMesh(mesh_data_torus);
-
 	mesh_cube  = device->createMesh(vertex_spec,
 	                                xen::TestMeshGeometry_UnitCube
 	                               );
