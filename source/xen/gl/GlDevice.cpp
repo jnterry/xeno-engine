@@ -148,7 +148,6 @@ namespace {
 				                                   )
 				             );
 			} else {
-				printf("Using constant value for attribute: %i\n", i);
 				XEN_CHECK_GL(glDisableVertexAttribArray(i));
 
 				switch(mesh->attrib_types[i]){
