@@ -13,6 +13,13 @@ xen::Mesh                                      mesh_axes;
 
 xen::FixedArray<xen::RenderCommand3d, 10> render_commands;
 
+xen::sren::PostProcessorDisplayDepthBuffer pp_displayDepthBuffer;
+
+xen::sren::PostProcessor* post_processors[] = {
+	&pp_displayDepthBuffer,
+};
+
+
 #define CMD_IDX_TOR_A  0
 #define CMD_IDX_TOR_B  1
 #define CMD_IDX_FLOOR  2
@@ -138,15 +145,24 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 }
 
 int main(int argc, char** argv){
-	ExampleApplication app = createApplication("torus",
-	                                           ExampleApplication::Backend::RASTERIZER
-	                                          );
 	initCamera();
 	initSceneLights();
+
+	ExampleApplication app = createApplication("torus",
+	                                           ExampleApplication::Backend::RASTERIZER,
+	                                           xen::makeArray(post_processors, XenArrayLength(post_processors))
+	                                          );
+
 	initMeshes(app.device, app.arena);
 	initRenderCommands();
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
+
+	pp_displayDepthBuffer.z_near            = camera.z_near;
+	pp_displayDepthBuffer.z_far             = camera.z_far;
+	pp_displayDepthBuffer.alpha             = 0.8f;
+	pp_displayDepthBuffer.screen_region.min = Vec2u{viewport.max.x / 2, 10};
+	pp_displayDepthBuffer.screen_region.max = Vec2u{viewport.max.x - 10, viewport.max.y / 2 - 10};
 
 	xen::Stopwatch timer;
 	real last_time = 0;
