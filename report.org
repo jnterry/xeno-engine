@@ -78,10 +78,12 @@
 
 ** Raytracer
 
-	 - Optimizations
+	 - Various optimizations to achieve real-time performance in 400x400 window
 	   - Pre-generating a "scene"
 			 - Sorting by whether shadow casting
 			 - Segregating triangles from other primitive types
+		 - Threaded rendering
+			 - The view region is broken up into multiple blocks such that the work can be divided amongst multiple threads
 		 - :TODO: simd?
 
 ** Rasterizer
