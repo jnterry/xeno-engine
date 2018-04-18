@@ -160,7 +160,7 @@ namespace {
 	                             Vec3r                              normal_world,
 	                             xen::Color4f                       color){
 
-		#if 1  // display normals
+		#if 0  // display normals
 		return xen::mkVec(((Vec3f)normal_world + (Vec3f{1,1,1}) / 2.0f), 1.0f);
 		#endif
 
@@ -179,14 +179,22 @@ namespace {
 
 			real dist_sq_world = xen::distanceSq(pos_world, uniforms.lights[i].point.position);
 
-			total_light += xen::sren::computeLightInfluence
-				(uniforms.lights[i].point.position,
-				 uniforms.lights[i].color,
-				 uniforms.lights[i].attenuation,
-				 dist_sq_world,
-				 uniforms.camera.position,
-				 pos_world, normal_world
+			#if 0
+			total_light += xen::sren::computeLightInfluencePhong
+				( uniforms.lights[i].point.position,
+				  uniforms.lights[i].color,
+				  uniforms.lights[i].attenuation,
+				  dist_sq_world,
+				  uniforms.camera.position,
+				  pos_world, normal_world
 				);
+			#else
+			total_light += xen::sren::computeLightInfluenceSimple
+				( uniforms.lights[i].color,
+				  uniforms.lights[i].attenuation,
+				  dist_sq_world
+				);
+			#endif
 		}
 
 		for(u32 i = 0; i < 3; ++i){

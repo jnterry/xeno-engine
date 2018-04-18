@@ -82,6 +82,18 @@ namespace xen {
 			return diffuse_color + specular_color;
     }
 
+		xen::Color3f computeLightInfluenceSimple(xen::Color4f light_color,
+		                                         Vec3f        attenuation_coefficents,
+		                                         real         distance_sq){
+			float attenuation = (attenuation_coefficents.x * 1.0 +
+			                     attenuation_coefficents.y * xen::sqrt(distance_sq) +
+			                     attenuation_coefficents.z * distance_sq
+			                     );
+
+			return (light_color / attenuation).rgb * light_color.w;
+		}
+
+
 		void renderCameraDebug(xen::sren::RenderTargetImpl& target,
 		                       const xen::Aabb2u& viewport,
 		                       const Camera3d& view_camera,
