@@ -66,6 +66,15 @@
 		 - :TODO: what post processors have we actually implemented?
 		 - :TODO: write to depth buffer in raytracer to support fog
 		 - :TODO: demoed by what?
+	 - SIMD optimization transforming floating framebuffer to byte pixels for display
+		 - :TODO: threads?
+		 - Floating framebuffer pixels are used for better lighting calculations, but the transformation from floating in range 0-1 to bytes in range 0-255 was taking a lot of CPU time
+		 - We used SIMD compiler intrinsics to do all 4 color channels simultaneously
+		 - Below are the CPU times of the SoftwareDeviceBase::swapBuffers call in various configurations:
+       | App         | Baseline | With SIMD |
+       |-------------+----------+-----------+
+       | Starfield   |      97% |       82% |
+       | Cornell Box |      83% |       79% |
 
 ** Raytracer
 
@@ -95,7 +104,6 @@
 	 - Windowing System
 		 - Low level implementation of window management, event polling etc using raw operating system calls with no reliance on external libraries
 		 - Implementation for both X11 and windows
-		 - SIMD optimization for transforming floating framebuffer to byte pixels to display
 		 - :TODO: add SDL implementation and benchmark
 	 - Own math library
 		 - We do not rely on GLM but instead have written all of our own maths from scratch
