@@ -67,14 +67,13 @@
 		 - :TODO: write to depth buffer in raytracer to support fog
 		 - :TODO: demoed by what?
 	 - SIMD optimization transforming floating framebuffer to byte pixels for display
-		 - :TODO: threads?
-		 - Floating framebuffer pixels are used for better lighting calculations, but the transformation from floating in range 0-1 to bytes in range 0-255 was taking a lot of CPU time
+		 - Floating framebuffer pixels are used for better lighting calculations, but the transformation from floating in range 0-1 to bytes in range 0-255 was taking a lot of CPU time (97% in the starfield demo)
 		 - We used SIMD compiler intrinsics to do all 4 color channels simultaneously
-		 - Below are the CPU times of the SoftwareDeviceBase::swapBuffers call in various configurations:
-       | App         | Baseline | With SIMD |
-       |-------------+----------+-----------+
-       | Starfield   |      97% |       82% |
-       | Cornell Box |      83% |       79% |
+		 - Below are recorded FPS's in various configurations using the software rasterizer:
+       | App         | Baseline | With SIMD | With 4 Threads and SIMD |
+       |-------------+----------+-----------+-------------------------|
+       | Starfield   |      250 |       275 | 330                     |
+       | Cornell Box |      235 |       260 | 285                     |
 
 ** Raytracer
 
@@ -92,7 +91,6 @@
 		 - Rasterizer can render lines and points as well as just triangles
 		 - We support: TRIANGLES, LINES, LINE_STRIP, POINTS (as defined by the OpenGL standard - but we have implemented them in software)
 		 - Note that the raytracer backend will fall back to using the rasterizer for all primative types except TRIANGLES since it doesn't make sense to ray trace points or lines which are infinitely thin
-			 - :TODO: if we defined thickness for these primitives it actually would make sense to ray trace them...
 	 - Full clipping pipeline
 		 - All primitive types are clipped by the engine such that the camera can be moved without segfaults, all geometry not in view is not drawn
 		 - Geometry partially on and partially off of the screen is clipped to the viewport
