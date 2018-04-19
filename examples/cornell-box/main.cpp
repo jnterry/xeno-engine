@@ -17,8 +17,6 @@ xen::Mesh                                      mesh_cornell_walls;
 xen::Mesh                                      mesh_cube;
 xen::Mesh                                      mesh_axes;
 
-xen::Texture texture_brick;
-
 xen::FixedArray<xen::RenderCommand3d, 5> render_commands;
 
 void initRenderCommands(){
@@ -115,9 +113,6 @@ void initMeshes(ExampleApplication& app){
 	mesh_axes = app.device->createMesh(vertex_spec,
 	                                   xen::TestMeshGeometry_Axes
 	                                  );
-
-	xen::RawImage bricks_image = xen::loadImage(app.arena, "test.bmp");
-	texture_brick = app.device->createTexture(&bricks_image);
 }
 
 int main(int argc, char** argv){
