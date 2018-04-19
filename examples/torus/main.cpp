@@ -185,25 +185,21 @@ int main(int argc, char** argv){
 			case xen::WindowEvent::Closed:
 				app.device->destroyWindow(app.window);
 				break;
-			case xen::WindowEvent::KeyPressed:
-				switch(event->key.key){
-				case xen::Key::W: // wireframe
-					render_commands[0].primitive_type = xen::PrimitiveType::LINES;
-					render_commands[1].primitive_type = xen::PrimitiveType::LINES;
-					break;
-				case xen::Key::P: // point cloud
-					render_commands[0].primitive_type = xen::PrimitiveType::POINTS;
-					render_commands[1].primitive_type = xen::PrimitiveType::POINTS;
-					break;
-				case xen::Key::F: // filled
-					render_commands[0].primitive_type = xen::PrimitiveType::TRIANGLES;
-					render_commands[1].primitive_type = xen::PrimitiveType::TRIANGLES;
-					break;
-				default: break;
-				}
 			default: break;
 			}
 		}
+
+		// :TODO: these should use window events...
+		if(xen::isKeyPressed(xen::Key::P)){ // points
+		  render_commands[0].primitive_type = xen::PrimitiveType::POINTS;
+		}
+		if(xen::isKeyPressed(xen::Key::L)){ // lines
+		  render_commands[0].primitive_type = xen::PrimitiveType::LINES;
+		}
+		if(xen::isKeyPressed(xen::Key::T)){ // triangles
+			render_commands[0].primitive_type = xen::PrimitiveType::TRIANGLES;
+		}
+
 		handleCameraInputCylinder(camera, dt, 30);
 		render_params.camera = xen::generateCamera3d(camera);
 
