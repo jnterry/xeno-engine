@@ -2,20 +2,20 @@
 
 	We have implemented all that was requested for the 50% for both the raytracer and rasterizer. The rest of this document explains how we have expanded on this initial task.
 
-	We have implemented this coursework as if it were the beginings of a full graphics engine (which we have named "Xeno Engine"). That is, the rendering portion is implemented as a (set of) shared libraries which applications link against. Additionally there are many helper utility functions and classes not directly related to graphics, such as memory management, file loading, etc.
+	We have implemented this coursework as if it were the beginnings of a full graphics engine (which we have named "Xeno Engine"). That is, the rendering portion is implemented as a (set of) shared libraries which applications link against. Additionally there are many helper utility functions and classes not directly related to graphics, such as memory management, file loading, etc.
 
-	Additionally we have structured the engine such that a single interface is exposed to client applications while multiple "rendering backends" can be used. We have implemented a software rasterizer, software Raytracer and a proof of concept OpenGL backend using this interface. The OpenGL implementation is not designed to be feature complete, but is to show the interface can also be used as a wrapper around traditional rendering APIs, and we found it useful in our testing to ensure our own rendering achieved visually similar results.
+	Additionally we have structured the engine such that a single interface is exposed to client applications while multiple "rendering backends" can be used. We have implemented a software rasterizer, software raytracer and a proof of concept OpenGL backend using this interface. The OpenGL implementation is not designed to be feature complete, but is to show the interface can also be used as a wrapper around traditional rendering APIs, and we found it useful in our testing to ensure our own rendering achieved visually similar results.
 
 * Code Structure
 
-	This approach has lead our code base to be substantially larger than may have been expected for this coursework; an outline of the structure of the code is given below:
+	This approach has lead to a large code base an outline of which is given below:
 
 	- =source/xen= - Contains source code for the engine
-		- =core= - Core utility functions and types not directly related to graphics, eg, memory managment
+		- =core= - Core utility functions and types not directly related to graphics, eg, memory management
 		- =math= - Implementation of mathematical helper functions and types. *Note that we do not rely on glm, but have implemented our own maths from scratch*
 		- =graphics= - Definition of the shared graphics interface as well as various helper functions and types (eg, for dealing with colors or images) which do not rely on a particular rendering backend
-		- =sren= - Stands for "software renderer". Contains implementation of both the software rasterizer and software Raytracer backends
-		- =gl= - Contains a basic OpenGL implementation of the rendering backend
+		- =sren= - Stands for "software renderer". Contains implementation of both the software rasterizer and software raytracer backends
+		- =gl= - Contains a basic OpenGL implementation of the rendering interface
 	- =examples= - Source code for various example applications. These are the "mains" and link against the shared xeno-engine libraries
 	- =tests= - Source code for automated unit tests
 
@@ -33,7 +33,8 @@
 	1. Creating a directory "build" in the root of the repository
 	2. Running the command ~cmake ..~ from the build directory
 	3. Running the command ~make~ in the build directory
-	4. Running the example executables which will have been placed in bin
+
+	You can now run the example executables which will have been placed in =/bin=.
 
 * External Libraries
 
@@ -81,12 +82,19 @@
 	 - Post Processing Pipeline
 		 - The software rendering backends support applying "post-processing" steps after the image has been rendered
 		 - We also have a demo application which loads an image, applies a (set of) post processor(s) and then saves the result, without creating a window etc
-		 - :TODO: what post processors have we actually implemented?
-		 - :TODO: write to depth buffer in raytracer to support fog
-		 - :TODO: demoed by what?
-	 - SIMD optimization transforming floating framebuffer to byte pixels for display
+		 - We have implemented:
+			 - Color inversion
+				 - :TODO: demoed by what
+			 - Depth buffer visualisation
+				 - :TODO: demoed by what
+			 - :TODO: anti-aliasing
+				 - :TODO: demoed by what
+			 - :TODO: fog
+				 - :TODO: demoed by what
+	 - Threading and SIMD optimization for transforming floating framebuffer to byte pixels for display
 		 - Floating framebuffer pixels are used for better lighting calculations, but the transformation from floating in range 0-1 to bytes in range 0-255 was taking a lot of CPU time (97% in the starfield demo)
 		 - We used SIMD compiler intrinsics to do all 4 color channels simultaneously
+		 - We used threads to do different regions of the buffer in parallel
 		 - Below are recorded FPS's in various configurations using the software rasterizer:
        | App         | Baseline | With SIMD | With 4 Threads and SIMD |
        |-------------+----------+-----------+-------------------------|
@@ -106,7 +114,6 @@
 			 - Together these avoid some branches per ray in the rendering code, which speeds up rendering since branch's are expensive if they cause branch misprediction
 		 - Threaded rendering
 			 - The view region is broken up into multiple blocks such that the work can be divided amongst multiple threads
-		 - :TODO: simd?
 
 ** Rasterizer
 
