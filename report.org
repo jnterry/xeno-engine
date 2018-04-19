@@ -101,9 +101,10 @@
        | Starfield   |      250 |       275 | 330                     |
        | Cornell Box |      235 |       260 | 285                     |
 	 - Mesh System and Loading
-		 - Flexible mesh system which can represent meshes with an arbitary number of attributes (eg position data, normal data, color data, etc) potentially each having a different type
+		 - Flexible mesh system which can represent meshes with an arbitrary number of attributes (eg position data, normal data, color data, etc) potentially each having a different type
 		 - Use of assimp library to load mesh files (such as obj)
 		 - Additional "load flags" can be specified to manipulate the mesh as it loads, eg generating normals, centering the local origin to be at (0,0,0), etc
+		 - The =torus= demo shows this capability by loading the torus.obj in the bin directory
 
 ** Raytracer
 
@@ -126,6 +127,8 @@
 	 - Full clipping pipeline
 		 - All primitive types are clipped by the engine such that the camera can be moved without segfaults, all geometry not in view is not drawn
 		 - Geometry partially on and partially off of the screen is clipped to the viewport
+	 - Per pixel "programmable" shader
+		 - The rasterizer runs a "fragment
 	 - Per pixel lighting calculations
 		 - See =torus= example application
 
