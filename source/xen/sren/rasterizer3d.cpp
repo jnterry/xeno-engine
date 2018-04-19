@@ -210,12 +210,86 @@ namespace {
 		return result;
 	}
 
+void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
+                          const xen::LineSegment3r&        line_world,
+                          xen::LineSegment3r               line_screen,
+                          const xen::LineSegment4f&        line_color){
+
+	///////////////////////////////////////////////////////////////////
+	// Slide the endpoints into the viewport
+	xen::Aabb3r view_volumn;
+	view_volumn.min.xy = cntx.viewport->min;
+	view_volumn.min.z  = FLT_MIN;
+	view_volumn.max.xy = cntx.viewport->max;
+	view_volumn.max.z  = FLT_MAX;
+	if(!xen::intersect(line_screen, view_volumn)){
+		return;
+	}
+	if(line_screen.p1.xy == line_screen.p2.xy){ return; }
+	///////////////////////////////////////////////////////////////////
+
+	//https://www.cs.virginia.edu/luther/blog/posts/492.html
+	real num_pixels = xen::max(abs(line_screen.p1.x - line_screen.p2.x),
+	                           abs(line_screen.p1.y - line_screen.p2.y)
+	                           );
+
+	Vec3r delta_screen = (line_screen.p2 - line_screen.p1) / num_pixels;
+	Vec3r cur_screen   = line_screen.p1;
+	for(u32 i = 0; i < (u32)num_pixels; ++i){
+
+		// :TODO: Replace lerp with a perspective correct interpolation
+		real lerp_factor = i / num_pixels;
+
+		// :TODO: should be u32 -> but cur.y or cur.z may be negative
+		s32  pixel_index = (s32)cur_screen.y*cntx.target->width + cur_screen.x;
+
+		real         depth      = cur_screen.z;
+		xen::Color4f base_color = xen::lerp(line_color,     lerp_factor);
+		Vec3r        pos_world  = xen::lerp(line_world,     lerp_factor);
+
+		if (depth < cntx.target->depth[pixel_index]) {
+			cntx.target->color[pixel_index] = _fragmentShader(cntx,
+			                                                  pos_world,
+			                                                  Vec3r::Origin,
+			                                                  base_color);
+			cntx.target->depth[pixel_index] = depth;
+		}
+		cur_screen += delta_screen;
+	}
+}
+
 	// :TODO:OPT: profile -> is passing by reference faster
 	void _rasterizeTriangleScreen(const xen::sren::RasterizationContext& cntx,
 	                              xen::Triangle3r                        tri_world,
 	                              xen::Triangle3r                        tri_normal_world,
 	                              xen::Triangle3r                        tri_screen,
 	                              xen::Triangle4f                        colors){
+
+		#if 0 // render wireframe of triangle
+		_rasterizeLineScreen(cntx,
+		                     *(xen::LineSegment3r*)&tri_world.p1,
+		                     *(xen::LineSegment3r*)&tri_screen.p1,
+		                     *(xen::LineSegment4f*)&colors.p1
+		                    );
+		_rasterizeLineScreen(cntx,
+		                     *(xen::LineSegment3r*)&tri_world.p2,
+		                     *(xen::LineSegment3r*)&tri_screen.p2,
+		                     *(xen::LineSegment4f*)&colors.p2
+		                    );
+
+		xen::LineSegment3r line_world;
+		xen::LineSegment3r line_screen;
+		xen::LineSegment4f line_colors;
+		line_world.p1 = tri_world.p1;
+		line_world.p2 = tri_world.p3;
+		line_screen.p1 = tri_screen.p1;
+		line_screen.p2 = tri_screen.p3;
+		line_colors.p1 = colors.p1;
+		line_colors.p2 = colors.p3;
+		_rasterizeLineScreen(cntx, line_world, line_screen, line_colors);
+		return;
+		#endif
+
 		xen::Triangle2r tri_screen_xy = xen::swizzle<'x','y'>(tri_screen);
 
 		xen::Aabb2r region_r = xen::Aabb2r::MaxMinBox;
@@ -414,54 +488,6 @@ void rasterizePointsModel(const RasterizationContext& cntx,
 			 xen::makeColor4f(color_buffer[i * colors_per_vertex]));
 	}
 } // end of rasterizePointsModel
-
-void _rasterizeLineScreen(const RasterizationContext& cntx,
-                          const LineSegment3r&        line_world,
-                          LineSegment3r               line_screen,
-                          const LineSegment4f&        line_color){
-
-	///////////////////////////////////////////////////////////////////
-	// Slide the endpoints into the viewport
-	Aabb3r view_volumn;
-	view_volumn.min.xy = cntx.viewport->min;
-	view_volumn.min.z  = FLT_MIN;
-	view_volumn.max.xy = cntx.viewport->max;
-	view_volumn.max.z  = FLT_MAX;
-	if(!xen::intersect(line_screen, view_volumn)){
-		return;
-	}
-	if(line_screen.p1.xy == line_screen.p2.xy){ return; }
-	///////////////////////////////////////////////////////////////////
-
-	//https://www.cs.virginia.edu/luther/blog/posts/492.html
-	real num_pixels = xen::max(abs(line_screen.p1.x - line_screen.p2.x),
-	                           abs(line_screen.p1.y - line_screen.p2.y)
-	                           );
-
-	Vec3r delta_screen = (line_screen.p2 - line_screen.p1) / num_pixels;
-	Vec3r cur_screen   = line_screen.p1;
-	for(u32 i = 0; i < (u32)num_pixels; ++i){
-
-		// :TODO: Replace lerp with a perspective correct interpolation
-		real lerp_factor = i / num_pixels;
-
-		// :TODO: should be u32 -> but cur.y or cur.z may be negative
-		s32  pixel_index = (s32)cur_screen.y*cntx.target->width + cur_screen.x;
-
-		real         depth      = cur_screen.z;
-		xen::Color4f base_color = xen::lerp(line_color,     lerp_factor);
-		Vec3r        pos_world  = xen::lerp(line_world,     lerp_factor);
-
-		if (depth < cntx.target->depth[pixel_index]) {
-			cntx.target->color[pixel_index] = _fragmentShader(cntx,
-			                                                  pos_world,
-			                                                  Vec3r::Origin,
-			                                                  base_color);
-			cntx.target->depth[pixel_index] = depth;
-		}
-		cur_screen += delta_screen;
-	}
-}
 
 void rasterizeLineModel(const RasterizationContext& cntx,
                         const LineSegment3r&        line_model,
