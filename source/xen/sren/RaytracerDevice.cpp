@@ -212,7 +212,7 @@ void xen::sren::RaytracerDevice::doRender(xen::sren::RenderTargetImpl&          
 	context.target          = &target;
 	context.viewport        = &view_region;
 	context.fragment_shader = xen::sren::DefaultFragmentShader;
-	for(u32 i = 0; i < xen::size(commands); ++i){
+	for(u32 i = 0; i < xen::size(non_triangle_cmds); ++i){
 		u32 cmd_index = non_triangle_cmds[i];
 		const xen::RenderCommand3d* cmd = &commands[cmd_index];
 		setPerCommandFragmentUniforms(context, *cmd,
