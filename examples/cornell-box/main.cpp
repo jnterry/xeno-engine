@@ -32,7 +32,7 @@ void initRenderCommands(){
 
 	render_commands[1].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_commands[1].color           = Vec4f{ 0.15f, 0.15f, 0.75f, 1.0f };
-	render_commands[1].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
+	render_commands[1].model_matrix    = (xen::Translation3d(-0.5_r, 0.0001_r, -0.5_r) *
 	                                      xen::Scale3d      (0.3_r, 0.6_r, 0.3_r  ) *
 	                                      xen::Rotation3dy  (15_deg               ) *
 	                                      xen::Translation3d(tall_box_center      )
@@ -41,7 +41,7 @@ void initRenderCommands(){
 
 	render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
   render_commands[2].color           = Vec4f{ 0.75f, 0.15f, 0.15f, 1.0_r };
-	render_commands[2].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
+	render_commands[2].model_matrix    = (xen::Translation3d(-0.5_r, 0.0001_r, -0.5_r) *
 	                                      xen::Scale3d      (0.3_r, 0.3_r, 0.3_r  ) *
 	                                      xen::Rotation3dy  (-18_deg              ) *
 	                                      xen::Translation3d(short_box_center     )
@@ -51,7 +51,7 @@ void initRenderCommands(){
 	render_commands[3].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_commands[3].color           = xen::Color::YELLOW4f;
 	render_commands[3].emissive_color  = xen::Color::YELLOW4f;
-	render_commands[3].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r  ) *
+	render_commands[3].model_matrix    = (xen::Translation3d(-0.5_r, 0.0001_r, -0.5_r  ) *
 	                                      xen::Scale3d      (0.05_r, 0.05_r, 0.05_r ) *
 	                                      xen::Rotation3dy  (18_deg                 ) *
 	                                      xen::Translation3d(-0.1_r, 0.0_r, 0.2_r    )
@@ -72,7 +72,7 @@ void initCamera(){
 	camera.z_far    = 1000;
 	camera.fov_y    = 70_deg;
 	camera.radius   = 10;
-	camera.height   = 0;
+	camera.height   = 0.001;
 	camera.up_dir   = Vec3r::UnitY;
 	camera.axis     = Vec3r::UnitY;
 	camera.target   = {0.0_r, 0.5_r, 0.0_r};
