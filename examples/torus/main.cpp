@@ -7,9 +7,11 @@ xen::RenderParameters3d                render_params;
 xen::FixedArray<xen::LightSource3d, 3> scene_lights;
 
 xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
-xen::Mesh                                      mesh_torus;
+xen::Mesh                                      mesh_torus_smooth;
+xen::Mesh                                      mesh_torus_flat;
 xen::Mesh                                      mesh_cube;
 xen::Mesh                                      mesh_axes;
+xen::Mesh                                      mesh_xzplane;
 
 xen::FixedArray<xen::RenderCommand3d, 10> render_commands;
 
@@ -34,7 +36,7 @@ void initRenderCommands(){
 	render_commands[0].model_matrix    = (xen::Translation3dx( 0.2_r) *
 	                                      Mat4r::Identity
 	                                     );
-	render_commands[0].mesh            = mesh_torus;
+	render_commands[0].mesh            = mesh_torus_smooth;
 
 	render_commands[1].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_commands[1].color           = xen::Color::WHITE4f;
@@ -42,15 +44,13 @@ void initRenderCommands(){
 	                                      xen::Translation3dx(-0.2_r) *
 	                                      Mat4r::Identity
 	                                     );
-	render_commands[1].mesh            = mesh_torus;
+	render_commands[1].mesh            = mesh_torus_flat;
 
 	render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_commands[2].color           = xen::Color::WHITE4f;
-	render_commands[2].model_matrix    = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
-	                                      xen::Scale3d      (5, 0.1, 5)              *
-	                                      xen::Translation3d(0.0_r, -0.5_r, 0.0_r)
-	                                     );
-	render_commands[2].mesh            = mesh_cube;
+	render_commands[2].model_matrix    = (xen::Scale3d      (5, 5, 5) *
+	                                      xen::Translation3d(0, -0.5_r, 0));
+	render_commands[2].mesh            = mesh_xzplane;
 
 	for(u32 i = 0; i < 4; ++i){
 		xen::Color4f color = xen::Color::WHITE4f;
@@ -113,8 +113,8 @@ void initSceneLights(){
 		scene_lights[i].point.position[i] = 1.0f;
 		scene_lights[i].color          = xen::Color::BLACK4f;
 		scene_lights[i].color[i]       = 1.0f;
-		scene_lights[i].color.a        = 1.0f;
-		scene_lights[i].attenuation    = {0.0f, 0.0f, 4.0f};
+		scene_lights[i].color.a        = 0.5f;
+		scene_lights[i].attenuation    = {0.0f, 0.0f, 2.0f};
 	}
 	render_params.lights = scene_lights;
 }
@@ -131,7 +131,9 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 	                  xen::MeshLoadFlags::SCALE_UNIT_SIZE
 	                 );
 	printf("Loaded torus mesh, %i faces\n", mesh_data_torus->vertex_count / 3);
-	mesh_torus = device->createMesh(mesh_data_torus);
+	mesh_torus_smooth = device->createMesh(mesh_data_torus);
+	computeFlatNormals(mesh_data_torus);
+	mesh_torus_flat = device->createMesh(mesh_data_torus);
 	transaction.rollback();
 
 	mesh_cube  = device->createMesh(vertex_spec,
@@ -140,6 +142,10 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 	mesh_axes = device->createMesh(vertex_spec,
 	                               xen::TestMeshGeometry_Axes
 	                              );
+
+	mesh_xzplane = device->createMesh(vertex_spec,
+	                                  xen::TestMeshGeometry_UnitXzPlaneCentered
+	                                 );
 }
 
 int main(int argc, char** argv){
