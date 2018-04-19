@@ -105,10 +105,6 @@ namespace xen {
 		void rasterizeMesh(const RasterizationContext& context,
 		                   xen::PrimitiveType          primitive_type,
 		                   const MeshGeometrySource&   mesh);
-
-		/// \brief The default fragment shader for use by  the software rasterizer
-		/// Performs very basic lighting
-		extern FragmentShader DefaultFragmentShader;
 	}
 }
 

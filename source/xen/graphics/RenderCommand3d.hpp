@@ -110,8 +110,6 @@ namespace xen{
 	};
 
 	/// \brief Bundle of extra parameters needed for the fragment shader
-	/// \todo :TODO: this is only so we can have signature of FragmentShader
-	/// as part of public interface, this should be part of sren internals...
 	struct FragmentUniforms : public RenderParameters3d {
 		/// \brief The emissive color of the geometry
 		xen::Color4f emissive_color;

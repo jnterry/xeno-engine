@@ -9,12 +9,13 @@
 #ifndef XEN_SREN_RASTERIZERDEVICE_CPP
 #define XEN_SREN_RASTERIZERDEVICE_CPP
 
-#include <xen/core/intrinsics.hpp>
-#include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/sren/SoftwareDevice.hpp>
+#include <xen/sren/FragmentShader.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/graphics/Image.hpp>
-#include <xen/sren/SoftwareDevice.hpp>
 #include <xen/math/geometry.hpp>
+#include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/core/intrinsics.hpp>
 
 #include "SoftwareDeviceBase.hxx"
 #include "render-utilities.hxx"

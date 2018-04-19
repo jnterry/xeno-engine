@@ -7,7 +7,7 @@
 #ifndef XEN_EXAMPLES_TORUS_FRAGMENTSHADERS_CPP
 #define XEN_EXAMPLES_TORUS_FRAGMENTSHADERS_CPP
 
-#include <xen/sren/render-utilities.hxx>
+#include <xen/sren/FragmentShader.hpp>
 
 xen::Color4f FragmentShader_Normals(const xen::FragmentUniforms& uniforms,
                                     Vec3r                        pos_world,
