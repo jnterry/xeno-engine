@@ -126,7 +126,12 @@ namespace xen{
 		Mat4r vp_matrix;
 	};
 
-	typedef Color4f (*FragmentShader)();
+	typedef Color4f (*FragmentShader)(const xen::FragmentUniforms& uniforms,
+	                                  Vec3r                        pos_world,
+	                                  Vec3r                        normal_world,
+	                                  xen::Color4f                 color);
+
+
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents a single rendering operation which will draw
