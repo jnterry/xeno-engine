@@ -31,6 +31,13 @@ namespace xen {
 	const extern MeshGeometrySource TestMeshGeometry_UnitCube;
 
 	/////////////////////////////////////////////////////////////////////
+	/// \brief 2 triangles forming a square of side length 1. Center of
+	/// square is at (0,0,0). Square lies flat in the xz plane. Normals
+	/// are defined to be in positive y direction
+	/////////////////////////////////////////////////////////////////////
+	const extern MeshGeometrySource TestMeshGeometry_UnitXzPlaneCentered;
+
+	/////////////////////////////////////////////////////////////////////
 	/// \brief Geometry for a test mesh that represents the 3 axes as a line
 	/// each of unit length, starting at the origin and extending out in the
 	/// positive direction.
