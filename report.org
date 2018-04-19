@@ -66,8 +66,8 @@
 	 - Per Vertex Attributes
 		 - Colors and normals are specified per vertex rather than per triangle
 		 - These values are interpolated across the surface of a triangle using perspective correct interpolation
-		 - see =triangle-test= for a demo of per vertex colors
-		 - :TODO: demo for per vertex normals (sphere rendering?)
+		 - See =triangle-test= for a demo of per vertex colors
+		 - See =torus= for a demo of per vertex normals. One torus has the same normal for each vertex of every triangle, where as the other has smooth normals such that a vertex's normal is the average of the normal of each face that uses that vertex. Interpolating these across the surface yields smooth lighting
 	 - Arbitrary viewpoints
 		 - Rendering can be performed in arbitrary viewpoints of a render target
 		 - Try running the =cornell-box= demo with the device "Raytracer Camera Debug" to see a demonstration
@@ -76,7 +76,7 @@
 		 - The only limit on number is desired performance and hardware capabilities (and having less than 2^32 so we can index them...)
 	 - Per mesh emissive lighting
 		 - Meshes can be assigned an emissive color
-		 - This can be seen in the torus demo, where the 4 cubes embedded in the floor apear to glow regardless of the light's positions
+		 - This can be seen in the torus demo, where the 4 outer cubes appear to glow at the same brightness regardless of the light's positions
 		 - Additionally the small yellow cube in the cornell box demo is emissive
 	 - Post Processing Pipeline
 		 - The software rendering backends support applying "post-processing" steps after the image has been rendered
@@ -92,6 +92,10 @@
        |-------------+----------+-----------+-------------------------|
        | Starfield   |      250 |       275 | 330                     |
        | Cornell Box |      235 |       260 | 285                     |
+	 - Mesh System and Loading
+		 - Flexible mesh system which can represent meshes with an arbitary number of attributes (eg position data, normal data, color data, etc) potentially each having a different type
+		 - Use of assimp library to load mesh files (such as obj)
+		 - Additional "load flags" can be specified to manipulate the mesh as it loads, eg generating normals, centering the local origin to be at (0,0,0), etc
 
 ** Raytracer
 
@@ -110,20 +114,21 @@
 		 - Rasterizer can render lines and points as well as just triangles
 		 - We support: TRIANGLES, LINES, LINE_STRIP, POINTS (as defined by the OpenGL standard - but we have implemented them in software)
 		 - Note that the raytracer backend will fall back to using the rasterizer for all primative types except TRIANGLES since it doesn't make sense to ray trace points or lines which are infinitely thin
+		 - Point and line rendering is shown in the =starfield= demo
+		 - To prove we can render the same mesh with different primitive types, and the setting is per model (IE: instantiation of a mesh) rather than per mesh try pressing T, L and P for triangles, lines and points respectively in the =torus= demo
 	 - Full clipping pipeline
 		 - All primitive types are clipped by the engine such that the camera can be moved without segfaults, all geometry not in view is not drawn
 		 - Geometry partially on and partially off of the screen is clipped to the viewport
+	 - Per pixel lighting calculations
+		 - See =torus= example application
 
 ** Meta Extensions
 
-	 - Mesh System and Loading
-		 - Flexible mesh system which can represent meshes with an arbitary number of attributes (eg position data, normal data, color data, etc) potentially each having a different type
-		 - Use of assimp library to load mesh files (such as obj)
-		 - Additional "load flags" can be specified to manipulate the mesh as it loads, eg generating normals, centering the local origin to be at (0,0,0), etc
+	 The following extensions may not count due to them being not directly related to software rendering, they were implemented more out of interest than for marks.
+
 	 - Windowing System
 		 - Low level implementation of window management, event polling etc using raw operating system calls with no reliance on external libraries
 		 - Implementation for both X11 and windows
-		 - :TODO: add SDL implementation and benchmark
 	 - Own math library
 		 - We do not rely on GLM but instead have written all of our own maths from scratch
 	 - OpenGL Backend
