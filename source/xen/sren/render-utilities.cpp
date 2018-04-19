@@ -46,13 +46,13 @@ namespace xen {
 			}
 		}
 
-		xen::Color3f computeLightInfluence(Vec3r        light_pos,
-		                                   xen::Color4f light_color,
-		                                   Vec3f        attenuation_coefficents,
-		                                   real         distance_sq,
-		                                   Vec3r        eye_pos,
-		                                   Vec3r        pos_world,
-		                                   Vec3r        normal_world){
+		xen::Color3f computeLightInfluencePhong(Vec3r        light_pos,
+		                                        xen::Color4f light_color,
+		                                        Vec3f        attenuation_coefficents,
+		                                        real         distance_sq,
+		                                        Vec3r        eye_pos,
+		                                        Vec3r        pos_world,
+		                                        Vec3r        normal_world){
 
 			light_color.rgb *= light_color.a;
 
