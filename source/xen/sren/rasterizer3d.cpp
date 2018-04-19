@@ -572,9 +572,9 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 
 	// Work out which points are behind the camera
 	u08 points_behind = 0;
-	points_behind |= (tri_pos_clip.p1.z < 0) << 0;
-	points_behind |= (tri_pos_clip.p2.z < 0) << 1;
-	points_behind |= (tri_pos_clip.p3.z < 0) << 2;
+	points_behind |= (tri_pos_clip.p1.z < cntx.camera.z_near) << 0;
+	points_behind |= (tri_pos_clip.p2.z < cntx.camera.z_near) << 1;
+	points_behind |= (tri_pos_clip.p3.z < cntx.camera.z_near) << 2;
 
 	///////////////////////////////////////////////////////////////////
 	// Render the triangle(s)
@@ -620,14 +620,14 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 			// component becomes 0
 
 			Vec4r delta_p2 = (tri_pos_clip.p1 - tri_pos_clip.p2);
-			real  frac_p2  = ((-tri_pos_clip.p2.z / delta_p2.z));
+			real  frac_p2  = (((-tri_pos_clip.p2.z + cntx.camera.z_near) / delta_p2.z));
 			tri_pos_clip .p2  += (delta_p2                           ) * frac_p2;
 			tri_pos_world.p2  += (tri_pos_world.p1 - tri_pos_world.p2) * frac_p2;
 			tri_nor_world.p2  += (tri_nor_world.p1 - tri_nor_world.p2) * frac_p2;
 			tri_color    .p2  += (tri_color    .p1 - tri_color    .p2) * frac_p2;
 
 			Vec4r delta_p3 = (tri_pos_clip.p1 - tri_pos_clip.p3);
-			real  frac_p3  = ((-tri_pos_clip.p3.z / delta_p3.z));
+			real  frac_p3  = (((-tri_pos_clip.p3.z + cntx.camera.z_near) / delta_p3.z));
 			tri_pos_clip .p3  += (delta_p3                           ) * frac_p3;
 			tri_pos_world.p3  += (tri_pos_world.p1 - tri_pos_world.p3) * frac_p3;
 			tri_nor_world.p3  += (tri_nor_world.p1 - tri_nor_world.p3) * frac_p3;
@@ -670,11 +670,11 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 			//tri_clip.p3 += delta_p3 * ((-tri_clip.p3.z / delta_p3.z));
 
 			Vec4r delta_p1       = (tri_pos_clip.p1 - tri_pos_clip.p3);
-			real  frac_p1        = ((-tri_pos_clip.p3.z / delta_p1.z));
+			real  frac_p1        = (((-tri_pos_clip.p3.z + cntx.camera.z_near) / delta_p1.z));
 			Vec4r p3_slide_to_p1 = (tri_pos_clip.p3 + (delta_p1 * frac_p1));
 
 			Vec4r delta_p2       = (tri_pos_clip.p2 - tri_pos_clip.p3);
-			real  frac_p2        = ((-tri_pos_clip.p3.z / delta_p2.z));
+			real  frac_p2        = (((-tri_pos_clip.p3.z + cntx.camera.z_near) / delta_p2.z));
 			Vec4r p3_slide_to_p2 = (tri_pos_clip.p3 + (delta_p2 * frac_p2));
 
 			xen::VertexGroup4r<4> quad_pos_clip;
