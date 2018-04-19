@@ -299,7 +299,6 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 		if(!xen::intersect(region_r, *cntx.viewport)){
 			return;
 		}
-		xen::Aabb2u region = (xen::Aabb2u)region_r;
 
 		// Divide for perspective correct interpolation
 		// https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/perspective-correct-interpolation-vertex-attributes
@@ -312,6 +311,90 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 		colors.p1           /= (float)tri_screen.p1.z;
 		colors.p2           /= (float)tri_screen.p2.z;
 		colors.p3           /= (float)tri_screen.p3.z;
+
+		// Edge function method, see:
+		// https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/rasterization-stage
+		#if 0
+
+		const real area = (((tri_screen.p3.x - tri_screen.p1.x) *
+		              (tri_screen.p2.y - tri_screen.p1.y)
+		              ) -
+		             ((tri_screen.p3.y - tri_screen.p1.y) *
+		              (tri_screen.p2.x - tri_screen.p1.x)
+		              )
+		             );
+
+		for(u32 py = floor(region_r.min.y); py < ceil(region_r.max.y); ++py){
+			for(u32 px = floor(region_r.min.x); px < ceil(region_r.max.x); ++px){
+
+
+				real e12 = (((px -              tri_screen.p1.x) *
+				             (tri_screen.p2.y - tri_screen.p1.y)
+				            ) -
+				            ((py              - tri_screen.p1.y) *
+				             (tri_screen.p2.x - tri_screen.p1.x)
+				            )
+				           );
+				real e23 = (((px -              tri_screen.p2.x) *
+				             (tri_screen.p3.y - tri_screen.p2.y)
+				            ) -
+				            ((py              - tri_screen.p2.y) *
+				             (tri_screen.p3.x - tri_screen.p2.x)
+				            )
+				           );
+				real e31 = (((px -              tri_screen.p3.x) *
+				             (tri_screen.p1.y - tri_screen.p3.y)
+				            ) -
+				            ((py              - tri_screen.p3.y) *
+				             (tri_screen.p1.x - tri_screen.p3.x)
+				            )
+				           );
+
+				if(! ((e12 > 0 && e23 > 0 && e31 > 0) ||
+				      (e12 < 0 && e23 < 0 && e31 < 0)
+				     )
+				  ){
+					// Then this point is outside of the triangle
+					continue;
+				}
+
+				u32 pixel_index = py * cntx.target->width + px;
+
+				Vec3r bary;
+				bary.z = e12 / area;
+				bary.x = e23 / area;
+				bary.y = e31 / area;
+
+				real depth = (tri_screen.p1.z * bary.x +
+				              tri_screen.p2.z * bary.y +
+				              tri_screen.p3.z * bary.z );
+
+				xen::Color4f color        = evaluateBarycentricCoordinates(colors,           bary);
+				Vec3r        pos_world    = evaluateBarycentricCoordinates(tri_world,        bary);
+				Vec3r        normal_world = evaluateBarycentricCoordinates(tri_normal_world, bary);
+
+				// Correct for perspective correct interpolation
+				// https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/perspective-correct-interpolation-vertex-attributes
+				color        *= (float)depth;
+				pos_world    *= depth;
+				normal_world *= depth;
+
+				if (depth < cntx.target->depth[pixel_index]) {
+					cntx.target->depth[pixel_index] = depth;
+					cntx.target->color[pixel_index] = _fragmentShader(cntx,
+					                                                  pos_world,
+					                                                  normal_world,
+					                                                  color);
+				}
+			}
+		}
+
+
+
+		// This is the made up barycentric interpolation method,
+		// broken in some cases...
+		#else
+		xen::Aabb2u region = (xen::Aabb2u)region_r;
 
 		// If we call min.x, 0 and max.x, 1 then incr_x is the amount we increase
 		// by when we move 1 pixel
@@ -431,6 +514,7 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 				}
 			}
 		}
+		#endif
 	}
 } // end of anon namespace
 
