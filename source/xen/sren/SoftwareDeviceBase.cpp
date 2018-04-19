@@ -29,13 +29,21 @@ namespace xen {
 			  main_allocator (new xen::AllocatorCounter<xen::AllocatorMalloc>()),
 			  misc_arena     (xen::createArenaLinear(*main_allocator, xen::megabytes(1))),
 			  render_targets (xen::createArenaPool<RenderTargetImpl>(main_allocator,  128)),
-			  textures       (xen::createArenaPool<RawImage        >(main_allocator, 1024)),
+			  textures       (xen::createArenaPool<TextureImpl     >(main_allocator, 1024)),
 			  shaders        (xen::createArenaPool<FragmentShader  >(main_allocator,  128))
 		{
 			this->thpool = thpool_init(4);
 
 			// Ensure shader 0 is the default shader
 			this->createShader((void*)xen::sren::DefaultFragmentShader);
+
+			// Ensure texture 0 is single pixel white
+			RawImage image;
+			image.size.x = 1;
+			image.size.y = 1;
+			xen::Color color = xen::Color::WHITE;
+			image.pixels = &color;
+			this->createTexture(&image);
 		}
 
 		SoftwareDeviceBase::~SoftwareDeviceBase(){
@@ -48,7 +56,7 @@ namespace xen {
 			return &this->render_targets.slots[target._id].item;
 		}
 
-		RawImage* SoftwareDeviceBase::getTextureImpl(Texture texture){
+		TextureImpl* SoftwareDeviceBase::getTextureImpl(Texture texture){
 			return &this->textures.slots[texture._id].item;
 		}
 
@@ -61,20 +69,20 @@ namespace xen {
 
 			Texture result = this->makeHandle<Texture::HANDLE_ID>(slot, 0);
 
-			RawImage* image_internal = this->getTextureImpl(result);
+			TextureImpl* timpl = this->getTextureImpl(result);
 
 			u32 num_bytes = sizeof(xen::Color) * image->width * image->height;
 
-			image_internal->size = image->size;
-			image_internal->pixels = (xen::Color*)main_allocator->allocate(num_bytes);
-			memcpy(image_internal->pixels, image->pixels, num_bytes);
+			timpl->image.size = image->size;
+			timpl->image.pixels = (xen::Color*)main_allocator->allocate(num_bytes);
+			memcpy(timpl->image.pixels, image->pixels, num_bytes);
 
 			return result;
 		}
 
 		void SoftwareDeviceBase::destroyTexture(Texture texture){
-			RawImage* image = this->getTextureImpl(texture);
-			main_allocator->deallocate(image->pixels);
+			TextureImpl* timpl = this->getTextureImpl(texture);
+			main_allocator->deallocate(timpl->image.pixels);
 			xen::freeSlot(textures, texture._id);
 		}
 

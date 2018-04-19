@@ -93,6 +93,7 @@ set(XEN_SOURCES_SREN
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/post_processors/InvertColors.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/post_processors/DisplayDepthBuffer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/FragmentShader.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/Texture.cpp
 )
 
 set(XEN_HEADERS_SREN
@@ -107,6 +108,7 @@ set(XEN_HEADERS_SREN
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/render-utilities.hxx
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RenderTargetImpl.hxx
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/FragmentShader.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/Texture.hxx
 )
 
 ##################################################

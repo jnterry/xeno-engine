@@ -124,6 +124,10 @@ namespace xen{
 		/// \brief A handle to a mesh to be drawn, used if source is Mesh
 		xen::Mesh mesh;
 
+
+		/// \brief Array of textures to be used by this rendering operation
+		xen::Texture textures[4];
+
 		/// \brief Shader used to compute per pixel colors.
 		///
 		/// Set to a null handle to use the engine's default shader

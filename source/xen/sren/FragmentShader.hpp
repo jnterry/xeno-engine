@@ -6,10 +6,6 @@
 /// \ingroup sren
 ////////////////////////////////////////////////////////////////////////////
 
-// :TODO: actual fragment shader type is in RenderCommands3d since we need a
-// pointer to it in the RenderCommand. At some point we should make shaders
-// an opaque type and have the graphics device create them from something...
-
 #ifndef XEN_SREN_FRAGMENTSHADER_HPP
 #define XEN_SREN_FRAGMENTSHADER_HPP
 
@@ -17,6 +13,7 @@
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/Image.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
+#include "Texture.hxx"
 
 namespace xen {
 	namespace sren {
@@ -34,24 +31,14 @@ namespace xen {
 
 			/// \brief The view projection matrix
 			Mat4r vp_matrix;
+
+			TextureImpl* textures[4];
 		};
 
 		typedef Color4f (*FragmentShader)(const xen::sren::FragmentUniforms& uniforms,
 		                                  Vec3r                        pos_world,
 		                                  Vec3r                        normal_world,
 		                                  xen::Color4f                 color);
-
-		struct TextureImpl {
-			// :TODO: mipmaps
-			// :TODO: texture wrapping/clamping/etc settings
-			xen::RawImage image;
-		};
-
-		/////////////////////////////////////////////////////////////////////
-		/// \brief Samples a texture returning the color of the specified uv
-		/// coordinate
-		/////////////////////////////////////////////////////////////////////
-		Color4f sampleTexture(const TextureImpl&, Vec2r uv);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Computes the influence of a light of a particular color at

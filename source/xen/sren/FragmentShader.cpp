@@ -48,9 +48,10 @@ xen::Color4f _defaultFragmentShader(const xen::sren::FragmentUniforms& uniforms,
 		}
 	}
 
-	xen::Color4f result = xen::Color4f::Origin;
-	result.rgb = uniforms.diffuse_color.rgb * color.rgb * total_light;
-	result.a   = 1;
+	xen::Color4f result = uniforms.diffuse_color;
+	result *= color;
+	result *= xen::sren::sampleTexture(uniforms.textures[0], Vec2r::Origin);
+	result.rgb *= total_light;
 
 	return result;
 }
@@ -59,18 +60,6 @@ namespace xen {
 namespace sren {
 
 FragmentShader DefaultFragmentShader = &_defaultFragmentShader;
-
-Color4f sampleTexture(const TextureImpl& texture, Vec2r uv){
-	if(uv.u < 0 || uv.v < 0 ||
-	   uv.u > (real)texture.image.size.u ||
-	   uv.v > (real)texture.image.size.v){
-		return xen::Color::BLACK4f;
-	}
-
-	Vec2u uv_int = (Vec2u)uv;
-
-	return xen::makeColor4f(texture.image[uv_int.u][uv_int.v]);
-}
 
 xen::Color3f computeLightInfluencePhong(Vec3r        light_pos,
                                         xen::Color4f light_color,

@@ -103,6 +103,10 @@ public:
 			                              cmd.model_matrix,
 			                              vp_matrix
 			                             );
+			context.textures[0] = this->getTextureImpl(cmd.textures[0]);
+			context.textures[1] = this->getTextureImpl(cmd.textures[1]);
+			context.textures[2] = this->getTextureImpl(cmd.textures[2]);
+			context.textures[3] = this->getTextureImpl(cmd.textures[3]);
 			auto mesh = this->mesh_store.getMesh(cmd.mesh);
 
 			#if 0

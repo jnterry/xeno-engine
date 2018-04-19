@@ -18,6 +18,7 @@
 
 #include <xen/sren/FragmentShader.hpp>
 #include "RenderTargetImpl.hxx"
+#include "Texture.hxx"
 
 #include <thpool.h>
 
@@ -33,7 +34,7 @@ namespace xen {
 			xen::ArenaLinear misc_arena;
 
 			xen::ArenaPool<RenderTargetImpl> render_targets;
-			xen::ArenaPool<RawImage        > textures;
+			xen::ArenaPool<TextureImpl     > textures;
 			xen::ArenaPool<FragmentShader  > shaders;
 
 			// The threadpool used by this device
@@ -50,7 +51,7 @@ namespace xen {
 			RenderTargetImpl* getRenderTargetImpl(RenderTarget target);
 
 			/// \brief Retrieves the RawImage for a particular texture
-			RawImage* getTextureImpl(Texture texture);
+			TextureImpl* getTextureImpl(Texture texture);
 
 			/// \brief Retrieves the FragmentShader for some shader
 			FragmentShader getShaderImpl(Shader shader);
