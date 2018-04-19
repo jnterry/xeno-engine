@@ -415,6 +415,54 @@ void rasterizePointsModel(const RasterizationContext& cntx,
 	}
 } // end of rasterizePointsModel
 
+void _rasterizeLineScreen(const RasterizationContext& cntx,
+                          const LineSegment3r&        line_world,
+                          LineSegment3r               line_screen,
+                          const LineSegment4f&        line_color){
+
+	///////////////////////////////////////////////////////////////////
+	// Slide the endpoints into the viewport
+	Aabb3r view_volumn;
+	view_volumn.min.xy = cntx.viewport->min;
+	view_volumn.min.z  = FLT_MIN;
+	view_volumn.max.xy = cntx.viewport->max;
+	view_volumn.max.z  = FLT_MAX;
+	if(!xen::intersect(line_screen, view_volumn)){
+		return;
+	}
+	if(line_screen.p1.xy == line_screen.p2.xy){ return; }
+	///////////////////////////////////////////////////////////////////
+
+	//https://www.cs.virginia.edu/luther/blog/posts/492.html
+	real num_pixels = xen::max(abs(line_screen.p1.x - line_screen.p2.x),
+	                           abs(line_screen.p1.y - line_screen.p2.y)
+	                           );
+
+	Vec3r delta_screen = (line_screen.p2 - line_screen.p1) / num_pixels;
+	Vec3r cur_screen   = line_screen.p1;
+	for(u32 i = 0; i < (u32)num_pixels; ++i){
+
+		// :TODO: Replace lerp with a perspective correct interpolation
+		real lerp_factor = i / num_pixels;
+
+		// :TODO: should be u32 -> but cur.y or cur.z may be negative
+		s32  pixel_index = (s32)cur_screen.y*cntx.target->width + cur_screen.x;
+
+		real         depth      = cur_screen.z;
+		xen::Color4f base_color = xen::lerp(line_color,     lerp_factor);
+		Vec3r        pos_world  = xen::lerp(line_world,     lerp_factor);
+
+		if (depth < cntx.target->depth[pixel_index]) {
+			cntx.target->color[pixel_index] = _fragmentShader(cntx,
+			                                                  pos_world,
+			                                                  Vec3r::Origin,
+			                                                  base_color);
+			cntx.target->depth[pixel_index] = depth;
+		}
+		cur_screen += delta_screen;
+	}
+}
+
 void rasterizeLineModel(const RasterizationContext& cntx,
                         const LineSegment3r&        line_model,
                         const LineSegment4f&        line_color){
@@ -423,7 +471,8 @@ void rasterizeLineModel(const RasterizationContext& cntx,
 	xen::LineSegment4r line_clip  = xen::toHomo(line_world) * cntx.vp_matrix;
 
 	///////////////////////////////////////////////////////////////////
-	// Do line clipping against z planes
+	// Do line clipping against near z plane
+	// :TODO: this is currently against z = 0, not z_near
 	if(line_clip.p1.z < 0 && line_clip.p2.z < 0){
 		// Then line is completely behind the camera
 		return;
@@ -440,9 +489,6 @@ void rasterizeLineModel(const RasterizationContext& cntx,
 	}
 	///////////////////////////////////////////////////////////////////
 
-	real z_start = line_clip.p2.z;
-	real z_end   = line_clip.p1.z;
-
 	///////////////////////////////////////////////////////////////////
 	// Do perspective divide (into normalized device coordinates -> [-1, 1]
 	// We only care about x and y coordinates at this point
@@ -452,44 +498,16 @@ void rasterizeLineModel(const RasterizationContext& cntx,
 
 	///////////////////////////////////////////////////////////////////
 	// Clip to the viewport
-	xen::LineSegment2r line_screen =
+	xen::LineSegment2r line_screen_2d =
 		_convertToScreenSpaceOLD<xen::LineSegment4r, xen::LineSegment2r>(line_clip, *cntx.viewport);
 
-	if(!xen::intersect(line_screen, *cntx.viewport)){
-		return;
-	}
-	if(line_screen.p1 == line_screen.p2){ return; }
-	///////////////////////////////////////////////////////////////////
+	xen::LineSegment3r line_screen;
+	line_screen.p1.xy = line_screen_2d.p1;
+	line_screen.p1.z  = line_clip.p1.z;
+	line_screen.p2.xy = line_screen_2d.p2;
+	line_screen.p2.z  = line_clip.p2.z;
 
-
-	//https://www.cs.virginia.edu/luther/blog/posts/492.html
-	real num_pixels = xen::max(abs(line_screen.p1.x - line_screen.p2.x),
-	                           abs(line_screen.p1.y - line_screen.p2.y)
-	                           );
-
-	Vec2r delta_screen = (line_screen.p2 - line_screen.p1) / num_pixels;
-	Vec2r cur_screen   = line_screen.p1;
-	for(u32 i = 0; i < (u32)num_pixels; ++i){
-
-		// :TODO: Replace lerp with a perspective correct interpolation
-		real lerp_factor = i / num_pixels;
-
-		// :TODO: should be u32 -> but cur.y or cur.z may be negative
-		s32  pixel_index = (s32)cur_screen.y*cntx.target->width + cur_screen.x;
-
-		real         depth      = xen::lerp(z_start, z_end, lerp_factor);
-		xen::Color4f base_color = xen::lerp(line_color,     lerp_factor);
-		Vec3r        pos_world  = xen::lerp(line_world,     lerp_factor);
-
-		if (depth < cntx.target->depth[pixel_index]) {
-			cntx.target->color[pixel_index] = _fragmentShader(cntx,
-			                                                  pos_world,
-			                                                  Vec3r::Origin,
-			                                                  base_color);
-			cntx.target->depth[pixel_index] = depth;
-		}
-		cur_screen += delta_screen;
-	}
+	_rasterizeLineScreen(cntx, line_world, line_screen, line_color);
 } // end of function rasterizeLineModel
 
 void rasterizeLinesModel(const RasterizationContext& cntx,
