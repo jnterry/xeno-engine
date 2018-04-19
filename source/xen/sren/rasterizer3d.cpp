@@ -155,10 +155,10 @@ namespace {
 	/// \param color        The diffuse color of the point being filled
 	/////////////////////////////////////////////////////////////////////
 	// :TODO:OPT: profile -> is pass by reference faster?
-	xen::Color4f _fragmentShader(const xen::sren::FragmentUniforms& uniforms,
-	                             Vec3r                              pos_world,
-	                             Vec3r                              normal_world,
-	                             xen::Color4f                       color){
+	xen::Color4f _fragmentShader(const xen::FragmentUniforms& uniforms,
+	                             Vec3r                        pos_world,
+	                             Vec3r                        normal_world,
+	                             xen::Color4f                 color){
 
 		#if 0  // display normals
 		return xen::mkVec(((Vec3f)normal_world + (Vec3f{1,1,1}) / 2.0f), 1.0f);
@@ -179,7 +179,7 @@ namespace {
 
 			real dist_sq_world = xen::distanceSq(pos_world, uniforms.lights[i].point.position);
 
-			#if 0
+			#if 1
 			total_light += xen::sren::computeLightInfluencePhong
 				( uniforms.lights[i].point.position,
 				  uniforms.lights[i].color,

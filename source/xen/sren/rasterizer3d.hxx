@@ -28,21 +28,6 @@ namespace xen {
 			// - anything we can pre-compute?
 		};
 
-		/// \brief Bundle of extra parameters needed for the fragment shader
-		struct FragmentUniforms : public RenderParameters3d {
-			/// \brief The emissive color of the geometry
-			xen::Color4f emissive_color;
-
-			/// \brief The diffuse color to use for geometry
-			xen::Color4f diffuse_color;
-
-			/// \brief The model matrix
-			Mat4r m_matrix;
-
-			/// \brief The view projection matrix
-			Mat4r vp_matrix;
-		};
-
 		/// \brief Bundle of all meta data required for rasterization operations
 		struct RasterizationContext : public FragmentUniforms {
 			xen::sren::RenderTargetImpl* target;
