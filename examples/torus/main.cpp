@@ -19,8 +19,6 @@ xen::Shader  shader_phong;
 xen::Shader  shader_normals;
 xen::Shader  shader_positions;
 
-xen::Texture texture_bricks_diffuse;
-
 xen::FixedArray<xen::RenderCommand3d, 10> render_commands;
 
 xen::sren::PostProcessorDisplayDepthBuffer pp_displayDepthBuffer;
@@ -60,7 +58,6 @@ void initRenderCommands(){
 	render_commands[2].model_matrix    = (xen::Scale3d      (5, 5, 5) *
 	                                      xen::Translation3d(0, -0.5_r, 0));
 	render_commands[2].mesh            = mesh_xzplane;
-	render_commands[2].textures[0]     = texture_bricks_diffuse;
 
 	for(u32 i = 0; i < 4; ++i){
 		xen::Color4f color = xen::Color::WHITE4f;
@@ -159,9 +156,6 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 	shader_phong     = device->createShader((void*)&FragmentShader_Phong    );
 	shader_normals   = device->createShader((void*)&FragmentShader_Normals  );
 	shader_positions = device->createShader((void*)&FragmentShader_Positions);
-
-	xen::RawImage bricks_image = xen::loadImage(arena, "test.bmp");
-	texture_bricks_diffuse = device->createTexture(&bricks_image);
 }
 
 int main(int argc, char** argv){

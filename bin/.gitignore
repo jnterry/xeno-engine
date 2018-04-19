@@ -19,7 +19,7 @@ triangle-test
 line-test
 post-processing
 torus
-sphere
+texture-test
 
 # Ignore program output
 screenshot.bmp
