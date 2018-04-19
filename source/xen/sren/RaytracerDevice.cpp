@@ -209,8 +209,9 @@ void xen::sren::RaytracerDevice::doRender(xen::sren::RenderTargetImpl&          
 	////////////////////////////////////////////////////////////////////////////
 	// Render the non triangles in the scene
 	RasterizationContext context;
-	context.target   = &target;
-	context.viewport = &view_region;
+	context.target          = &target;
+	context.viewport        = &view_region;
+	context.fragment_shader = xen::sren::DefaultFragmentShader;
 	for(u32 i = 0; i < xen::size(commands); ++i){
 		u32 cmd_index = non_triangle_cmds[i];
 		const xen::RenderCommand3d* cmd = &commands[cmd_index];
