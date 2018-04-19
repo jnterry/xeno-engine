@@ -75,6 +75,9 @@ namespace xen {
 
 	/// \brief Handle to some texture which may be used by a GraphicsDevice
 	typedef _GraphicsHandle<__LINE__> Texture;
+
+	/// \brief Handle to some shader which may be used by a GraphicsDevice
+	typedef _GraphicsHandle<__LINE__> Shader;
 }
 
 #endif

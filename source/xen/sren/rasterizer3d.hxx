@@ -9,6 +9,7 @@
 #ifndef XEN_SREN_RASTERIZER3D_HXX
 #define XEN_SREN_RASTERIZER3D_HXX
 
+#include <xen/sren/FragmentShader.hpp>
 #include <xen/graphics/Mesh_types.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/math/matrix_types.hpp>
@@ -32,7 +33,7 @@ namespace xen {
 		struct RasterizationContext : public FragmentUniforms {
 			xen::sren::RenderTargetImpl* target;
 			xen::Aabb2r*                 viewport;
-			xen::FragmentShader          fragment_shader;
+			xen::sren::FragmentShader    fragment_shader;
 		};
 
 		/////////////////////////////////////////////////////////////////////

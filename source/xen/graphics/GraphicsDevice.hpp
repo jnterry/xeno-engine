@@ -163,6 +163,35 @@ namespace xen {
 		virtual void destroyTexture(Texture texture) = 0;
 		/// @}
 
+
+		/// \defgroup Shader
+		/// @{
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Creates a shader program that may be used by the graphics device
+		///
+		/// \param source Pointer to graphics device implementation specific data
+		/// used to create the shader
+		///
+		/// \todo :TODO: Can we have typesafe creation of a shader without forcing
+		/// us to expose the actual graphics device type in use?
+		/// Problem is that the data used to create a shader changes (GLSL
+		/// source files for OpenGL, function pointer for software renderer, etc)
+		/// Can we use an intermediate format and compile down?
+		/// SPIRV maybe? -> experimental SPIRV to c++ at:
+		/// https://github.com/KhronosGroup/SPIRV-Cross
+		///
+		/// \return Mesh Handle to the created mesh, this handle may be used
+		/// in future with this GraphicsDevice
+		/////////////////////////////////////////////////////////////////////
+		virtual Shader createShader(const void* source) = 0;
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Destroys an existing Shader
+		/////////////////////////////////////////////////////////////////////
+		virtual void destroyShader(Shader shader) = 0;
+		/// @}
+
 		/// \defgroup Drawing Operations
 		/// @{
 		/////////////////////////////////////////////////////////////////////

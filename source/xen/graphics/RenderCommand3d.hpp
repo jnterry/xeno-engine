@@ -109,28 +109,6 @@ namespace xen{
 		// fog?
 	};
 
-	/// \brief Bundle of extra parameters needed for the fragment shader
-	struct FragmentUniforms : public RenderParameters3d {
-		/// \brief The emissive color of the geometry
-		xen::Color4f emissive_color;
-
-		/// \brief The diffuse color to use for geometry
-		xen::Color4f diffuse_color;
-
-		/// \brief The model matrix
-		Mat4r m_matrix;
-
-		/// \brief The view projection matrix
-		Mat4r vp_matrix;
-	};
-
-	typedef Color4f (*FragmentShader)(const xen::FragmentUniforms& uniforms,
-	                                  Vec3r                        pos_world,
-	                                  Vec3r                        normal_world,
-	                                  xen::Color4f                 color);
-
-
-
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents a single rendering operation which will draw
 	/// some object to the screen
@@ -148,17 +126,8 @@ namespace xen{
 
 		/// \brief Shader used to compute per pixel colors.
 		///
-		/// Set to nullptr to use the engine's default shader
-		///
-		/// \note This is currently only used by the software rasterizer backend,
-		/// :TODO: implement real shader system, graphics devices should be able
-		/// to create shaders and return opaque handles as with textures, meshes,
-		/// etc. Problem is that the data used to create a shader changes (GLSL
-		/// source files for OpenGL, function pointer for software renderer, etc)
-		/// Can we use an intermediate format and compile down?
-		/// SPIRV maybe? -> experimental SPIRV to c++ at:
-		/// https://github.com/KhronosGroup/SPIRV-Cross
-		FragmentShader fragment_shader;
+		/// Set to a null handle to use the engine's default shader
+		Shader shader;
 	};
 }
 

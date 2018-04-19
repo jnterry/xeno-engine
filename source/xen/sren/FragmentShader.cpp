@@ -19,10 +19,10 @@
 /// \param normal_world The normal of the point being filled in world space
 /// \param color        The diffuse color of the point being filled
 /////////////////////////////////////////////////////////////////////
-xen::Color4f _defaultFragmentShader(const xen::FragmentUniforms& uniforms,
-                                    Vec3r                        pos_world,
-                                    Vec3r                        normal_world,
-                                    xen::Color4f                 color){
+xen::Color4f _defaultFragmentShader(const xen::sren::FragmentUniforms& uniforms,
+                                    Vec3r                              pos_world,
+                                    Vec3r                              normal_world,
+                                    xen::Color4f                       color){
 
 	xen::Color3f total_light = uniforms.ambient_light;
 	total_light += (uniforms.emissive_color.rgb * uniforms.emissive_color.a);
@@ -59,6 +59,18 @@ namespace xen {
 namespace sren {
 
 FragmentShader DefaultFragmentShader = &_defaultFragmentShader;
+
+Color4f sampleTexture(const TextureImpl& texture, Vec2r uv){
+	if(uv.u < 0 || uv.v < 0 ||
+	   uv.u > (real)texture.image.size.u ||
+	   uv.v > (real)texture.image.size.v){
+		return xen::Color::BLACK4f;
+	}
+
+	Vec2u uv_int = (Vec2u)uv;
+
+	return xen::makeColor4f(texture.image[uv_int.u][uv_int.v]);
+}
 
 xen::Color3f computeLightInfluencePhong(Vec3r        light_pos,
                                         xen::Color4f light_color,

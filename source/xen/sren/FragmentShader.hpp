@@ -21,6 +21,26 @@
 namespace xen {
 	namespace sren {
 
+		/// \brief Bundle of extra parameters needed for the fragment shader
+		struct FragmentUniforms : public RenderParameters3d {
+			/// \brief The emissive color of the geometry
+			xen::Color4f emissive_color;
+
+			/// \brief The diffuse color to use for geometry
+			xen::Color4f diffuse_color;
+
+			/// \brief The model matrix
+			Mat4r m_matrix;
+
+			/// \brief The view projection matrix
+			Mat4r vp_matrix;
+		};
+
+		typedef Color4f (*FragmentShader)(const xen::sren::FragmentUniforms& uniforms,
+		                                  Vec3r                        pos_world,
+		                                  Vec3r                        normal_world,
+		                                  xen::Color4f                 color);
+
 		struct TextureImpl {
 			// :TODO: mipmaps
 			// :TODO: texture wrapping/clamping/etc settings

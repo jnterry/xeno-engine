@@ -94,7 +94,7 @@ public:
 		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 			const xen::RenderCommand3d& cmd = commands[cmd_index];
 
-			context.fragment_shader = cmd.fragment_shader;
+			context.fragment_shader = this->getShaderImpl(cmd.shader);
 			if(context.fragment_shader == nullptr){
 				context.fragment_shader = xen::sren::DefaultFragmentShader;
 			}

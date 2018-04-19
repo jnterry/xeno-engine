@@ -14,6 +14,10 @@ xen::Mesh                                      mesh_cube;
 xen::Mesh                                      mesh_axes;
 xen::Mesh                                      mesh_xzplane;
 
+xen::Shader                                    shader_phong;
+xen::Shader                                    shader_normals;
+xen::Shader                                    shader_positions;
+
 xen::FixedArray<xen::RenderCommand3d, 10> render_commands;
 
 xen::sren::PostProcessorDisplayDepthBuffer pp_displayDepthBuffer;
@@ -38,7 +42,7 @@ void initRenderCommands(){
 	                                      Mat4r::Identity
 	                                     );
 	render_commands[0].mesh            = mesh_torus_smooth;
-	render_commands[0].fragment_shader = FragmentShader_Phong;
+	render_commands[0].shader          = shader_phong;
 
 	render_commands[1].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_commands[1].color           = xen::Color::WHITE4f;
@@ -47,7 +51,7 @@ void initRenderCommands(){
 	                                      Mat4r::Identity
 	                                     );
 	render_commands[1].mesh            = mesh_torus_flat;
-	render_commands[1].fragment_shader = FragmentShader_Phong;
+	render_commands[1].shader          = shader_phong;
 
 	render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_commands[2].color           = xen::Color::WHITE4f;
@@ -149,6 +153,10 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 	mesh_xzplane = device->createMesh(vertex_spec,
 	                                  xen::TestMeshGeometry_UnitXzPlaneCentered
 	                                 );
+
+	shader_phong     = device->createShader((void*)&FragmentShader_Phong    );
+	shader_normals   = device->createShader((void*)&FragmentShader_Normals  );
+	shader_positions = device->createShader((void*)&FragmentShader_Positions);
 }
 
 int main(int argc, char** argv){
@@ -203,20 +211,20 @@ int main(int argc, char** argv){
 			render_commands[0].primitive_type = xen::PrimitiveType::TRIANGLES;
 		}
 		if(xen::isKeyPressed(xen::Key::Num4)){ // normals
-			render_commands[0].fragment_shader = &FragmentShader_Normals;
-			render_commands[1].fragment_shader = &FragmentShader_Normals;
+			render_commands[0].shader = shader_normals;
+			render_commands[1].shader = shader_normals;
 		}
 		if(xen::isKeyPressed(xen::Key::Num5)){ // world positions
-		  render_commands[0].fragment_shader = &FragmentShader_Positions;
-			render_commands[1].fragment_shader = &FragmentShader_Positions;
+			render_commands[0].shader = shader_positions;
+			render_commands[1].shader = shader_positions;
 		}
 		if(xen::isKeyPressed(xen::Key::Num6)){ // Shaded
-			render_commands[0].fragment_shader = &FragmentShader_Phong;
-			render_commands[1].fragment_shader = &FragmentShader_Phong;
+			render_commands[0].shader = shader_phong;
+			render_commands[1].shader = shader_phong;
 		}
 		if(xen::isKeyPressed(xen::Key::Num7)){ // Basic Shaded
-			render_commands[0].fragment_shader = nullptr;
-			render_commands[1].fragment_shader = nullptr;
+			render_commands[0].shader = xen::makeNullHandle<xen::Shader>();
+			render_commands[1].shader = xen::makeNullHandle<xen::Shader>();
 		}
 
 		handleCameraInputCylinder(camera, dt, 30);
