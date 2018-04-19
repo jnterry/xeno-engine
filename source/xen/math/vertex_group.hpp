@@ -50,17 +50,13 @@ namespace xen {
 	/// \return Vec3 representing the normal of the triangle
 	/// \public \memberof Triangle
 	/////////////////////////////////////////////////////////////////////
-	template<typename T>
-	Vec3<T> computeTriangleNormal(const Triangle3<T>& tri){
-		Vec3<T> u = tri.p2 - tri.p1;
-		Vec3<T> v = tri.p3 - tri.p1;
+	template <typename T>
+	Vec3<T> computeNormal(Triangle<3, T> tri){
+		// Compute two edges
+		Vec3<T> e1 = tri.p2 - tri.p1;
+		Vec3<T> e2 = tri.p3 - tri.p1;
 
-		Vec3<T> normal;
-		normal.x = u.y*v.z - u.x*v.y;
-		normal.y = u.z*v.x - u.x*v.z;
-		normal.z = u.x*v.y - u.y*v.x;
-
-		return normal;
+		return xen::normalized(xen::cross(e1, e2));
 	}
 
 	/*
@@ -121,15 +117,6 @@ namespace xen {
 	template<u32 T_DIM, typename T>
 	bool hasArea(Triangle<T_DIM, T> tri){
 		return tri.p1 != tri.p2 && tri.p1 != tri.p3 && tri.p2 != tri.p2;
-	}
-
-	template <typename T>
-	Vec3<T> computeNormal(Triangle<3, T> tri){
-		// Compute two edges
-		Vec3<T> e1 = tri.p2 - tri.p1;
-		Vec3<T> e2 = tri.p3 - tri.p1;
-
-		return xen::normalized(xen::cross(e2, e1));
 	}
 
 
