@@ -31,12 +31,13 @@ namespace xen {
 			  render_targets (xen::createArenaPool<RenderTargetImpl>(main_allocator,  128)),
 			  textures       (xen::createArenaPool<RawImage>        (main_allocator, 1024))
 		{
-			// no-op
+			this->thpool = thpool_init(4);
 		}
 
 		SoftwareDeviceBase::~SoftwareDeviceBase(){
 			xen::destroyArenaLinear(*main_allocator, misc_arena);
 			delete main_allocator;
+			thpool_destroy(this->thpool);
 		}
 
 		RenderTargetImpl* SoftwareDeviceBase::getRenderTargetImpl(RenderTarget target){
@@ -147,7 +148,7 @@ namespace xen {
 				this->post_processors[i]->process(target);
 			}
 
-			xen::sren::presentRenderTarget(window, target);
+			xen::sren::presentRenderTarget(window, target, thpool);
 		}
 	}
 }

@@ -15,6 +15,8 @@
 #include <xen/core/array_types.hpp>
 #include <xen/config.hpp>
 
+#include <thpool.h>
+
 namespace xen {
 	struct Window;
 	struct Allocator;
@@ -41,7 +43,7 @@ namespace xen {
 		                                       RenderTargetImpl& target,
 		                                       Window* window);
 
-		void presentRenderTarget(Window* window, RenderTargetImpl& target);
+		void presentRenderTarget(Window* window, RenderTargetImpl& target, threadpool thpool);
 	}
 }
 

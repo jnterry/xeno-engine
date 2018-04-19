@@ -154,19 +154,10 @@ namespace {
 	/// \param normal_world The normal of the point being filled in world space
 	/// \param color        The diffuse color of the point being filled
 	/////////////////////////////////////////////////////////////////////
-	// :TODO:OPT: profile -> is pass by reference faster?
-	xen::Color4f _fragmentShader(const xen::sren::FragmentUniforms& uniforms,
-	                             Vec3r                              pos_world,
-	                             Vec3r                              normal_world,
-	                             xen::Color4f                       color){
-
-		#if 0  // display normals
-		return xen::mkVec(((Vec3f)normal_world + (Vec3f{1,1,1}) / 2.0f), 1.0f);
-		#endif
-
-		#if 0 // display world position
-		return xen::mkVec(pos_world, 1.0f);
-		#endif
+	xen::Color4f _defaultFragmentShader(const xen::FragmentUniforms& uniforms,
+	                                    Vec3r                        pos_world,
+	                                    Vec3r                        normal_world,
+	                                    xen::Color4f                 color){
 
 		xen::Color3f total_light = uniforms.ambient_light;
 		total_light += (uniforms.emissive_color.rgb * uniforms.emissive_color.a);
@@ -179,22 +170,11 @@ namespace {
 
 			real dist_sq_world = xen::distanceSq(pos_world, uniforms.lights[i].point.position);
 
-			#if 0
-			total_light += xen::sren::computeLightInfluencePhong
-				( uniforms.lights[i].point.position,
-				  uniforms.lights[i].color,
-				  uniforms.lights[i].attenuation,
-				  dist_sq_world,
-				  uniforms.camera.position,
-				  pos_world, normal_world
-				);
-			#else
 			total_light += xen::sren::computeLightInfluenceSimple
 				( uniforms.lights[i].color,
 				  uniforms.lights[i].attenuation,
 				  dist_sq_world
 				);
-			#endif
 		}
 
 		for(u32 i = 0; i < 3; ++i){
@@ -210,12 +190,84 @@ namespace {
 		return result;
 	}
 
+void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
+                          const xen::LineSegment3r&        line_world,
+                          xen::LineSegment3r               line_screen,
+                          const xen::LineSegment4f&        line_color){
+
+	///////////////////////////////////////////////////////////////////
+	// Slide the endpoints into the viewport
+	xen::Aabb3r view_volumn;
+	view_volumn.min.xy = cntx.viewport->min;
+	view_volumn.min.z  = FLT_MIN;
+	view_volumn.max.xy = cntx.viewport->max;
+	view_volumn.max.z  = FLT_MAX;
+	if(!xen::intersect(line_screen, view_volumn)){
+		return;
+	}
+	if(line_screen.p1.xy == line_screen.p2.xy){ return; }
+	///////////////////////////////////////////////////////////////////
+
+	//https://www.cs.virginia.edu/luther/blog/posts/492.html
+	real num_pixels = xen::max(abs(line_screen.p1.x - line_screen.p2.x),
+	                           abs(line_screen.p1.y - line_screen.p2.y)
+	                           );
+
+	Vec3r delta_screen = (line_screen.p2 - line_screen.p1) / num_pixels;
+	Vec3r cur_screen   = line_screen.p1;
+	for(u32 i = 0; i < (u32)num_pixels; ++i){
+
+		// :TODO: Replace lerp with a perspective correct interpolation
+		real lerp_factor = i / num_pixels;
+
+		// :TODO: should be u32 -> but cur.y or cur.z may be negative
+		s32  pixel_index = (s32)cur_screen.y*cntx.target->width + cur_screen.x;
+
+		real         depth      = cur_screen.z;
+		xen::Color4f base_color = xen::lerp(line_color,     lerp_factor);
+		Vec3r        pos_world  = xen::lerp(line_world,     lerp_factor);
+
+		if (depth < cntx.target->depth[pixel_index]) {
+			cntx.target->color[pixel_index] = cntx.fragment_shader
+				(cntx, pos_world, Vec3r::Origin, base_color);
+			cntx.target->depth[pixel_index] = depth;
+		}
+		cur_screen += delta_screen;
+	}
+}
+
 	// :TODO:OPT: profile -> is passing by reference faster
 	void _rasterizeTriangleScreen(const xen::sren::RasterizationContext& cntx,
 	                              xen::Triangle3r                        tri_world,
 	                              xen::Triangle3r                        tri_normal_world,
 	                              xen::Triangle3r                        tri_screen,
 	                              xen::Triangle4f                        colors){
+
+		#if 0 // render wireframe of triangle
+		_rasterizeLineScreen(cntx,
+		                     *(xen::LineSegment3r*)&tri_world.p1,
+		                     *(xen::LineSegment3r*)&tri_screen.p1,
+		                     *(xen::LineSegment4f*)&colors.p1
+		                    );
+		_rasterizeLineScreen(cntx,
+		                     *(xen::LineSegment3r*)&tri_world.p2,
+		                     *(xen::LineSegment3r*)&tri_screen.p2,
+		                     *(xen::LineSegment4f*)&colors.p2
+		                    );
+
+		xen::LineSegment3r line_world;
+		xen::LineSegment3r line_screen;
+		xen::LineSegment4f line_colors;
+		line_world.p1 = tri_world.p1;
+		line_world.p2 = tri_world.p3;
+		line_screen.p1 = tri_screen.p1;
+		line_screen.p2 = tri_screen.p3;
+		line_colors.p1 = colors.p1;
+		line_colors.p2 = colors.p3;
+		_rasterizeLineScreen(cntx, line_world, line_screen, line_colors);
+		return;
+		#endif
+
 		xen::Triangle2r tri_screen_xy = xen::swizzle<'x','y'>(tri_screen);
 
 		xen::Aabb2r region_r = xen::Aabb2r::MaxMinBox;
@@ -225,7 +277,6 @@ namespace {
 		if(!xen::intersect(region_r, *cntx.viewport)){
 			return;
 		}
-		xen::Aabb2u region = (xen::Aabb2u)region_r;
 
 		// Divide for perspective correct interpolation
 		// https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/perspective-correct-interpolation-vertex-attributes
@@ -238,6 +289,94 @@ namespace {
 		colors.p1           /= (float)tri_screen.p1.z;
 		colors.p2           /= (float)tri_screen.p2.z;
 		colors.p3           /= (float)tri_screen.p3.z;
+		tri_screen.p1.z = 1_r / tri_screen.p1.z;
+		tri_screen.p2.z = 1_r / tri_screen.p2.z;
+		tri_screen.p3.z = 1_r / tri_screen.p3.z;
+
+
+		// Edge function method, see:
+		// https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/rasterization-stage
+		#if 1
+
+		const real area = (((tri_screen.p3.x - tri_screen.p1.x) *
+		              (tri_screen.p2.y - tri_screen.p1.y)
+		              ) -
+		             ((tri_screen.p3.y - tri_screen.p1.y) *
+		              (tri_screen.p2.x - tri_screen.p1.x)
+		              )
+		             );
+
+		for(u32 py = floor(region_r.min.y); py < ceil(region_r.max.y); ++py){
+			for(u32 px = floor(region_r.min.x); px < ceil(region_r.max.x); ++px){
+
+
+				real e12 = (((px -              tri_screen.p1.x) *
+				             (tri_screen.p2.y - tri_screen.p1.y)
+				            ) -
+				            ((py              - tri_screen.p1.y) *
+				             (tri_screen.p2.x - tri_screen.p1.x)
+				            )
+				           );
+				real e23 = (((px -              tri_screen.p2.x) *
+				             (tri_screen.p3.y - tri_screen.p2.y)
+				            ) -
+				            ((py              - tri_screen.p2.y) *
+				             (tri_screen.p3.x - tri_screen.p2.x)
+				            )
+				           );
+				real e31 = (((px -              tri_screen.p3.x) *
+				             (tri_screen.p1.y - tri_screen.p3.y)
+				            ) -
+				            ((py              - tri_screen.p3.y) *
+				             (tri_screen.p1.x - tri_screen.p3.x)
+				            )
+				           );
+
+				if(! ((e12 > 0 && e23 > 0 && e31 > 0) ||
+				      (e12 < 0 && e23 < 0 && e31 < 0)
+				     )
+				  ){
+					// Then this point is outside of the triangle
+					continue;
+				}
+
+				u32 pixel_index = py * cntx.target->width + px;
+
+				Vec3r bary;
+				bary.z = e12 / area;
+				bary.x = e23 / area;
+				bary.y = e31 / area;
+
+				real depth = 1_r / ( tri_screen.p1.z * bary.x +
+				                     tri_screen.p2.z * bary.y +
+				                     tri_screen.p3.z * bary.z );
+
+				xen::Color4f color        = evaluateBarycentricCoordinates(colors,           bary);
+				Vec3r        pos_world    = evaluateBarycentricCoordinates(tri_world,        bary);
+				Vec3r        normal_world = evaluateBarycentricCoordinates(tri_normal_world, bary);
+
+				// Correct for perspective correct interpolation
+				// https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/perspective-correct-interpolation-vertex-attributes
+				color        *= (float)depth;
+				pos_world    *= depth;
+				normal_world *= depth;
+
+				if (depth < cntx.target->depth[pixel_index]) {
+					cntx.target->depth[pixel_index] = depth;
+					cntx.target->color[pixel_index] = cntx.fragment_shader(cntx,
+					                                                       pos_world,
+					                                                       normal_world,
+					                                                       color);
+				}
+			}
+		}
+
+
+
+		// This is the made up barycentric interpolation method,
+		// broken in some cases...
+		#else
+		xen::Aabb2u region = (xen::Aabb2u)region_r;
 
 		// If we call min.x, 0 and max.x, 1 then incr_x is the amount we increase
 		// by when we move 1 pixel
@@ -334,9 +473,9 @@ namespace {
 
 				u32 pixel_index = pixel_index_base + x;
 
-				real depth = (tri_screen.p1.z * bary.x +
-				              tri_screen.p2.z * bary.y +
-				              tri_screen.p3.z * bary.z );
+			  real depth = 1_r / ( tri_screen.p1.z * bary.x +
+				                     tri_screen.p2.z * bary.y +
+				                     tri_screen.p3.z * bary.z );
 
 				xen::Color4f color        = evaluateBarycentricCoordinates(colors,           bary);
 				Vec3r        pos_world    = evaluateBarycentricCoordinates(tri_world,        bary);
@@ -350,18 +489,19 @@ namespace {
 
 				if (depth < cntx.target->depth[pixel_index]) {
 					cntx.target->depth[pixel_index] = depth;
-					cntx.target->color[pixel_index] = _fragmentShader(cntx,
-					                                                  pos_world,
-					                                                  normal_world,
-					                                                  color);
+					cntx.target->color[pixel_index] = cntx.fragment_shader
+						(cntx, pos_world, normal_world, color);
 				}
 			}
 		}
+		#endif
 	}
 } // end of anon namespace
 
 namespace xen {
 namespace sren {
+
+FragmentShader DefaultFragmentShader = &_defaultFragmentShader;
 
 void setPerCommandFragmentUniforms(FragmentUniforms& uniforms,
                                    const Material&   material,
@@ -407,7 +547,7 @@ void rasterizePointsModel(const RasterizationContext& cntx,
 		}
 
 		cntx.target->depth[pixel_index] = point_clip.z;
-		cntx.target->color[pixel_index] = _fragmentShader
+		cntx.target->color[pixel_index] = cntx.fragment_shader
 			(cntx,
 			 point_world.xyz,
 			 Vec3r::Origin,
@@ -423,7 +563,8 @@ void rasterizeLineModel(const RasterizationContext& cntx,
 	xen::LineSegment4r line_clip  = xen::toHomo(line_world) * cntx.vp_matrix;
 
 	///////////////////////////////////////////////////////////////////
-	// Do line clipping against z planes
+	// Do line clipping against near z plane
+	// :TODO: this is currently against z = 0, not z_near
 	if(line_clip.p1.z < 0 && line_clip.p2.z < 0){
 		// Then line is completely behind the camera
 		return;
@@ -440,9 +581,6 @@ void rasterizeLineModel(const RasterizationContext& cntx,
 	}
 	///////////////////////////////////////////////////////////////////
 
-	real z_start = line_clip.p2.z;
-	real z_end   = line_clip.p1.z;
-
 	///////////////////////////////////////////////////////////////////
 	// Do perspective divide (into normalized device coordinates -> [-1, 1]
 	// We only care about x and y coordinates at this point
@@ -452,44 +590,16 @@ void rasterizeLineModel(const RasterizationContext& cntx,
 
 	///////////////////////////////////////////////////////////////////
 	// Clip to the viewport
-	xen::LineSegment2r line_screen =
+	xen::LineSegment2r line_screen_2d =
 		_convertToScreenSpaceOLD<xen::LineSegment4r, xen::LineSegment2r>(line_clip, *cntx.viewport);
 
-	if(!xen::intersect(line_screen, *cntx.viewport)){
-		return;
-	}
-	if(line_screen.p1 == line_screen.p2){ return; }
-	///////////////////////////////////////////////////////////////////
+	xen::LineSegment3r line_screen;
+	line_screen.p1.xy = line_screen_2d.p1;
+	line_screen.p1.z  = line_clip.p1.z;
+	line_screen.p2.xy = line_screen_2d.p2;
+	line_screen.p2.z  = line_clip.p2.z;
 
-
-	//https://www.cs.virginia.edu/luther/blog/posts/492.html
-	real num_pixels = xen::max(abs(line_screen.p1.x - line_screen.p2.x),
-	                           abs(line_screen.p1.y - line_screen.p2.y)
-	                           );
-
-	Vec2r delta_screen = (line_screen.p2 - line_screen.p1) / num_pixels;
-	Vec2r cur_screen   = line_screen.p1;
-	for(u32 i = 0; i < (u32)num_pixels; ++i){
-
-		// :TODO: Replace lerp with a perspective correct interpolation
-		real lerp_factor = i / num_pixels;
-
-		// :TODO: should be u32 -> but cur.y or cur.z may be negative
-		s32  pixel_index = (s32)cur_screen.y*cntx.target->width + cur_screen.x;
-
-		real         depth      = xen::lerp(z_start, z_end, lerp_factor);
-		xen::Color4f base_color = xen::lerp(line_color,     lerp_factor);
-		Vec3r        pos_world  = xen::lerp(line_world,     lerp_factor);
-
-		if (depth < cntx.target->depth[pixel_index]) {
-			cntx.target->color[pixel_index] = _fragmentShader(cntx,
-			                                                  pos_world,
-			                                                  Vec3r::Origin,
-			                                                  base_color);
-			cntx.target->depth[pixel_index] = depth;
-		}
-		cur_screen += delta_screen;
-	}
+	_rasterizeLineScreen(cntx, line_world, line_screen, line_color);
 } // end of function rasterizeLineModel
 
 void rasterizeLinesModel(const RasterizationContext& cntx,
@@ -528,9 +638,9 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 
 	// Work out which points are behind the camera
 	u08 points_behind = 0;
-	points_behind |= (tri_pos_clip.p1.z < 0) << 0;
-	points_behind |= (tri_pos_clip.p2.z < 0) << 1;
-	points_behind |= (tri_pos_clip.p3.z < 0) << 2;
+	points_behind |= (tri_pos_clip.p1.z < cntx.camera.z_near) << 0;
+	points_behind |= (tri_pos_clip.p2.z < cntx.camera.z_near) << 1;
+	points_behind |= (tri_pos_clip.p3.z < cntx.camera.z_near) << 2;
 
 	///////////////////////////////////////////////////////////////////
 	// Render the triangle(s)
@@ -540,9 +650,9 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 		return;
 	case 0: { // 000 - all points in front of camera
 		// Do perspective divide (into normalized device coordinates -> [-1, 1]
-		tri_pos_clip.p1.xy /= (tri_pos_clip.p1.w);
-		tri_pos_clip.p2.xy /= (tri_pos_clip.p2.w);
-		tri_pos_clip.p3.xy /= (tri_pos_clip.p3.w);
+		tri_pos_clip.p1.xy /= (tri_pos_clip.p1.z);
+		tri_pos_clip.p2.xy /= (tri_pos_clip.p2.z);
+		tri_pos_clip.p3.xy /= (tri_pos_clip.p3.z);
 
 		xen::Triangle3r tri_pos_screen =
 			_convertToScreenSpaceTriOLD(tri_pos_clip, *cntx.viewport);
@@ -576,23 +686,23 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 			// component becomes 0
 
 			Vec4r delta_p2 = (tri_pos_clip.p1 - tri_pos_clip.p2);
-			real  frac_p2  = ((-tri_pos_clip.p2.z / delta_p2.z));
+			real  frac_p2  = (((-tri_pos_clip.p2.z + cntx.camera.z_near) / delta_p2.z));
 			tri_pos_clip .p2  += (delta_p2                           ) * frac_p2;
 			tri_pos_world.p2  += (tri_pos_world.p1 - tri_pos_world.p2) * frac_p2;
 			tri_nor_world.p2  += (tri_nor_world.p1 - tri_nor_world.p2) * frac_p2;
 			tri_color    .p2  += (tri_color    .p1 - tri_color    .p2) * frac_p2;
 
 			Vec4r delta_p3 = (tri_pos_clip.p1 - tri_pos_clip.p3);
-			real  frac_p3  = ((-tri_pos_clip.p3.z / delta_p3.z));
+			real  frac_p3  = (((-tri_pos_clip.p3.z + cntx.camera.z_near) / delta_p3.z));
 			tri_pos_clip .p3  += (delta_p3                           ) * frac_p3;
 			tri_pos_world.p3  += (tri_pos_world.p1 - tri_pos_world.p3) * frac_p3;
 			tri_nor_world.p3  += (tri_nor_world.p1 - tri_nor_world.p3) * frac_p3;
 			tri_color    .p3  += (tri_color    .p1 - tri_color    .p3) * frac_p3;
 
 			// Do perspective divide (into normalized device coordinates -> [-1, 1]
-			tri_pos_clip.p1.xy /= (tri_pos_clip.p1.w);
-			tri_pos_clip.p2.xy /= (tri_pos_clip.p2.w);
-			tri_pos_clip.p3.xy /= (tri_pos_clip.p3.w);
+			tri_pos_clip.p1.xy /= (tri_pos_clip.p1.z);
+			tri_pos_clip.p2.xy /= (tri_pos_clip.p2.z);
+			tri_pos_clip.p3.xy /= (tri_pos_clip.p3.z);
 
 			xen::Triangle3r tri_pos_screen =
 				_convertToScreenSpaceTriOLD(tri_pos_clip, *cntx.viewport);
@@ -626,11 +736,11 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 			//tri_clip.p3 += delta_p3 * ((-tri_clip.p3.z / delta_p3.z));
 
 			Vec4r delta_p1       = (tri_pos_clip.p1 - tri_pos_clip.p3);
-			real  frac_p1        = ((-tri_pos_clip.p3.z / delta_p1.z));
+			real  frac_p1        = (((-tri_pos_clip.p3.z + cntx.camera.z_near) / delta_p1.z));
 			Vec4r p3_slide_to_p1 = (tri_pos_clip.p3 + (delta_p1 * frac_p1));
 
 			Vec4r delta_p2       = (tri_pos_clip.p2 - tri_pos_clip.p3);
-			real  frac_p2        = ((-tri_pos_clip.p3.z / delta_p2.z));
+			real  frac_p2        = (((-tri_pos_clip.p3.z + cntx.camera.z_near) / delta_p2.z));
 			Vec4r p3_slide_to_p2 = (tri_pos_clip.p3 + (delta_p2 * frac_p2));
 
 			xen::VertexGroup4r<4> quad_pos_clip;
@@ -640,10 +750,10 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 			quad_pos_clip.vertices[3] = p3_slide_to_p2;
 
 			// perspective divide
-			quad_pos_clip.vertices[0].xy /= quad_pos_clip.vertices[0].w;
-			quad_pos_clip.vertices[1].xy /= quad_pos_clip.vertices[1].w;
-			quad_pos_clip.vertices[2].xy /= quad_pos_clip.vertices[2].w;
-			quad_pos_clip.vertices[3].xy /= quad_pos_clip.vertices[3].w;
+			quad_pos_clip.vertices[0].xy /= quad_pos_clip.vertices[0].z;
+			quad_pos_clip.vertices[1].xy /= quad_pos_clip.vertices[1].z;
+			quad_pos_clip.vertices[2].xy /= quad_pos_clip.vertices[2].z;
+			quad_pos_clip.vertices[3].xy /= quad_pos_clip.vertices[3].z;
 
 			xen::VertexGroup3r<4> quad_pos_screen =
 				_convertToScreenSpaceQuadOLD(quad_pos_clip, *cntx.viewport);

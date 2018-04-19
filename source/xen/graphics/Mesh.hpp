@@ -132,6 +132,13 @@ namespace xen{
 	/////////////////////////////////////////////////////////////////////
 	void freeMeshAttribArrays(MeshAttribArrays* mesh,
 	                          Allocator*        allocator);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Uses the position data of a mesh to compute flat normals by
+	/// finding the normal of each triangle and applying it to each vertex
+	/// in the mesh
+	/////////////////////////////////////////////////////////////////////
+	void computeFlatNormals(MeshData* mesh_data);
 }
 
 #endif

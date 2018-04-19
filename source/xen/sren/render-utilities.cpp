@@ -46,13 +46,15 @@ namespace xen {
 			}
 		}
 
-		xen::Color3f computeLightInfluence(Vec3r        light_pos,
-		                                   xen::Color4f light_color,
-		                                   Vec3f        attenuation_coefficents,
-		                                   real         distance_sq,
-		                                   Vec3r        eye_pos,
-		                                   Vec3r        pos_world,
-		                                   Vec3r        normal_world){
+		xen::Color3f computeLightInfluencePhong(Vec3r        light_pos,
+		                                        xen::Color4f light_color,
+		                                        Vec3f        attenuation_coefficents,
+		                                        real         distance_sq,
+		                                        Vec3r        eye_pos,
+		                                        Vec3r        pos_world,
+		                                        Vec3r        normal_world){
+
+			normal_world *= -1_r; // :TODO: why?
 
 			light_color.rgb *= light_color.a;
 
@@ -75,7 +77,7 @@ namespace xen {
 
 			Vec3f specular_color = Vec3f::Origin;
 			if (specular_factor > 0) {
-			  specular_factor = pow(specular_factor, 2.0_r);
+			  specular_factor = pow(specular_factor, 30_r);
 			  specular_color = light_color.rgb * specular_factor;
 			}
 
@@ -214,6 +216,7 @@ namespace xen {
 			RasterizationContext context;
 			context.camera          = view_camera;
 			context.target          = &target;
+			context.fragment_shader = xen::sren::DefaultFragmentShader;
 			context.viewport        = &view_region;
 			context.m_matrix        = Mat4r::Identity;
 			context.vp_matrix       = vp_matrix;

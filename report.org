@@ -2,20 +2,20 @@
 
 	We have implemented all that was requested for the 50% for both the raytracer and rasterizer. The rest of this document explains how we have expanded on this initial task.
 
-	We have implemented this coursework as if it were the beginings of a full graphics engine (which we have named "Xeno Engine"). That is, the rendering portion is implemented as a (set of) shared libraries which applications link against. Additionally there are many helper utility functions and classes not directly related to graphics, such as memory management, file loading, etc.
+	We have implemented this coursework as if it were the beginnings of a full graphics engine (which we have named "Xeno Engine"). That is, the rendering portion is implemented as a (set of) shared libraries which applications link against. Additionally there are many helper utility functions and classes not directly related to graphics, such as memory management, file loading, etc.
 
-	Additionally we have structured the engine such that a single interface is exposed to client applications while multiple "rendering backends" can be used. We have implemented a software rasterizer, software Raytracer and a proof of concept OpenGL backend using this interface. The OpenGL implementation is not designed to be feature complete, but is to show the interface can also be used as a wrapper around traditional rendering APIs, and we found it useful in our testing to ensure our own rendering achieved visually similar results.
+	Additionally we have structured the engine such that a single interface is exposed to client applications while multiple "rendering backends" can be used. We have implemented a software rasterizer, software raytracer and a proof of concept OpenGL backend using this interface. The OpenGL implementation is not designed to be feature complete, but is to show the interface can also be used as a wrapper around traditional rendering APIs, and we found it useful in our testing to ensure our own rendering achieved visually similar results.
 
 * Code Structure
 
-	This approach has lead our code base to be substantially larger than may have been expected for this coursework; an outline of the structure of the code is given below:
+	This approach has lead to a large code base an outline of which is given below:
 
 	- =source/xen= - Contains source code for the engine
-		- =core= - Core utility functions and types not directly related to graphics, eg, memory managment
+		- =core= - Core utility functions and types not directly related to graphics, eg, memory management
 		- =math= - Implementation of mathematical helper functions and types. *Note that we do not rely on glm, but have implemented our own maths from scratch*
 		- =graphics= - Definition of the shared graphics interface as well as various helper functions and types (eg, for dealing with colors or images) which do not rely on a particular rendering backend
-		- =sren= - Stands for "software renderer". Contains implementation of both the software rasterizer and software Raytracer backends
-		- =gl= - Contains a basic OpenGL implementation of the rendering backend
+		- =sren= - Stands for "software renderer". Contains implementation of both the software rasterizer and software raytracer backends
+		- =gl= - Contains a basic OpenGL implementation of the rendering interface
 	- =examples= - Source code for various example applications. These are the "mains" and link against the shared xeno-engine libraries
 	- =tests= - Source code for automated unit tests
 
@@ -33,7 +33,26 @@
 	1. Creating a directory "build" in the root of the repository
 	2. Running the command ~cmake ..~ from the build directory
 	3. Running the command ~make~ in the build directory
-	4. Running the example executables which will have been placed in bin
+
+	You can now run the example executables which will have been placed in =/bin=.
+
+* External Libraries
+
+	All external code is found in the =/extlibs= directory, the libraries and their uses are outlined below:
+
+	- assimp
+		- Used for loading mesh files
+		- We convert the data into our own data structures on load for rendering
+	- stb_image
+		- Loading and reading image files into arrays of raw pixel values
+	- thpool
+		- Managing a pool of threads and work queue
+		- Queue entries consist of a function pointer of the signature fn(void*), and a void pointer to some data
+	- glew
+		- Used for loading gl extensions
+		- Used only in the OpenGL rendering backend
+
+  Note that we do not depend on SDL or GLM, we have implemented our own versions of both the these libraries.
 
 * Extensions
 
@@ -48,8 +67,8 @@
 	 - Per Vertex Attributes
 		 - Colors and normals are specified per vertex rather than per triangle
 		 - These values are interpolated across the surface of a triangle using perspective correct interpolation
-		 - see =triangle-test= for a demo of per vertex colors
-		 - :TODO: demo for per vertex normals (sphere rendering?)
+		 - See =triangle-test= for a demo of per vertex colors
+		 - See =torus= for a demo of per vertex normals. One torus has the same normal for each vertex of every triangle, where as the other has smooth normals such that a vertex's normal is the average of the normal of each face that uses that vertex. Interpolating these across the surface yields smooth lighting
 	 - Arbitrary viewpoints
 		 - Rendering can be performed in arbitrary viewpoints of a render target
 		 - Try running the =cornell-box= demo with the device "Raytracer Camera Debug" to see a demonstration
@@ -58,31 +77,44 @@
 		 - The only limit on number is desired performance and hardware capabilities (and having less than 2^32 so we can index them...)
 	 - Per mesh emissive lighting
 		 - Meshes can be assigned an emissive color
-		 - This can be seen in the torus demo, where the 4 cubes embedded in the floor apear to glow regardless of the light's positions
-		 - :TODO: test in raytracer
+		 - This can be seen in the torus demo, where the 4 outer cubes appear to glow at the same brightness regardless of the light's positions
+		 - Additionally the small yellow cube in the cornell box demo is emissive
 	 - Post Processing Pipeline
 		 - The software rendering backends support applying "post-processing" steps after the image has been rendered
 		 - We also have a demo application which loads an image, applies a (set of) post processor(s) and then saves the result, without creating a window etc
-		 - :TODO: what post processors have we actually implemented?
-		 - :TODO: write to depth buffer in raytracer to support fog
-		 - :TODO: demoed by what?
-	 - SIMD optimization transforming floating framebuffer to byte pixels for display
-		 - :TODO: threads?
-		 - Floating framebuffer pixels are used for better lighting calculations, but the transformation from floating in range 0-1 to bytes in range 0-255 was taking a lot of CPU time
+		 - We have implemented:
+			 - Color inversion
+				 - :TODO: demoed by what
+			 - Depth buffer visualisation
+				 - :TODO: demoed by what
+			 - :TODO: anti-aliasing
+				 - :TODO: demoed by what
+			 - :TODO: fog
+				 - :TODO: demoed by what
+	 - Threading and SIMD optimization for transforming floating framebuffer to byte pixels for display
+		 - Floating framebuffer pixels are used for better lighting calculations, but the transformation from floating in range 0-1 to bytes in range 0-255 was taking a lot of CPU time (97% in the starfield demo)
 		 - We used SIMD compiler intrinsics to do all 4 color channels simultaneously
-		 - Below are the CPU times of the SoftwareDeviceBase::swapBuffers call in various configurations:
-       | App         | Baseline | With SIMD |
-       |-------------+----------+-----------+
-       | Starfield   |      97% |       82% |
-       | Cornell Box |      83% |       79% |
+		 - We used threads to do different regions of the buffer in parallel
+		 - Below are recorded FPS's in various configurations using the software rasterizer:
+       | App         | Baseline | With SIMD | With 4 Threads and SIMD |
+       |-------------+----------+-----------+-------------------------|
+       | Starfield   |      250 |       275 | 330                     |
+       | Cornell Box |      235 |       260 | 285                     |
+	 - Mesh System and Loading
+		 - Flexible mesh system which can represent meshes with an arbitrary number of attributes (eg position data, normal data, color data, etc) potentially each having a different type
+		 - Use of assimp library to load mesh files (such as obj)
+		 - Additional "load flags" can be specified to manipulate the mesh as it loads, eg generating normals, centering the local origin to be at (0,0,0), etc
+		 - The =torus= demo shows this capability by loading the torus.obj in the bin directory
 
 ** Raytracer
 
-	 - Optimizations
+	 - Various optimizations to achieve real-time performance in 400x400 window
 	   - Pre-generating a "scene"
 			 - Sorting by whether shadow casting
 			 - Segregating triangles from other primitive types
-		 - :TODO: simd?
+			 - Together these avoid some branches per ray in the rendering code, which speeds up rendering since branch's are expensive if they cause branch misprediction
+		 - Threaded rendering
+			 - The view region is broken up into multiple blocks such that the work can be divided amongst multiple threads
 
 ** Rasterizer
 
@@ -90,21 +122,30 @@
 		 - Rasterizer can render lines and points as well as just triangles
 		 - We support: TRIANGLES, LINES, LINE_STRIP, POINTS (as defined by the OpenGL standard - but we have implemented them in software)
 		 - Note that the raytracer backend will fall back to using the rasterizer for all primative types except TRIANGLES since it doesn't make sense to ray trace points or lines which are infinitely thin
-			 - :TODO: if we defined thickness for these primitives it actually would make sense to ray trace them...
+		 - Point and line rendering is shown in the =starfield= demo
+		 - A demo of changing this dynamically per model can be seen in the =torus= demo by pressing
+			 - 1 -> point cloud
+			 - 2 -> wireframe
+			 - 3 -> triangles
 	 - Full clipping pipeline
 		 - All primitive types are clipped by the engine such that the camera can be moved without segfaults, all geometry not in view is not drawn
 		 - Geometry partially on and partially off of the screen is clipped to the viewport
+	 - Per pixel "programmable" shader
+		 - The rasterizer runs a "fragment shader" per pixel
+		 - The fragment shader can be changed per model
+		 - In the =torus= demo the fragment shader can be changed by pressing:
+			 - 4 -> display mesh normals
+			 - 5 -> display world positions
+			 - 6 -> display phong lighting
+			 - 7 -> display basic lighting model (the engine's default shader)
 
 ** Meta Extensions
 
-	 - Mesh System and Loading
-		 - Flexible mesh system which can represent meshes with an arbitary number of attributes (eg position data, normal data, color data, etc) potentially each having a different type
-		 - Use of assimp library to load mesh files (such as obj)
-		 - Additional "load flags" can be specified to manipulate the mesh as it loads, eg generating normals, centering the local origin to be at (0,0,0), etc
+	 The following extensions may not count due to them being not directly related to software rendering, they were implemented more out of interest than for marks.
+
 	 - Windowing System
 		 - Low level implementation of window management, event polling etc using raw operating system calls with no reliance on external libraries
 		 - Implementation for both X11 and windows
-		 - :TODO: add SDL implementation and benchmark
 	 - Own math library
 		 - We do not rely on GLM but instead have written all of our own maths from scratch
 	 - OpenGL Backend

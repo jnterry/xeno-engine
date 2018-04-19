@@ -1,15 +1,18 @@
 #include <stdio.h>
 
 #include "../common.cpp"
+#include "fragment_shaders.cpp"
 
 xen::Camera3dCylinder                  camera;
 xen::RenderParameters3d                render_params;
 xen::FixedArray<xen::LightSource3d, 3> scene_lights;
 
 xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
-xen::Mesh                                      mesh_torus;
+xen::Mesh                                      mesh_torus_smooth;
+xen::Mesh                                      mesh_torus_flat;
 xen::Mesh                                      mesh_cube;
 xen::Mesh                                      mesh_axes;
+xen::Mesh                                      mesh_xzplane;
 
 xen::FixedArray<xen::RenderCommand3d, 10> render_commands;
 
@@ -24,7 +27,7 @@ xen::sren::PostProcessor* post_processors[] = {
 #define CMD_IDX_TOR_B  1
 #define CMD_IDX_FLOOR  2
 #define CMD_IDX_STUDS  3
-#define CMD_IDX_LIGHT  7
+#define CMD_IDX_LIGHT  6
 
 void initRenderCommands(){
 	xen::clearToZero(render_commands);
@@ -34,7 +37,8 @@ void initRenderCommands(){
 	render_commands[0].model_matrix    = (xen::Translation3dx( 0.2_r) *
 	                                      Mat4r::Identity
 	                                     );
-	render_commands[0].mesh            = mesh_torus;
+	render_commands[0].mesh            = mesh_torus_smooth;
+	render_commands[0].fragment_shader = FragmentShader_Phong;
 
 	render_commands[1].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_commands[1].color           = xen::Color::WHITE4f;
@@ -42,15 +46,14 @@ void initRenderCommands(){
 	                                      xen::Translation3dx(-0.2_r) *
 	                                      Mat4r::Identity
 	                                     );
-	render_commands[1].mesh            = mesh_torus;
+	render_commands[1].mesh            = mesh_torus_flat;
+	render_commands[1].fragment_shader = FragmentShader_Phong;
 
 	render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_commands[2].color           = xen::Color::WHITE4f;
-	render_commands[2].model_matrix    = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
-	                                      xen::Scale3d      (5, 0.1, 5)              *
-	                                      xen::Translation3d(0.0_r, -0.5_r, 0.0_r)
-	                                     );
-	render_commands[2].mesh            = mesh_cube;
+	render_commands[2].model_matrix    = (xen::Scale3d      (5, 5, 5) *
+	                                      xen::Translation3d(0, -0.5_r, 0));
+	render_commands[2].mesh            = mesh_xzplane;
 
 	for(u32 i = 0; i < 4; ++i){
 		xen::Color4f color = xen::Color::WHITE4f;
@@ -68,12 +71,12 @@ void initRenderCommands(){
 		case 3: pos.x =  1_r; pos.z =  1_r; break;
 		}
 		pos   *= 2.0_r;
-		pos.y -= 0.5_r;
+		pos.y += -0.499999_r;
 
 		render_commands[CMD_IDX_STUDS+i].primitive_type  = xen::PrimitiveType::TRIANGLES;
 		render_commands[CMD_IDX_STUDS+i].color           = color;
 		render_commands[CMD_IDX_STUDS+i].emissive_color  = color;
-		render_commands[CMD_IDX_STUDS+i].model_matrix    = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
+		render_commands[CMD_IDX_STUDS+i].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
 		                                                    xen::Scale3d      (0.1_r) *
 		                                                    xen::Translation3d(pos)
 		                                                    );
@@ -86,6 +89,7 @@ void initRenderCommands(){
 		render_commands[CMD_IDX_LIGHT+i].primitive_type = xen::PrimitiveType::TRIANGLES;
 		render_commands[CMD_IDX_LIGHT+i].color          = xen::Color::BLACK4f;
 		render_commands[CMD_IDX_LIGHT+i].color[i]       = 1.0f;
+		render_commands[CMD_IDX_LIGHT+i].emissive_color = render_commands[CMD_IDX_LIGHT+i].color;
 		render_commands[CMD_IDX_LIGHT+i].model_matrix   = Mat4r::Identity;
 		render_commands[CMD_IDX_LIGHT+i].mesh           = mesh_cube;
 		render_commands[CMD_IDX_LIGHT+i].flags          = xen::Material::Flags::DisableShadowCast;
@@ -113,8 +117,7 @@ void initSceneLights(){
 		scene_lights[i].point.position[i] = 1.0f;
 		scene_lights[i].color          = xen::Color::BLACK4f;
 		scene_lights[i].color[i]       = 1.0f;
-		scene_lights[i].color.a        = 1.0f;
-		scene_lights[i].attenuation    = {0.0f, 0.0f, 4.0f};
+		scene_lights[i].attenuation    = {0.0f, 0.0f, 2.0f};
 	}
 	render_params.lights = scene_lights;
 }
@@ -131,10 +134,10 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 	                  xen::MeshLoadFlags::SCALE_UNIT_SIZE
 	                 );
 	printf("Loaded torus mesh, %i faces\n", mesh_data_torus->vertex_count / 3);
-	xen::Mesh mesh_torus = device->createMesh(mesh_data_torus);
+	mesh_torus_smooth = device->createMesh(mesh_data_torus);
+	computeFlatNormals(mesh_data_torus);
+	mesh_torus_flat = device->createMesh(mesh_data_torus);
 	transaction.rollback();
-
-	mesh_torus = device->createMesh(mesh_data_torus);
 
 	mesh_cube  = device->createMesh(vertex_spec,
 	                                xen::TestMeshGeometry_UnitCube
@@ -142,6 +145,10 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 	mesh_axes = device->createMesh(vertex_spec,
 	                               xen::TestMeshGeometry_Axes
 	                              );
+
+	mesh_xzplane = device->createMesh(vertex_spec,
+	                                  xen::TestMeshGeometry_UnitXzPlaneCentered
+	                                 );
 }
 
 int main(int argc, char** argv){
@@ -181,25 +188,37 @@ int main(int argc, char** argv){
 			case xen::WindowEvent::Closed:
 				app.device->destroyWindow(app.window);
 				break;
-			case xen::WindowEvent::KeyPressed:
-				switch(event->key.key){
-				case xen::Key::W: // wireframe
-					render_commands[0].primitive_type = xen::PrimitiveType::LINES;
-					render_commands[1].primitive_type = xen::PrimitiveType::LINES;
-					break;
-				case xen::Key::P: // point cloud
-					render_commands[0].primitive_type = xen::PrimitiveType::POINTS;
-					render_commands[1].primitive_type = xen::PrimitiveType::POINTS;
-					break;
-				case xen::Key::F: // filled
-					render_commands[0].primitive_type = xen::PrimitiveType::TRIANGLES;
-					render_commands[1].primitive_type = xen::PrimitiveType::TRIANGLES;
-					break;
-				default: break;
-				}
 			default: break;
 			}
 		}
+
+		// :TODO: these should use window events...
+		if(xen::isKeyPressed(xen::Key::Num1)){ // points
+		  render_commands[0].primitive_type = xen::PrimitiveType::POINTS;
+		}
+		if(xen::isKeyPressed(xen::Key::Num2)){ // lines
+		  render_commands[0].primitive_type = xen::PrimitiveType::LINES;
+		}
+		if(xen::isKeyPressed(xen::Key::Num3)){ // triangles
+			render_commands[0].primitive_type = xen::PrimitiveType::TRIANGLES;
+		}
+		if(xen::isKeyPressed(xen::Key::Num4)){ // normals
+			render_commands[0].fragment_shader = &FragmentShader_Normals;
+			render_commands[1].fragment_shader = &FragmentShader_Normals;
+		}
+		if(xen::isKeyPressed(xen::Key::Num5)){ // world positions
+		  render_commands[0].fragment_shader = &FragmentShader_Positions;
+			render_commands[1].fragment_shader = &FragmentShader_Positions;
+		}
+		if(xen::isKeyPressed(xen::Key::Num6)){ // Shaded
+			render_commands[0].fragment_shader = &FragmentShader_Phong;
+			render_commands[1].fragment_shader = &FragmentShader_Phong;
+		}
+		if(xen::isKeyPressed(xen::Key::Num7)){ // Basic Shaded
+			render_commands[0].fragment_shader = nullptr;
+			render_commands[1].fragment_shader = nullptr;
+		}
+
 		handleCameraInputCylinder(camera, dt, 30);
 		render_params.camera = xen::generateCamera3d(camera);
 

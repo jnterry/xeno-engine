@@ -165,6 +165,15 @@ namespace {
 
 	//////////////////////////////////////////////////////////////////////////////
 
+
+	Vec3r XzSquare_Positions[] = {
+		{ -0.5_r, 0_r, -0.5_r }, { -0.5_r, 0_r,  0.5_r }, { 0.5_r, 0_r, -0.5_r },
+		{  0.5_r, 0_r, -0.5_r }, { -0.5_r, 0_r,  0.5_r }, { 0.5_r, 0_r,  0.5_r },
+	};
+	Vec3r XzSquare_Normals[] = {
+		Vec3r::UnitY, Vec3r::UnitY, Vec3r::UnitY,
+		Vec3r::UnitY, Vec3r::UnitY, Vec3r::UnitY
+	};
 }
 
 namespace xen {
@@ -187,6 +196,13 @@ namespace xen {
 		  Axes_Positions,
 		  nullptr,
 		  Axes_Colors
+		);
+
+	const MeshGeometrySource TestMeshGeometry_UnitXzPlaneCentered = MeshGeometrySource
+		( XenArrayLength(XzSquare_Positions),
+		  XzSquare_Positions,
+		  XzSquare_Normals,
+		  UnitCube_Colors // cheat and use same block of white colors
 		);
 }
 

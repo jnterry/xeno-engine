@@ -86,12 +86,17 @@ public:
 		////////////////////////////////////////////////////////////////////////////
 
 		xen::sren::RasterizationContext context;
-		context.target    = &target;
-		context.viewport  = &view_region;
+		context.target          = &target;
+		context.viewport        = &view_region;
+
 		*(xen::RenderParameters3d*)(&context) = params;
 		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 			const xen::RenderCommand3d& cmd = commands[cmd_index];
 
+			context.fragment_shader = cmd.fragment_shader;
+			if(context.fragment_shader == nullptr){
+				context.fragment_shader = xen::sren::DefaultFragmentShader;
+			}
 			setPerCommandFragmentUniforms(context,
 			                              (xen::Material&)cmd,
 			                              cmd.model_matrix,
