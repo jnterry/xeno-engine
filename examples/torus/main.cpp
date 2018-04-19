@@ -13,7 +13,7 @@ xen::Mesh                                      mesh_cube;
 xen::Mesh                                      mesh_axes;
 xen::Mesh                                      mesh_xzplane;
 
-xen::FixedArray<xen::RenderCommand3d, 10> render_commands;
+xen::FixedArray<xen::RenderCommand3d, 9> render_commands;
 
 xen::sren::PostProcessorDisplayDepthBuffer pp_displayDepthBuffer;
 
@@ -25,8 +25,8 @@ xen::sren::PostProcessor* post_processors[] = {
 #define CMD_IDX_TOR_A  0
 #define CMD_IDX_TOR_B  1
 #define CMD_IDX_FLOOR  2
-#define CMD_IDX_STUDS  3
-#define CMD_IDX_LIGHT  7
+#define CMD_IDX_STUDS  2
+#define CMD_IDX_LIGHT  6
 
 void initRenderCommands(){
 	xen::clearToZero(render_commands);
@@ -46,11 +46,11 @@ void initRenderCommands(){
 	                                     );
 	render_commands[1].mesh            = mesh_torus_flat;
 
-	render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	render_commands[2].color           = xen::Color::WHITE4f;
-	render_commands[2].model_matrix    = (xen::Scale3d      (5, 5, 5) *
-	                                      xen::Translation3d(0, -0.5_r, 0));
-	render_commands[2].mesh            = mesh_xzplane;
+	//render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
+	//render_commands[2].color           = xen::Color::WHITE4f;
+	//render_commands[2].model_matrix    = (xen::Scale3d      (5, 5, 5) *
+	                                       //                                      xen::Translation3d(0, -0.5_r, 0));
+	//render_commands[2].mesh            = mesh_xzplane;
 
 	for(u32 i = 0; i < 4; ++i){
 		xen::Color4f color = xen::Color::WHITE4f;
@@ -86,6 +86,7 @@ void initRenderCommands(){
 		render_commands[CMD_IDX_LIGHT+i].primitive_type = xen::PrimitiveType::TRIANGLES;
 		render_commands[CMD_IDX_LIGHT+i].color          = xen::Color::BLACK4f;
 		render_commands[CMD_IDX_LIGHT+i].color[i]       = 1.0f;
+		render_commands[CMD_IDX_LIGHT+i].emissive_color = render_commands[CMD_IDX_LIGHT+i].color;
 		render_commands[CMD_IDX_LIGHT+i].model_matrix   = Mat4r::Identity;
 		render_commands[CMD_IDX_LIGHT+i].mesh           = mesh_cube;
 		render_commands[CMD_IDX_LIGHT+i].flags          = xen::Material::Flags::DisableShadowCast;
@@ -113,7 +114,6 @@ void initSceneLights(){
 		scene_lights[i].point.position[i] = 1.0f;
 		scene_lights[i].color          = xen::Color::BLACK4f;
 		scene_lights[i].color[i]       = 1.0f;
-		scene_lights[i].color.a        = 0.5f;
 		scene_lights[i].attenuation    = {0.0f, 0.0f, 2.0f};
 	}
 	render_params.lights = scene_lights;
