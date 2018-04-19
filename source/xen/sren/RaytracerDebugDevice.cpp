@@ -102,9 +102,10 @@ private:
 		Mat4r vp_matrix = xen::getViewProjectionMatrix(view_camera, viewport);
 
 		xen::sren::RasterizationContext context;
-		context.target    = &target;
-		context.viewport  = &viewport_r;
-		context.vp_matrix = vp_matrix;
+		context.target          = &target;
+		context.viewport        = &viewport_r;
+		context.fragment_shader = xen::sren::DefaultFragmentShader;
+		context.vp_matrix       = vp_matrix;
 		*(xen::RenderParameters3d*)(&context) = params;
 
 		/////////////////////////////////////////////////

@@ -216,6 +216,7 @@ namespace xen {
 			RasterizationContext context;
 			context.camera          = view_camera;
 			context.target          = &target;
+			context.fragment_shader = xen::sren::DefaultFragmentShader;
 			context.viewport        = &view_region;
 			context.m_matrix        = Mat4r::Identity;
 			context.vp_matrix       = vp_matrix;
