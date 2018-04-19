@@ -289,10 +289,14 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 		colors.p1           /= (float)tri_screen.p1.z;
 		colors.p2           /= (float)tri_screen.p2.z;
 		colors.p3           /= (float)tri_screen.p3.z;
+		tri_screen.p1.z = 1_r / tri_screen.p1.z;
+		tri_screen.p2.z = 1_r / tri_screen.p2.z;
+		tri_screen.p3.z = 1_r / tri_screen.p3.z;
+
 
 		// Edge function method, see:
 		// https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/rasterization-stage
-		#if 0
+		#if 1
 
 		const real area = (((tri_screen.p3.x - tri_screen.p1.x) *
 		              (tri_screen.p2.y - tri_screen.p1.y)
@@ -343,9 +347,9 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 				bary.x = e23 / area;
 				bary.y = e31 / area;
 
-				real depth = (tri_screen.p1.z * bary.x +
-				              tri_screen.p2.z * bary.y +
-				              tri_screen.p3.z * bary.z );
+				real depth = 1_r / ( tri_screen.p1.z * bary.x +
+				                     tri_screen.p2.z * bary.y +
+				                     tri_screen.p3.z * bary.z );
 
 				xen::Color4f color        = evaluateBarycentricCoordinates(colors,           bary);
 				Vec3r        pos_world    = evaluateBarycentricCoordinates(tri_world,        bary);
@@ -359,10 +363,10 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 
 				if (depth < cntx.target->depth[pixel_index]) {
 					cntx.target->depth[pixel_index] = depth;
-					cntx.target->color[pixel_index] = _fragmentShader(cntx,
-					                                                  pos_world,
-					                                                  normal_world,
-					                                                  color);
+					cntx.target->color[pixel_index] = cntx.fragment_shader(cntx,
+					                                                       pos_world,
+					                                                       normal_world,
+					                                                       color);
 				}
 			}
 		}
@@ -469,9 +473,9 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 
 				u32 pixel_index = pixel_index_base + x;
 
-				real depth = (tri_screen.p1.z * bary.x +
-				              tri_screen.p2.z * bary.y +
-				              tri_screen.p3.z * bary.z );
+			  real depth = 1_r / ( tri_screen.p1.z * bary.x +
+				                     tri_screen.p2.z * bary.y +
+				                     tri_screen.p3.z * bary.z );
 
 				xen::Color4f color        = evaluateBarycentricCoordinates(colors,           bary);
 				Vec3r        pos_world    = evaluateBarycentricCoordinates(tri_world,        bary);
@@ -646,9 +650,9 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 		return;
 	case 0: { // 000 - all points in front of camera
 		// Do perspective divide (into normalized device coordinates -> [-1, 1]
-		tri_pos_clip.p1.xy /= (tri_pos_clip.p1.w);
-		tri_pos_clip.p2.xy /= (tri_pos_clip.p2.w);
-		tri_pos_clip.p3.xy /= (tri_pos_clip.p3.w);
+		tri_pos_clip.p1.xy /= (tri_pos_clip.p1.z);
+		tri_pos_clip.p2.xy /= (tri_pos_clip.p2.z);
+		tri_pos_clip.p3.xy /= (tri_pos_clip.p3.z);
 
 		xen::Triangle3r tri_pos_screen =
 			_convertToScreenSpaceTriOLD(tri_pos_clip, *cntx.viewport);
@@ -696,9 +700,9 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 			tri_color    .p3  += (tri_color    .p1 - tri_color    .p3) * frac_p3;
 
 			// Do perspective divide (into normalized device coordinates -> [-1, 1]
-			tri_pos_clip.p1.xy /= (tri_pos_clip.p1.w);
-			tri_pos_clip.p2.xy /= (tri_pos_clip.p2.w);
-			tri_pos_clip.p3.xy /= (tri_pos_clip.p3.w);
+			tri_pos_clip.p1.xy /= (tri_pos_clip.p1.z);
+			tri_pos_clip.p2.xy /= (tri_pos_clip.p2.z);
+			tri_pos_clip.p3.xy /= (tri_pos_clip.p3.z);
 
 			xen::Triangle3r tri_pos_screen =
 				_convertToScreenSpaceTriOLD(tri_pos_clip, *cntx.viewport);
@@ -746,10 +750,10 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 			quad_pos_clip.vertices[3] = p3_slide_to_p2;
 
 			// perspective divide
-			quad_pos_clip.vertices[0].xy /= quad_pos_clip.vertices[0].w;
-			quad_pos_clip.vertices[1].xy /= quad_pos_clip.vertices[1].w;
-			quad_pos_clip.vertices[2].xy /= quad_pos_clip.vertices[2].w;
-			quad_pos_clip.vertices[3].xy /= quad_pos_clip.vertices[3].w;
+			quad_pos_clip.vertices[0].xy /= quad_pos_clip.vertices[0].z;
+			quad_pos_clip.vertices[1].xy /= quad_pos_clip.vertices[1].z;
+			quad_pos_clip.vertices[2].xy /= quad_pos_clip.vertices[2].z;
+			quad_pos_clip.vertices[3].xy /= quad_pos_clip.vertices[3].z;
 
 			xen::VertexGroup3r<4> quad_pos_screen =
 				_convertToScreenSpaceQuadOLD(quad_pos_clip, *cntx.viewport);

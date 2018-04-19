@@ -14,7 +14,7 @@ xen::Mesh                                      mesh_cube;
 xen::Mesh                                      mesh_axes;
 xen::Mesh                                      mesh_xzplane;
 
-xen::FixedArray<xen::RenderCommand3d, 9> render_commands;
+xen::FixedArray<xen::RenderCommand3d, 10> render_commands;
 
 xen::sren::PostProcessorDisplayDepthBuffer pp_displayDepthBuffer;
 
@@ -26,7 +26,7 @@ xen::sren::PostProcessor* post_processors[] = {
 #define CMD_IDX_TOR_A  0
 #define CMD_IDX_TOR_B  1
 #define CMD_IDX_FLOOR  2
-#define CMD_IDX_STUDS  2
+#define CMD_IDX_STUDS  3
 #define CMD_IDX_LIGHT  6
 
 void initRenderCommands(){
@@ -49,11 +49,11 @@ void initRenderCommands(){
 	render_commands[1].mesh            = mesh_torus_flat;
 	render_commands[1].fragment_shader = FragmentShader_Phong;
 
-	//render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	//render_commands[2].color           = xen::Color::WHITE4f;
-	//render_commands[2].model_matrix    = (xen::Scale3d      (5, 5, 5) *
-	                                       //                                      xen::Translation3d(0, -0.5_r, 0));
-	//render_commands[2].mesh            = mesh_xzplane;
+	render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
+	render_commands[2].color           = xen::Color::WHITE4f;
+	render_commands[2].model_matrix    = (xen::Scale3d      (5, 5, 5) *
+	                                      xen::Translation3d(0, -0.5_r, 0));
+	render_commands[2].mesh            = mesh_xzplane;
 
 	for(u32 i = 0; i < 4; ++i){
 		xen::Color4f color = xen::Color::WHITE4f;
@@ -71,12 +71,12 @@ void initRenderCommands(){
 		case 3: pos.x =  1_r; pos.z =  1_r; break;
 		}
 		pos   *= 2.0_r;
-		pos.y -= 0.5_r;
+		pos.y += -0.499999_r;
 
 		render_commands[CMD_IDX_STUDS+i].primitive_type  = xen::PrimitiveType::TRIANGLES;
 		render_commands[CMD_IDX_STUDS+i].color           = color;
 		render_commands[CMD_IDX_STUDS+i].emissive_color  = color;
-		render_commands[CMD_IDX_STUDS+i].model_matrix    = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
+		render_commands[CMD_IDX_STUDS+i].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
 		                                                    xen::Scale3d      (0.1_r) *
 		                                                    xen::Translation3d(pos)
 		                                                    );
