@@ -44,42 +44,42 @@ Vec3r positions_walls[] = {
 	// ---------------------------------------------------------------------------
 	// room coordinates
 	// Floor
-	C_room, B_room, A_room,
-	C_room, D_room, B_room,
+	C_room, A_room, B_room,
+	C_room, B_room, D_room,
 	// Left Wall
-	A_room, E_room, C_room,
-	C_room, E_room, G_room,
+	A_room, C_room, E_room,
+	C_room, G_room, E_room,
 	// Right Wall
-	F_room, B_room, D_room,
-	H_room, F_room, D_room,
+	F_room, D_room, B_room,
+	H_room, D_room, F_room,
 	// Ceiling
-	E_room, F_room, G_room,
-	F_room, H_room, G_room,
+	E_room, G_room, F_room,
+	F_room, G_room, H_room,
 	// Back Wall
-	G_room, D_room, C_room,
-	G_room, H_room, D_room,
+	G_room, C_room, D_room,
+	G_room, D_room, H_room,
 };
 
 Vec3r normals_walls[] = {
 	// Floor
-	-Vec3r::UnitY, -Vec3r::UnitY, -Vec3r::UnitY,
-	-Vec3r::UnitY, -Vec3r::UnitY, -Vec3r::UnitY,
-
-	// Left Wall
-  -Vec3r::UnitX, -Vec3r::UnitX, -Vec3r::UnitX,
-	-Vec3r::UnitX, -Vec3r::UnitX, -Vec3r::UnitX,
-
-	// Right Wall
-	Vec3r::UnitX, Vec3r::UnitX, Vec3r::UnitX,
-	Vec3r::UnitX, Vec3r::UnitX, Vec3r::UnitX,
-
-	// Ceiling
-  Vec3r::UnitY, Vec3r::UnitY, Vec3r::UnitY,
+	Vec3r::UnitY, Vec3r::UnitY, Vec3r::UnitY,
 	Vec3r::UnitY, Vec3r::UnitY, Vec3r::UnitY,
 
+	// Left Wall
+  Vec3r::UnitX, Vec3r::UnitX, Vec3r::UnitX,
+	Vec3r::UnitX, Vec3r::UnitX, Vec3r::UnitX,
+
+	// Right Wall
+	-Vec3r::UnitX, -Vec3r::UnitX, -Vec3r::UnitX,
+	-Vec3r::UnitX, -Vec3r::UnitX, -Vec3r::UnitX,
+
+	// Ceiling
+  -Vec3r::UnitY, -Vec3r::UnitY, -Vec3r::UnitY,
+	-Vec3r::UnitY, -Vec3r::UnitY, -Vec3r::UnitY,
+
 	// Back Wall
-	-Vec3r::UnitZ, -Vec3r::UnitZ, -Vec3r::UnitZ,
-	-Vec3r::UnitZ, -Vec3r::UnitZ, -Vec3r::UnitZ,
+	Vec3r::UnitZ, Vec3r::UnitZ, Vec3r::UnitZ,
+	Vec3r::UnitZ, Vec3r::UnitZ, Vec3r::UnitZ,
 };
 
 Vec3r positions_interior[] = {
