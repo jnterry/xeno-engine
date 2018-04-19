@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "../common.cpp"
+#include "fragment_shaders.cpp"
 
 xen::Camera3dCylinder                  camera;
 xen::RenderParameters3d                render_params;
@@ -37,6 +38,7 @@ void initRenderCommands(){
 	                                      Mat4r::Identity
 	                                     );
 	render_commands[0].mesh            = mesh_torus_smooth;
+	render_commands[0].fragment_shader = FragmentShader_Phong;
 
 	render_commands[1].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_commands[1].color           = xen::Color::WHITE4f;
@@ -45,6 +47,7 @@ void initRenderCommands(){
 	                                      Mat4r::Identity
 	                                     );
 	render_commands[1].mesh            = mesh_torus_flat;
+	render_commands[1].fragment_shader = FragmentShader_Phong;
 
 	//render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	//render_commands[2].color           = xen::Color::WHITE4f;
@@ -190,14 +193,30 @@ int main(int argc, char** argv){
 		}
 
 		// :TODO: these should use window events...
-		if(xen::isKeyPressed(xen::Key::P)){ // points
+		if(xen::isKeyPressed(xen::Key::Num1)){ // points
 		  render_commands[0].primitive_type = xen::PrimitiveType::POINTS;
 		}
-		if(xen::isKeyPressed(xen::Key::L)){ // lines
+		if(xen::isKeyPressed(xen::Key::Num2)){ // lines
 		  render_commands[0].primitive_type = xen::PrimitiveType::LINES;
 		}
-		if(xen::isKeyPressed(xen::Key::T)){ // triangles
+		if(xen::isKeyPressed(xen::Key::Num3)){ // triangles
 			render_commands[0].primitive_type = xen::PrimitiveType::TRIANGLES;
+		}
+		if(xen::isKeyPressed(xen::Key::Num4)){ // normals
+			render_commands[0].fragment_shader = &FragmentShader_Normals;
+			render_commands[1].fragment_shader = &FragmentShader_Normals;
+		}
+		if(xen::isKeyPressed(xen::Key::Num5)){ // world positions
+		  render_commands[0].fragment_shader = &FragmentShader_Positions;
+			render_commands[1].fragment_shader = &FragmentShader_Positions;
+		}
+		if(xen::isKeyPressed(xen::Key::Num6)){ // Shaded
+			render_commands[0].fragment_shader = &FragmentShader_Phong;
+			render_commands[1].fragment_shader = &FragmentShader_Phong;
+		}
+		if(xen::isKeyPressed(xen::Key::Num7)){ // Basic Shaded
+			render_commands[0].fragment_shader = nullptr;
+			render_commands[1].fragment_shader = nullptr;
 		}
 
 		handleCameraInputCylinder(camera, dt, 30);

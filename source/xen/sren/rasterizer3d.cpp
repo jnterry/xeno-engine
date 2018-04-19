@@ -154,19 +154,10 @@ namespace {
 	/// \param normal_world The normal of the point being filled in world space
 	/// \param color        The diffuse color of the point being filled
 	/////////////////////////////////////////////////////////////////////
-	// :TODO:OPT: profile -> is pass by reference faster?
-	xen::Color4f _fragmentShader(const xen::sren::FragmentUniforms& uniforms,
-	                             Vec3r                              pos_world,
-	                             Vec3r                              normal_world,
-	                             xen::Color4f                       color){
-
-		#if 0  // display normals
-		return xen::mkVec(((Vec3f)normal_world + (Vec3f{1,1,1}) / 2.0f), 1.0f);
-		#endif
-
-		#if 0 // display world position
-		return xen::mkVec((Vec3f)pos_world, 1.0f);
-		#endif
+	xen::Color4f _defaultFragmentShader(const xen::FragmentUniforms& uniforms,
+	                                    Vec3r                        pos_world,
+	                                    Vec3r                        normal_world,
+	                                    xen::Color4f                 color){
 
 		xen::Color3f total_light = uniforms.ambient_light;
 		total_light += (uniforms.emissive_color.rgb * uniforms.emissive_color.a);
@@ -179,22 +170,11 @@ namespace {
 
 			real dist_sq_world = xen::distanceSq(pos_world, uniforms.lights[i].point.position);
 
-			#if 0
-			total_light += xen::sren::computeLightInfluencePhong
-				( uniforms.lights[i].point.position,
-				  uniforms.lights[i].color,
-				  uniforms.lights[i].attenuation,
-				  dist_sq_world,
-				  uniforms.camera.position,
-				  pos_world, normal_world
-				);
-			#else
 			total_light += xen::sren::computeLightInfluenceSimple
 				( uniforms.lights[i].color,
 				  uniforms.lights[i].attenuation,
 				  dist_sq_world
 				);
-			#endif
 		}
 
 		for(u32 i = 0; i < 3; ++i){
@@ -248,10 +228,8 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 		Vec3r        pos_world  = xen::lerp(line_world,     lerp_factor);
 
 		if (depth < cntx.target->depth[pixel_index]) {
-			cntx.target->color[pixel_index] = _fragmentShader(cntx,
-			                                                  pos_world,
-			                                                  Vec3r::Origin,
-			                                                  base_color);
+			cntx.target->color[pixel_index] = cntx.fragment_shader
+				(cntx, pos_world, Vec3r::Origin, base_color);
 			cntx.target->depth[pixel_index] = depth;
 		}
 		cur_screen += delta_screen;
@@ -507,10 +485,8 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 
 				if (depth < cntx.target->depth[pixel_index]) {
 					cntx.target->depth[pixel_index] = depth;
-					cntx.target->color[pixel_index] = _fragmentShader(cntx,
-					                                                  pos_world,
-					                                                  normal_world,
-					                                                  color);
+					cntx.target->color[pixel_index] = cntx.fragment_shader
+						(cntx, pos_world, normal_world, color);
 				}
 			}
 		}
@@ -520,6 +496,8 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 
 namespace xen {
 namespace sren {
+
+FragmentShader DefaultFragmentShader = &_defaultFragmentShader;
 
 void setPerCommandFragmentUniforms(FragmentUniforms& uniforms,
                                    const Material&   material,
@@ -565,7 +543,7 @@ void rasterizePointsModel(const RasterizationContext& cntx,
 		}
 
 		cntx.target->depth[pixel_index] = point_clip.z;
-		cntx.target->color[pixel_index] = _fragmentShader
+		cntx.target->color[pixel_index] = cntx.fragment_shader
 			(cntx,
 			 point_world.xyz,
 			 Vec3r::Origin,
