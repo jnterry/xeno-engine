@@ -123,14 +123,21 @@
 		 - We support: TRIANGLES, LINES, LINE_STRIP, POINTS (as defined by the OpenGL standard - but we have implemented them in software)
 		 - Note that the raytracer backend will fall back to using the rasterizer for all primative types except TRIANGLES since it doesn't make sense to ray trace points or lines which are infinitely thin
 		 - Point and line rendering is shown in the =starfield= demo
-		 - To prove we can render the same mesh with different primitive types, and the setting is per model (IE: instantiation of a mesh) rather than per mesh try pressing T, L and P for triangles, lines and points respectively in the =torus= demo
+		 - A demo of changing this dynamically per model can be seen in the =torus= demo by pressing
+			 - 1 -> point cloud
+			 - 2 -> wireframe
+			 - 3 -> triangles
 	 - Full clipping pipeline
 		 - All primitive types are clipped by the engine such that the camera can be moved without segfaults, all geometry not in view is not drawn
 		 - Geometry partially on and partially off of the screen is clipped to the viewport
 	 - Per pixel "programmable" shader
-		 - The rasterizer runs a "fragment
-	 - Per pixel lighting calculations
-		 - See =torus= example application
+		 - The rasterizer runs a "fragment shader" per pixel
+		 - The fragment shader can be changed per model
+		 - In the =torus= demo the fragment shader can be changed by pressing:
+			 - 4 -> display mesh normals
+			 - 5 -> display world positions
+			 - 6 -> display phong lighting
+			 - 7 -> display basic lighting model (the engine's default shader)
 
 ** Meta Extensions
 
