@@ -164,7 +164,7 @@ namespace {
 		return xen::mkVec(((Vec3f)normal_world + (Vec3f{1,1,1}) / 2.0f), 1.0f);
 		#endif
 
-		#if 1 // display world position
+		#if 0 // display world position
 		return xen::mkVec((Vec3f)pos_world, 1.0f);
 		#endif
 
