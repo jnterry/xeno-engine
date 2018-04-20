@@ -72,6 +72,7 @@
 	 - Arbitrary viewpoints
 		 - Rendering can be performed in arbitrary viewpoints of a render target
 		 - Try running the =cornell-box= demo with the device "Raytracer Camera Debug" to see a demonstration
+		 - :TODO: think raytracer is broken on this... (maybe after parallization)
 	 - Arbitrary number of lights
 		 - The engine supports multiple dynamic point lights per scene
 		 - The only limit on number is desired performance and hardware capabilities (and having less than 2^32 so we can index them...)
