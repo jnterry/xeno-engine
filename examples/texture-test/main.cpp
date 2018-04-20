@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "../common.cpp"
+#include "../fragment_shaders.cpp"
 #include <xen/graphics/Image.hpp>
 #include <xen/sren/FragmentShader.hpp>
 
@@ -18,53 +19,9 @@ xen::Texture texture_metal_diffuse;
 xen::Texture texture_metal_normal;
 
 xen::Shader  shader_normal_map;
+xen::Shader  shader_phong;
 
 xen::FixedArray<xen::RenderCommand3d, 1> render_commands;
-
-xen::Color4f FragmentShader_NormalMap(const xen::sren::FragmentUniforms& uniforms,
-                                      Vec3r                              pos_world,
-                                      Vec3r                              normal_world,
-                                      xen::Color4f                       color,
-                                      Vec2f                              uvs){
-  xen::Color3f total_light = uniforms.ambient_light;
-  total_light += (uniforms.emissive_color.rgb * uniforms.emissive_color.a);
-
-  xen::Color4f normal_map = xen::sren::sampleTexture(uniforms.textures[1], uvs);
-  Vec3r normal = xen::normalized(normal_world + normal_map.xyz);
-
-  for(u32 i = 0; i < xen::size(uniforms.lights); ++i){
-	  if(uniforms.lights[i].type != xen::LightSource3d::POINT){
-		  printf("WARN: Unsupported light type in rasterizer\n");
-		  continue;
-	  }
-
-	  real dist_sq_world = xen::distanceSq(pos_world, uniforms.lights[i].point.position);
-
-	  total_light += xen::sren::computeLightInfluencePhong
-		  ( uniforms.lights[i].point.position,
-		    uniforms.lights[i].color,
-		    uniforms.lights[i].attenuation,
-		    dist_sq_world,
-		    uniforms.camera.position,
-		    pos_world, normal,
-		    uniforms.specular_exponent,
-		    specular_intensity
-		    );
-  }
-
-  for(u32 i = 0; i < 3; ++i){
-	  if(total_light.elements[i] > 1){
-		  total_light.elements[i] = 1;
-	  }
-  }
-
-  xen::Color4f result = uniforms.diffuse_color;
-	result     *= color;
-	result     *= xen::sren::sampleTexture(uniforms.textures[0], uvs);
-	result.rgb *= total_light;
-
-  return result;
-}
 
 void initRenderCommands(){
 	xen::clearToZero(render_commands);
@@ -120,15 +77,14 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 	xen::RawImage image_bricks_normal  = xen::loadImage(arena, "bricks-normal.jpg");
 	xen::RawImage image_metal_diffuse  = xen::loadImage(arena, "metal-plate-diffuse.jpg");
 	xen::RawImage image_metal_normal   = xen::loadImage(arena, "metal-plate-normal.jpg");
-	xen::RawImage image_metal_specular = xen::loadImage(arena, "metal-plate-normal.jpg");
 
 	texture_bricks_diffuse = device->createTexture(&image_bricks_diffuse);
 	texture_bricks_normal  = device->createTexture(&image_bricks_normal);
 	texture_metal_diffuse  = device->createTexture(&image_metal_diffuse);
 	texture_metal_normal   = device->createTexture(&image_metal_normal);
-	texture_metal_specular = device->createTexture(&image_metal_specular);
 
 	shader_normal_map = device->createShader((void*)&FragmentShader_NormalMap);
+	shader_phong      = device->createShader((void*)&FragmentShader_Phong    );
 }
 
 int main(int argc, char** argv){
@@ -168,14 +124,21 @@ int main(int argc, char** argv){
 		if(xen::isKeyPressed(xen::Key::Num1)){ // bricks
 		  render_commands[0].textures[0]        = texture_bricks_diffuse;
 		  render_commands[0].textures[1]        = texture_bricks_normal;
-		  render_commands[0].specular_exponent  = 3_r;
-		  render_commands[0].specular_intensity = 0.1_r;
+		  render_commands[0].specular_exponent  = 5_r;
+		  render_commands[0].specular_intensity = 0.5_r;
 		}
 		if(xen::isKeyPressed(xen::Key::Num2)){ // metal
 		  render_commands[0].textures[0]        = texture_metal_diffuse;
 			render_commands[0].textures[1]        = texture_metal_normal;
 		  render_commands[0].specular_exponent  = 100_r;
 		  render_commands[0].specular_intensity = 5_r;
+		}
+
+		if(xen::isKeyPressed(xen::Key::Num9)){ // normal
+			render_commands[0].shader = shader_normal_map;
+		}
+		if(xen::isKeyPressed(xen::Key::Num0)){ // phong
+			render_commands[0].shader = shader_phong;
 		}
 
 		handleCameraInputCylinder(camera, dt, 30);

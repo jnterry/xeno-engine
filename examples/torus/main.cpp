@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "../common.cpp"
-#include "fragment_shaders.cpp"
+#include "../fragment_shaders.cpp"
 
 xen::Camera3dCylinder                  camera;
 xen::RenderParameters3d                render_params;
