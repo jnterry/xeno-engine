@@ -117,6 +117,7 @@ public:
 			const xen::RenderCommand3d&      cmd  = commands[cmd_index];
 			const xen::sren::RasterizerMesh* mesh = this->mesh_store.getMesh(cmd.mesh);
 
+			u32 stride = 2;
 			switch(cmd.primitive_type){
 			case xen::PrimitiveType::POINTS: {
 				for(u32 i = 0; i < mesh->vertex_count; ++i){
@@ -146,9 +147,22 @@ public:
 					}
 				}
 			}
-			case xen::PrimitiveType::LINES:      break;
-			case xen::PrimitiveType::LINE_STRIP: break;
+			case xen::PrimitiveType::LINE_STRIP: stride = 1;
+			case xen::PrimitiveType::LINES:
+				for(u32 i = 0; i < mesh->vertex_count; i += stride){
+					Vec4r p0 = xen::toHomo(mesh->position[i+0]) * cmd.model_matrix;
+					Vec4r p1 = xen::toHomo(mesh->position[i+1]) * cmd.model_matrix;
 
+					Vec4r e1 = p1 - p0;
+
+					real invDistE1 = (1.0_r / xen::mag(e1)) * 0.01_r;
+
+					for(real cur_e1 = 0; cur_e1 <= 1; cur_e1 += invDistE1){
+						*cur_pos = p0 + (cur_e1 * e1);
+						++cur_pos;
+					}
+				}
+				break;
 			}
 		}
 
