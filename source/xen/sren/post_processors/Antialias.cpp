@@ -1,15 +1,13 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \brief Contains implementation for antialiasing as a post-processor step, such as FXAA
+/// \brief Contains implementation for antialiasing as a post-processor step
+/// inspired by FXAA, with some approximations to improve performance
+/// Based on: http://blog.simonrodriguez.fr/articles/30-07-2016_implementing_fxaa.html
 ///
 /// \ingroup sren
 ////////////////////////////////////////////////////////////////////////////
 
-// GPU based example of FXAA: http://blog.simonrodriguez.fr/articles/30-07-2016_implementing_fxaa.html
-// FXAA Whitepaper: http://developer.download.nvidia.com/assets/gamedev/files/sdk/11/FXAA_WhitePaper.pdf
-
-// :TODO: What to do if Any luma are out of bounds, such as pixels on edges?
 
 #ifndef XEN_SREN_POSTPROCESSORS_ANTIALIAS_CPP
 #define XEN_SREN_POSTPROCESSORS_ANTIALIAS_CPP
@@ -26,8 +24,6 @@
 #define EDGE_THRESHOLD_MAX 0.125
 // Maximum length of edge in each direction
 #define ITERATIONS         12
-// Value for antialiasing subpixel lines
-#define SUBPIXEL_QUALITY 0.75
 
 namespace xen {
 	namespace sren {
@@ -52,7 +48,6 @@ namespace xen {
 			// Luma at the current fragment
 			real lumaCenter = rgb2luma(fb.color[currentPixelIndex].rgb);
 
-			// :TODO: Determine what to do when pixels are on edge of the image
 			// Luma at the four direct neighbours of the current fragment.
 			real lumaDown   = rgb2luma(fb.color[(y+1)*fb.size.x + (x  )].rgb);
 			real lumaUp     = rgb2luma(fb.color[(y-1)*fb.size.x + (x  )].rgb);
@@ -226,7 +221,6 @@ namespace xen {
 			fb_out.color[currentPixelIndex].r = finalColor.r;
 			fb_out.color[currentPixelIndex].g = finalColor.g;
 			fb_out.color[currentPixelIndex].b = finalColor.b;
-
 		}
 
 		void PostProcessorAntialias::process(Framebuffer& fb) {
