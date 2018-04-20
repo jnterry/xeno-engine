@@ -10,7 +10,6 @@
 // FXAA Whitepaper: http://developer.download.nvidia.com/assets/gamedev/files/sdk/11/FXAA_WhitePaper.pdf
 
 // :TODO: What to do if Any luma are out of bounds, such as pixels on edges?
-// :TODO: Check if top left or bottom left is fb[0], if bottom left then swap lumaUp and lumaDown
 
 #ifndef XEN_SREN_POSTPROCESSORS_ANTIALIAS_CPP
 #define XEN_SREN_POSTPROCESSORS_ANTIALIAS_CPP
@@ -38,26 +37,9 @@ namespace xen {
 		}
 
 		/// brief: get color of a position between pixels by bilinear filtering 4 nearest pixels
-		// :TODO: May want to just pass in specific pixels to this function
 		Vec3f blendColor(Framebuffer& fb, Vec2r subPixelLocation){
-			/*
-			real ratioVertical   = (subPixelLocation.x) - floor(subPixelLocation.x);
-		  real ratioHorizontal = (subPixelLocation.y) - floor(subPixelLocation.y);
-
-			// find color average of left pair of pixels
-			int topLeftIndex    = floor(subPixelLocation.y)*fb.size.x + floor(subPixelLocation.x);
-			int bottomLeftIndex = ceil(subPixelLocation.y)*fb.size.x  + floor(subPixelLocation.x);
-			Vec3f colorLeft = lerp(fb.color[topLeftIndex].rgb, fb.color[bottomLeftIndex].rgb, ratioVertical);
-
-			// find color average of right pair of pixels
-			int topRightIndex    = floor(subPixelLocation.y)*fb.size.x + ceil(subPixelLocation.x);
-			int bottomRightIndex = ceil(subPixelLocation.y)*fb.size.x  + ceil(subPixelLocation.x);
-			Vec3f colorRight = lerp(fb.color[topRightIndex].rgb, fb.color[bottomRightIndex].rgb, ratioVertical);
-
-			return lerp(colorLeft, colorRight, ratioHorizontal);
-			*/
-			int topLeftIndex    = floor(subPixelLocation.y)*fb.size.x + floor(subPixelLocation.x);
-			int bottomLeftIndex = ceil(subPixelLocation.y)*fb.size.x  + floor(subPixelLocation.x);
+			int topLeftIndex     = floor(subPixelLocation.y)*fb.size.x + floor(subPixelLocation.x);
+			int bottomLeftIndex  = ceil(subPixelLocation.y)*fb.size.x  + floor(subPixelLocation.x);
 			int topRightIndex    = floor(subPixelLocation.y)*fb.size.x + ceil(subPixelLocation.x);
 			int bottomRightIndex = ceil(subPixelLocation.y)*fb.size.x  + ceil(subPixelLocation.x);
 
@@ -83,26 +65,11 @@ namespace xen {
 			// Compute the delta.
 			real lumaRange = lumaMax - lumaMin;
 
-			/*
-			// DEBUG TODO
-
-			real lumaAverage_debug = (lumaDown + lumaUp + lumaLeft + lumaRight) / 4;
-
-			fb_out.color[currentPixelIndex].r = lumaAverage_debug;
-			fb_out.color[currentPixelIndex].g = lumaAverage_debug;
-			fb_out.color[currentPixelIndex].b = lumaAverage_debug;
-
-			return;
-			*/
-
 			// If the luma variation is lower that a threshold (or if we are in a really dark area),
 			// we are not on an edge, don't perform any AA.
 			if(lumaRange < max(EDGE_THRESHOLD_MIN,lumaMax*EDGE_THRESHOLD_MAX)){
     		return;
 			}
-
-			// DEBUG TODO
-			//printf("Getting past the bail out!\n");
 
 			// Query the 4 remaining corners lumas.
 			real lumaDownLeft  = rgb2luma(fb.color[(y+1)*fb.size.x + (x-1)].rgb);
@@ -238,45 +205,12 @@ namespace xen {
 			// Is the luma at center smaller than the local average ?
 			bool isLumaCenterSmaller = lumaCenter < lumaLocalAverage;
 
-			// DEBUG TODO
-			// printf("lumaEnd1: %f, lumaEnd2: %f\n", lumaEnd1, lumaEnd2);
-			// printf("isDirection1: %i\n", isDirection1);
-
 			// If the luma at center is smaller than at its neighbour, the delta luma at each end should be positive (same variation).
 			// (in the direction of the closer side of the edge.)
 			bool correctVariation = ((isDirection1 ? lumaEnd1 : lumaEnd2) < 0.0) != isLumaCenterSmaller;
 
 			// If the luma variation is incorrect, do not offset.
 			real finalOffset = correctVariation ? pixelOffset : 0.0;
-
-			// Sub-pixel shifting
-			// Full weighted average of the luma over the 3x3 neighborhood.
-			real lumaAverage = (1.0/12.0) * (2.0 * (lumaDownUp + lumaLeftRight) + lumaLeftCorners + lumaRightCorners);
-
-			// DEBUG TODO
-			// printf("lumaAverage: %f, lumaCenter: %f\n", lumaAverage, lumaCenter);
-
-			// Ratio of the delta between the global average and the center luma, over the luma range in the 3x3 neighborhood.
-			real subPixelOffset1 = xen::clamp((real)fabs(lumaAverage - lumaCenter)/lumaRange,0.0_r,1.0_r);
-			real subPixelOffset2 = (-2.0 * subPixelOffset1 + 3.0) * subPixelOffset1 * subPixelOffset1;
-
-			// DEBUG TODO
-			// printf("subPixelOffset1: %f, subPixelOffset2: %f\n", subPixelOffset1, subPixelOffset2);
-
-			// Compute a sub-pixel offset based on this delta.
-			real subPixelOffsetFinal = subPixelOffset2 * subPixelOffset2 * SUBPIXEL_QUALITY;
-
-			// DEBUG TODO
-			// printf("finalOffset: %f, subPixelOffsetFinal: %f\n", finalOffset, subPixelOffsetFinal);
-			// printf("stepLength: %f\n", stepLength);
-			/*
-			if (finalOffset > 0.0_r) {
-				XenBreak();
-			}
-			*/
-
-			// Pick the biggest of the two offsets.
-			finalOffset = max(finalOffset,subPixelOffsetFinal);
 
 			// Compute the final UV coordinates.
 			Vec2r finalUv = Vec2r{x,y};
@@ -286,24 +220,9 @@ namespace xen {
 			    finalUv.x += finalOffset * stepLength;
 			}
 
-			// DEBUG TODO
-			// printf("For pixel: (%i, %i), finalUv: (%f, %f) \n", x, y, finalUv.x, finalUv.y);
-			/*
-			printf("Pixels, top-left: (%f,%f,%f), top-right: (%f,%f,%f), bottom-left: (%f,%f,%f), bottom-right: (%f,%f,%f)\n",
-			       fb.color[(y-1)*fb.size.x + (x-1)].r, fb.color[(y-1)*fb.size.x + (x-1)].g, fb.color[(y-1)*fb.size.x + (x-1)].b,
-						 fb.color[(y-1)*fb.size.x + (x+1)].r, fb.color[(y-1)*fb.size.x + (x-1)].g, fb.color[(y-1)*fb.size.x + (x-1)].b,
-						 fb.color[(y+1)*fb.size.x + (x-1)].r, fb.color[(y-1)*fb.size.x + (x-1)].g, fb.color[(y-1)*fb.size.x + (x-1)].b,
-						 fb.color[(y+1)*fb.size.x + (x+1)].r, fb.color[(y-1)*fb.size.x + (x-1)].g, fb.color[(y-1)*fb.size.x + (x-1)].b);
-			*/
 			// Read the color at the new UV coordinates, and use it.
 			Vec3f finalColor = blendColor(fb, finalUv);
 
-			//printf("Blended pixel color: (%f,%f,%f)\n", finalColor.x, finalColor.y, finalColor.z);
-			/*
-			fb_out.color[currentPixelIndex].r = 1.0;
-			fb_out.color[currentPixelIndex].g = 0.0;
-			fb_out.color[currentPixelIndex].b = 0.0;
-			*/
 			fb_out.color[currentPixelIndex].r = finalColor.r;
 			fb_out.color[currentPixelIndex].g = finalColor.g;
 			fb_out.color[currentPixelIndex].b = finalColor.b;
@@ -319,10 +238,8 @@ namespace xen {
 			fb_copy.height = fb.height;
 
 			fb_copy.color = (Color4f*)malloc(fb_copy.height*fb_copy.width*sizeof(Color4f));
-			fb_copy.depth = (float*)malloc(fb_copy.height*fb_copy.width*sizeof(float));
 
 			memcpy(fb_copy.color, fb.color, (fb_copy.height*fb_copy.width*sizeof(Color4f)));
-			memcpy(fb_copy.depth, fb.depth, (fb_copy.height*fb_copy.width*sizeof(float)));
 
 			// :TODO: Fix these loops to be between 0 and size; changed to this for test purposes
 			for(u32 j = 1; j < fb.size.y-1; ++j){
@@ -330,6 +247,8 @@ namespace xen {
 					fxaaStep(fb_copy, fb, i, j, inverseScreenSize);
 				}
 			}
+
+			free(fb_copy.color);
 		}
 
 	}
