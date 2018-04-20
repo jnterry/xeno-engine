@@ -235,7 +235,6 @@ namespace xen {
 
 			memcpy(fb_copy.color, fb.color, (fb_copy.height*fb_copy.width*sizeof(Color4f)));
 
-			// :TODO: Fix these loops to be between 0 and size; changed to this for test purposes
 			for(u32 j = 1; j < fb.size.y-1; ++j){
 				for(u32 i = 1; i < fb.size.x-1; ++i){
 					fxaaStep(fb_copy, fb, i, j, inverseScreenSize);
