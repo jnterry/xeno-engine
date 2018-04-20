@@ -107,7 +107,12 @@ private:
 		context.viewport        = &viewport_r;
 		context.fragment_shader = xen::sren::DefaultFragmentShader;
 		context.vp_matrix       = vp_matrix;
+        context.m_matrix        = Mat4r::Identity;
 		*(xen::RenderParameters3d*)(&context) = params;
+		context.textures[0]     = nullptr;
+		context.textures[1]     = nullptr;
+		context.textures[2]     = nullptr;
+		context.textures[3]     = nullptr;
 
 		/////////////////////////////////////////////////
 		// Render the scene geometry
