@@ -2,6 +2,7 @@
 
 #include "../common.cpp"
 #include <xen/graphics/Image.hpp>
+#include <xen/sren/FragmentShader.hpp>
 
 xen::Camera3dCylinder                  camera;
 xen::RenderParameters3d                render_params;
@@ -14,7 +15,52 @@ xen::Mesh    mesh_xzplane;
 xen::Texture texture_bricks_diffuse;
 xen::Texture texture_bricks_normal;
 
+xen::Shader  shader_normal_map;
+
 xen::FixedArray<xen::RenderCommand3d, 1> render_commands;
+
+xen::Color4f FragmentShader_NormalMap(const xen::sren::FragmentUniforms& uniforms,
+                                      Vec3r                              pos_world,
+                                      Vec3r                              normal_world,
+                                      xen::Color4f                       color,
+                                      Vec2f                              uvs){
+  xen::Color3f total_light = uniforms.ambient_light;
+  total_light += (uniforms.emissive_color.rgb * uniforms.emissive_color.a);
+
+  xen::Color4f normal_map = xen::sren::sampleTexture(uniforms.textures[1], uvs);
+  Vec3r normal = xen::normalized(normal_world + normal_map.xyz);
+
+  for(u32 i = 0; i < xen::size(uniforms.lights); ++i){
+	  if(uniforms.lights[i].type != xen::LightSource3d::POINT){
+		  printf("WARN: Unsupported light type in rasterizer\n");
+		  continue;
+	  }
+
+	  real dist_sq_world = xen::distanceSq(pos_world, uniforms.lights[i].point.position);
+
+	  total_light += xen::sren::computeLightInfluencePhong
+		  ( uniforms.lights[i].point.position,
+		    uniforms.lights[i].color,
+		    uniforms.lights[i].attenuation,
+		    dist_sq_world,
+		    uniforms.camera.position,
+		    pos_world, normal
+		    );
+  }
+
+  for(u32 i = 0; i < 3; ++i){
+	  if(total_light.elements[i] > 1){
+		  total_light.elements[i] = 1;
+	  }
+  }
+
+  xen::Color4f result = uniforms.diffuse_color;
+	result     *= color;
+	result     *= xen::sren::sampleTexture(uniforms.textures[0], uvs);
+	result.rgb *= total_light;
+
+  return result;
+}
 
 void initRenderCommands(){
 	xen::clearToZero(render_commands);
@@ -25,6 +71,7 @@ void initRenderCommands(){
 	render_commands[0].mesh            = mesh_xzplane;
 	render_commands[0].textures[0]     = texture_bricks_diffuse;
 	render_commands[0].textures[1]     = texture_bricks_normal;
+	render_commands[0].shader          = shader_normal_map;
 }
 
 void initCamera(){
@@ -68,6 +115,8 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 
 	texture_bricks_diffuse = device->createTexture(&bricks_diffuse_image);
 	texture_bricks_normal  = device->createTexture(&bricks_normal_image);
+
+	shader_normal_map = device->createShader((void*)&FragmentShader_NormalMap);
 }
 
 int main(int argc, char** argv){
