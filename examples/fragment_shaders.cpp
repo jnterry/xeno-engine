@@ -85,7 +85,8 @@ xen::Color4f FragmentShader_NormalMap(const xen::sren::FragmentUniforms& uniform
   // bit of a hack
   normal_map = xen::rotated(normal_map, xen::getRotation(Vec3r::UnitZ, normal_world));
 
-  Vec3r normal = xen::normalized(normal_world + normal_map);
+  //Vec3r normal = xen::normalized(normal_world + normal_map);
+  Vec3r normal = xen::normalized(normal_map);
 
   for(u32 i = 0; i < xen::size(uniforms.lights); ++i){
 	  if(uniforms.lights[i].type != xen::LightSource3d::POINT){
