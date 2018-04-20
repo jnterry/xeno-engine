@@ -111,6 +111,9 @@ public:
 
 		xen::MemoryTransaction transaction(this->frame_scratch);
 
+		Vec3r cam_pos = params.camera.position;
+
+		real fov_per_pixel = params.camera.fov_y.radians / (viewport.max.y - viewport.min.y);
 
 		///////////////////////////////////////////////////////////////////////////
 		// Atomize the scene into world space
@@ -130,20 +133,74 @@ public:
 			}
 			case xen::PrimitiveType::TRIANGLES: {
 				for(u32 i = 0; i < mesh->vertex_count; i += 3){
+					// We want to split the triangle into atoms
+					//
+					// The nearer the triangle is to the camera the greater the number of
+					// atoms we want
+
+					// First compute the world position of the 3 vertices of the triangle
 					Vec3r p0 = xen::fromHomo(xen::toHomo(mesh->position[i+0]) * cmd.model_matrix);
 					Vec3r p1 = xen::fromHomo(xen::toHomo(mesh->position[i+1]) * cmd.model_matrix);
 					Vec3r p2 = xen::fromHomo(xen::toHomo(mesh->position[i+2]) * cmd.model_matrix);
 
+					// We can now compute the distances to each of the triangle's vertices
+					real cam_dist_p0 = xen::distance(p0, cam_pos);
+					real cam_dist_p1 = xen::distance(p1, cam_pos);
+					real cam_dist_p2 = xen::distance(p2, cam_pos);
+
+					// Edge 1 and 2 of the triangle
 					Vec3r e1 = p1 - p0;
 					Vec3r e2 = p2 - p0;
 
-					// :TODO: is using fastInvSqRoot faster?
-                    real invDistE1 = (1.0_r / xen::mag(e1)) * 0.02_r;
-                    real invDistE2 = (1.0_r / xen::mag(e2)) * 0.02_r;
+					// 1d delta "vector" describing how the camera distance
+					// varies along edge 1 and edge 2 of the triangle
+					real e1_cam_dist = cam_dist_p1 - cam_dist_p0;
+					real e2_cam_dist = cam_dist_p2 - cam_dist_p0;
 
-					for(real cur_e1 = 0; cur_e1 <= 1; cur_e1 += invDistE1){
-						for(real cur_e2 = 0; cur_e2 <= (1 - cur_e1); cur_e2 += invDistE2){
+					// Inverse of the length (in world space) of edge 1 and edge 2
+					real inv_len_e1 = (1.0_r / xen::mag(e1));
+					real inv_len_e2 = (1.0_r / xen::mag(e2));
+
+					// Delta is how far to step along the triangles edges for each atom
+					real deltaE1 = inv_len_e1;
+					real deltaE2 = inv_len_e2;
+
+					for(real cur_e1 = 0; cur_e1 <= 1; cur_e1 += deltaE1){
+						for(real cur_e2 = 0; cur_e2 <= (1 - cur_e1); cur_e2 += deltaE2){
+
 							*cur_pos = p0 + (cur_e1 * e1) + (cur_e2 * e2);
+
+							real cam_dist = cam_dist_p0 + (cur_e1 * e1_cam_dist) + (cur_e2 * e2_cam_dist);
+
+							// We want our delta between atoms to be roughly equal to the
+							// distance in world space between pixels projected onto the
+							// surface
+							//
+							//              distance in world space between pixels = d
+							//                             V
+							//                          +------+
+							//                          |     /
+							//                          |    /
+							// distance from camera = z |   /
+							//                          |  /
+							//                          | /
+							//                          +
+							//               field of view per pixel = a
+							//
+							// Hence tan(a) = d/z
+							// d = z*tan(a)
+							// Using small angle approximation, d = z * a
+							real delta = (cam_dist * fov_per_pixel);
+
+							// We can adjust quality by increasing delta by some amount
+							delta *= 5; // This places atoms every 3 pixels
+
+							// Work out how far to step along the edge between 0 and 1
+							// by doing distance_we_want_to_step / length_of_edge
+							// IE: delta * (1/len)
+							deltaE1 = delta * inv_len_e1;
+							deltaE2 = delta * inv_len_e2;
+
 							++cur_pos;
 						}
 					}
@@ -158,7 +215,7 @@ public:
 
 					Vec3r e1 = p1 - p0;
 
-                    real invDistE1 = (1.0_r / xen::mag(e1)) * 0.02_r;
+					real invDistE1 = (1.0_r / xen::mag(e1)) * 0.02_r;
 
 					for(real cur_e1 = 0; cur_e1 <= 1; cur_e1 += invDistE1){
 						*cur_pos = p0 + (cur_e1 * e1);
