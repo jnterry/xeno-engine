@@ -11,9 +11,11 @@
 
 #include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/math/geometry.hpp>
+#include <xen/math/vector.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/intrinsics.hpp>
 
+#include <xen/sren/FragmentShader.hpp>
 #include "rasterizer3d.hxx"
 #include "SoftwareDeviceBase.hxx"
 #include "MeshStore.hxx"
@@ -112,7 +114,7 @@ public:
 
 		///////////////////////////////////////////////////////////////////////////
 		// Atomize the scene into world space
-		Vec4r* cur_pos = (Vec4r*)this->frame_scratch.next_byte;
+		Vec3r* cur_pos = (Vec3r*)this->frame_scratch.next_byte;
 		for(u32 cmd_index = 0; cmd_index < xen::size(commands); ++cmd_index){
 			const xen::RenderCommand3d&      cmd  = commands[cmd_index];
 			const xen::sren::RasterizerMesh* mesh = this->mesh_store.getMesh(cmd.mesh);
@@ -121,23 +123,23 @@ public:
 			switch(cmd.primitive_type){
 			case xen::PrimitiveType::POINTS: {
 				for(u32 i = 0; i < mesh->vertex_count; ++i){
-					*cur_pos = xen::toHomo(mesh->position[i]) * cmd.model_matrix;
+					*cur_pos = xen::fromHomo(xen::toHomo(mesh->position[i]) * cmd.model_matrix);
 					++cur_pos;
 				}
 				break;
 			}
 			case xen::PrimitiveType::TRIANGLES: {
 				for(u32 i = 0; i < mesh->vertex_count; i += 3){
-					Vec4r p0 = xen::toHomo(mesh->position[i+0]) * cmd.model_matrix;
-					Vec4r p1 = xen::toHomo(mesh->position[i+1]) * cmd.model_matrix;
-					Vec4r p2 = xen::toHomo(mesh->position[i+2]) * cmd.model_matrix;
+					Vec3r p0 = xen::fromHomo(xen::toHomo(mesh->position[i+0]) * cmd.model_matrix);
+					Vec3r p1 = xen::fromHomo(xen::toHomo(mesh->position[i+1]) * cmd.model_matrix);
+					Vec3r p2 = xen::fromHomo(xen::toHomo(mesh->position[i+2]) * cmd.model_matrix);
 
-					Vec4r e1 = p1 - p0;
-					Vec4r e2 = p2 - p0;
+					Vec3r e1 = p1 - p0;
+					Vec3r e2 = p2 - p0;
 
 					// :TODO: is using fastInvSqRoot faster?
-					real invDistE1 = (1.0_r / xen::mag(e1)) * 0.01_r;
-					real invDistE2 = (1.0_r / xen::mag(e2)) * 0.01_r;
+                    real invDistE1 = (1.0_r / xen::mag(e1)) * 0.02_r;
+                    real invDistE2 = (1.0_r / xen::mag(e2)) * 0.02_r;
 
 					for(real cur_e1 = 0; cur_e1 <= 1; cur_e1 += invDistE1){
 						for(real cur_e2 = 0; cur_e2 <= (1 - cur_e1); cur_e2 += invDistE2){
@@ -147,15 +149,16 @@ public:
 					}
 				}
 			}
+            break;
 			case xen::PrimitiveType::LINE_STRIP: stride = 1;
 			case xen::PrimitiveType::LINES:
 				for(u32 i = 0; i < mesh->vertex_count; i += stride){
-					Vec4r p0 = xen::toHomo(mesh->position[i+0]) * cmd.model_matrix;
-					Vec4r p1 = xen::toHomo(mesh->position[i+1]) * cmd.model_matrix;
+					Vec3r p0 = xen::fromHomo(xen::toHomo(mesh->position[i+0]) * cmd.model_matrix);
+					Vec3r p1 = xen::fromHomo(xen::toHomo(mesh->position[i+1]) * cmd.model_matrix);
 
-					Vec4r e1 = p1 - p0;
+					Vec3r e1 = p1 - p0;
 
-					real invDistE1 = (1.0_r / xen::mag(e1)) * 0.01_r;
+                    real invDistE1 = (1.0_r / xen::mag(e1)) * 0.02_r;
 
 					for(real cur_e1 = 0; cur_e1 <= 1; cur_e1 += invDistE1){
 						*cur_pos = p0 + (cur_e1 * e1);
@@ -166,13 +169,31 @@ public:
 			}
 		}
 
-		xen::Array<Vec4r> atoms;
-		atoms.elements = (Vec4r*)frame_scratch.next_byte;
-		atoms.size     = xen::ptrDiff(frame_scratch.next_byte, cur_pos) / sizeof(Vec4r);
+		xen::Array<Vec3r> atoms;
+		atoms.elements = (Vec3r*)frame_scratch.next_byte;
+		atoms.size     = xen::ptrDiff(frame_scratch.next_byte, cur_pos) / sizeof(Vec3r);
 
 		frame_scratch.next_byte = cur_pos;
 
-		//printf("Atomized scene into %li atoms\n", atoms.size);
+		//printf("Atomised scene into %li atoms\n", atoms.size);
+
+		///////////////////////////////////////////////////////////////////////////
+		// Perform lighting pass
+		xen::Array<Vec3f> atoms_light;
+		atoms_light.elements = xen::reserveTypeArray<Vec3f>(frame_scratch, atoms.size);
+		atoms_light.size     = atoms.size;
+
+        for(u64 i = 0; i < xen::size(atoms); ++i){
+			atoms_light[i] = params.ambient_light;
+
+            for(u64 li = 0; li < xen::size(params.lights); ++li){
+				real distance_sq = xen::distanceSq
+                    (atoms[i], params.lights[li].point.position);
+
+				atoms_light[i] += xen::sren::computeLightInfluenceSimple
+					(params.lights[li].color, params.lights[li].attenuation, distance_sq);
+			}
+		}
 
 		///////////////////////////////////////////////////////////////////////////
 		// Get camera related data
@@ -183,7 +204,7 @@ public:
 		///////////////////////////////////////////////////////////////////////////
 		// Rasterizer the points on screen
 		for(u64 atom_index = 0; atom_index < xen::size(atoms); ++atom_index){
-			Vec4r point_clip  = atoms[atom_index] * vp_matrix;
+			Vec4r point_clip  = xen::toHomo(atoms[atom_index]) * vp_matrix;
 
 			if(point_clip.x <= -point_clip.w ||
 			   point_clip.x >=  point_clip.w ||
@@ -209,8 +230,8 @@ public:
 				continue;
 			}
 
-			target.depth[pixel_index] = point_clip.z;
-			target.color[pixel_index] = xen::Color::WHITE4f;
+			target.depth[pixel_index]     = point_clip.z;
+			target.color[pixel_index].rgb = atoms_light[atom_index];//xen::Color::WHITE4f;
 		}
 	}
 };
