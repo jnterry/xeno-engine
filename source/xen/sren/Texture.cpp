@@ -23,7 +23,7 @@ Color4f sampleTexture(const TextureImpl* texture, Vec2f uv){
 		return xen::Color::BLACK4f;
 	}
 
-	Vec2u uv_int = (Vec2u)(uv * (Vec2r)texture->image.size);
+	Vec2u uv_int = (Vec2u)(uv * (Vec2r)(texture->image.size - Vec2u{1,1}));
 
 	return xen::makeColor4f(texture->image[uv_int.u][uv_int.v]);
 }
