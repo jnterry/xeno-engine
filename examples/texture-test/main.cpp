@@ -5,13 +5,14 @@
 
 xen::Camera3dCylinder                  camera;
 xen::RenderParameters3d                render_params;
-xen::FixedArray<xen::LightSource3d, 3> scene_lights;
+xen::FixedArray<xen::LightSource3d, 1> scene_lights;
 
 xen::FixedArray<xen::VertexAttribute::Type, 4> vertex_spec;
 
 xen::Mesh    mesh_xzplane;
 
 xen::Texture texture_bricks_diffuse;
+xen::Texture texture_bricks_normal;
 
 xen::FixedArray<xen::RenderCommand3d, 1> render_commands;
 
@@ -23,6 +24,7 @@ void initRenderCommands(){
 	render_commands[0].model_matrix    = Mat4r::Identity;
 	render_commands[0].mesh            = mesh_xzplane;
 	render_commands[0].textures[0]     = texture_bricks_diffuse;
+	render_commands[0].textures[1]     = texture_bricks_normal;
 }
 
 void initCamera(){
@@ -40,7 +42,13 @@ void initCamera(){
 void initSceneLights(){
 	xen::clearToZero(&render_params, sizeof(xen::RenderParameters3d));
 
-	render_params.ambient_light = xen::Color3f(1.0f, 1.0f, 1.0f);
+	scene_lights[0].type           = xen::LightSource3d::POINT;
+	scene_lights[0].point.position = Vec3r{0.5_r, 0.5_r, 0.0_r};
+	scene_lights[0].color          = Vec4f{1.0f, 0.95f, 0.8f, 0.5f};
+	scene_lights[0].attenuation    = {0.0f, 0.0f, 2.0f};
+
+	render_params.ambient_light = xen::Color3f(0.1f, 0.1f, 0.1f);
+	render_params.lights        = scene_lights;
 }
 
 void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
@@ -55,8 +63,11 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 	                                  xen::TestMeshGeometry_UnitXzPlaneCentered
 	                                 );
 
-	xen::RawImage bricks_image = xen::loadImage(arena, "bricks-diffuse.jpg");
-	texture_bricks_diffuse = device->createTexture(&bricks_image);
+	xen::RawImage bricks_diffuse_image = xen::loadImage(arena, "bricks-diffuse.jpg");
+	xen::RawImage bricks_normal_image  = xen::loadImage(arena, "bricks-normal.jpg");
+
+	texture_bricks_diffuse = device->createTexture(&bricks_diffuse_image);
+	texture_bricks_normal  = device->createTexture(&bricks_normal_image);
 }
 
 int main(int argc, char** argv){
@@ -95,6 +106,11 @@ int main(int argc, char** argv){
 
 		handleCameraInputCylinder(camera, dt, 30);
 		render_params.camera = xen::generateCamera3d(camera);
+
+		scene_lights[0].point.position = xen::rotated(Vec3r{0.5_r, 0.5_r, 0.0_r},
+		                                              Vec3r::UnitY,
+		                                              180_deg * time
+		                                             );
 
 		app.device->clear      (app.window, xen::Color{20, 20, 20, 255});
 	  app.device->render     (app.window, viewport, render_params, render_commands);
