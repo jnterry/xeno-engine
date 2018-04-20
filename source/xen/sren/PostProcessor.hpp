@@ -55,6 +55,12 @@ namespace xen {
 			/// \brief Color to tint pixels to simulate fog
 			Color4f fog_color;
 
+			/// \brief Depth, which when below, no fog is applied
+			real z_near;
+
+			/// \brief Depth at which fog is pure fog_color
+			real z_far;
+
 			void process(Framebuffer& fb);
 		};
 
