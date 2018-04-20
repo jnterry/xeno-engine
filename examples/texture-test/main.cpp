@@ -55,7 +55,7 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 	                                  xen::TestMeshGeometry_UnitXzPlaneCentered
 	                                 );
 
-	xen::RawImage bricks_image = xen::loadImage(arena, "test.bmp");
+	xen::RawImage bricks_image = xen::loadImage(arena, "bricks-diffuse.jpg");
 	texture_bricks_diffuse = device->createTexture(&bricks_image);
 }
 
