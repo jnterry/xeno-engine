@@ -14,6 +14,8 @@ xen::Mesh    mesh_xzplane;
 
 xen::Texture texture_bricks_diffuse;
 xen::Texture texture_bricks_normal;
+xen::Texture texture_metal_diffuse;
+xen::Texture texture_metal_normal;
 
 xen::Shader  shader_normal_map;
 
@@ -110,11 +112,15 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 	                                  xen::TestMeshGeometry_UnitXzPlaneCentered
 	                                 );
 
-	xen::RawImage bricks_diffuse_image = xen::loadImage(arena, "bricks-diffuse.jpg");
-	xen::RawImage bricks_normal_image  = xen::loadImage(arena, "bricks-normal.jpg");
+	xen::RawImage image_bricks_diffuse = xen::loadImage(arena, "bricks-diffuse.jpg");
+	xen::RawImage image_bricks_normal  = xen::loadImage(arena, "bricks-normal.jpg");
+	xen::RawImage image_metal_diffuse  = xen::loadImage(arena, "metal-plate-diffuse.jpg");
+	xen::RawImage image_metal_normal   = xen::loadImage(arena, "metal-plate-normal.jpg");
 
-	texture_bricks_diffuse = device->createTexture(&bricks_diffuse_image);
-	texture_bricks_normal  = device->createTexture(&bricks_normal_image);
+	texture_bricks_diffuse = device->createTexture(&image_bricks_diffuse);
+	texture_bricks_normal  = device->createTexture(&image_bricks_normal);
+	texture_metal_diffuse = device->createTexture(&image_metal_diffuse);
+	texture_metal_normal  = device->createTexture(&image_metal_normal);
 
 	shader_normal_map = device->createShader((void*)&FragmentShader_NormalMap);
 }
@@ -151,6 +157,15 @@ int main(int argc, char** argv){
 				break;
 			default: break;
 			}
+		}
+
+		if(xen::isKeyPressed(xen::Key::Num1)){ // bricks
+			render_commands[0].textures[0]     = texture_bricks_diffuse;
+			render_commands[0].textures[1]     = texture_bricks_normal;
+		}
+		if(xen::isKeyPressed(xen::Key::Num2)){ // metal
+		  render_commands[0].textures[0]     = texture_metal_diffuse;
+			render_commands[0].textures[1]     = texture_metal_normal;
 		}
 
 		handleCameraInputCylinder(camera, dt, 30);
