@@ -28,6 +28,10 @@ namespace xen {
 		/////////////////////////////////////////////////////////////////////
 	  class PostProcessor {
 	  public:
+		  /// \brief If true then the GraphicsDevice will skip running this
+		  /// post-processor after the rendering process
+		  bool disabled;
+
 		  /// \brief Virtual function which when ran performs the post processing
 		  /// step represented by this PostProcessor
 		  virtual void process(Framebuffer& fb) = 0;

@@ -123,16 +123,17 @@ void initMeshes(ExampleApplication& app){
 int main(int argc, char** argv){
 	ExampleApplication app = createApplication("cornell-box",
 	                                           ExampleApplication::Backend::RASTERIZER,
-																						 xen::makeArray(post_processors, XenArrayLength(post_processors))
+	                                           xen::makeArray(post_processors, XenArrayLength(post_processors))
 	                                          );
 	initCamera();
 	initSceneLights();
 	initMeshes(app);
 	initRenderCommands();
 
-	pp_fog.fog_color = xen::Color4f{1.0,1.0,1.0,0.8};
-	pp_fog.z_near = render_params.camera.z_near+0.1;
-	pp_fog.z_far  = 4.0;
+	pp_fog.fog_color = xen::Color4f{0.5f, 0.5f, 0.5f, 0.90f};
+	pp_fog.z_near    = render_params.camera.z_near+0.1;
+	pp_fog.z_far     = 4.0;
+	pp_fog.disabled  = true;
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
 
@@ -158,13 +159,8 @@ int main(int argc, char** argv){
 		}
 		handleCameraInputCylinder(camera, dt, 20);
 		render_params.camera = xen::generateCamera3d(camera);
-
-		if(xen::isKeyPressed(xen::Key::F)){
-			pp_fog.fog_color = xen::Color4f{1.0,1.0,1.0,0.8};
-		}
-		if(xen::isKeyPressed(xen::Key::G)){
-		  pp_fog.fog_color = xen::Color4f{1.0,1.0,1.0,0.0};
-		}
+		if(xen::isKeyPressed(xen::Key::F)){ pp_fog.disabled = false; }
+		if(xen::isKeyPressed(xen::Key::G)){ pp_fog.disabled = true;  }
 
 		Vec3r light_1_pos = (tall_box_center +
 		                     xen::rotated(Vec3r{0.3_r, 0.5_r, 0.0_r}, Vec3r::UnitY, 90_deg * time)

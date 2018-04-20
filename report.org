@@ -85,17 +85,18 @@
 		 - We also have a demo application which loads an image, applies a (set of) post processor(s) and then saves the result, without creating a window etc
 		 - The post-processing framework is highly flexible, additional effects can be added by implementing the logic in a file within the =/post_processors= subdirectory of =/sren= and then including them within =PostProcessor.hpp=
 		 - We have implemented:
-			 - Color inversion
-				 - This can be visualised in the =post-processing= example executable on a static image, though also functions in engine
-			 - Depth buffer visualisation
-				 - This can be visualised in =triangle-test= example, where it is responsible for the visualisation in the upper right hand corner
-			 - Anti-aliasing
+			 - *Color inversion*
+				 - This can be visualised in the =post-processing= example executable by loading a static image, performing the process and then exporting the image, although it functions in engine as within engine as with all other post processors
+			 - *Depth buffer visualisation*
+				 - This can be seen in the =triangle-test= example, where it is responsible for the visualisation in the upper right hand corner
+			 - *Anti-aliasing*
 				 - This can be visualised in =triangle-test= example, the following images demonstrate the difference with it enabled vs disabled:
 					 - Enabled: [[file:./antialias_enabled.png]]
 					 - Disabled: [[file:./antialias_disabled.png]]
 				 - Our anti-aliasing algorithm is inspired by FXAA, with some approximations made to improve performance as the original algorithm was intended to run on GPU.
-			 - Depth fog
-				 - This can be visualised the in =cornell-box= executable, fog can be enabled with the 'F' key and disabled with the 'G' key.
+			 - *Depth based fog*
+				 - This can be seen in the =cornell-box= executable
+				 - Fog can be enabled with the 'F' key and disabled with the 'G' key.
 				 - Our implementation allows us to specify the maximum and minimum fog depths as well as fog color, this allows us to achieve multiple effects with the same post-processor
 	 - Threading and SIMD optimization for transforming floating framebuffer to byte pixels for display
 		 - Floating framebuffer pixels are used for better lighting calculations, but the transformation from floating in range 0-1 to bytes in range 0-255 was taking a lot of CPU time (97% in the starfield demo)
