@@ -46,7 +46,9 @@ xen::Color4f FragmentShader_NormalMap(const xen::sren::FragmentUniforms& uniform
 		    uniforms.lights[i].attenuation,
 		    dist_sq_world,
 		    uniforms.camera.position,
-		    pos_world, normal
+		    pos_world, normal,
+		    uniforms.specular_exponent,
+		    specular_intensity
 		    );
   }
 
@@ -67,13 +69,15 @@ xen::Color4f FragmentShader_NormalMap(const xen::sren::FragmentUniforms& uniform
 void initRenderCommands(){
 	xen::clearToZero(render_commands);
 
-	render_commands[0].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	render_commands[0].color           = xen::Color::WHITE4f;
-	render_commands[0].model_matrix    = Mat4r::Identity;
-	render_commands[0].mesh            = mesh_xzplane;
-	render_commands[0].textures[0]     = texture_bricks_diffuse;
-	render_commands[0].textures[1]     = texture_bricks_normal;
-	render_commands[0].shader          = shader_normal_map;
+	render_commands[0].primitive_type     = xen::PrimitiveType::TRIANGLES;
+	render_commands[0].color              = xen::Color::WHITE4f;
+	render_commands[0].model_matrix       = Mat4r::Identity;
+	render_commands[0].mesh               = mesh_xzplane;
+	render_commands[0].textures[0]        = texture_bricks_diffuse;
+	render_commands[0].textures[1]        = texture_bricks_normal;
+	render_commands[0].specular_exponent  = 3_r;
+	render_commands[0].specular_intensity = 0.1_r;
+	render_commands[0].shader             = shader_normal_map;
 }
 
 void initCamera(){
@@ -116,11 +120,13 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 	xen::RawImage image_bricks_normal  = xen::loadImage(arena, "bricks-normal.jpg");
 	xen::RawImage image_metal_diffuse  = xen::loadImage(arena, "metal-plate-diffuse.jpg");
 	xen::RawImage image_metal_normal   = xen::loadImage(arena, "metal-plate-normal.jpg");
+	xen::RawImage image_metal_specular = xen::loadImage(arena, "metal-plate-normal.jpg");
 
 	texture_bricks_diffuse = device->createTexture(&image_bricks_diffuse);
 	texture_bricks_normal  = device->createTexture(&image_bricks_normal);
-	texture_metal_diffuse = device->createTexture(&image_metal_diffuse);
-	texture_metal_normal  = device->createTexture(&image_metal_normal);
+	texture_metal_diffuse  = device->createTexture(&image_metal_diffuse);
+	texture_metal_normal   = device->createTexture(&image_metal_normal);
+	texture_metal_specular = device->createTexture(&image_metal_specular);
 
 	shader_normal_map = device->createShader((void*)&FragmentShader_NormalMap);
 }
@@ -160,12 +166,16 @@ int main(int argc, char** argv){
 		}
 
 		if(xen::isKeyPressed(xen::Key::Num1)){ // bricks
-			render_commands[0].textures[0]     = texture_bricks_diffuse;
-			render_commands[0].textures[1]     = texture_bricks_normal;
+		  render_commands[0].textures[0]        = texture_bricks_diffuse;
+		  render_commands[0].textures[1]        = texture_bricks_normal;
+		  render_commands[0].specular_exponent  = 3_r;
+		  render_commands[0].specular_intensity = 0.1_r;
 		}
 		if(xen::isKeyPressed(xen::Key::Num2)){ // metal
-		  render_commands[0].textures[0]     = texture_metal_diffuse;
-			render_commands[0].textures[1]     = texture_metal_normal;
+		  render_commands[0].textures[0]        = texture_metal_diffuse;
+			render_commands[0].textures[1]        = texture_metal_normal;
+		  render_commands[0].specular_exponent  = 100_r;
+		  render_commands[0].specular_intensity = 5_r;
 		}
 
 		handleCameraInputCylinder(camera, dt, 30);

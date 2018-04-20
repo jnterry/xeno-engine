@@ -44,7 +44,9 @@ xen::Color4f FragmentShader_Phong(const xen::sren::FragmentUniforms& uniforms,
 		    uniforms.lights[i].attenuation,
 		    dist_sq_world,
 		    uniforms.camera.position,
-		    pos_world, normal_world
+		    pos_world, normal_world,
+		    uniforms.specular_exponent,
+		    uniforms.specular_intensity
 		    );
   }
 

@@ -36,22 +36,26 @@ xen::sren::PostProcessor* post_processors[] = {
 void initRenderCommands(){
 	xen::clearToZero(render_commands);
 
-	render_commands[0].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	render_commands[0].color           = xen::Color::WHITE4f;
-	render_commands[0].model_matrix    = (xen::Translation3dx( 0.2_r) *
-	                                      Mat4r::Identity
-	                                     );
-	render_commands[0].mesh            = mesh_torus_smooth;
-	render_commands[0].shader          = shader_phong;
+	render_commands[0].primitive_type     = xen::PrimitiveType::TRIANGLES;
+	render_commands[0].color              = xen::Color::WHITE4f;
+	render_commands[0].model_matrix       = (xen::Translation3dx( 0.2_r) *
+	                                         Mat4r::Identity
+	                                         );
+	render_commands[0].mesh               = mesh_torus_smooth;
+	render_commands[0].shader             = shader_phong;
+	render_commands[0].specular_exponent  = 30_r;
+	render_commands[0].specular_intensity = 2_r;
 
-	render_commands[1].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	render_commands[1].color           = xen::Color::WHITE4f;
-	render_commands[1].model_matrix    = (xen::Rotation3dx(90_deg) *
-	                                      xen::Translation3dx(-0.2_r) *
-	                                      Mat4r::Identity
-	                                     );
-	render_commands[1].mesh            = mesh_torus_flat;
-	render_commands[1].shader          = shader_phong;
+	render_commands[1].primitive_type     = xen::PrimitiveType::TRIANGLES;
+	render_commands[1].color              = xen::Color::WHITE4f;
+	render_commands[1].model_matrix       = (xen::Rotation3dx(90_deg) *
+	                                         xen::Translation3dx(-0.2_r) *
+	                                         Mat4r::Identity
+	                                        );
+	render_commands[1].mesh               = mesh_torus_flat;
+	render_commands[1].shader             = shader_phong;
+	render_commands[1].specular_exponent  = 30_r;
+	render_commands[1].specular_intensity = 2_r;
 
 	render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_commands[2].color           = xen::Color::WHITE4f;

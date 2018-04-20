@@ -68,7 +68,9 @@ xen::Color3f computeLightInfluencePhong(Vec3r        light_pos,
                                         real         distance_sq,
                                         Vec3r        eye_pos,
                                         Vec3r        pos_world,
-                                        Vec3r        normal_world){
+                                        Vec3r        normal_world,
+                                        real         specular_exponent,
+                                        real         specular_intensity){
 
 	normal_world *= -1_r; // :TODO: why?
 
@@ -93,8 +95,8 @@ xen::Color3f computeLightInfluencePhong(Vec3r        light_pos,
 
 	Vec3f specular_color = Vec3f::Origin;
 	if (specular_factor > 0) {
-		specular_factor = pow(specular_factor, 30_r);
-		specular_color = light_color.rgb * specular_factor;
+		specular_factor = pow(specular_factor, specular_exponent);
+		specular_color = light_color.rgb * specular_factor * specular_intensity;
 	}
 
 	return diffuse_color + specular_color;

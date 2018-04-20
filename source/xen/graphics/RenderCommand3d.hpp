@@ -54,6 +54,13 @@ namespace xen{
 		/// as a brightness modifier
 		Color4f emissive_color;
 
+		/// \brief Value controlling how "shiny" the material appears
+		/// Higher values decrease the size of specular highlights
+		real specular_exponent;
+
+		/// \brief Multiplier that affects the intensity of specular highlights
+		real specular_intensity;
+
 		/// \brief Enumeration of "extra" misc flags that may be set for a command
 		struct Flags : public xen::BitField<u08, 1> {
 			using BitField::BitField; // use constructors of parent
