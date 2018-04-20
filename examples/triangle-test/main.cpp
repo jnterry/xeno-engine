@@ -15,8 +15,6 @@ xen::sren::PostProcessor* post_processors[] = {
 	&pp_displayDepthBuffer,
 };
 
-
-
 int main(int argc, char** argv){
 	render_params.camera.z_near   =  0.001;
 	render_params.camera.z_far    =  1000;
@@ -105,6 +103,10 @@ int main(int argc, char** argv){
 			}
 		}
 		handleCameraInputPlane(render_params.camera, dt);
+		if(xen::isKeyPressed(xen::Key::Num1)){ pp_antialias.disabled          = false; }
+		if(xen::isKeyPressed(xen::Key::Num2)){ pp_antialias.disabled          = true;  }
+		if(xen::isKeyPressed(xen::Key::Num3)){ pp_displayDepthBuffer.disabled = false; }
+		if(xen::isKeyPressed(xen::Key::Num4)){ pp_displayDepthBuffer.disabled = true;  }
 
 		render_commands[2].model_matrix = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
 		                                   xen::Rotation3dy(90_deg * time) *

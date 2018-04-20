@@ -89,8 +89,11 @@
 				 - This can be visualised in the =post-processing= example executable by loading a static image, performing the process and then exporting the image, although it functions in engine as within engine as with all other post processors
 			 - *Depth buffer visualisation*
 				 - This can be seen in the =triangle-test= example, where it is responsible for the visualisation in the upper right hand corner
+				 - Press "3" to enable it and "4" to disable it
 			 - *Anti-aliasing*
-				 - This can be visualised in =triangle-test= example, the following images demonstrate the difference with it enabled vs disabled:
+				 - This can be visualised in =triangle-test= example
+				 - Press "1" to enable anti-aliasing, and 2 to disable it
+	       - The following images demonstrate the difference with it enabled vs disabled:
 					 - Enabled: [[file:./antialias_enabled.png]]
 					 - Disabled: [[file:./antialias_disabled.png]]
 				 - Our anti-aliasing algorithm is inspired by FXAA, with some approximations made to improve performance as the original algorithm was intended to run on GPU.
