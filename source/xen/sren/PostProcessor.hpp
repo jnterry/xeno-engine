@@ -42,10 +42,18 @@ namespace xen {
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief PostProcessor which implents anti-aliasing on screen
-		/// on the screen
 		/////////////////////////////////////////////////////////////////////
 		struct PostProcessorAntialias : public PostProcessor {
-			// :TODO: Does this postProcessor require anything else?
+			void process(Framebuffer& fb);
+		};
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief PostProcessor which, for a given colour, adds fog to
+		/// scene as depth increases
+		/////////////////////////////////////////////////////////////////////
+		struct PostProcessorDepthFog : public PostProcessor {
+			/// \brief Color to tint pixels to simulate fog
+			Color4f fog_color;
 
 			void process(Framebuffer& fb);
 		};
