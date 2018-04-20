@@ -75,23 +75,28 @@
 		 - :TODO: think raytracer is broken on this... (maybe after parallization)
 	 - Arbitrary number of lights
 		 - The engine supports multiple dynamic point lights per scene
-		 - The only limit on number is desired performance and hardware capabilities (and having less than 2^32 so we can index them...)
+		 - The only limit on number is desired performance and hardware capabilities (and having less than 2^32 so we can index them is strongly suggested...)
 	 - Per mesh emissive lighting
 		 - Meshes can be assigned an emissive color
 		 - This can be seen in the torus demo, where the 4 outer cubes appear to glow at the same brightness regardless of the light's positions
 		 - Additionally the small yellow cube in the cornell box demo is emissive
 	 - Post Processing Pipeline
-		 - The software rendering backends support applying "post-processing" steps after the image has been rendered
+		 - The software rendering backends support applying any number of "post-processing" steps after the image has been rendered
 		 - We also have a demo application which loads an image, applies a (set of) post processor(s) and then saves the result, without creating a window etc
+		 - The post-processing framework is highly flexible, additional effects can be added by implementing the logic in a file within the =/post_processors= subdirectory of =/sren= and then including them within =PostProcessor.hpp=
 		 - We have implemented:
 			 - Color inversion
-				 - :TODO: demoed by what
+				 - This can be visualised in the =post-processing= example executable on a static image, though also functions in engine
 			 - Depth buffer visualisation
-				 - :TODO: demoed by what
-			 - :TODO: anti-aliasing
-				 - :TODO: demoed by what
-			 - :TODO: fog
-				 - :TODO: demoed by what
+				 - This can be visualised in =triangle-test= example, where it is responsible for the visualisation in the upper right hand corner
+			 - Anti-aliasing
+				 - This can be visualised in =triangle-test= example, the following images demonstrate the difference with it enabled vs disabled:
+					 - Enabled: :TODO:
+					 - Disabled: :TODO:
+				 - Our anti-aliasing algorithm is inspired by FXAA, with some approximations made to improve performance as the original algorithm was intended to run on GPU.
+			 - Depth fog
+				 - This can be visualised the in =cornell-box= executable, fog can be enabled with the 'F' key and disabled with the 'G' key.
+				 - Our implementation allows us to specify the maximum and minimum fog depths as well as fog color, this allows us to achieve multiple effects with the same post-processor
 	 - Threading and SIMD optimization for transforming floating framebuffer to byte pixels for display
 		 - Floating framebuffer pixels are used for better lighting calculations, but the transformation from floating in range 0-1 to bytes in range 0-255 was taking a lot of CPU time (97% in the starfield demo)
 		 - We used SIMD compiler intrinsics to do all 4 color channels simultaneously
