@@ -8,11 +8,16 @@ xen::RenderParameters3d                render_params;
 xen::FixedArray<xen::LightSource3d, 3> scene_lights;
 
 xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
-xen::Mesh                                      mesh_torus_smooth;
-xen::Mesh                                      mesh_torus_flat;
-xen::Mesh                                      mesh_cube;
-xen::Mesh                                      mesh_axes;
-xen::Mesh                                      mesh_xzplane;
+
+xen::Mesh    mesh_torus_smooth;
+xen::Mesh    mesh_torus_flat;
+xen::Mesh    mesh_cube;
+xen::Mesh    mesh_axes;
+xen::Mesh    mesh_xzplane;
+
+xen::Shader  shader_phong;
+xen::Shader  shader_normals;
+xen::Shader  shader_positions;
 
 xen::FixedArray<xen::RenderCommand3d, 10> render_commands;
 
@@ -21,7 +26,6 @@ xen::sren::PostProcessorDisplayDepthBuffer pp_displayDepthBuffer;
 xen::sren::PostProcessor* post_processors[] = {
 	&pp_displayDepthBuffer,
 };
-
 
 #define CMD_IDX_TOR_A  0
 #define CMD_IDX_TOR_B  1
@@ -32,22 +36,26 @@ xen::sren::PostProcessor* post_processors[] = {
 void initRenderCommands(){
 	xen::clearToZero(render_commands);
 
-	render_commands[0].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	render_commands[0].color           = xen::Color::WHITE4f;
-	render_commands[0].model_matrix    = (xen::Translation3dx( 0.2_r) *
-	                                      Mat4r::Identity
-	                                     );
-	render_commands[0].mesh            = mesh_torus_smooth;
-	render_commands[0].fragment_shader = FragmentShader_Phong;
+	render_commands[0].primitive_type     = xen::PrimitiveType::TRIANGLES;
+	render_commands[0].color              = xen::Color::WHITE4f;
+	render_commands[0].model_matrix       = (xen::Translation3dx( 0.2_r) *
+	                                         Mat4r::Identity
+	                                         );
+	render_commands[0].mesh               = mesh_torus_smooth;
+	render_commands[0].shader             = shader_phong;
+	render_commands[0].specular_exponent  = 30_r;
+	render_commands[0].specular_intensity = 2_r;
 
-	render_commands[1].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	render_commands[1].color           = xen::Color::WHITE4f;
-	render_commands[1].model_matrix    = (xen::Rotation3dx(90_deg) *
-	                                      xen::Translation3dx(-0.2_r) *
-	                                      Mat4r::Identity
-	                                     );
-	render_commands[1].mesh            = mesh_torus_flat;
-	render_commands[1].fragment_shader = FragmentShader_Phong;
+	render_commands[1].primitive_type     = xen::PrimitiveType::TRIANGLES;
+	render_commands[1].color              = xen::Color::WHITE4f;
+	render_commands[1].model_matrix       = (xen::Rotation3dx(90_deg) *
+	                                         xen::Translation3dx(-0.2_r) *
+	                                         Mat4r::Identity
+	                                        );
+	render_commands[1].mesh               = mesh_torus_flat;
+	render_commands[1].shader             = shader_phong;
+	render_commands[1].specular_exponent  = 30_r;
+	render_commands[1].specular_intensity = 2_r;
 
 	render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_commands[2].color           = xen::Color::WHITE4f;
@@ -137,7 +145,6 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 	mesh_torus_smooth = device->createMesh(mesh_data_torus);
 	computeFlatNormals(mesh_data_torus);
 	mesh_torus_flat = device->createMesh(mesh_data_torus);
-	transaction.rollback();
 
 	mesh_cube  = device->createMesh(vertex_spec,
 	                                xen::TestMeshGeometry_UnitCube
@@ -149,6 +156,10 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 	mesh_xzplane = device->createMesh(vertex_spec,
 	                                  xen::TestMeshGeometry_UnitXzPlaneCentered
 	                                 );
+
+	shader_phong     = device->createShader((void*)&FragmentShader_Phong    );
+	shader_normals   = device->createShader((void*)&FragmentShader_Normals  );
+	shader_positions = device->createShader((void*)&FragmentShader_Positions);
 }
 
 int main(int argc, char** argv){
@@ -203,20 +214,20 @@ int main(int argc, char** argv){
 			render_commands[0].primitive_type = xen::PrimitiveType::TRIANGLES;
 		}
 		if(xen::isKeyPressed(xen::Key::Num4)){ // normals
-			render_commands[0].fragment_shader = &FragmentShader_Normals;
-			render_commands[1].fragment_shader = &FragmentShader_Normals;
+			render_commands[0].shader = shader_normals;
+			render_commands[1].shader = shader_normals;
 		}
 		if(xen::isKeyPressed(xen::Key::Num5)){ // world positions
-		  render_commands[0].fragment_shader = &FragmentShader_Positions;
-			render_commands[1].fragment_shader = &FragmentShader_Positions;
+			render_commands[0].shader = shader_positions;
+			render_commands[1].shader = shader_positions;
 		}
 		if(xen::isKeyPressed(xen::Key::Num6)){ // Shaded
-			render_commands[0].fragment_shader = &FragmentShader_Phong;
-			render_commands[1].fragment_shader = &FragmentShader_Phong;
+			render_commands[0].shader = shader_phong;
+			render_commands[1].shader = shader_phong;
 		}
 		if(xen::isKeyPressed(xen::Key::Num7)){ // Basic Shaded
-			render_commands[0].fragment_shader = nullptr;
-			render_commands[1].fragment_shader = nullptr;
+			render_commands[0].shader = xen::makeNullHandle<xen::Shader>();
+			render_commands[1].shader = xen::makeNullHandle<xen::Shader>();
 		}
 
 		handleCameraInputCylinder(camera, dt, 30);

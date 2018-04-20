@@ -17,6 +17,7 @@
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/core/array.hpp>
 
+#include <xen/sren/FragmentShader.hpp>
 #include "raytracer3d.hxx"
 #include "render-utilities.hxx"
 #include "RenderTargetImpl.hxx"

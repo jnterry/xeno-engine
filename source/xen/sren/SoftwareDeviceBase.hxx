@@ -16,7 +16,9 @@
 #include <xen/core/memory/ArenaPool.hpp>
 #include <xen/core/memory/Allocator.hpp>
 
+#include <xen/sren/FragmentShader.hpp>
 #include "RenderTargetImpl.hxx"
+#include "Texture.hxx"
 
 #include <thpool.h>
 
@@ -32,6 +34,8 @@ namespace xen {
 			xen::ArenaLinear misc_arena;
 
 			xen::ArenaPool<RenderTargetImpl> render_targets;
+			xen::ArenaPool<TextureImpl     > textures;
+			xen::ArenaPool<FragmentShader  > shaders;
 
 			// The threadpool used by this device
 			threadpool thpool;
@@ -45,6 +49,12 @@ namespace xen {
 			/// \brief Retrieves the RenderTargetImpl for a particular
 			/// RenderTarget handle
 			RenderTargetImpl* getRenderTargetImpl(RenderTarget target);
+
+			/// \brief Retrieves the RawImage for a particular texture
+			TextureImpl* getTextureImpl(Texture texture);
+
+			/// \brief Retrieves the FragmentShader for some shader
+			FragmentShader getShaderImpl(Shader shader);
 
 			/// \brief Resizes an existing render target. Note that contents of the
 			/// render target will be undefined after the resize, hence clear should
@@ -64,7 +74,11 @@ namespace xen {
 			void    destroyWindow(Window* window) override;
 			void    swapBuffers(Window* window) override;
 
+			Texture createTexture (const RawImage* image) override;
+			void    destroyTexture(Texture texture      ) override;
 
+			Shader createShader (const void* source) override;
+			void   destroyShader(Shader shader     ) override;
 		};
 	}
 }

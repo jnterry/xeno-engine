@@ -71,6 +71,8 @@ namespace xen {
 			case xen::VertexAttribute::Color4b:
 				attrib_data[i] = mesh_geom.color;
 				break;
+			case xen::VertexAttribute::TexCoord2f:
+				attrib_data[i] = mesh_geom.uvs;
 			default: break;
 			}
 		}

@@ -9,6 +9,7 @@
 #ifndef XEN_SREN_RASTERIZER3D_HXX
 #define XEN_SREN_RASTERIZER3D_HXX
 
+#include <xen/sren/FragmentShader.hpp>
 #include <xen/graphics/Mesh_types.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/math/matrix_types.hpp>
@@ -32,7 +33,7 @@ namespace xen {
 		struct RasterizationContext : public FragmentUniforms {
 			xen::sren::RenderTargetImpl* target;
 			xen::Aabb2r*                 viewport;
-			xen::FragmentShader          fragment_shader;
+			xen::sren::FragmentShader    fragment_shader;
 		};
 
 		/////////////////////////////////////////////////////////////////////
@@ -86,7 +87,8 @@ namespace xen {
 		void rasterizeTriangleModel(const RasterizationContext& context,
 		                            Triangle3r                  tri_model,
 		                            Triangle3r                  tri_normal_model,
-		                            Triangle4f                  tri_color);
+		                            Triangle4f                  tri_color,
+		                            Triangle2f                  tri_uvs);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Rasterizes a set of triangles in model space to the screen
@@ -97,6 +99,7 @@ namespace xen {
 		                             const Vec3r*                pos_model,
 		                             const Vec3r*                normal_model,
 		                             const Color*                color_buffer,
+		                             const Vec2f*                uv_buffer,
 		                             const u32                   vertex_count);
 
 		/////////////////////////////////////////////////////////////////////
@@ -105,10 +108,6 @@ namespace xen {
 		void rasterizeMesh(const RasterizationContext& context,
 		                   xen::PrimitiveType          primitive_type,
 		                   const MeshGeometrySource&   mesh);
-
-		/// \brief The default fragment shader for use by  the software rasterizer
-		/// Performs very basic lighting
-		extern FragmentShader DefaultFragmentShader;
 	}
 }
 

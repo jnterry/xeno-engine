@@ -17,6 +17,9 @@
 
 #include <xen/sren/PostProcessor.hpp>
 #include <xen/core/array.hpp>
+#include <xen/graphics/Image.hpp>
+
+#include <cstring>
 
 namespace xen {
 	namespace sren {
@@ -25,9 +28,22 @@ namespace xen {
 			: post_processors(post_processors),
 			  main_allocator (new xen::AllocatorCounter<xen::AllocatorMalloc>()),
 			  misc_arena     (xen::createArenaLinear(*main_allocator, xen::megabytes(1))),
-			  render_targets (xen::createArenaPool<RenderTargetImpl>(main_allocator, 128))
+			  render_targets (xen::createArenaPool<RenderTargetImpl>(main_allocator,  128)),
+			  textures       (xen::createArenaPool<TextureImpl     >(main_allocator, 1024)),
+			  shaders        (xen::createArenaPool<FragmentShader  >(main_allocator,  128))
 		{
 			this->thpool = thpool_init(4);
+
+			// Ensure shader 0 is the default shader
+			this->createShader((void*)xen::sren::DefaultFragmentShader);
+
+			// Ensure texture 0 is single pixel white
+			RawImage image;
+			image.size.x = 1;
+			image.size.y = 1;
+			xen::Color color = xen::Color::WHITE;
+			image.pixels = &color;
+			this->createTexture(&image);
 		}
 
 		SoftwareDeviceBase::~SoftwareDeviceBase(){
@@ -38,6 +54,46 @@ namespace xen {
 
 		RenderTargetImpl* SoftwareDeviceBase::getRenderTargetImpl(RenderTarget target){
 			return &this->render_targets.slots[target._id].item;
+		}
+
+		TextureImpl* SoftwareDeviceBase::getTextureImpl(Texture texture){
+			return &this->textures.slots[texture._id].item;
+		}
+
+		FragmentShader SoftwareDeviceBase::getShaderImpl(Shader shader){
+			return this->shaders.slots[shader._id].item;
+		}
+
+		Texture SoftwareDeviceBase::createTexture(const RawImage* image){
+			u32 slot = xen::reserveSlot(textures);
+
+			Texture result = this->makeHandle<Texture::HANDLE_ID>(slot, 0);
+
+			TextureImpl* timpl = this->getTextureImpl(result);
+
+			u32 num_bytes = sizeof(xen::Color) * image->width * image->height;
+
+			timpl->image.size = image->size;
+			timpl->image.pixels = (xen::Color*)main_allocator->allocate(num_bytes);
+			memcpy(timpl->image.pixels, image->pixels, num_bytes);
+
+			return result;
+		}
+
+		void SoftwareDeviceBase::destroyTexture(Texture texture){
+			TextureImpl* timpl = this->getTextureImpl(texture);
+			main_allocator->deallocate(timpl->image.pixels);
+			xen::freeSlot(textures, texture._id);
+		}
+
+		Shader SoftwareDeviceBase::createShader(const void* source){
+			u32 slot = xen::reserveSlot(shaders);
+			shaders.slots[slot].item = (xen::sren::FragmentShader)source;
+			return this->makeHandle<Shader::HANDLE_ID>(slot, 0);
+		}
+
+		void SoftwareDeviceBase::destroyShader(Shader shader){
+			xen::freeSlot(shaders, shader._id);
 		}
 
 		void SoftwareDeviceBase::clear(xen::RenderTarget& target, xen::Color color){

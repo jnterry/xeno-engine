@@ -9,12 +9,13 @@
 #ifndef XEN_SREN_RASTERIZERDEVICE_CPP
 #define XEN_SREN_RASTERIZERDEVICE_CPP
 
-#include <xen/core/intrinsics.hpp>
-#include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/sren/SoftwareDevice.hpp>
+#include <xen/sren/FragmentShader.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/graphics/Image.hpp>
-#include <xen/sren/SoftwareDevice.hpp>
 #include <xen/math/geometry.hpp>
+#include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/core/intrinsics.hpp>
 
 #include "SoftwareDeviceBase.hxx"
 #include "render-utilities.hxx"
@@ -93,7 +94,7 @@ public:
 		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 			const xen::RenderCommand3d& cmd = commands[cmd_index];
 
-			context.fragment_shader = cmd.fragment_shader;
+			context.fragment_shader = this->getShaderImpl(cmd.shader);
 			if(context.fragment_shader == nullptr){
 				context.fragment_shader = xen::sren::DefaultFragmentShader;
 			}
@@ -102,6 +103,10 @@ public:
 			                              cmd.model_matrix,
 			                              vp_matrix
 			                             );
+			context.textures[0] = this->getTextureImpl(cmd.textures[0]);
+			context.textures[1] = this->getTextureImpl(cmd.textures[1]);
+			context.textures[2] = this->getTextureImpl(cmd.textures[2]);
+			context.textures[3] = this->getTextureImpl(cmd.textures[3]);
 			auto mesh = this->mesh_store.getMesh(cmd.mesh);
 
 			#if 0

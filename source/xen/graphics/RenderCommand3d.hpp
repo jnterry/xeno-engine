@@ -54,6 +54,13 @@ namespace xen{
 		/// as a brightness modifier
 		Color4f emissive_color;
 
+		/// \brief Value controlling how "shiny" the material appears
+		/// Higher values decrease the size of specular highlights
+		real specular_exponent;
+
+		/// \brief Multiplier that affects the intensity of specular highlights
+		real specular_intensity;
+
 		/// \brief Enumeration of "extra" misc flags that may be set for a command
 		struct Flags : public xen::BitField<u08, 1> {
 			using BitField::BitField; // use constructors of parent
@@ -109,30 +116,6 @@ namespace xen{
 		// fog?
 	};
 
-	/// \brief Bundle of extra parameters needed for the fragment shader
-	/// \todo :TODO: this is only so we can have signature of FragmentShader
-	/// as part of public interface, this should be part of sren internals...
-	struct FragmentUniforms : public RenderParameters3d {
-		/// \brief The emissive color of the geometry
-		xen::Color4f emissive_color;
-
-		/// \brief The diffuse color to use for geometry
-		xen::Color4f diffuse_color;
-
-		/// \brief The model matrix
-		Mat4r m_matrix;
-
-		/// \brief The view projection matrix
-		Mat4r vp_matrix;
-	};
-
-	typedef Color4f (*FragmentShader)(const xen::FragmentUniforms& uniforms,
-	                                  Vec3r                        pos_world,
-	                                  Vec3r                        normal_world,
-	                                  xen::Color4f                 color);
-
-
-
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents a single rendering operation which will draw
 	/// some object to the screen
@@ -148,19 +131,14 @@ namespace xen{
 		/// \brief A handle to a mesh to be drawn, used if source is Mesh
 		xen::Mesh mesh;
 
+
+		/// \brief Array of textures to be used by this rendering operation
+		xen::Texture textures[4];
+
 		/// \brief Shader used to compute per pixel colors.
 		///
-		/// Set to nullptr to use the engine's default shader
-		///
-		/// \note This is currently only used by the software rasterizer backend,
-		/// :TODO: implement real shader system, graphics devices should be able
-		/// to create shaders and return opaque handles as with textures, meshes,
-		/// etc. Problem is that the data used to create a shader changes (GLSL
-		/// source files for OpenGL, function pointer for software renderer, etc)
-		/// Can we use an intermediate format and compile down?
-		/// SPIRV maybe? -> experimental SPIRV to c++ at:
-		/// https://github.com/KhronosGroup/SPIRV-Cross
-		FragmentShader fragment_shader;
+		/// Set to a null handle to use the engine's default shader
+		Shader shader;
 	};
 }
 

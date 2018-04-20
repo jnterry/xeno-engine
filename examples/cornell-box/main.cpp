@@ -2,6 +2,7 @@
 
 #include "../common.cpp"
 #include "cornell-box.hpp"
+#include <xen/graphics/Image.hpp>
 
 // Locations for the boxes in the cornell scene
 const Vec3r tall_box_center  = {-0.15_r,  0.0_r, -0.10_r};
@@ -96,21 +97,22 @@ void initSceneLights(){
 	render_params.lights        = scene_lights;
 }
 
-void initMeshes(xen::GraphicsDevice* device){
+void initMeshes(ExampleApplication& app){
+	xen::MemoryTransaction transaction(app.arena);
+
 	vertex_spec[0] = xen::VertexAttribute::Position3r;
 	vertex_spec[1] = xen::VertexAttribute::Normal3r;
 	vertex_spec[2] = xen::VertexAttribute::Color4b;
 
-	mesh_cornell_walls = device->createMesh(vertex_spec,
-	                                        MeshGeometry_CornellBoxWalls
-	                                       );
-
-	mesh_cube = device->createMesh(vertex_spec,
-	                               xen::TestMeshGeometry_UnitCube
-	                              );
-	mesh_axes = device->createMesh(vertex_spec,
-	                               xen::TestMeshGeometry_Axes
-	                              );
+	mesh_cornell_walls = app.device->createMesh(vertex_spec,
+	                                            MeshGeometry_CornellBoxWalls
+	                                           );
+	mesh_cube = app.device->createMesh(vertex_spec,
+	                                   xen::TestMeshGeometry_UnitCube
+	                                  );
+	mesh_axes = app.device->createMesh(vertex_spec,
+	                                   xen::TestMeshGeometry_Axes
+	                                  );
 }
 
 int main(int argc, char** argv){
@@ -119,7 +121,7 @@ int main(int argc, char** argv){
 	                                          );
 	initCamera();
 	initSceneLights();
-	initMeshes(app.device);
+	initMeshes(app);
 	initRenderCommands();
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };

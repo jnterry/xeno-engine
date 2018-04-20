@@ -15,10 +15,11 @@
 #include "RenderTargetImpl.hxx"
 #include "render-utilities.hxx"
 
-#include <xen/core/memory/ArenaLinear.hpp>
-#include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/sren/SoftwareDevice.hpp>
+#include <xen/sren/FragmentShader.hpp>
+#include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/math/geometry.hpp>
+#include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/intrinsics.hpp>
 
 class RaytracerDebugDevice : public xen::sren::RaytracerDevice {

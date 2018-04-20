@@ -15,6 +15,7 @@
 
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/sren/SoftwareDevice.hpp>
+#include <xen/sren/FragmentShader.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/math/matrix.hpp>
 #include <xen/core/array.hpp>
@@ -211,10 +212,10 @@ void xen::sren::RaytracerDevice::doRender(xen::sren::RenderTargetImpl&          
 	RasterizationContext context;
 	context.target          = &target;
 	context.viewport        = &view_region;
-	context.fragment_shader = xen::sren::DefaultFragmentShader;
 	for(u32 i = 0; i < xen::size(non_triangle_cmds); ++i){
 		u32 cmd_index = non_triangle_cmds[i];
 		const xen::RenderCommand3d* cmd = &commands[cmd_index];
+		context.fragment_shader = this->getShaderImpl(cmd->shader);
 		setPerCommandFragmentUniforms(context, *cmd,
 		                              cmd->model_matrix, vp_matrix
 		                             );

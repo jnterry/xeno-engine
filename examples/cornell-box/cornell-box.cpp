@@ -204,6 +204,7 @@ const xen::MeshGeometrySource MeshGeometry_CornellBoxWalls = {
   positions_walls,
 	normals_walls,
 	colors_walls,
+	nullptr
 };
 
 const xen::MeshGeometrySource MeshGeometry_CornellBoxInterior = {
@@ -211,4 +212,5 @@ const xen::MeshGeometrySource MeshGeometry_CornellBoxInterior = {
   positions_interior,
 	nullptr, // normals
 	colors_interior,
+	nullptr
 };
