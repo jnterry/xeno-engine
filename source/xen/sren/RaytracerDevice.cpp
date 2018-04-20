@@ -212,6 +212,10 @@ void xen::sren::RaytracerDevice::doRender(xen::sren::RenderTargetImpl&          
 	RasterizationContext context;
 	context.target          = &target;
 	context.viewport        = &view_region;
+	context.textures[0]     = nullptr;
+	context.textures[1]     = nullptr;
+	context.textures[2]     = nullptr;
+	context.textures[3]     = nullptr;
 	for(u32 i = 0; i < xen::size(non_triangle_cmds); ++i){
 		u32 cmd_index = non_triangle_cmds[i];
 		const xen::RenderCommand3d* cmd = &commands[cmd_index];

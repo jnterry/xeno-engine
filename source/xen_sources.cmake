@@ -93,6 +93,8 @@ set(XEN_SOURCES_SREN
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/Framebuffer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/post_processors/InvertColors.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/post_processors/DisplayDepthBuffer.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/post_processors/Antialias.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/post_processors/DepthFog.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/FragmentShader.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/Texture.cpp
 )

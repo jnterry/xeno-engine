@@ -173,6 +173,10 @@ namespace xen {
 			context.vp_matrix       = vp_matrix;
 			context.diffuse_color   = xen::Color::WHITE4f;
 			context.emissive_color  = xen::Color::WHITE4f;
+            context.textures[0]     = nullptr;
+            context.textures[1]     = nullptr;
+            context.textures[2]     = nullptr;
+            context.textures[3]     = nullptr;
 
 			xen::sren::rasterizeLinesModel(context,
 			                               camera_local_axes,

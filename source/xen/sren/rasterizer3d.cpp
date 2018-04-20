@@ -545,6 +545,7 @@ void rasterizeLineModel(const RasterizationContext& cntx,
 	///////////////////////////////////////////////////////////////////
 	// Do perspective divide (into normalized device coordinates -> [-1, 1]
 	// We only care about x and y coordinates at this point
+	// :TODO: shouldn't this be / by z -> but that causes segfaults due to bad line clipping...
 	line_clip.p1.xy /= (line_clip.p1.w);
 	line_clip.p2.xy /= (line_clip.p2.w);
 	///////////////////////////////////////////////////////////////////

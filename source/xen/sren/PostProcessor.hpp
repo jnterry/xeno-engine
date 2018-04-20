@@ -28,6 +28,10 @@ namespace xen {
 		/////////////////////////////////////////////////////////////////////
 	  class PostProcessor {
 	  public:
+		  /// \brief If true then the GraphicsDevice will skip running this
+		  /// post-processor after the rendering process
+		  bool disabled;
+
 		  /// \brief Virtual function which when ran performs the post processing
 		  /// step represented by this PostProcessor
 		  virtual void process(Framebuffer& fb) = 0;
@@ -37,6 +41,30 @@ namespace xen {
 		/// \brief Simple PostProcessor which inverts the colors of the framebuffer
 		/////////////////////////////////////////////////////////////////////
 		struct PostProcessorInvertColors : public PostProcessor {
+			void process(Framebuffer& fb);
+		};
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief PostProcessor which implents anti-aliasing on screen
+		/////////////////////////////////////////////////////////////////////
+		struct PostProcessorAntialias : public PostProcessor {
+			void process(Framebuffer& fb);
+		};
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief PostProcessor which, for a given colour, adds fog to
+		/// scene as depth increases
+		/////////////////////////////////////////////////////////////////////
+		struct PostProcessorDepthFog : public PostProcessor {
+			/// \brief Color to tint pixels to simulate fog
+			Color4f fog_color;
+
+			/// \brief Depth, which when below, no fog is applied
+			real z_near;
+
+			/// \brief Depth at which fog is pure fog_color
+			real z_far;
+
 			void process(Framebuffer& fb);
 		};
 

@@ -171,6 +171,8 @@ namespace xen {
 			RenderTargetImpl& target = *this->getRenderTargetImpl(window->render_target);
 
 			for(u32 i = 0; i < xen::size(this->post_processors); ++i){
+				if(this->post_processors[i]->disabled){ continue; }
+
 				this->post_processors[i]->process(target);
 			}
 
