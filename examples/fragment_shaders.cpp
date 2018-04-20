@@ -8,6 +8,7 @@
 #define XEN_EXAMPLES_TORUS_FRAGMENTSHADERS_CPP
 
 #include <xen/sren/FragmentShader.hpp>
+#include <xen/math/quaternion.hpp>
 
 xen::Color4f FragmentShader_Normals(const xen::sren::FragmentUniforms& uniforms,
                                     Vec3r                              pos_world,
@@ -75,8 +76,16 @@ xen::Color4f FragmentShader_NormalMap(const xen::sren::FragmentUniforms& uniform
   xen::Color3f total_light = uniforms.ambient_light;
   total_light += (uniforms.emissive_color.rgb * uniforms.emissive_color.a);
 
-  xen::Color4f normal_map = xen::sren::sampleTexture(uniforms.textures[1], uvs);
-  Vec3r normal = xen::normalized(normal_world + normal_map.xyz);
+  Vec3r normal_map = (Vec3r)(xen::sren::sampleTexture(uniforms.textures[1], uvs).xyz);
+
+  // Normal maps point primarily in positive z direction, rotate the normal by
+  // the same rotation that would be required to get the +ve z axis lining up
+  // with the actual surface normal
+  // :TODO: this rotation is ambiguous - meant to use tangent space, this is a
+  // bit of a hack
+  normal_map = xen::rotated(normal_map, xen::getRotation(Vec3r::UnitZ, normal_world));
+
+  Vec3r normal = xen::normalized(normal_world + normal_map);
 
   for(u32 i = 0; i < xen::size(uniforms.lights); ++i){
 	  if(uniforms.lights[i].type != xen::LightSource3d::POINT){
