@@ -38,7 +38,8 @@ namespace xen {
 		typedef Color4f (*FragmentShader)(const xen::sren::FragmentUniforms& uniforms,
 		                                  Vec3r                        pos_world,
 		                                  Vec3r                        normal_world,
-		                                  xen::Color4f                 color);
+		                                  xen::Color4f                 color,
+		                                  Vec2f                        uvs);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Computes the influence of a light of a particular color at

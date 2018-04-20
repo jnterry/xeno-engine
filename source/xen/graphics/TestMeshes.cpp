@@ -174,6 +174,10 @@ namespace {
 		Vec3r::UnitY, Vec3r::UnitY, Vec3r::UnitY,
 		Vec3r::UnitY, Vec3r::UnitY, Vec3r::UnitY
 	};
+	Vec2f XzSquare_Uvs[] = {
+		Vec2f{0.0f, 0.0f}, Vec2f{0.0f, 1.0f}, Vec2f{1.0f, 0.0f},
+		Vec2f{1.0f, 0.0f}, Vec2f{0.0f, 1.0f}, Vec2f{1.0f, 1.0f},
+	};
 }
 
 namespace xen {
@@ -181,28 +185,32 @@ namespace xen {
 		( XenArrayLength(UnitCubeLines_Positions),
 		  UnitCubeLines_Positions,
 		  nullptr,
-		  UnitCubeLines_Colors
+		  UnitCubeLines_Colors,
+		  nullptr
 		);
 
 	const MeshGeometrySource TestMeshGeometry_UnitCube = MeshGeometrySource
 		( XenArrayLength(UnitCube_Positions),
 		  UnitCube_Positions,
 		  UnitCube_Normals,
-		  UnitCube_Colors
+		  UnitCube_Colors,
+		  nullptr // :TOOO: uv coordinates
 		);
 
 	const MeshGeometrySource TestMeshGeometry_Axes = MeshGeometrySource
 		( XenArrayLength(Axes_Positions),
 		  Axes_Positions,
 		  nullptr,
-		  Axes_Colors
+		  Axes_Colors,
+		  nullptr
 		);
 
 	const MeshGeometrySource TestMeshGeometry_UnitXzPlaneCentered = MeshGeometrySource
 		( XenArrayLength(XzSquare_Positions),
 		  XzSquare_Positions,
 		  XzSquare_Normals,
-		  UnitCube_Colors // cheat and use same block of white colors
+		  UnitCube_Colors, // cheat and use same block of white colors
+		  XzSquare_Uvs
 		);
 }
 

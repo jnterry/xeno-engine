@@ -7,7 +7,7 @@ xen::Camera3dCylinder                  camera;
 xen::RenderParameters3d                render_params;
 xen::FixedArray<xen::LightSource3d, 3> scene_lights;
 
-xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
+xen::FixedArray<xen::VertexAttribute::Type, 4> vertex_spec;
 
 xen::Mesh    mesh_xzplane;
 
@@ -49,6 +49,7 @@ void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
 	vertex_spec[0] = xen::VertexAttribute::Position3r;
 	vertex_spec[1] = xen::VertexAttribute::Normal3r;
 	vertex_spec[2] = xen::VertexAttribute::Color4b;
+	vertex_spec[3] = xen::VertexAttribute::TexCoord2f;
 
 	mesh_xzplane = device->createMesh(vertex_spec,
 	                                  xen::TestMeshGeometry_UnitXzPlaneCentered

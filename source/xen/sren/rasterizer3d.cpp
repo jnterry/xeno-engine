@@ -187,7 +187,7 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 
 		if (depth < cntx.target->depth[pixel_index]) {
 			cntx.target->color[pixel_index] = cntx.fragment_shader
-				(cntx, pos_world, Vec3r::Origin, base_color);
+				(cntx, pos_world, Vec3r::Origin, base_color, Vec2f::Origin);
 			cntx.target->depth[pixel_index] = depth;
 		}
 		cur_screen += delta_screen;
@@ -199,7 +199,8 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 	                              xen::Triangle3r                        tri_world,
 	                              xen::Triangle3r                        tri_normal_world,
 	                              xen::Triangle3r                        tri_screen,
-	                              xen::Triangle4f                        colors){
+	                              xen::Triangle4f                        colors,
+	                              xen::Triangle2f                        tri_uvs){
 
 		#if 0 // render wireframe of triangle
 		_rasterizeLineScreen(cntx,
@@ -244,13 +245,15 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 		tri_normal_world.p1 /= tri_screen.p1.z;
 		tri_normal_world.p2 /= tri_screen.p2.z;
 		tri_normal_world.p3 /= tri_screen.p3.z;
+		tri_uvs.p1          /= (float)tri_screen.p1.z;
+		tri_uvs.p2          /= (float)tri_screen.p2.z;
+		tri_uvs.p3          /= (float)tri_screen.p3.z;
 		colors.p1           /= (float)tri_screen.p1.z;
 		colors.p2           /= (float)tri_screen.p2.z;
 		colors.p3           /= (float)tri_screen.p3.z;
 		tri_screen.p1.z = 1_r / tri_screen.p1.z;
 		tri_screen.p2.z = 1_r / tri_screen.p2.z;
 		tri_screen.p3.z = 1_r / tri_screen.p3.z;
-
 
 		// Edge function method, see:
 		// https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/rasterization-stage
@@ -312,24 +315,22 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 				xen::Color4f color        = evaluateBarycentricCoordinates(colors,           bary);
 				Vec3r        pos_world    = evaluateBarycentricCoordinates(tri_world,        bary);
 				Vec3r        normal_world = evaluateBarycentricCoordinates(tri_normal_world, bary);
+				Vec2f        uvs          = evaluateBarycentricCoordinates(tri_uvs,          bary);
 
 				// Correct for perspective correct interpolation
 				// https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/perspective-correct-interpolation-vertex-attributes
 				color        *= (float)depth;
+				uvs          *= (float)depth;
 				pos_world    *= depth;
 				normal_world *= depth;
 
 				if (depth < cntx.target->depth[pixel_index]) {
 					cntx.target->depth[pixel_index] = depth;
-					cntx.target->color[pixel_index] = cntx.fragment_shader(cntx,
-					                                                       pos_world,
-					                                                       normal_world,
-					                                                       color);
+					cntx.target->color[pixel_index] = cntx.fragment_shader
+						(cntx, pos_world, normal_world, color, uvs);
 				}
 			}
 		}
-
-
 
 		// This is the made up barycentric interpolation method,
 		// broken in some cases...
@@ -442,13 +443,14 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 				// Correct for perspective correct interpolation
 				// https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/perspective-correct-interpolation-vertex-attributes
 				color        *= (float)depth;
+				uvs          *= (float)depth;
 				pos_world    *= depth;
 				normal_world *= depth;
 
 				if (depth < cntx.target->depth[pixel_index]) {
 					cntx.target->depth[pixel_index] = depth;
 					cntx.target->color[pixel_index] = cntx.fragment_shader
-						(cntx, pos_world, normal_world, color);
+						(cntx, pos_world, normal_world, color, uvs);
 				}
 			}
 		}
@@ -507,7 +509,8 @@ void rasterizePointsModel(const RasterizationContext& cntx,
 			(cntx,
 			 point_world.xyz,
 			 Vec3r::Origin,
-			 xen::makeColor4f(color_buffer[i * colors_per_vertex]));
+			 xen::makeColor4f(color_buffer[i * colors_per_vertex]),
+			 Vec2f::Origin);
 	}
 } // end of rasterizePointsModel
 
@@ -579,7 +582,8 @@ void rasterizeLinesModel(const RasterizationContext& cntx,
 void rasterizeTriangleModel(const RasterizationContext& cntx,
                             Triangle3r                  tri_pos_model,
                             Triangle3r                  tri_nor_model,
-                            Triangle4f                  tri_color
+                            Triangle4f                  tri_color,
+                            Triangle2f                  tri_uvs
                            ){
 
 	xen::Triangle3r tri_pos_world = tri_pos_model * cntx.m_matrix;
@@ -615,7 +619,7 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 
 		_rasterizeTriangleScreen(cntx,
 		                         tri_pos_world,  tri_nor_world,
-		                         tri_pos_screen, tri_color
+		                         tri_pos_screen, tri_color, tri_uvs
 		                        );
 		return;
 	}
@@ -625,12 +629,14 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 		xen::swap(tri_pos_world.p1, tri_pos_world.p3);
 		xen::swap(tri_nor_world.p1, tri_nor_world.p3);
 		xen::swap(tri_color    .p1, tri_color    .p3);
+		xen::swap(tri_uvs      .p1, tri_uvs      .p3);
 		goto do_draw_2_behind;
 	case 5:   // 101
 		xen::swap(tri_pos_clip .p1, tri_pos_clip .p2);
 		xen::swap(tri_pos_world.p1, tri_pos_world.p2);
 		xen::swap(tri_nor_world.p1, tri_nor_world.p2);
 		xen::swap(tri_color    .p1, tri_color    .p2);
+		xen::swap(tri_uvs      .p1, tri_uvs      .p2);
 		goto do_draw_2_behind;
 	case 6:   // 110
 	do_draw_2_behind: {
@@ -647,6 +653,7 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 			tri_pos_world.p2  += (tri_pos_world.p1 - tri_pos_world.p2) * frac_p2;
 			tri_nor_world.p2  += (tri_nor_world.p1 - tri_nor_world.p2) * frac_p2;
 			tri_color    .p2  += (tri_color    .p1 - tri_color    .p2) * frac_p2;
+			tri_uvs      .p2  += (tri_uvs      .p1 - tri_uvs      .p2) * frac_p2;
 
 			Vec4r delta_p3 = (tri_pos_clip.p1 - tri_pos_clip.p3);
 			real  frac_p3  = (((-tri_pos_clip.p3.z + cntx.camera.z_near) / delta_p3.z));
@@ -654,6 +661,7 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 			tri_pos_world.p3  += (tri_pos_world.p1 - tri_pos_world.p3) * frac_p3;
 			tri_nor_world.p3  += (tri_nor_world.p1 - tri_nor_world.p3) * frac_p3;
 			tri_color    .p3  += (tri_color    .p1 - tri_color    .p3) * frac_p3;
+			tri_uvs      .p3  += (tri_uvs      .p1 - tri_uvs      .p3) * frac_p3;
 
 			// Do perspective divide (into normalized device coordinates -> [-1, 1]
 			tri_pos_clip.p1.xy /= (tri_pos_clip.p1.z);
@@ -665,7 +673,7 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 
 			_rasterizeTriangleScreen(cntx,
 			                         tri_pos_world, tri_nor_world,
-			                         tri_pos_screen, tri_color);
+			                         tri_pos_screen, tri_color, tri_uvs);
 			return;
 		}
 	case 1: // 001
@@ -673,12 +681,14 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 		xen::swap(tri_pos_world.p1, tri_pos_world.p3);
 		xen::swap(tri_nor_world.p1, tri_nor_world.p3);
 		xen::swap(tri_color    .p1, tri_color    .p3);
+		xen::swap(tri_uvs      .p1, tri_uvs      .p3);
 		goto do_draw_1_behind;
 	case 2: // 010
 		xen::swap(tri_pos_clip .p2, tri_pos_clip .p3);
 		xen::swap(tri_pos_world.p2, tri_pos_world.p3);
 		xen::swap(tri_nor_world.p2, tri_nor_world.p3);
 		xen::swap(tri_color    .p2, tri_color    .p3);
+		xen::swap(tri_uvs      .p2, tri_uvs      .p3);
 		goto do_draw_1_behind;
 	case 4: // 100
 	do_draw_1_behind: {
@@ -732,17 +742,25 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 			quad_colors.vertices[2] = tri_color.p2;
 			quad_colors.vertices[3] = tri_color.p3 + (tri_color.p2 - tri_color.p3) * frac_p2;
 
+			xen::VertexGroup2f<4> quad_uvs;
+			quad_uvs.vertices[0] = tri_uvs.p1;
+			quad_uvs.vertices[1] = tri_uvs.p3 + (tri_uvs.p1 - tri_uvs.p3) * frac_p1;
+			quad_uvs.vertices[2] = tri_uvs.p2;
+			quad_uvs.vertices[3] = tri_uvs.p3 + (tri_uvs.p2 - tri_uvs.p3) * frac_p2;
+
 			_rasterizeTriangleScreen(cntx,
 			                         *(xen::Triangle3r*)&quad_pos_world .vertices[0],
 			                         *(xen::Triangle3r*)&quad_nor_world .vertices[0],
 			                         *(xen::Triangle3r*)&quad_pos_screen.vertices[0],
-			                         *(xen::Triangle4f*)&quad_colors    .vertices[0]
+			                         *(xen::Triangle4f*)&quad_colors    .vertices[0],
+			                         *(xen::Triangle2f*)&quad_uvs       .vertices[0]
 			                        );
 			_rasterizeTriangleScreen(cntx,
 			                         *(xen::Triangle3r*)&quad_pos_world .vertices[1],
 			                         *(xen::Triangle3r*)&quad_nor_world .vertices[1],
 			                         *(xen::Triangle3r*)&quad_pos_screen.vertices[1],
-			                         *(xen::Triangle4f*)&quad_colors    .vertices[1]
+			                         *(xen::Triangle4f*)&quad_colors    .vertices[1],
+			                         *(xen::Triangle2f*)&quad_uvs       .vertices[1]
 			                        );
 		}
 		return;
@@ -754,21 +772,31 @@ void rasterizeTrianglesModel(const RasterizationContext& cntx,
                              const Vec3r*                pos_model,
                              const Vec3r*                nor_model,
                              const Color*                col_buffer,
+                             const Vec2f*                uvs_buffer,
                              const u32                   vertex_count){
+
+	Triangle2f default_uvs    = { Vec2f::Origin, Vec2f::Origin, Vec2f::Origin };
+
+	bool multiple_uvs = uvs_buffer != nullptr;
+	if(uvs_buffer == nullptr){
+		uvs_buffer = &default_uvs.vertices[0];
+	}
 
 	for(u32 i = 0; i < vertex_count - 1; i += 3){
 		Triangle3r* tri_pos_model = (Triangle3r*)(&pos_model[i]);
 		Triangle3r* tri_nor_model = (Triangle3r*)(&nor_model[i]);
-		Triangle4f  tri_col       = { xen::Color::WHITE4f,
-		                              xen::Color::WHITE4f,
-		                              xen::Color::WHITE4f };
+		Triangle2f* tri_uvs = (Triangle2f*)(&uvs_buffer[i * multiple_uvs   ]);
+
+		Triangle4f tri_col = { xen::Color::WHITE4f,
+		                       xen::Color::WHITE4f,
+		                       xen::Color::WHITE4f };
 		if(col_buffer != nullptr){
-			tri_col.p1 = makeColor4f(col_buffer[i+0]);
-			tri_col.p2 = makeColor4f(col_buffer[i+1]);
-			tri_col.p3 = makeColor4f(col_buffer[i+2]);
+			tri_col.vertices[0] = xen::makeColor4f(col_buffer[i+0]);
+			tri_col.vertices[1] = xen::makeColor4f(col_buffer[i+1]);
+			tri_col.vertices[2] = xen::makeColor4f(col_buffer[i+2]);
 		}
 
-		rasterizeTriangleModel(cntx, *tri_pos_model, *tri_nor_model, tri_col);
+		rasterizeTriangleModel(cntx, *tri_pos_model, *tri_nor_model, tri_col, *tri_uvs);
 	}
 } // end of rasterize triangles model
 
@@ -803,6 +831,7 @@ void rasterizeMesh(const RasterizationContext&    context,
 		                        mesh.position,
 		                        mesh.normal,
 		                        mesh.color,
+		                        mesh.uvs,
 		                        mesh.vertex_count);
 		break;
 	}

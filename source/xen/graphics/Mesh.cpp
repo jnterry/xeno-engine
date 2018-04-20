@@ -333,71 +333,85 @@ namespace xen {
 	                         ){
 		xen::clearToZero(mesh_geom);
 
-		u08 attrib_pos = xen::findMeshAttrib(mesh_data,
-		                                     xen::VertexAttribute::_AspectPosition
-		                                    );
-		u08 attrib_nor = xen::findMeshAttrib(mesh_data,
-		                                     xen::VertexAttribute::_AspectNormal
-		                                    );
-		u08 attrib_col = xen::findMeshAttrib(mesh_data,
-		                                     xen::VertexAttribute::_AspectColor
-		                                    );
 
-		XenAssert(attrib_pos != xen::MeshData::BAD_ATTRIB_INDEX,
+		VertexAttributeAspects aspect = findVertexAttributeAspectIndices
+			(mesh_data->attrib_types, mesh_data->attrib_count);
+
+
+		XenAssert(aspect.position != xen::MeshData::BAD_ATTRIB_INDEX,
 		          "Mesh must have position attribute");
-		XenAssert(mesh_data->attrib_data[attrib_pos] != nullptr,
+		XenAssert(mesh_data->attrib_data[aspect.position] != nullptr,
 		          "Data source for position attribute must be non-null"
 		         );
 		{
-			XenAssert((mesh_data->attrib_types[attrib_pos] &
+			XenAssert((mesh_data->attrib_types[aspect.position] &
 			           xen::VertexAttribute::_TypeMask
 			           ) == xen::VertexAttribute::_TypeReal,
 			          "Expected position components to be reals"
 			          );
-			XenAssert((mesh_data->attrib_types[attrib_pos] &
+			XenAssert((mesh_data->attrib_types[aspect.position] &
 			           xen::VertexAttribute::_ComponentCountMask
 			           ) == 3,
 			          "Expected position attribute to have 3 channels"
 			          );
 			u32 byte_count_pos  = sizeof(Vec3r) * mesh_data->vertex_count;
 			mesh_geom->position = (Vec3r*)allocator->allocate(byte_count_pos);
-			memcpy(mesh_geom->position, mesh_data->attrib_data[attrib_pos], byte_count_pos);
+			memcpy(mesh_geom->position, mesh_data->attrib_data[aspect.position], byte_count_pos);
 		}
 
-		if(attrib_nor != xen::MeshData::BAD_ATTRIB_INDEX &&
-		   mesh_data->attrib_data[attrib_nor] != nullptr
+		if(aspect.normal != xen::MeshData::BAD_ATTRIB_INDEX &&
+		   mesh_data->attrib_data[aspect.normal] != nullptr
 		  ){
-			XenAssert((mesh_data->attrib_types[attrib_nor] &
+			XenAssert((mesh_data->attrib_types[aspect.normal] &
 			           xen::VertexAttribute::_TypeMask
 			          ) == xen::VertexAttribute::_TypeReal,
 			          "Expected normal components to be reals"
 			         );
-			XenAssert((mesh_data->attrib_types[attrib_nor] &
+			XenAssert((mesh_data->attrib_types[aspect.normal] &
 			           xen::VertexAttribute::_ComponentCountMask
 			           ) == 3,
 			          "Expected normal attribute to have 3 channels"
 			         );
 			u32 byte_count_nor  = sizeof(Vec3r) * mesh_data->vertex_count;
 			mesh_geom->normal   = (Vec3r*)allocator->allocate(byte_count_nor);
-			memcpy(mesh_geom->normal, mesh_data->attrib_data[attrib_nor], byte_count_nor);
+			memcpy(mesh_geom->normal, mesh_data->attrib_data[aspect.normal], byte_count_nor);
 		}
 
-		if(attrib_col != xen::MeshData::BAD_ATTRIB_INDEX &&
-		    mesh_data->attrib_data[attrib_col] != nullptr
+		if(aspect.texcoord != xen::MeshData::BAD_ATTRIB_INDEX &&
+		   mesh_data->attrib_data[aspect.texcoord] != nullptr
+		  ){
+
+			XenAssert((mesh_data->attrib_types[aspect.texcoord] &
+			           xen::VertexAttribute::_TypeMask
+			           ) == xen::VertexAttribute::_TypeFloat,
+			          "Expected texcoord components to be reals"
+			         );
+			XenAssert((mesh_data->attrib_types[aspect.texcoord] &
+			           xen::VertexAttribute::_ComponentCountMask
+			           ) == 2,
+			          "Expected texcoord attribute to have 2 channels"
+			         );
+			u32 byte_count_uvs  = sizeof(Vec2f) * mesh_data->vertex_count;
+			mesh_geom->uvs   = (Vec2f*)allocator->allocate(byte_count_uvs);
+			memcpy(mesh_geom->uvs, mesh_data->attrib_data[aspect.texcoord], byte_count_uvs);
+		}
+
+		if(aspect.color != xen::MeshData::BAD_ATTRIB_INDEX &&
+		    mesh_data->attrib_data[aspect.color] != nullptr
 		  ){
 			u32 byte_count_color  = sizeof(xen::Color) * mesh_data->vertex_count;
 			mesh_geom->color      = (xen::Color*)allocator->allocate(byte_count_color);
 
-			switch(mesh_data->attrib_types[attrib_col]){
+			switch(mesh_data->attrib_types[aspect.color]){
 			case xen::VertexAttribute::Color3f: {
-				xen::Color3f* src_buf = (xen::Color3f*)mesh_data->attrib_data[attrib_col];
+				xen::Color3f* src_buf = (xen::Color3f*)mesh_data->attrib_data[aspect.color];
 				for(u32 i = 0; i < mesh_data->vertex_count; ++i){
 					mesh_geom->color[i] = xen::Color(src_buf[i]);
 				}
 				break;
 			}
 			case xen::VertexAttribute::Color4b: {
-				memcpy(mesh_geom->color, mesh_data->attrib_data[attrib_col], byte_count_color);
+				memcpy(mesh_geom->color, mesh_data->attrib_data[aspect.color], byte_count_color);
 				break;
 			}
 			default:
@@ -421,6 +435,11 @@ namespace xen {
 		if(mesh->color != nullptr){
 			allocator->deallocate(mesh->color);
 			mesh->color = nullptr;
+		}
+
+		if(mesh->uvs != nullptr){
+			allocator->deallocate(mesh->uvs);
+			mesh->uvs = nullptr;
 		}
 	}
 

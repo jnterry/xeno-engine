@@ -87,7 +87,8 @@ namespace xen {
 		void rasterizeTriangleModel(const RasterizationContext& context,
 		                            Triangle3r                  tri_model,
 		                            Triangle3r                  tri_normal_model,
-		                            Triangle4f                  tri_color);
+		                            Triangle4f                  tri_color,
+		                            Triangle2f                  tri_uvs);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Rasterizes a set of triangles in model space to the screen
@@ -98,6 +99,7 @@ namespace xen {
 		                             const Vec3r*                pos_model,
 		                             const Vec3r*                normal_model,
 		                             const Color*                color_buffer,
+		                             const Vec2f*                uv_buffer,
 		                             const u32                   vertex_count);
 
 		/////////////////////////////////////////////////////////////////////

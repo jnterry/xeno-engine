@@ -57,8 +57,11 @@ namespace xen{
 		/// \brief The colors of each vertex
 		Color* color;
 
-		inline MeshAttribArrays(Vec3r* p, Vec3r* n, Color* c)
-			: position(p), normal(n), color(c){
+		/// \brief The uv coordinates of each vertex
+		Vec2f* uvs;
+
+		inline MeshAttribArrays(Vec3r* p, Vec3r* n, Color* c, Vec2f* uvs)
+			: position(p), normal(n), color(c), uvs(uvs){
 			// no-op
 		}
 	};
@@ -78,8 +81,8 @@ namespace xen{
 		/// attrib arrays is equal to this count.
 		u32 vertex_count;
 
-		inline MeshGeometrySource(u32 vertex_count, Vec3r* p, Vec3r* n, Color* c)
-			: MeshAttribArrays(p, n, c), vertex_count(vertex_count){
+		inline MeshGeometrySource(u32 vertex_count, Vec3r* p, Vec3r* n, Color* c, Vec2f* uvs)
+			: MeshAttribArrays(p, n, c, uvs), vertex_count(vertex_count){
 			// no-op
 		}
 	};

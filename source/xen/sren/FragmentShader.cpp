@@ -22,7 +22,8 @@
 xen::Color4f _defaultFragmentShader(const xen::sren::FragmentUniforms& uniforms,
                                     Vec3r                              pos_world,
                                     Vec3r                              normal_world,
-                                    xen::Color4f                       color){
+                                    xen::Color4f                       color,
+                                    Vec2f                              uvs){
 
 	xen::Color3f total_light = uniforms.ambient_light;
 	total_light += (uniforms.emissive_color.rgb * uniforms.emissive_color.a);
@@ -49,8 +50,8 @@ xen::Color4f _defaultFragmentShader(const xen::sren::FragmentUniforms& uniforms,
 	}
 
 	xen::Color4f result = uniforms.diffuse_color;
-	result *= color;
-	result *= xen::sren::sampleTexture(uniforms.textures[0], Vec2r::Origin);
+	result     *= color;
+	result     *= xen::sren::sampleTexture(uniforms.textures[0], uvs);
 	result.rgb *= total_light;
 
 	return result;
