@@ -119,7 +119,7 @@ namespace xen {
 			}
 
 			// Shift UV in the correct direction by half a pixel.
-			Vec2r currentUv = Vec2r{x,y};
+			Vec2r currentUv = Vec2r{(real)x,(real)y};
 			if(isHorizontal){
     		currentUv.y += stepLength * 0.5;
 			} else {
@@ -208,7 +208,7 @@ namespace xen {
 			real finalOffset = correctVariation ? pixelOffset : 0.0;
 
 			// Compute the final UV coordinates.
-			Vec2r finalUv = Vec2r{x,y};
+			Vec2r finalUv = Vec2r{(real)x,(real)y};
 			if(isHorizontal){
 			    finalUv.y += finalOffset * stepLength;
 			} else {
