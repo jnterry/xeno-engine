@@ -19,6 +19,7 @@ const char* ExampleApplication::BACKEND_NAMES[Backend::COUNT] = {
 	"Software Raytracer",
 	"OpenGL",
 	"Raytracer Camera Debug",
+	"Software Atom Tracer",
 };
 
 ExampleApplication createApplication(const char* window_title,
@@ -106,6 +107,9 @@ ExampleApplication createApplication(const char* window_title,
 			window_size.y = 800;
 			app.device = xen::createRaytracerDebugDevice(app.arena,
 			                                             10, &Vec3r::Origin);
+			break;
+		case ExampleApplication::Backend::ATOMTRACER:
+			app.device = xen::createAtomTracerDevice(app.arena, post_processors);
 			break;
 		default:
 			printf("\nInvalid choice, please select an option from the list\n\n");

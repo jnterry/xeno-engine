@@ -55,6 +55,17 @@ namespace xen {
 	                                           real         camera_distance = 100,
 	                                           const Vec3r* camera_center   = nullptr
 	                                          );
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Creates a new GraphicsDevice which will perform rendering
+	/// using a software atom based raytracer
+	/// \param post_processors Array of post processors to to call before presenting
+	/// the image to the screen. Defaults to an empty array
+	/////////////////////////////////////////////////////////////////////
+	GraphicsDevice* createAtomTracerDevice(ArenaLinear& arena,
+	                                       xen::Array<sren::PostProcessor*> post_processors =
+	                                       xen::Array<sren::PostProcessor*>::EmptyArray
+	                                      );
 }
 
 #endif

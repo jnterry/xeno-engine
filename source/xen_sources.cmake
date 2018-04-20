@@ -88,6 +88,7 @@ set(XEN_SOURCES_SREN
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RaytracerDevice.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RaytracerDebugDevice.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RasterizerDevice.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/AtomTracerDevice.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RenderTargetImpl.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/Framebuffer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/post_processors/InvertColors.cpp
