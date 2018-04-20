@@ -26,11 +26,11 @@ namespace xen {
 					continue;
 				}
 				if (fb.depth[i] >= z_far){
-					fb.color[i] = fog_color;
+					fb.color[i].rgb = (fb.color[i].rgb * (1-fog_color.a) + (fog_color.rgb * fog_color.a));
 					continue;
 				}
-				real z_ratio = (fb.depth[i] - z_near) / z_diff;
-				fb.color[i] = (fb.color[i] * (1-z_ratio) + (fog_color * z_ratio));
+				real z_ratio = ((fb.depth[i] - z_near) / z_diff)*fog_color.a;
+				fb.color[i].rgb = (fb.color[i].rgb * (1-z_ratio) + (fog_color.rgb * z_ratio));
 			}
 		}
 
