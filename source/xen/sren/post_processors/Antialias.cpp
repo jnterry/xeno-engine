@@ -11,7 +11,6 @@
 
 // :TODO: What to do if Any luma are out of bounds, such as pixels on edges?
 // :TODO: Check if top left or bottom left is fb[0], if bottom left then swap lumaUp and lumaDown
-// :TODO: Define QUALITY(i) -> currently don't know how
 
 #ifndef XEN_SREN_POSTPROCESSORS_ANTIALIAS_CPP
 #define XEN_SREN_POSTPROCESSORS_ANTIALIAS_CPP
@@ -31,8 +30,6 @@
 // Value for antialiasing subpixel lines
 #define SUBPIXEL_QUALITY 0.75
 
-const float QUALITY[] = {1.5, 2.0, 2.0, 2.0, 2.0, 4.0, 8.0};
-
 namespace xen {
 	namespace sren {
 		/// brief: get luma of a given color value
@@ -43,6 +40,7 @@ namespace xen {
 		/// brief: get color of a position between pixels by bilinear filtering 4 nearest pixels
 		// :TODO: May want to just pass in specific pixels to this function
 		Vec3f blendColor(Framebuffer& fb, Vec2r subPixelLocation){
+			/*
 			real ratioVertical   = (subPixelLocation.x) - floor(subPixelLocation.x);
 		  real ratioHorizontal = (subPixelLocation.y) - floor(subPixelLocation.y);
 
@@ -57,6 +55,13 @@ namespace xen {
 			Vec3f colorRight = lerp(fb.color[topRightIndex].rgb, fb.color[bottomRightIndex].rgb, ratioVertical);
 
 			return lerp(colorLeft, colorRight, ratioHorizontal);
+			*/
+			int topLeftIndex    = floor(subPixelLocation.y)*fb.size.x + floor(subPixelLocation.x);
+			int bottomLeftIndex = ceil(subPixelLocation.y)*fb.size.x  + floor(subPixelLocation.x);
+			int topRightIndex    = floor(subPixelLocation.y)*fb.size.x + ceil(subPixelLocation.x);
+			int bottomRightIndex = ceil(subPixelLocation.y)*fb.size.x  + ceil(subPixelLocation.x);
+
+			return (0.25 * fb.color[topLeftIndex].rgb + 0.25 * fb.color[bottomLeftIndex].rgb + 0.25 * fb.color[topRightIndex].rgb + 0.25 * fb.color[bottomRightIndex].rgb);
 		}
 
 		void fxaaStep(Framebuffer& fb, Framebuffer& fb_out, int x, int y, Vec2r inverseScreenSize) {
@@ -203,12 +208,12 @@ namespace xen {
 			    reached2 = fabs(lumaEnd2) >= gradientScaled;
 			    reachedBoth = reached1 && reached2;
 
-			    // If the side is not reached, we continue to explore in this direction, with a variable quality.
+			    // If the side is not reached, we continue to explore in this direction
 			    if(!reached1){
-			      uv1 -= offset;// * QUALITY[i];
+			      uv1 -= offset;
 			    }
 			    if(!reached2){
-			      uv2 += offset;// * QUALITY[i];
+			      uv2 += offset;
 			    }
 
 			    // If both sides have been reached, stop the exploration.
@@ -233,12 +238,15 @@ namespace xen {
 			// Is the luma at center smaller than the local average ?
 			bool isLumaCenterSmaller = lumaCenter < lumaLocalAverage;
 
+			// DEBUG TODO
+			// printf("lumaEnd1: %f, lumaEnd2: %f\n", lumaEnd1, lumaEnd2);
+			// printf("isDirection1: %i\n", isDirection1);
+
 			// If the luma at center is smaller than at its neighbour, the delta luma at each end should be positive (same variation).
 			// (in the direction of the closer side of the edge.)
 			bool correctVariation = ((isDirection1 ? lumaEnd1 : lumaEnd2) < 0.0) != isLumaCenterSmaller;
 
 			// If the luma variation is incorrect, do not offset.
-			// TODO: I think this is always triggering
 			real finalOffset = correctVariation ? pixelOffset : 0.0;
 
 			// Sub-pixel shifting
@@ -246,20 +254,26 @@ namespace xen {
 			real lumaAverage = (1.0/12.0) * (2.0 * (lumaDownUp + lumaLeftRight) + lumaLeftCorners + lumaRightCorners);
 
 			// DEBUG TODO
-			printf("lumaAverage: %f, lumaCenter: %f\n", lumaAverage, lumaCenter);
+			// printf("lumaAverage: %f, lumaCenter: %f\n", lumaAverage, lumaCenter);
 
 			// Ratio of the delta between the global average and the center luma, over the luma range in the 3x3 neighborhood.
 			real subPixelOffset1 = xen::clamp((real)fabs(lumaAverage - lumaCenter)/lumaRange,0.0_r,1.0_r);
 			real subPixelOffset2 = (-2.0 * subPixelOffset1 + 3.0) * subPixelOffset1 * subPixelOffset1;
 
 			// DEBUG TODO
-			printf("subPixelOffset1: %f, subPixelOffset2: %f\n", subPixelOffset1, subPixelOffset2);
+			// printf("subPixelOffset1: %f, subPixelOffset2: %f\n", subPixelOffset1, subPixelOffset2);
 
 			// Compute a sub-pixel offset based on this delta.
 			real subPixelOffsetFinal = subPixelOffset2 * subPixelOffset2 * SUBPIXEL_QUALITY;
 
 			// DEBUG TODO
-			printf("finalOffset: %f, subPixelOffsetFinal: %f\n", finalOffset, subPixelOffsetFinal);
+			// printf("finalOffset: %f, subPixelOffsetFinal: %f\n", finalOffset, subPixelOffsetFinal);
+			// printf("stepLength: %f\n", stepLength);
+			/*
+			if (finalOffset > 0.0_r) {
+				XenBreak();
+			}
+			*/
 
 			// Pick the biggest of the two offsets.
 			finalOffset = max(finalOffset,subPixelOffsetFinal);
@@ -273,18 +287,31 @@ namespace xen {
 			}
 
 			// DEBUG TODO
-			printf("For pixel: (%i, %i), finalUv: (%f, %f) \n", x, y, finalUv.x, finalUv.y);
-
+			// printf("For pixel: (%i, %i), finalUv: (%f, %f) \n", x, y, finalUv.x, finalUv.y);
+			/*
+			printf("Pixels, top-left: (%f,%f,%f), top-right: (%f,%f,%f), bottom-left: (%f,%f,%f), bottom-right: (%f,%f,%f)\n",
+			       fb.color[(y-1)*fb.size.x + (x-1)].r, fb.color[(y-1)*fb.size.x + (x-1)].g, fb.color[(y-1)*fb.size.x + (x-1)].b,
+						 fb.color[(y-1)*fb.size.x + (x+1)].r, fb.color[(y-1)*fb.size.x + (x-1)].g, fb.color[(y-1)*fb.size.x + (x-1)].b,
+						 fb.color[(y+1)*fb.size.x + (x-1)].r, fb.color[(y-1)*fb.size.x + (x-1)].g, fb.color[(y-1)*fb.size.x + (x-1)].b,
+						 fb.color[(y+1)*fb.size.x + (x+1)].r, fb.color[(y-1)*fb.size.x + (x-1)].g, fb.color[(y-1)*fb.size.x + (x-1)].b);
+			*/
 			// Read the color at the new UV coordinates, and use it.
 			Vec3f finalColor = blendColor(fb, finalUv);
 
+			//printf("Blended pixel color: (%f,%f,%f)\n", finalColor.x, finalColor.y, finalColor.z);
+			/*
+			fb_out.color[currentPixelIndex].r = 1.0;
+			fb_out.color[currentPixelIndex].g = 0.0;
+			fb_out.color[currentPixelIndex].b = 0.0;
+			*/
 			fb_out.color[currentPixelIndex].r = finalColor.r;
 			fb_out.color[currentPixelIndex].g = finalColor.g;
 			fb_out.color[currentPixelIndex].b = finalColor.b;
+
 		}
 
 		void PostProcessorAntialias::process(Framebuffer& fb) {
-			Vec2r inverseScreenSize = {1.0/fb.size.x, 1.0/fb.size.y};
+			Vec2r inverseScreenSize = {1.0, 1.0};
 
 			// Create a duplicate frame buffer
 			Framebuffer fb_copy;
