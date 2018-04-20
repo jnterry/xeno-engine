@@ -7,11 +7,11 @@
 
 xen::RenderParameters3d render_params;
 
-xen::sren::PostProcessorInvertColors       pp_invertColors;
+xen::sren::PostProcessorAntialias          pp_antialias;
 xen::sren::PostProcessorDisplayDepthBuffer pp_displayDepthBuffer;
 
 xen::sren::PostProcessor* post_processors[] = {
-	&pp_invertColors,
+	&pp_antialias,
 	&pp_displayDepthBuffer,
 };
 
