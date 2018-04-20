@@ -138,6 +138,15 @@
 			 - 5 -> display world positions
 			 - 6 -> display phong lighting
 			 - 7 -> display basic lighting model (the engine's default shader)
+		 - The =texture-test= demo shows of a fragment shader which implements normal mapping
+	 - Texture mapping
+		 - Models can have up to 4 textures
+		 - These are provided to the fragment shader to do with as it wishes
+		 - =texture-text= shows an example of diffuse and normal mapping using textures
+	 - The specular exponent and intensity can be varied on a per model basis
+		 - To see the effect of different specular settings see =texture-test=, press:
+			 - 1 -> bricks (low specular intensity and exponent)
+			 - 2 -> metal (high specular intensity and exponent)
 
 ** Meta Extensions
 
