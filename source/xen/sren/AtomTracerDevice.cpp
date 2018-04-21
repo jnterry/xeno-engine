@@ -70,7 +70,8 @@ public:
 		xen::MemoryTransaction transaction(this->frame_scratch);
 
 		xen::sren::AtomizerOutput& a_out = xen::sren::atomizeScene(viewport, params, commands,
-		                                                           mesh_store, frame_scratch
+		                                                           mesh_store, frame_scratch,
+		                                                           2.0_r
 		                                                           );
 
 		///////////////////////////////////////////////////////////////////////////
@@ -79,7 +80,6 @@ public:
 		atoms_light.elements = xen::reserveTypeArray<Vec3f>(frame_scratch, a_out.atoms.size);
 		atoms_light.size     = a_out.atoms.size;
 
-		#if 0
 		for(u64 i = 0; i < xen::size(a_out.atoms); ++i){
 			atoms_light[i] = params.ambient_light;
 
@@ -91,11 +91,6 @@ public:
 					(params.lights[li].color, params.lights[li].attenuation, distance_sq);
 			}
 		}
-		#else
-		for(u64 i = 0; i < xen::size(a_out.atoms); ++i){
-			atoms_light[i] = xen::Color::WHITE4f.rgb;
-		}
-		#endif
 
 		xen::sren::rasterizeAtoms(target, viewport, params, a_out, atoms_light.elements);
 		//raytraceAtoms(target, viewport, params, a_out, atoms_light.elements, viewport);

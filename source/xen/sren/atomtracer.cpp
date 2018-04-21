@@ -83,7 +83,7 @@ AtomizerOutput& atomizeScene(const Aabb2u& viewport,
                              const Array<RenderCommand3d>& commands,
                              MeshStore<RasterizerMesh>& mesh_store,
                              ArenaLinear& arena,
-                             real atoms_per_pixel){
+                             real pixels_per_atom){
 
 	AtomizerOutput* result = xen::reserveType<AtomizerOutput>(arena);
 
@@ -155,7 +155,6 @@ AtomizerOutput& atomizeScene(const Aabb2u& viewport,
 						*cur_pos = p0 + (cur_e1 * e1) + (cur_e2 * e2);
 
 						real cam_dist    = cam_dist_p0 + (cur_e1 * e1_cam_dist) + (cur_e2 * e2_cam_dist);
-						real cam_dist_sq = cam_dist * cam_dist;
 
 						// We want our delta between atoms to be roughly equal to the
 						// distance in world space between pixels projected onto the
@@ -178,7 +177,7 @@ AtomizerOutput& atomizeScene(const Aabb2u& viewport,
 
 						// Modify delta by some factor -> higher places less
 						// atoms but performs better
-						delta *= atoms_per_pixel;
+						delta *= pixels_per_atom;
 
 						// Work out how far to step along the edge between 0 and 1
 						// by doing distance_we_want_to_step / length_of_edge
@@ -220,10 +219,9 @@ AtomizerOutput& atomizeScene(const Aabb2u& viewport,
 					*cur_pos = p0 + (cur_e1 * e1);
 
 					real cam_dist    = cam_dist_p0 + (cur_e1 * e1_cam_dist);
-					real cam_dist_sq = cam_dist * cam_dist;
 
-					real delta = cam_dist_sq * tan_fov_per_pixel;
-					delta *= atoms_per_pixel; // This places atoms every n pixels
+					real delta = cam_dist * tan_fov_per_pixel;
+					delta *= pixels_per_atom; // This places atoms every n pixels
 					delta_e1 = delta * inv_len_e1;
 
 					++cur_pos;
@@ -335,8 +333,8 @@ void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
 
 		//for(s32 dy = -2; dy <= 2; ++dy){
 		//	for(s32 dx = -2; dx <= 2; ++dx){
-		for(s32 dy = 0; dy <= 0; ++dy){
-			for(s32 dx = 0; dx <=0; ++dx){
+		for(s32 dy = -1; dy <= 1; ++dy){
+			for(s32 dx = -1; dx <= 1; ++dx){
 				if(point_screen.x + dx < 0 || point_screen.x + dx > target.width ||
 				   point_screen.y + dy < 0 || point_screen.y + dy > target.width
 				   ){

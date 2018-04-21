@@ -41,12 +41,20 @@ struct AtomizerOutput {
 	xen::Array<Box>   boxes;
 };
 
+/////////////////////////////////////////////////////////////////////
+/// \brief Atomizes a scene (IE: set of rendering commands) to produce
+/// an atom scene.
+///
+/// \param pixels_per_atom The expected number of pixels a single atom is
+/// usually reponsible for. Larger values reduce the number of atoms and
+/// hence increase performance, but decrease visual fidelity
+/////////////////////////////////////////////////////////////////////
 AtomizerOutput& atomizeScene(const xen::Aabb2u& viewport,
                              const xen::RenderParameters3d& params,
                              const xen::Array<xen::RenderCommand3d>& commands,
                              xen::sren::MeshStore<xen::sren::RasterizerMesh>& mesh_store,
                              xen::ArenaLinear& arena,
-                             real  atoms_per_pixel = 1.0_r);
+                             real  pixels_per_atom = 1.0_r);
 
 struct RayPointIntersection {
 	/// \brief The index of the point in the array that the ray collided with
