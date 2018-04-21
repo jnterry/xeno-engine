@@ -14,8 +14,10 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/time.hpp>
 #include <xen/math/quaternion.hpp>
+#include <xen/math/angle.hpp>
 
 #include <xen/sren/FragmentShader.hpp>
+#include "render-utilities.hxx"
 #include "rasterizer3d.hxx"
 #include "atomtracer.hxx"
 #include "SoftwareDeviceBase.hxx"
@@ -73,8 +75,13 @@ public:
 		xen::MemoryTransaction transaction(this->frame_scratch);
 
 		xen::RenderParameters3d test_params = params;
-		test_params.camera.position = xen::rotated
-			(Vec3r{5, 1, 0}, Vec3r::UnitY, xen::asSeconds<real>(stopwatch.getElapsedTime()) * 90_deg);
+
+		xen::Angle cycle = xen::asSeconds<real>(stopwatch.getElapsedTime()) * 60_deg;
+
+		real cam_dist = ((xen::sin(cycle * 0.43_r) + 1.0_r) * 2.0_r) + 1.5_r;
+		test_params.camera.position   = xen::rotated (Vec3r{cam_dist, 0, 0}, Vec3r::UnitY, cycle);
+		test_params.camera.position.y = xen::sin(cycle * 0.6_r);
+
 		test_params.camera.look_dir = xen::normalized(-test_params.camera.position);
 
 		xen::sren::AtomizerOutput& a_out = xen::sren::atomizeScene(viewport, test_params, commands,
@@ -91,6 +98,11 @@ public:
 		}
 
 		xen::sren::rasterizeAtoms(target, viewport, params, a_out, atoms_light.elements);
+
+		xen::sren::renderCameraDebug(target, viewport,
+		                             params.camera, test_params.camera,
+		                             2
+		                            );
 	}
 };
 
