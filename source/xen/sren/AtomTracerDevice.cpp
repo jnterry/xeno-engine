@@ -74,14 +74,17 @@ struct AtomizerOutput {
 		xen::Aabb3r bounds;
 
 		/// \brief The index of the first atom in this box
-		u64    first;
+		u64    start;
 
-		/// \brief The index of the last atom in this box
-		u64    last;
+		/// \brief The index one past the last atom in this box
+		u64    end;
 	};
 
 	/// \brief The locations of atoms in the scene
 	xen::Array<Vec3r> atoms;
+
+	/// \brief Boxes that divide up the world's atoms spatially
+	xen::Array<Box>   boxes;
 };
 
 AtomizerOutput& atomizeScene(const xen::Aabb2u& viewport,
@@ -92,13 +95,25 @@ AtomizerOutput& atomizeScene(const xen::Aabb2u& viewport,
 
 	AtomizerOutput* result = xen::reserveType<AtomizerOutput>(arena);
 
-	Vec3r cam_pos      = params.camera.position;
-	real fov_per_pixel = params.camera.fov_y.radians / (viewport.max.y - viewport.min.y);
-	Vec3r* cur_pos     = (Vec3r*)arena.next_byte;
+	result->boxes.elements = xen::reserveTypeArray<AtomizerOutput::Box>(arena, xen::size(commands));
+	result->boxes.size     = xen::size(commands);
+
+	Vec3r cam_pos       = params.camera.position;
+	real  fov_per_pixel = params.camera.fov_y.radians / (viewport.max.y - viewport.min.y);
+
+	Vec3r* const first_pos       = (Vec3r*)arena.next_byte;
+	Vec3r*       first_box_pos   = (Vec3r*)arena.next_byte;
+	Vec3r*       cur_pos         = (Vec3r*)arena.next_byte;
 
 	for(u32 cmd_index = 0; cmd_index < xen::size(commands); ++cmd_index){
 		const xen::RenderCommand3d&      cmd  = commands[cmd_index];
 		const xen::sren::RasterizerMesh* mesh = mesh_store.getMesh(cmd.mesh);
+
+		first_box_pos = cur_pos;
+
+		AtomizerOutput::Box& box = result->boxes[cmd_index];
+		box.bounds = xen::getTransformed(mesh->bounds, cmd.model_matrix);
+		box.start  = first_box_pos - first_pos;
 
 		u32 stride = 2;
 		switch(cmd.primitive_type){
@@ -202,6 +217,8 @@ AtomizerOutput& atomizeScene(const xen::Aabb2u& viewport,
 			}
 			break;
 		}
+
+		box.end = cur_pos - first_pos;
 	}
 
 	result->atoms.elements = (Vec3r*)arena.next_byte;
@@ -262,7 +279,21 @@ public:
 		                                     mesh_store, frame_scratch
 		                                    );
 
+		#if 0
 		printf("Atomised scene into %li atoms\n", a_out.atoms.size);
+		for(u32 i = 0; i < xen::size(a_out.boxes); ++i){
+			printf("  Box %i, bounds: (%8f, %8f, %8f) -> (%8f, %8f, %8f)\n",
+			       i,
+			       a_out.boxes[i].bounds.min.x,
+			       a_out.boxes[i].bounds.min.y,
+			       a_out.boxes[i].bounds.min.z,
+			       a_out.boxes[i].bounds.max.x,
+			       a_out.boxes[i].bounds.max.y,
+			       a_out.boxes[i].bounds.max.z
+			      );
+			printf("    start: %8lu, end: %8lu\n", a_out.boxes[i].start, a_out.boxes[i].end);
+		}
+		#endif
 
 		///////////////////////////////////////////////////////////////////////////
 		// Perform first lighting pass
