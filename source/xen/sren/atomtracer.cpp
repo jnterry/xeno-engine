@@ -82,7 +82,8 @@ AtomizerOutput& atomizeScene(const Aabb2u& viewport,
                              const RenderParameters3d& params,
                              const Array<RenderCommand3d>& commands,
                              MeshStore<RasterizerMesh>& mesh_store,
-                             ArenaLinear& arena){
+                             ArenaLinear& arena,
+                             real atoms_per_pixel){
 
 	AtomizerOutput* result = xen::reserveType<AtomizerOutput>(arena);
 
@@ -146,17 +147,15 @@ AtomizerOutput& atomizeScene(const Aabb2u& viewport,
 				real inv_len_e2 = _fastInvSqRoot(xen::magSq(e2));
 
 				// Delta is how far to step along the triangles edges for each atom
-				real deltaE1 = inv_len_e1;
-				real deltaE2 = inv_len_e2;
+				real delta_e1 = 0;
+				real delta_e2 = 0;
 
-				for(real cur_e1 = 0; cur_e1 <= 1; cur_e1 += deltaE1){
-					for(real cur_e2 = 0; cur_e2 <= (1 - cur_e1); cur_e2 += deltaE2){
-						//printf("deltaE1: %f, deltaE2: %f\n", deltaE1, deltaE2);
-
+				for(real cur_e1 = 0; cur_e1 <= 1; cur_e1 += delta_e1){
+					for(real cur_e2 = 0; cur_e2 <= (1 - cur_e1); cur_e2 += delta_e2){
 						*cur_pos = p0 + (cur_e1 * e1) + (cur_e2 * e2);
 
-						real cam_dist = cam_dist_p0 + (cur_e1 * e1_cam_dist) + (cur_e2 * e2_cam_dist);
-						cam_dist = cam_dist * cam_dist;
+						real cam_dist    = cam_dist_p0 + (cur_e1 * e1_cam_dist) + (cur_e2 * e2_cam_dist);
+						real cam_dist_sq = cam_dist * cam_dist;
 
 						// We want our delta between atoms to be roughly equal to the
 						// distance in world space between pixels projected onto the
@@ -177,14 +176,15 @@ AtomizerOutput& atomizeScene(const Aabb2u& viewport,
 						// d = z*tan(a)
 						real delta = cam_dist * tan_fov_per_pixel;
 
-						// We can adjust quality by increasing delta by some amount
-						delta *= 1; // This places atoms every 3 pixels
+						// Modify delta by some factor -> higher places less
+						// atoms but performs better
+						delta *= atoms_per_pixel;
 
 						// Work out how far to step along the edge between 0 and 1
 						// by doing distance_we_want_to_step / length_of_edge
 						// IE: delta * (1/len)
-						deltaE1 = delta * inv_len_e1;
-						deltaE2 = delta * inv_len_e2;
+						delta_e1 = delta * inv_len_e1;
+						delta_e2 = delta * inv_len_e2;
 
 						++cur_pos;
 					}
@@ -195,15 +195,37 @@ AtomizerOutput& atomizeScene(const Aabb2u& viewport,
 		case xen::PrimitiveType::LINE_STRIP: stride = 1;
 		case xen::PrimitiveType::LINES:
 			for(u32 i = 0; i < mesh->vertex_count; i += stride){
+				// Positions of line end points in world space
 				Vec3r p0 = xen::fromHomo(xen::toHomo(mesh->position[i+0]) * cmd.model_matrix);
 				Vec3r p1 = xen::fromHomo(xen::toHomo(mesh->position[i+1]) * cmd.model_matrix);
 
+				// Distances of line endpoints to the camera in world space
+				real cam_dist_p0 = xen::distance(p0, cam_pos);
+				real cam_dist_p1 = xen::distance(p1, cam_pos);
+
+				// Edge 1
 				Vec3r e1 = p1 - p0;
 
-				real invDistE1 = (1.0_r / xen::mag(e1)) * 0.02_r;
+				// 1d delta "vector" describing how the camera distance
+				// varies along edge 1 of the line
+				real e1_cam_dist = cam_dist_p1 - cam_dist_p0;
 
-				for(real cur_e1 = 0; cur_e1 <= 1; cur_e1 += invDistE1){
+				// Inverse of the length (in world space) of edge 1 and edge 2
+				real inv_len_e1 = _fastInvSqRoot(xen::magSq(e1));
+
+				// Delta is how far to step along the triangles edges for each atom
+				real delta_e1 = 0;
+
+				for(real cur_e1 = 0; cur_e1 <= 1; cur_e1 += delta_e1){
 					*cur_pos = p0 + (cur_e1 * e1);
+
+					real cam_dist    = cam_dist_p0 + (cur_e1 * e1_cam_dist);
+					real cam_dist_sq = cam_dist * cam_dist;
+
+					real delta = cam_dist_sq * tan_fov_per_pixel;
+					delta *= atoms_per_pixel; // This places atoms every n pixels
+					delta_e1 = delta * inv_len_e1;
+
 					++cur_pos;
 				}
 			}

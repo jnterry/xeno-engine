@@ -85,7 +85,8 @@ public:
 		test_params.camera.look_dir = xen::normalized(-test_params.camera.position);
 
 		xen::sren::AtomizerOutput& a_out = xen::sren::atomizeScene(viewport, test_params, commands,
-		                                                           mesh_store, frame_scratch
+		                                                           mesh_store, frame_scratch,
+		                                                           3.0f
 		                                                           );
 
 		///////////////////////////////////////////////////////////////////////////
