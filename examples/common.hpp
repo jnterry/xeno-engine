@@ -49,6 +49,7 @@ struct ExampleApplication {
 		OPENGL,
 		RAYTRACER_CAMERA_DEBUG,
 		ATOMTRACER,
+		ATOMTRACER_DEBUG,
 
 		COUNT,
 	};

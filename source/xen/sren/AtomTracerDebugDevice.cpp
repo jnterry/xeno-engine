@@ -23,17 +23,20 @@
 
 namespace {
 
-class AtomTracerDevice : public xen::sren::SoftwareDeviceBase {
+class AtomTracerDebugDevice : public xen::sren::SoftwareDeviceBase {
 private:
 	xen::sren::MeshStore<xen::sren::RasterizerMesh> mesh_store;
 
 	xen::ArenaLinear frame_scratch;
+
+	xen::Stopwatch stopwatch;
+
 public:
-	~AtomTracerDevice(){
+	~AtomTracerDebugDevice(){
 		this->mesh_store.destroyAllMeshes();
 	}
 
-	AtomTracerDevice(xen::Array<xen::sren::PostProcessor*> post_processors)
+	AtomTracerDebugDevice(xen::Array<xen::sren::PostProcessor*> post_processors)
 		: SoftwareDeviceBase(post_processors),
 		  mesh_store(this, main_allocator),
 		  frame_scratch(xen::createArenaLinear(*main_allocator, xen::megabytes(128)))
@@ -69,7 +72,12 @@ public:
 
 		xen::MemoryTransaction transaction(this->frame_scratch);
 
-		xen::sren::AtomizerOutput& a_out = xen::sren::atomizeScene(viewport, params, commands,
+		xen::RenderParameters3d test_params = params;
+		test_params.camera.position = xen::rotated
+			(Vec3r{5, 1, 0}, Vec3r::UnitY, xen::asSeconds<real>(stopwatch.getElapsedTime()) * 90_deg);
+		test_params.camera.look_dir = xen::normalized(-test_params.camera.position);
+
+		xen::sren::AtomizerOutput& a_out = xen::sren::atomizeScene(viewport, test_params, commands,
 		                                                           mesh_store, frame_scratch
 		                                                           );
 
@@ -78,36 +86,20 @@ public:
 		xen::Array<Vec3f> atoms_light;
 		atoms_light.elements = xen::reserveTypeArray<Vec3f>(frame_scratch, a_out.atoms.size);
 		atoms_light.size     = a_out.atoms.size;
-
-		#if 0
-		for(u64 i = 0; i < xen::size(a_out.atoms); ++i){
-			atoms_light[i] = params.ambient_light;
-
-			for(u64 li = 0; li < xen::size(params.lights); ++li){
-				real distance_sq = xen::distanceSq
-                    (a_out.atoms[i], params.lights[li].point.position);
-
-				atoms_light[i] += xen::sren::computeLightInfluenceSimple
-					(params.lights[li].color, params.lights[li].attenuation, distance_sq);
-			}
-		}
-		#else
 		for(u64 i = 0; i < xen::size(a_out.atoms); ++i){
 			atoms_light[i] = xen::Color::WHITE4f.rgb;
 		}
-		#endif
 
 		xen::sren::rasterizeAtoms(target, viewport, params, a_out, atoms_light.elements);
-		//raytraceAtoms(target, viewport, params, a_out, atoms_light.elements, viewport);
 	}
 };
 
 } // end of anon namespace
 
 namespace xen {
-	GraphicsDevice* createAtomTracerDevice(ArenaLinear& arena,
-	                                       xen::Array<sren::PostProcessor*> post_processors){
-		return xen::emplace<AtomTracerDevice>(arena, post_processors);
+	GraphicsDevice* createAtomTracerDebugDevice(ArenaLinear& arena,
+	                                            xen::Array<sren::PostProcessor*> post_processors){
+		return xen::emplace<AtomTracerDebugDevice>(arena, post_processors);
 	}
 }
 
