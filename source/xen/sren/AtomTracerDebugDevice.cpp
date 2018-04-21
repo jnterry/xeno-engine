@@ -15,6 +15,7 @@
 #include <xen/core/time.hpp>
 #include <xen/math/quaternion.hpp>
 #include <xen/math/angle.hpp>
+#include <xen/math/geometry.hpp>
 
 #include <xen/sren/FragmentShader.hpp>
 #include "render-utilities.hxx"
@@ -89,16 +90,19 @@ public:
 		                                                           3.0f
 		                                                           );
 
-		///////////////////////////////////////////////////////////////////////////
-		// Perform first lighting pass
-		xen::Array<Vec3f> atoms_light;
-		atoms_light.elements = xen::reserveTypeArray<Vec3f>(frame_scratch, a_out.atoms.size);
-		atoms_light.size     = a_out.atoms.size;
-		for(u64 i = 0; i < xen::size(a_out.atoms); ++i){
-			atoms_light[i] = xen::Color::WHITE4f.rgb;
-		}
 
-		xen::sren::rasterizeAtoms(target, viewport, params, a_out, atoms_light.elements);
+		xen::sren::RasterizationContext cntx = {};
+		xen::Aabb2r viewport_r = xen::cast<xen::Aabb2r>(viewport);
+		cntx.m_matrix        = Mat4r::Identity; // points already in world space
+		cntx.vp_matrix       = xen::getViewProjectionMatrix(params.camera, viewport);
+		cntx.viewport        = &viewport_r;
+		cntx.fragment_shader = xen::sren::FragmentShader_AllWhite;
+		cntx.target          = &target;
+		xen::sren::rasterizePointsModel(cntx,
+		                                a_out.atoms.elements,
+		                                nullptr,
+		                                a_out.atoms.size
+		                                );
 
 		xen::sren::renderCameraDebug(target, viewport,
 		                             params.camera, test_params.camera,

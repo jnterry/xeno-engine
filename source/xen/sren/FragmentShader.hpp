@@ -104,6 +104,11 @@ namespace xen {
 		/// Performs very basic lighting
 		extern FragmentShader DefaultFragmentShader;
 
+		// :TODO: make names consitant...
+
+		/// \brief Fragment shader which just renderes everything as white
+		extern FragmentShader FragmentShader_AllWhite;
+
 	}
 }
 
