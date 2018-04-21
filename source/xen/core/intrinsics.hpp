@@ -10,7 +10,8 @@
 #ifndef XEN_CORE_INTRINSICS_HPP
 #define XEN_CORE_INTRINSICS_HPP
 
-#include <stdint.h>
+#include <cfloat>
+#include <cstdint>
 #include <cmath>
 #include <cstdio>
 
@@ -93,6 +94,16 @@ typedef  intptr_t sptr;
 #endif
 
 namespace xen{
+
+	// :TODO: replace all uses of FLT_MAX or DBL_MAX with these...
+	#ifdef XEN_USE_DOUBLE_PRECISION
+	static const constexpr real RealMax = DBL_MAX;
+	static const constexpr real RealMin = DBL_MIN;
+	#else
+	static const constexpr real RealMax = FLT_MAX;
+	static const constexpr real RealMin = FLT_MIN;
+	#endif
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Base class for types which should not be able to be copied
 	/////////////////////////////////////////////////////////////////////
