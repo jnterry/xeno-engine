@@ -26,6 +26,10 @@ if(XEN_STRICT_COMPILE)
 	 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /w44302")         # conversion from larger to smaller type
 
   elseif(CMAKE_COMPILER_IS_GNUCC OR CMAKE_COMPILER_IS_GNUCXX)
-	 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-long-long -pedantic")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -pedantic")      # enable all warnings
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-long-long")       # don't warn for long long type
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function") # don't warn for cpp file contiaining unused functions
+
+
   endif()
 endif()
