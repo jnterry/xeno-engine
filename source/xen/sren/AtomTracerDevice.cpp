@@ -12,6 +12,7 @@
 #include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/math/vector.hpp>
+#include <xen/math/angle.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/intrinsics.hpp>
 
@@ -225,7 +226,206 @@ AtomizerOutput& atomizeScene(const xen::Aabb2u& viewport,
 	result->atoms.size     = xen::ptrDiff(arena.next_byte, cur_pos) / sizeof(Vec3r);
   arena.next_byte = cur_pos;
 
+	#if 0
+  printf("Atomised scene into %li atoms\n", a_out.atoms.size);
+  for(u32 i = 0; i < xen::size(a_out.boxes); ++i){
+	  printf("  Box %i, bounds: (%8f, %8f, %8f) -> (%8f, %8f, %8f)\n",
+	         i,
+	         a_out.boxes[i].bounds.min.x,
+	         a_out.boxes[i].bounds.min.y,
+	         a_out.boxes[i].bounds.min.z,
+	         a_out.boxes[i].bounds.max.x,
+	         a_out.boxes[i].bounds.max.y,
+	         a_out.boxes[i].bounds.max.z
+	         );
+	  printf("    start: %8lu, end: %8lu\n", a_out.boxes[i].start, a_out.boxes[i].end);
+  }
+	#endif
+
 	return *result;
+}
+
+struct RayPointIntersection {
+	/// \brief The index of the point in the array that the ray collided with
+	u64   index;
+
+	/// \brief The distance along the ray at which the intersection occurred
+	/// IE: intersection point is ray.origin + ray.direction * t
+	real  t;
+};
+
+bool intersectRayPoints(xen::Ray3r ray,
+                        Vec3r* points, u64 point_count,
+                        RayPointIntersection& result){
+
+	const real sphere_radius    = 0.01_r;
+	const real sphere_radius_sq = sphere_radius * sphere_radius;
+
+	result.t = xen::RealMax;
+
+	for(u64 i = 0; i < point_count; ++i){
+		// https://gamedev.stackexchange.com/a/96487
+
+		Vec3r m = ray.origin - points[i];
+		real  b = xen::dot(m, ray.direction);
+		real  c = xen::dot(m, m) - sphere_radius_sq;
+
+		if(c > 0.0f && b > 0.0f){ continue; }
+
+		// We have effectively combined equation for sphere and for ray,
+		// yielding quadratic, if discriminant is < 0 then no solutions
+		// so bail out
+		real discriminant = b*b - c;
+		if(discriminant < 0.0f){ continue; }
+
+		real t = -b - xen::sqrt(discriminant);
+
+		// If t less than 0 then ray started inside sphere, clamp to 0
+		if(t <= 0.0_r){
+			result.t           = 0.0_r;
+			result.index = i;
+			return true; // we can't get closer than 0
+		}
+
+		if(t < result.t){
+			result.t           = t;
+			result.index = i;
+		}
+	}
+
+	return result.t < xen::RealMax;
+}
+
+
+/////////////////////////////////////////////////////////////////////
+/// \brief Rasterizes some set of atoms onto the screen
+/////////////////////////////////////////////////////////////////////
+void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
+                    const xen::Aabb2u& viewport,
+                    const xen::RenderParameters3d& params,
+                    const AtomizerOutput& a_out,
+                    const Vec3r* atoms_light
+                   ){
+	///////////////////////////////////////////////////////////////////////////
+	// Get camera related data
+	xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
+	xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
+	Mat4r vp_matrix = xen::getViewProjectionMatrix(params.camera, view_region.max - view_region.min);
+
+	///////////////////////////////////////////////////////////////////////////
+	// Rasterizer the points on screen
+	for(u64 atom_index = 0; atom_index < xen::size(a_out.atoms); ++atom_index){
+		Vec4r point_clip  = xen::toHomo(a_out.atoms[atom_index]) * vp_matrix;
+
+		if(point_clip.x <= -point_clip.w ||
+		   point_clip.x >=  point_clip.w ||
+		   point_clip.y <= -point_clip.w ||
+		   point_clip.y >=  point_clip.w ||
+		   point_clip.z <= -point_clip.w ||
+		   point_clip.z >=  point_clip.w){
+			// Then point is not in view of the camera
+			continue;
+		}
+
+		Vec3r point_screen = _convertToScreenSpace(point_clip, view_region);
+
+		if(point_screen.x < 0 || point_screen.x > target.width ||
+		   point_screen.y < 0 || point_screen.y > target.height){
+			continue;
+		}
+
+		u32 pixel_index = (u32)point_screen.y * target.width + (u32)point_screen.x;
+
+		if (point_screen.z > target.depth[pixel_index]){
+			// Then point is behind something else occupying this pixel
+			continue;
+		}
+
+		target.depth[pixel_index]     = point_clip.z;
+		target.color[pixel_index].rgb = atoms_light[atom_index];//xen::Color::WHITE4f;
+	}
+}
+
+void raytraceAtoms(xen::sren::RenderTargetImpl& target,
+                   const xen::Aabb2u& viewport,
+                   const xen::RenderParameters3d& params,
+                   const AtomizerOutput& a_out,
+                   const Vec3r* atoms_light,
+                   const xen::Aabb2u& rendering_bounds){
+
+	xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
+	xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
+	Vec2s       target_size = (Vec2s)xen::getSize(view_region);
+
+	xen::Angle fov_y = params.camera.fov_y;
+	xen::Angle fov_x = params.camera.fov_y * ((real)target_size.y / (real)target_size.x);
+
+	// Compute the local axes of the camera
+	Vec3r cam_zaxis = params.camera.look_dir;
+	Vec3r cam_xaxis = xen::cross(params.camera.look_dir, params.camera.up_dir);
+	Vec3r cam_yaxis = xen::cross(cam_xaxis, cam_zaxis);
+
+	// Compute distance between pixels on the image plane in world space using
+	// a bit of trig
+	//            xm
+	//         _______
+	//         |     /
+	//         |    /
+	//  z_near |   /
+	//         |  /
+	//         | /
+	//         |/ angle = fov_x / target_width
+	//
+	// In a typical scene the camera is usually at a +ve z position looking in
+	// the -ve z direction. In camera space however we assume that the camera is
+	// looking down its own local z axis, IE, in a +ve z direction. Flipping 1
+	// axis without flipping others is a change from right-handed world space
+	// top left-handed camera space, hence the - in front of x but not y
+	//
+	// see: notes.terry.cloud/cs/graphics/handedness-cameras-and-mirrors
+	// for details
+	Vec3r image_plane_center = (params.camera.position +
+	                            cam_zaxis * params.camera.z_near
+	                           );
+
+	Vec3r image_plane_pixel_offset_x = -(xen::normalized(cam_xaxis) *
+	                                     xen::tan(fov_x / (real)target_size.x) * params.camera.z_near
+	                                     );
+	Vec3r image_plane_pixel_offset_y = (xen::normalized(cam_yaxis) *
+	                                    xen::tan(fov_y / (real)target_size.y) * params.camera.z_near
+	                                    );
+
+	//////////////////////////////////////////////////////////////////////////
+	// Loop over all pixels
+	Vec2u target_pos;
+	RayPointIntersection intersection = {};
+	for(target_pos.x = rendering_bounds.min.x; target_pos.x < rendering_bounds.max.x; ++target_pos.x) {
+		for(target_pos.y = rendering_bounds.min.y; target_pos.y < rendering_bounds.max.y; ++target_pos.y) {
+			/////////////////////////////////////////////////////////////////////
+			// Compute where the ray would intersect the image plane
+			Vec2r center_offset = ((Vec2r)target_size / 2.0_r) - (Vec2r)target_pos;
+			Vec3r image_plane_position =
+				image_plane_center +
+				center_offset.x * image_plane_pixel_offset_x +
+				center_offset.y * image_plane_pixel_offset_y;
+
+			/////////////////////////////////////////////////////////////////////
+			// Construct the primary ray
+			xen::Ray3r primary_ray;
+			primary_ray.origin    = image_plane_position;;
+			primary_ray.direction = xen::normalized(image_plane_position - params.camera.position);
+
+			if(!intersectRayPoints(primary_ray, a_out.atoms.elements, a_out.atoms.size, intersection)){
+				continue;
+			}
+
+			xen::Color4f pixel_color;
+			pixel_color.rgb = atoms_light[intersection.index];
+			pixel_color.a   = 1.0f;
+			Vec2u pixel_coord = target_pos + (Vec2u)view_region.min;
+			target.color[pixel_coord.y*target.width + pixel_coord.x] = pixel_color;
+		}
+	}
 }
 
 class AtomTracerDevice : public xen::sren::SoftwareDeviceBase {
@@ -279,22 +479,6 @@ public:
 		                                     mesh_store, frame_scratch
 		                                    );
 
-		#if 0
-		printf("Atomised scene into %li atoms\n", a_out.atoms.size);
-		for(u32 i = 0; i < xen::size(a_out.boxes); ++i){
-			printf("  Box %i, bounds: (%8f, %8f, %8f) -> (%8f, %8f, %8f)\n",
-			       i,
-			       a_out.boxes[i].bounds.min.x,
-			       a_out.boxes[i].bounds.min.y,
-			       a_out.boxes[i].bounds.min.z,
-			       a_out.boxes[i].bounds.max.x,
-			       a_out.boxes[i].bounds.max.y,
-			       a_out.boxes[i].bounds.max.z
-			      );
-			printf("    start: %8lu, end: %8lu\n", a_out.boxes[i].start, a_out.boxes[i].end);
-		}
-		#endif
-
 		///////////////////////////////////////////////////////////////////////////
 		// Perform first lighting pass
 		xen::Array<Vec3f> atoms_light;
@@ -313,44 +497,8 @@ public:
 			}
 		}
 
-		///////////////////////////////////////////////////////////////////////////
-		// Get camera related data
-	  xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
-		xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
-		Mat4r vp_matrix = xen::getViewProjectionMatrix(params.camera, view_region.max - view_region.min);
-
-		///////////////////////////////////////////////////////////////////////////
-		// Rasterizer the points on screen
-		for(u64 atom_index = 0; atom_index < xen::size(a_out.atoms); ++atom_index){
-			Vec4r point_clip  = xen::toHomo(a_out.atoms[atom_index]) * vp_matrix;
-
-			if(point_clip.x <= -point_clip.w ||
-			   point_clip.x >=  point_clip.w ||
-			   point_clip.y <= -point_clip.w ||
-			   point_clip.y >=  point_clip.w ||
-			   point_clip.z <= -point_clip.w ||
-			   point_clip.z >=  point_clip.w){
-				// Then point is not in view of the camera
-				continue;
-			}
-
-			Vec3r point_screen = _convertToScreenSpace(point_clip, view_region);
-
-			if(point_screen.x < 0 || point_screen.x > target.width ||
-			   point_screen.y < 0 || point_screen.y > target.height){
-				continue;
-			}
-
-			u32 pixel_index = (u32)point_screen.y * target.width + (u32)point_screen.x;
-
-			if (point_screen.z > target.depth[pixel_index]){
-				// Then point is behind something else occupying this pixel
-				continue;
-			}
-
-			target.depth[pixel_index]     = point_clip.z;
-			target.color[pixel_index].rgb = atoms_light[atom_index];//xen::Color::WHITE4f;
-		}
+		//rasterizeAtoms(target, viewport, params, a_out, atoms_light.elements);
+		raytraceAtoms(target, viewport, params, a_out, atoms_light.elements, viewport);
 	}
 };
 
