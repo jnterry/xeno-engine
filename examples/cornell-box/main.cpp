@@ -89,13 +89,12 @@ void initSceneLights(){
 	scene_lights[0].type           = xen::LightSource3d::POINT;
 	scene_lights[0].point.position = Vec3r{0.0_r, 1.0_r, 0.0_r};
 	scene_lights[0].color          = xen::Color::WHITE4f;
-	scene_lights[0].color.a        = 0.2f;
+	scene_lights[0].color.a        = 0.4f;
 	scene_lights[0].attenuation    = {0.0f, 0.0f, 2.0f};
 
 	scene_lights[1].type           = xen::LightSource3d::POINT;
-	scene_lights[1].point.position = Vec3r{0.0_r, 0.5_r, 0.0_r};
 	scene_lights[1].color          = xen::Color::RED4f;
-	scene_lights[1].color.a        = 0.05f;
+	scene_lights[1].color.a        = 0.1f;
 	scene_lights[1].attenuation    = {0.0f, 0.0f, 2.0f};
 
 	render_params.ambient_light = xen::Color3f(0.1f, 0.1f, 0.1f);
