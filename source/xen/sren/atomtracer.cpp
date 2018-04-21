@@ -78,16 +78,16 @@ Vec3r _convertToScreenSpace(const Vec4r in_clip,
 namespace xen {
 namespace sren {
 
-AtomizerOutput& atomizeScene(const Aabb2u& viewport,
+AtomScene& atomizeScene(const Aabb2u& viewport,
                              const RenderParameters3d& params,
                              const Array<RenderCommand3d>& commands,
                              MeshStore<RasterizerMesh>& mesh_store,
                              ArenaLinear& arena,
                              real pixels_per_atom){
 
-	AtomizerOutput* result = xen::reserveType<AtomizerOutput>(arena);
+	AtomScene* result = xen::reserveType<AtomScene>(arena);
 
-	result->boxes.elements = xen::reserveTypeArray<AtomizerOutput::Box>(arena, xen::size(commands));
+	result->boxes.elements = xen::reserveTypeArray<AtomScene::Box>(arena, xen::size(commands));
 	result->boxes.size     = xen::size(commands);
 
 	Vec3r cam_pos       = params.camera.position;
@@ -103,7 +103,7 @@ AtomizerOutput& atomizeScene(const Aabb2u& viewport,
 
 		first_box_pos = cur_pos;
 
-		AtomizerOutput::Box& box = result->boxes[cmd_index];
+	  AtomScene::Box& box = result->boxes[cmd_index];
 		box.bounds = xen::getTransformed(mesh->bounds, cmd.model_matrix);
 		box.start  = first_box_pos - first_pos;
 
@@ -238,18 +238,18 @@ AtomizerOutput& atomizeScene(const Aabb2u& viewport,
   arena.next_byte = cur_pos;
 
 	#if 0
-  printf("Atomised scene into %li atoms\n", a_out.atoms.size);
-  for(u32 i = 0; i < xen::size(a_out.boxes); ++i){
+  printf("Atomised scene into %li atoms\n", ascene.atoms.size);
+  for(u32 i = 0; i < xen::size(ascene.boxes); ++i){
 	  printf("  Box %i, bounds: (%8f, %8f, %8f) -> (%8f, %8f, %8f)\n",
 	         i,
-	         a_out.boxes[i].bounds.min.x,
-	         a_out.boxes[i].bounds.min.y,
-	         a_out.boxes[i].bounds.min.z,
-	         a_out.boxes[i].bounds.max.x,
-	         a_out.boxes[i].bounds.max.y,
-	         a_out.boxes[i].bounds.max.z
+	         ascene.boxes[i].bounds.min.x,
+	         ascene.boxes[i].bounds.min.y,
+	         ascene.boxes[i].bounds.min.z,
+	         ascene.boxes[i].bounds.max.x,
+	         ascene.boxes[i].bounds.max.y,
+	         ascene.boxes[i].bounds.max.z
 	         );
-	  printf("    start: %8lu, end: %8lu\n", a_out.boxes[i].start, a_out.boxes[i].end);
+	  printf("    start: %8lu, end: %8lu\n", ascene.boxes[i].start, ascene.boxes[i].end);
   }
 	#endif
 
@@ -305,7 +305,7 @@ bool intersectRayPoints(xen::Ray3r ray,
 void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
                     const xen::Aabb2u& viewport,
                     const xen::RenderParameters3d& params,
-                    const AtomizerOutput& a_out,
+                    const AtomScene& ascene,
                     const Vec3r* atoms_light
                    ){
 	///////////////////////////////////////////////////////////////////////////
@@ -316,8 +316,8 @@ void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
 
 	///////////////////////////////////////////////////////////////////////////
 	// Rasterizer the points on screen
-	for(u64 atom_index = 0; atom_index < xen::size(a_out.atoms); ++atom_index){
-		Vec4r point_clip  = xen::toHomo(a_out.atoms[atom_index]) * vp_matrix;
+	for(u64 atom_index = 0; atom_index < xen::size(ascene.atoms); ++atom_index){
+		Vec4r point_clip  = xen::toHomo(ascene.atoms[atom_index]) * vp_matrix;
 
 		if(point_clip.x <= -point_clip.w ||
 		   point_clip.x >=  point_clip.w ||
@@ -360,7 +360,7 @@ void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
 void raytraceAtoms(xen::sren::RenderTargetImpl& target,
                    const xen::Aabb2u& viewport,
                    const xen::RenderParameters3d& params,
-                   const AtomizerOutput& a_out,
+                   const AtomScene& ascene,
                    const Vec3r* atoms_light,
                    const xen::Aabb2u& rendering_bounds){
 
@@ -426,7 +426,7 @@ void raytraceAtoms(xen::sren::RenderTargetImpl& target,
 			primary_ray.origin    = image_plane_position;;
 			primary_ray.direction = xen::normalized(image_plane_position - params.camera.position);
 
-			if(!intersectRayPoints(primary_ray, a_out.atoms.elements, a_out.atoms.size, intersection)){
+			if(!intersectRayPoints(primary_ray, ascene.atoms.elements, ascene.atoms.size, intersection)){
 				continue;
 			}
 

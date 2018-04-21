@@ -69,31 +69,31 @@ public:
 
 		xen::MemoryTransaction transaction(this->frame_scratch);
 
-		xen::sren::AtomizerOutput& a_out = xen::sren::atomizeScene(viewport, params, commands,
-		                                                           mesh_store, frame_scratch,
-		                                                           2.0_r
-		                                                           );
+		xen::sren::AtomScene& ascene = xen::sren::atomizeScene(viewport, params, commands,
+		                                                       mesh_store, frame_scratch,
+		                                                       2.0_r
+		                                                      );
 
 		///////////////////////////////////////////////////////////////////////////
 		// Perform first lighting pass
 		xen::Array<Vec3f> atoms_light;
-		atoms_light.elements = xen::reserveTypeArray<Vec3f>(frame_scratch, a_out.atoms.size);
-		atoms_light.size     = a_out.atoms.size;
+		atoms_light.elements = xen::reserveTypeArray<Vec3f>(frame_scratch, ascene.atoms.size);
+		atoms_light.size     = ascene.atoms.size;
 
-		for(u64 i = 0; i < xen::size(a_out.atoms); ++i){
+		for(u64 i = 0; i < xen::size(ascene.atoms); ++i){
 			atoms_light[i] = params.ambient_light;
 
 			for(u64 li = 0; li < xen::size(params.lights); ++li){
 				real distance_sq = xen::distanceSq
-                    (a_out.atoms[i], params.lights[li].point.position);
+                    (ascene.atoms[i], params.lights[li].point.position);
 
 				atoms_light[i] += xen::sren::computeLightInfluenceSimple
 					(params.lights[li].color, params.lights[li].attenuation, distance_sq);
 			}
 		}
 
-		xen::sren::rasterizeAtoms(target, viewport, params, a_out, atoms_light.elements);
-		//raytraceAtoms(target, viewport, params, a_out, atoms_light.elements, viewport);
+		xen::sren::rasterizeAtoms(target, viewport, params, ascene, atoms_light.elements);
+		//raytraceAtoms(target, viewport, params, ascene, atoms_light.elements, viewport);
 	}
 };
 

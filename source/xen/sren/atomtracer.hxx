@@ -22,7 +22,7 @@ namespace xen {
 namespace sren {
 
 /// \brief Output data from the scene atomiser
-struct AtomizerOutput {
+struct AtomScene {
 	struct Box {
 		/// \brief The bounding box of this box
 		xen::Aabb3r bounds;
@@ -49,12 +49,12 @@ struct AtomizerOutput {
 /// usually reponsible for. Larger values reduce the number of atoms and
 /// hence increase performance, but decrease visual fidelity
 /////////////////////////////////////////////////////////////////////
-AtomizerOutput& atomizeScene(const xen::Aabb2u& viewport,
-                             const xen::RenderParameters3d& params,
-                             const xen::Array<xen::RenderCommand3d>& commands,
-                             xen::sren::MeshStore<xen::sren::RasterizerMesh>& mesh_store,
-                             xen::ArenaLinear& arena,
-                             real  pixels_per_atom = 1.0_r);
+AtomScene& atomizeScene(const xen::Aabb2u& viewport,
+                        const xen::RenderParameters3d& params,
+                        const xen::Array<xen::RenderCommand3d>& commands,
+                        xen::sren::MeshStore<xen::sren::RasterizerMesh>& mesh_store,
+                        xen::ArenaLinear& arena,
+                        real  pixels_per_atom = 1.0_r);
 
 struct RayPointIntersection {
 	/// \brief The index of the point in the array that the ray collided with
@@ -75,7 +75,7 @@ bool intersectRayPoints(xen::Ray3r ray,
 void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
                     const xen::Aabb2u& viewport,
                     const xen::RenderParameters3d& params,
-                    const AtomizerOutput& a_out,
+                    const AtomScene& a_out,
                     const Vec3r* atoms_light
                    );
 
@@ -85,7 +85,7 @@ void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
 void raytraceAtoms(xen::sren::RenderTargetImpl& target,
                    const xen::Aabb2u& viewport,
                    const xen::RenderParameters3d& params,
-                   const AtomizerOutput& a_out,
+                   const AtomScene& a_out,
                    const Vec3r* atoms_light,
                    const xen::Aabb2u& rendering_bounds);
 

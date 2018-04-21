@@ -85,11 +85,9 @@ public:
 
 		test_params.camera.look_dir = xen::normalized(-test_params.camera.position);
 
-		xen::sren::AtomizerOutput& a_out = xen::sren::atomizeScene(viewport, test_params, commands,
-		                                                           mesh_store, frame_scratch,
-		                                                           3.0f
-		                                                           );
-
+		xen::sren::AtomScene& ascene = xen::sren::atomizeScene(viewport, test_params, commands,
+		                                                       mesh_store, frame_scratch,
+		                                                       3.0f);
 
 		xen::sren::RasterizationContext cntx = {};
 		xen::Aabb2r viewport_r = xen::cast<xen::Aabb2r>(viewport);
@@ -99,15 +97,13 @@ public:
 		cntx.fragment_shader = xen::sren::FragmentShader_AllWhite;
 		cntx.target          = &target;
 		xen::sren::rasterizePointsModel(cntx,
-		                                a_out.atoms.elements,
+		                                ascene.atoms.elements,
 		                                nullptr,
-		                                a_out.atoms.size
+		                                ascene.atoms.size
 		                                );
 
 		xen::sren::renderCameraDebug(target, viewport,
-		                             params.camera, test_params.camera,
-		                             2
-		                            );
+		                             params.camera, test_params.camera, 2);
 	}
 };
 
