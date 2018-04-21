@@ -13,8 +13,10 @@
 #include <xen/math/geometry.hpp>
 #include <xen/math/vector.hpp>
 #include <xen/math/angle.hpp>
+#include <xen/math/quaternion.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/intrinsics.hpp>
+#include <xen/core/time.hpp>
 
 #include <xen/sren/FragmentShader.hpp>
 #include "rasterizer3d.hxx"
@@ -100,7 +102,7 @@ AtomizerOutput& atomizeScene(const xen::Aabb2u& viewport,
 	result->boxes.size     = xen::size(commands);
 
 	Vec3r cam_pos       = params.camera.position;
-	real  fov_per_pixel = params.camera.fov_y.radians / (viewport.max.y - viewport.min.y);
+	real  tan_fov_per_pixel = xen::tan(params.camera.fov_y / (viewport.max.y - viewport.min.y));
 
 	Vec3r* const first_pos       = (Vec3r*)arena.next_byte;
 	Vec3r*       first_box_pos   = (Vec3r*)arena.next_byte;
@@ -161,10 +163,12 @@ AtomizerOutput& atomizeScene(const xen::Aabb2u& viewport,
 
 				for(real cur_e1 = 0; cur_e1 <= 1; cur_e1 += deltaE1){
 					for(real cur_e2 = 0; cur_e2 <= (1 - cur_e1); cur_e2 += deltaE2){
+						//printf("deltaE1: %f, deltaE2: %f\n", deltaE1, deltaE2);
 
 						*cur_pos = p0 + (cur_e1 * e1) + (cur_e2 * e2);
 
 						real cam_dist = cam_dist_p0 + (cur_e1 * e1_cam_dist) + (cur_e2 * e2_cam_dist);
+						cam_dist = cam_dist * cam_dist;
 
 						// We want our delta between atoms to be roughly equal to the
 						// distance in world space between pixels projected onto the
@@ -183,11 +187,10 @@ AtomizerOutput& atomizeScene(const xen::Aabb2u& viewport,
 						//
 						// Hence tan(a) = d/z
 						// d = z*tan(a)
-						// Using small angle approximation, d = z * a
-						real delta = (cam_dist * fov_per_pixel);
+						real delta = cam_dist * tan_fov_per_pixel;
 
 						// We can adjust quality by increasing delta by some amount
-						delta *= 5; // This places atoms every 3 pixels
+						delta *= 1; // This places atoms every 3 pixels
 
 						// Work out how far to step along the edge between 0 and 1
 						// by doing distance_we_want_to_step / length_of_edge
@@ -329,8 +332,10 @@ void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
 
 		Vec3r point_screen = _convertToScreenSpace(point_clip, view_region);
 
-		for(s32 dy = -2; dy <= 2; ++dy){
-			for(s32 dx = -2; dx <= 2; ++dx){
+		//for(s32 dy = -2; dy <= 2; ++dy){
+		//	for(s32 dx = -2; dx <= 2; ++dx){
+		for(s32 dy = 0; dy <= 0; ++dy){
+			for(s32 dx = 0; dx <=0; ++dx){
 				if(point_screen.x + dx < 0 || point_screen.x + dx > target.width ||
 				   point_screen.y + dy < 0 || point_screen.y + dy > target.width
 				   ){
@@ -441,6 +446,8 @@ private:
 
 	xen::ArenaLinear frame_scratch;
 
+	xen::Stopwatch stopwatch;
+
 public:
 	~AtomTracerDevice(){
 		this->mesh_store.destroyAllMeshes();
@@ -482,7 +489,12 @@ public:
 
 		xen::MemoryTransaction transaction(this->frame_scratch);
 
-		AtomizerOutput& a_out = atomizeScene(viewport, params, commands,
+		xen::RenderParameters3d test_params = params;
+		test_params.camera.position = xen::rotated
+			(Vec3r{5, 1, 0}, Vec3r::UnitY, xen::asSeconds<real>(stopwatch.getElapsedTime()) * 90_deg);
+		test_params.camera.look_dir = xen::normalized(-test_params.camera.position);
+
+		AtomizerOutput& a_out = atomizeScene(viewport, test_params, commands,
 		                                     mesh_store, frame_scratch
 		                                    );
 
@@ -492,6 +504,7 @@ public:
 		atoms_light.elements = xen::reserveTypeArray<Vec3f>(frame_scratch, a_out.atoms.size);
 		atoms_light.size     = a_out.atoms.size;
 
+		#if 0
 		for(u64 i = 0; i < xen::size(a_out.atoms); ++i){
 			atoms_light[i] = params.ambient_light;
 
@@ -503,6 +516,11 @@ public:
 					(params.lights[li].color, params.lights[li].attenuation, distance_sq);
 			}
 		}
+		#else
+		for(u64 i = 0; i < xen::size(a_out.atoms); ++i){
+			atoms_light[i] = xen::Color::WHITE4f.rgb;
+		}
+		#endif
 
 		rasterizeAtoms(target, viewport, params, a_out, atoms_light.elements);
 		//raytraceAtoms(target, viewport, params, a_out, atoms_light.elements, viewport);
