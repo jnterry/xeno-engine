@@ -329,20 +329,27 @@ void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
 
 		Vec3r point_screen = _convertToScreenSpace(point_clip, view_region);
 
-		if(point_screen.x < 0 || point_screen.x > target.width ||
-		   point_screen.y < 0 || point_screen.y > target.height){
-			continue;
+		for(s32 dy = -2; dy <= 2; ++dy){
+			for(s32 dx = -2; dx <= 2; ++dx){
+				if(point_screen.x + dx < 0 || point_screen.x + dx > target.width ||
+				   point_screen.y + dy < 0 || point_screen.y + dy > target.width
+				   ){
+					continue;
+				}
+
+				u32 pixel_index = ((u32)(point_screen.y + dy) * target.width +
+				                   (u32)(point_screen.x + dx)
+				                  );
+
+				if (point_screen.z > target.depth[pixel_index]){
+					// Then point is behind something else occupying this pixel
+					continue;
+				}
+
+				target.depth[pixel_index]     = point_clip.z;
+				target.color[pixel_index].rgb = atoms_light[atom_index];//xen::Color::WHITE4f;
+			}
 		}
-
-		u32 pixel_index = (u32)point_screen.y * target.width + (u32)point_screen.x;
-
-		if (point_screen.z > target.depth[pixel_index]){
-			// Then point is behind something else occupying this pixel
-			continue;
-		}
-
-		target.depth[pixel_index]     = point_clip.z;
-		target.color[pixel_index].rgb = atoms_light[atom_index];//xen::Color::WHITE4f;
 	}
 }
 
@@ -488,7 +495,7 @@ public:
 		for(u64 i = 0; i < xen::size(a_out.atoms); ++i){
 			atoms_light[i] = params.ambient_light;
 
-            for(u64 li = 0; li < xen::size(params.lights); ++li){
+			for(u64 li = 0; li < xen::size(params.lights); ++li){
 				real distance_sq = xen::distanceSq
                     (a_out.atoms[i], params.lights[li].point.position);
 
@@ -497,8 +504,8 @@ public:
 			}
 		}
 
-		//rasterizeAtoms(target, viewport, params, a_out, atoms_light.elements);
-		raytraceAtoms(target, viewport, params, a_out, atoms_light.elements, viewport);
+		rasterizeAtoms(target, viewport, params, a_out, atoms_light.elements);
+		//raytraceAtoms(target, viewport, params, a_out, atoms_light.elements, viewport);
 	}
 };
 
