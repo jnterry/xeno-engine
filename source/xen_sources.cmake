@@ -83,11 +83,14 @@ set(XEN_HEADERS_GRAPHICS
 set(XEN_SOURCES_SREN
   ${CMAKE_CURRENT_LIST_DIR}/xen/sren/raytracer3d.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/rasterizer3d.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/atomtracer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/render-utilities.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/SoftwareDeviceBase.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RaytracerDevice.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RaytracerDebugDevice.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RasterizerDevice.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/AtomTracerDevice.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/AtomTracerDebugDevice.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RenderTargetImpl.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/Framebuffer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/post_processors/InvertColors.cpp
@@ -107,6 +110,7 @@ set(XEN_HEADERS_SREN
   ${CMAKE_CURRENT_LIST_DIR}/xen/sren/rasterizer3d.hxx
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/raytracer3d.hxx
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/rasterizer3d.hxx
+	${CMAKE_CURRENT_LIST_DIR}/xen/sren/atomtracer.hxx
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/render-utilities.hxx
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/RenderTargetImpl.hxx
 	${CMAKE_CURRENT_LIST_DIR}/xen/sren/FragmentShader.hpp

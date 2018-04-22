@@ -23,9 +23,11 @@ int main(int argc, char** argv){
 	render_params.camera.look_dir = -Vec3r::UnitZ;
 	render_params.camera.position =  Vec3r{0, 0, 10};
 
-	pp_displayDepthBuffer.z_near = render_params.camera.z_near;
-	pp_displayDepthBuffer.z_far  = render_params.camera.z_far;
-	pp_displayDepthBuffer.alpha  = 0.8f;
+	pp_displayDepthBuffer.z_near   = render_params.camera.z_near;
+	pp_displayDepthBuffer.z_far    = render_params.camera.z_far;
+	pp_displayDepthBuffer.alpha    = 0.8f;
+	pp_displayDepthBuffer.disabled = true;
+	pp_antialias.disabled          = true;
 
 	ExampleApplication app = createApplication("triangle-test",
 	                                           ExampleApplication::Backend::RASTERIZER,

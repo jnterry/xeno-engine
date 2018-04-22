@@ -57,10 +57,28 @@ xen::Color4f _defaultFragmentShader(const xen::sren::FragmentUniforms& uniforms,
 	return result;
 }
 
+xen::Color4f _fragmentShaderAllWhite(const xen::sren::FragmentUniforms& uniforms,
+                                     Vec3r                              pos_world,
+                                     Vec3r                              normal_world,
+                                     xen::Color4f                       color,
+                                     Vec2f                              uvs){
+	return xen::Color::WHITE4f;
+}
+
+xen::Color4f _fragmentShaderDiffuseColor(const xen::sren::FragmentUniforms& uniforms,
+                                     Vec3r                              pos_world,
+                                     Vec3r                              normal_world,
+                                     xen::Color4f                       color,
+                                     Vec2f                              uvs){
+	return uniforms.diffuse_color;
+}
+
 namespace xen {
 namespace sren {
 
-FragmentShader DefaultFragmentShader = &_defaultFragmentShader;
+FragmentShader DefaultFragmentShader       = &_defaultFragmentShader;
+FragmentShader FragmentShader_AllWhite     = &_fragmentShaderAllWhite;
+FragmentShader FragmentShader_DiffuseColor = &_fragmentShaderDiffuseColor;
 
 xen::Color3f computeLightInfluencePhong(Vec3r        light_pos,
                                         xen::Color4f light_color,
