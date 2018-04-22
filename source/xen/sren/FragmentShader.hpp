@@ -109,6 +109,9 @@ namespace xen {
 		/// \brief Fragment shader which just renderes everything as white
 		extern FragmentShader FragmentShader_AllWhite;
 
+		/// \brief Fragment shader which just renderes everything as its diffuse color
+		extern FragmentShader FragmentShader_DiffuseColor;
+
 	}
 }
 
