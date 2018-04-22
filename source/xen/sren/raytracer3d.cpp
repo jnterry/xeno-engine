@@ -284,7 +284,7 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 
 						// Don't shoot directly from the surface or we may intersect
 						// ourselves. Push the origin out slightly
-						shadow_ray.origin += shadow_ray.direction * 0.005_r;
+						shadow_ray.origin += shadow_ray.direction * 0.0001_r;
 
 						real light_dist_sq = xen::distanceSq(params.lights[i].point.position,
 						                                     intersection.pos_world
