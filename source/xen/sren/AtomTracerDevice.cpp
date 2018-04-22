@@ -74,25 +74,9 @@ public:
 		                                                       2.0_r
 		                                                      );
 
-		///////////////////////////////////////////////////////////////////////////
-		// Perform first lighting pass
-		xen::Array<Vec3f> atoms_light;
-		atoms_light.elements = xen::reserveTypeArray<Vec3f>(frame_scratch, ascene.atom_count);
-		atoms_light.size     = ascene.atom_count;
+		xen::sren::computeLighting(ascene, frame_scratch, params);
 
-		for(u64 i = 0; i < ascene.atom_count; ++i){
-			atoms_light[i] = params.ambient_light;
-
-			for(u64 li = 0; li < xen::size(params.lights); ++li){
-				real distance_sq = xen::distanceSq
-                    (ascene.positions[i], params.lights[li].point.position);
-
-				atoms_light[i] += xen::sren::computeLightInfluenceSimple
-					(params.lights[li].color, params.lights[li].attenuation, distance_sq);
-			}
-		}
-
-		xen::sren::rasterizeAtoms(target, viewport, params, ascene, atoms_light.elements);
+		xen::sren::rasterizeAtoms(target, viewport, params, ascene);
 		//raytraceAtoms(target, viewport, params, ascene, atoms_light.elements, viewport);
 	}
 };

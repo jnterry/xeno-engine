@@ -57,6 +57,9 @@ struct AtomScene {
 	/// \brief The locations of atoms in the scene
   Vec3r* positions;
 
+	/// \brief The lighting applied to each atom
+	Color3f* lighting;
+
 	/// \brief Boxes that divide up the world's atoms spatially
 	xen::Array<Box>   boxes;
 
@@ -69,6 +72,7 @@ struct AtomScene {
 	/// \brief The depth of the splitting of the scene
 	u32 split_count;
 
+	/// \brief The number of atoms in the scene
 	AtomIndex atom_count;
 };
 
@@ -101,13 +105,19 @@ bool intersectRayPoints(xen::Ray3r ray,
                         RayPointIntersection& result);
 
 /////////////////////////////////////////////////////////////////////
+/// \brief Computes the lighting for an atom scene
+/////////////////////////////////////////////////////////////////////
+void computeLighting(xen::sren::AtomScene&          ascene,
+                     xen::ArenaLinear&              arena,
+                     const xen::RenderParameters3d& params);
+
+/////////////////////////////////////////////////////////////////////
 /// \brief Rasterizes some set of atoms onto the screen
 /////////////////////////////////////////////////////////////////////
 void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
                     const xen::Aabb2u& viewport,
                     const xen::RenderParameters3d& params,
-                    const AtomScene& ascene,
-                    const Vec3r* atoms_light
+                    const AtomScene& ascene
                    );
 
 /////////////////////////////////////////////////////////////////////

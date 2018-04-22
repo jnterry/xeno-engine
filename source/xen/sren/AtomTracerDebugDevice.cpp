@@ -87,7 +87,7 @@ public:
 
 		xen::sren::AtomScene& ascene = xen::sren::atomizeScene(viewport, test_params, commands,
 		                                                       mesh_store, frame_scratch,
-                                                               1.0f);
+		                                                       3.0f);
 
 		//////////////////////////////////////////////////////
 		// Render the actual atoms
@@ -98,13 +98,15 @@ public:
 		cntx.viewport        = &viewport_r;
 		cntx.fragment_shader = xen::sren::FragmentShader_DiffuseColor;
 		cntx.target          = &target;
+		cntx.diffuse_color   = xen::Color::WHITE4f;
 
-		/*		xen::sren::rasterizePointsModel(cntx,
+		#if 0
+		xen::sren::rasterizePointsModel(cntx,
 		                                ascene.positions,
 		                                nullptr,
 		                                ascene.atom_count
-		                                );*/
-
+		                               );
+		#else
 		for(u32 i = 0; i < ascene.boxes.size; ++i){
 			if(ascene.boxes[i].end <= ascene.boxes[i].start){
 				continue;
@@ -124,6 +126,7 @@ public:
 			                                ascene.boxes[i].end - ascene.boxes[i].start
 			                                );
 		}
+		#endif
 
 
 		//////////////////////////////////////////////////////

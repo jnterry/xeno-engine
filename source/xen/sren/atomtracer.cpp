@@ -466,6 +466,52 @@ bool intersectRayPoints(xen::Ray3r ray,
 	return result.t < xen::RealMax;
 }
 
+void computeLighting(xen::sren::AtomScene&          ascene,
+                     xen::ArenaLinear&              arena,
+                     const xen::RenderParameters3d& params){
+
+	ascene.lighting= xen::reserveTypeArray<Color3f>(arena, ascene.atom_count);
+
+
+	///////////////////////////////////////////////////////////
+	// Do first pass of lighting, IE: send photons from light sources
+	// to the atoms
+	for(u64 i = 0; i < ascene.atom_count; ++i){
+		ascene.lighting[i] = params.ambient_light;
+
+		for(u64 li = 0; li < xen::size(params.lights); ++li){
+			real distance_sq = xen::distanceSq
+				(ascene.positions[i], params.lights[li].point.position);
+
+			ascene.lighting[i] += xen::sren::computeLightInfluenceSimple
+				(params.lights[li].color, params.lights[li].attenuation, distance_sq);
+		}
+	}
+
+	///////////////////////////////////////////////////////////
+	// Do subsequent lighting passes, IE: send photons from atoms to atoms
+	/*for(u32 pass_index = 0; pass_index < 1; ++pass_index){
+		for(u32 boxi = 0; boxi < ascene.boxes.size; ++boxi){
+
+			if(ascene.boxes[boxi].end <= ascene.boxes[boxi].start){ continue; }
+
+
+			for(u32 ai1 = ascene.boxes[boxi].start; ai1 < ascene.boxes[boxi].end; ++ai1){
+				for(u32 ai2 = 0; ai2 < ai1; ++ai2){
+					real dist_sq = xen::distanceSq(ascene.positions[ai1],
+					                               ascene.positions[ai2]);
+
+					Color3f orig_ai1 = ascene.lighting[ai1];
+					Color3f orig_ai2 = ascene.lighting[ai2];
+
+					ascene.lighting[ai1] += orig_ai2 / dist_sq;
+					ascene.lighting[ai2] += orig_ai1 / dist_sq;
+				}
+			}
+		}
+		}*/
+}
+
 
 /////////////////////////////////////////////////////////////////////
 /// \brief Rasterizes some set of atoms onto the screen
@@ -473,8 +519,7 @@ bool intersectRayPoints(xen::Ray3r ray,
 void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
                     const xen::Aabb2u& viewport,
                     const xen::RenderParameters3d& params,
-                    const AtomScene& ascene,
-                    const Vec3r* atoms_light
+                    const AtomScene& ascene
                    ){
 	///////////////////////////////////////////////////////////////////////////
 	// Get camera related data
@@ -519,7 +564,7 @@ void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
 				}
 
 				target.depth[pixel_index]     = point_clip.z;
-				target.color[pixel_index].rgb = atoms_light[atom_index];
+				target.color[pixel_index].rgb = ascene.lighting[atom_index];
 			}
 		}
 	}
