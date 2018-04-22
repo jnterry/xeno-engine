@@ -107,16 +107,21 @@ private:
 		context.viewport        = &viewport_r;
 		context.fragment_shader = xen::sren::DefaultFragmentShader;
 		context.vp_matrix       = vp_matrix;
-        context.m_matrix        = Mat4r::Identity;
+		context.m_matrix        = Mat4r::Identity;
 		*(xen::RenderParameters3d*)(&context) = params;
 		context.textures[0]     = nullptr;
 		context.textures[1]     = nullptr;
 		context.textures[2]     = nullptr;
 		context.textures[3]     = nullptr;
+		context.ambient_light   = xen::Color::WHITE4f.rgb;
 
 		/////////////////////////////////////////////////
 		// Render the scene geometry
 		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
+			context.diffuse_color      = commands[cmd_index].color;
+			context.emissive_color     = commands[cmd_index].emissive_color;
+			context.specular_exponent  = commands[cmd_index].specular_exponent;
+			context.specular_intensity = commands[cmd_index].specular_intensity;
 			rasterizeMesh(context,
 			              commands[cmd_index].primitive_type,
 			              *this->mesh_store.getMesh(commands[cmd_index].mesh));
