@@ -21,24 +21,67 @@
 namespace xen {
 namespace sren {
 
+struct ZOrder {
+	enum Values {
+		// DO NOT RE-ORDER THESE WITHOUT CHANGING _zorderSplit function
+		// -> any maybe other places...
+		// Back is defined to be low z
+		BACK_TOP_LEFT       = 0,
+		BACK_TOP_RIGHT      = 1,
+		BACK_BOTTOM_LEFT    = 2,
+		BACK_BOTTOM_RIGHT   = 3,
+
+		FRONT_TOP_LEFT      = 4,
+		FRONT_TOP_RIGHT     = 5,
+		FRONT_BOTTOM_LEFT   = 6,
+		FRONT_BOTTOM_RIGHT  = 7,
+
+		END                 = 8,
+	};
+};
+
+struct ZOrderTreeNode {
+	xen::Aabb3r bounds;
+
+	/// \brief The first point in this node of the tree
+	Vec3r* start;
+
+	/// \brief The first point past the last point in this node of the tree
+	Vec3r* end;
+
+	ZOrderTreeNode* children[8];
+};
+
 /// \brief Output data from the scene atomiser
 struct AtomScene {
+	typedef u32 AtomIndex;
 	struct Box {
 		/// \brief The bounding box of this box
 		xen::Aabb3r bounds;
 
 		/// \brief The index of the first atom in this box
-		u64    start;
+		AtomIndex    start;
 
 		/// \brief The index one past the last atom in this box
-		u64    end;
+		AtomIndex    end;
 	};
 
 	/// \brief The locations of atoms in the scene
-	xen::Array<Vec3r> atoms;
+  Vec3r* positions;
 
 	/// \brief Boxes that divide up the world's atoms spatially
 	xen::Array<Box>   boxes;
+
+	/// \brief The full bounding box of the scene
+	Aabb3r bounds;
+
+	/// \brief The size of each box in the scene
+	Vec3r box_size;
+
+	/// \brief The depth of the splitting of the scene
+	u32 split_count;
+
+	AtomIndex atom_count;
 };
 
 /////////////////////////////////////////////////////////////////////

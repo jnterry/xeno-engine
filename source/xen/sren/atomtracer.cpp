@@ -73,39 +73,30 @@ Vec3r _convertToScreenSpace(const Vec4r in_clip,
 	return out_screen;
 }
 
-} // end of anon namespace
-
-namespace xen {
-namespace sren {
-
-AtomScene& atomizeScene(const Aabb2u& viewport,
-                             const RenderParameters3d& params,
-                             const Array<RenderCommand3d>& commands,
-                             MeshStore<RasterizerMesh>& mesh_store,
-                             ArenaLinear& arena,
-                             real pixels_per_atom){
-
-	AtomScene* result = xen::reserveType<AtomScene>(arena);
-
-	result->boxes.elements = xen::reserveTypeArray<AtomScene::Box>(arena, xen::size(commands));
-	result->boxes.size     = xen::size(commands);
-
+xen::sren::AtomScene& _breakSceneIntoAtoms
+( const xen::Aabb2u&                               viewport,
+  const xen::RenderParameters3d&                   params,
+  const xen::Array<xen::RenderCommand3d>&          commands,
+  xen::sren::MeshStore<xen::sren::RasterizerMesh>& mesh_store,
+  xen::ArenaLinear&                                arena,
+  real                                             pixels_per_atom
+)
+{
 	Vec3r cam_pos       = params.camera.position;
 	real  tan_fov_per_pixel = xen::tan(params.camera.fov_y / (viewport.max.y - viewport.min.y));
 
-	Vec3r* const first_pos       = (Vec3r*)arena.next_byte;
-	Vec3r*       first_box_pos   = (Vec3r*)arena.next_byte;
-	Vec3r*       cur_pos         = (Vec3r*)arena.next_byte;
+	auto result        = xen::reserveType<xen::sren::AtomScene>(arena);
+	result->bounds     = xen::Aabb3r::MaxMinBox;
+	result->positions  = (Vec3r*)arena.next_byte;
+	Vec3r* cur_pos     = result->positions;
 
 	for(u32 cmd_index = 0; cmd_index < xen::size(commands); ++cmd_index){
 		const xen::RenderCommand3d&      cmd  = commands[cmd_index];
 		const xen::sren::RasterizerMesh* mesh = mesh_store.getMesh(cmd.mesh);
 
-		first_box_pos = cur_pos;
-
-	  AtomScene::Box& box = result->boxes[cmd_index];
-		box.bounds = xen::getTransformed(mesh->bounds, cmd.model_matrix);
-		box.start  = first_box_pos - first_pos;
+		xen::Aabb3r mesh_bounds = xen::getTransformed(mesh->bounds, cmd.model_matrix);
+		xen::addPoint(result->bounds, mesh_bounds.min);
+		xen::addPoint(result->bounds, mesh_bounds.max);
 
 		u32 stride = 2;
 		switch(cmd.primitive_type){
@@ -129,6 +120,25 @@ AtomScene& atomizeScene(const Aabb2u& viewport,
 				Vec3r p2 = xen::fromHomo(xen::toHomo(mesh->position[i+2]) * cmd.model_matrix);
 
 				// We can now compute the distances to each of the triangle's vertices
+				//
+				// :TODO: this broken if the camera is in the middle of a triangle, eg
+				// floating over the flat floor
+				// EG:
+				//    +-----+
+				//    |    /
+				//    | . /
+				//    |  /
+				//    | /
+				//    |/
+				//    +
+				// Camera is at the . in center of triangle, hence the distance to each
+				// vertex is some positive value, however near the camera the distance
+				// should be basically 0. This leads us to producing too few atoms for
+				// the triangle leaving holes when rendering
+				//
+				// If we let the distance be negative if behind the camera this would
+				// work, since we would lerp from -ve to +ve and hence reach 0 distance
+				// when right next to the camera...
 				real cam_dist_p0 = xen::distance(p0, cam_pos);
 				real cam_dist_p1 = xen::distance(p1, cam_pos);
 				real cam_dist_p2 = xen::distance(p2, cam_pos);
@@ -229,12 +239,10 @@ AtomScene& atomizeScene(const Aabb2u& viewport,
 			}
 			break;
 		}
-
-		box.end = cur_pos - first_pos;
 	}
 
-	result->atoms.elements = (Vec3r*)arena.next_byte;
-	result->atoms.size     = xen::ptrDiff(arena.next_byte, cur_pos) / sizeof(Vec3r);
+	result->positions  = (Vec3r*)arena.next_byte;
+	result->atom_count = xen::ptrDiff(arena.next_byte, cur_pos) / sizeof(Vec3r);
   arena.next_byte = cur_pos;
 
 	#if 0
@@ -254,6 +262,203 @@ AtomScene& atomizeScene(const Aabb2u& viewport,
 	#endif
 
 	return *result;
+}
+
+/////////////////////////////////////////////////////////////////////
+/// \brief Splits a set of points on some plane based on a threshold
+///
+/// \param start The first point to sort
+/// \param end   Pointer to vector just past the last point to sort
+///
+/// \param dimension Which dimension of the points to examine, 0 for x,
+/// 1 for y, 2 for z
+///
+/// \param threshold The threshold value about which the split will occur
+/// All those points with the selected dimension of less than the threshold
+/// will be placed at the start of the array, all those with less than the
+/// selected dimension will be placed at the end
+///
+/// \return Pointer to first point with the specified dimension
+/// being greater than or equal to the threshold
+/// Those with dimension <  threshold will run from [start,     returnval - 1]
+/// Those with dimension >= threshold will run from [returnval, end       - 1]
+/////////////////////////////////////////////////////////////////////
+Vec3r* _splitPointsOnPlane(Vec3r* const start, Vec3r* const end,
+                           u32 dimension, real threshold){
+	Vec3r* cur_front = start;
+	Vec3r* cur_back  = end-1;
+
+	Vec3r tmp;
+	while(cur_front < cur_back){
+		while((*cur_front)[dimension] <  threshold){ ++cur_front; }
+		while((*cur_back )[dimension] >= threshold){ --cur_back;  }
+
+		tmp = *cur_front;
+		*cur_front = *cur_back;
+		*cur_back = tmp;
+
+		++cur_front;
+		--cur_back;
+	}
+
+	// This is first element >= to the threshold
+	return cur_front;
+}
+
+struct ZOrderedPoints {
+	// We split a bounding box into 8 smaller bounding boxes and use the z-curve
+	// ordering to arange the points such that spatially local points are near
+	// each other in the linear array
+	//
+	// The splits array holds a pointer to the first point in each of the 8 blocks
+	// It should be assumed that a block runs from splits[n] to splits[n+1]-1
+	// The semantic meaning of each split is given by the Splits enum
+	Vec3r* splits[9];
+};
+
+/////////////////////////////////////////////////////////////////////
+/// \brief Sorts a continous list of points into z ordered bins
+/// \param start  Pointer to the first point to sort
+/// \param end    Pointer just past the last point to sort
+/// \param bounds The full bounding box of the points to sort
+/////////////////////////////////////////////////////////////////////
+ZOrderedPoints _zorderSplit(Vec3r* const start, Vec3r* const end, xen::Aabb3r bounds){
+	ZOrderedPoints result;
+	result.splits[0] = start;
+	result.splits[8] = end;
+
+	Vec3r bound_half = bounds.min + ((bounds.max - bounds.min) / 2.0_r);
+
+	// Split the points into two halves based on their z index
+	result.splits[4] = _splitPointsOnPlane(result.splits[0], result.splits[8], 2, bound_half.z);
+
+	// Split each of the z_split groups along y
+	result.splits[2] = _splitPointsOnPlane(result.splits[0], result.splits[4], 1, bound_half.y);
+	result.splits[6] = _splitPointsOnPlane(result.splits[4], result.splits[8], 1, bound_half.y);
+
+	// Split each of those groups along x
+	result.splits[1] = _splitPointsOnPlane(result.splits[0], result.splits[2], 0, bound_half.x);
+	result.splits[3] = _splitPointsOnPlane(result.splits[2], result.splits[4], 0, bound_half.x);
+	result.splits[5] = _splitPointsOnPlane(result.splits[4], result.splits[6], 0, bound_half.x);
+	result.splits[7] = _splitPointsOnPlane(result.splits[6], result.splits[8], 0, bound_half.x);
+
+	return result;
+}
+
+} // end of anon namespace
+
+void _splitZOrderTreeNode(xen::ArenaLinear& node_arena,
+                          xen::sren::ZOrderTreeNode*  node){
+
+	ZOrderedPoints zordered = _zorderSplit(node->start, node->end, node->bounds);
+
+	for(u32 i = 0; i < 8; ++i){
+		node->children[i] = xen::reserveType<xen::sren::ZOrderTreeNode>(node_arena);
+
+		node->children[i]->start = zordered.splits[i+0];
+		node->children[i]->end   = zordered.splits[i+1];
+	}
+
+	Vec3r b_a = node->bounds.min;
+	Vec3r b_b = node->bounds.min;
+	Vec3r b_c = b_a + ((b_c - b_a) / 2.0_r);
+
+	xen::sren::ZOrderTreeNode** cs = node->children;
+
+	// For back nodes, z is always a -> b
+	cs[xen::sren::ZOrder::BACK_TOP_LEFT      ]->bounds.min.z = b_a.z;
+	cs[xen::sren::ZOrder::BACK_TOP_LEFT      ]->bounds.max.z = b_b.z;
+	cs[xen::sren::ZOrder::BACK_TOP_RIGHT     ]->bounds.min.z = b_a.z;
+	cs[xen::sren::ZOrder::BACK_TOP_RIGHT     ]->bounds.max.z = b_b.z;
+	cs[xen::sren::ZOrder::BACK_BOTTOM_RIGHT  ]->bounds.min.z = b_a.z;
+	cs[xen::sren::ZOrder::BACK_BOTTOM_RIGHT  ]->bounds.max.z = b_b.z;
+	cs[xen::sren::ZOrder::BACK_BOTTOM_LEFT   ]->bounds.min.z = b_a.z;
+	cs[xen::sren::ZOrder::BACK_BOTTOM_LEFT   ]->bounds.max.z = b_b.z;
+
+	// For front nodes, z is always b -> c
+	cs[xen::sren::ZOrder::FRONT_TOP_LEFT     ]->bounds.min.z = b_b.z;
+	cs[xen::sren::ZOrder::FRONT_TOP_LEFT     ]->bounds.max.z = b_c.z;
+	cs[xen::sren::ZOrder::FRONT_TOP_RIGHT    ]->bounds.min.z = b_b.z;
+	cs[xen::sren::ZOrder::FRONT_TOP_RIGHT    ]->bounds.max.z = b_c.z;
+	cs[xen::sren::ZOrder::FRONT_BOTTOM_RIGHT ]->bounds.min.z = b_b.z;
+	cs[xen::sren::ZOrder::FRONT_BOTTOM_RIGHT ]->bounds.max.z = b_c.z;
+	cs[xen::sren::ZOrder::FRONT_BOTTOM_LEFT  ]->bounds.min.z = b_b.z;
+	cs[xen::sren::ZOrder::FRONT_BOTTOM_LEFT  ]->bounds.max.z = b_c.z;
+
+	// For bottom nodes y is always a -> b
+	cs[xen::sren::ZOrder::BACK_BOTTOM_LEFT   ]->bounds.min.y = b_a.y;
+	cs[xen::sren::ZOrder::BACK_BOTTOM_LEFT   ]->bounds.max.y = b_b.y;
+	cs[xen::sren::ZOrder::BACK_BOTTOM_RIGHT  ]->bounds.min.y = b_a.y;
+	cs[xen::sren::ZOrder::BACK_BOTTOM_RIGHT  ]->bounds.max.y = b_b.y;
+	cs[xen::sren::ZOrder::FRONT_BOTTOM_LEFT  ]->bounds.min.y = b_a.y;
+	cs[xen::sren::ZOrder::FRONT_BOTTOM_LEFT  ]->bounds.max.y = b_b.y;
+	cs[xen::sren::ZOrder::FRONT_BOTTOM_RIGHT ]->bounds.min.y = b_a.y;
+	cs[xen::sren::ZOrder::FRONT_BOTTOM_RIGHT ]->bounds.max.y = b_b.y;
+
+	// For top nodes y is always b -> c
+	cs[xen::sren::ZOrder::BACK_TOP_LEFT      ]->bounds.min.y = b_b.y;
+	cs[xen::sren::ZOrder::BACK_TOP_LEFT      ]->bounds.max.y = b_c.y;
+	cs[xen::sren::ZOrder::BACK_TOP_RIGHT     ]->bounds.min.y = b_b.y;
+	cs[xen::sren::ZOrder::BACK_TOP_RIGHT     ]->bounds.max.y = b_c.y;
+	cs[xen::sren::ZOrder::FRONT_TOP_LEFT     ]->bounds.min.y = b_b.y;
+	cs[xen::sren::ZOrder::FRONT_TOP_LEFT     ]->bounds.max.y = b_c.y;
+	cs[xen::sren::ZOrder::FRONT_TOP_RIGHT    ]->bounds.min.y = b_b.y;
+	cs[xen::sren::ZOrder::FRONT_TOP_RIGHT    ]->bounds.max.y = b_c.y;
+
+	// For right nodes x is always b -> c
+	cs[xen::sren::ZOrder::BACK_TOP_RIGHT     ]->bounds.min.x = b_a.x;
+	cs[xen::sren::ZOrder::BACK_TOP_RIGHT     ]->bounds.max.x = b_b.x;
+	cs[xen::sren::ZOrder::BACK_BOTTOM_RIGHT  ]->bounds.min.x = b_a.x;
+	cs[xen::sren::ZOrder::BACK_BOTTOM_RIGHT  ]->bounds.max.x = b_b.x;
+	cs[xen::sren::ZOrder::FRONT_TOP_RIGHT    ]->bounds.min.x = b_a.x;
+	cs[xen::sren::ZOrder::FRONT_TOP_RIGHT    ]->bounds.max.x = b_b.x;
+	cs[xen::sren::ZOrder::FRONT_BOTTOM_RIGHT ]->bounds.min.x = b_a.x;
+	cs[xen::sren::ZOrder::FRONT_BOTTOM_RIGHT ]->bounds.max.x = b_b.x;
+
+	// For left nodes x is always a -> b
+	cs[xen::sren::ZOrder::BACK_TOP_LEFT      ]->bounds.min.x = b_a.x;
+	cs[xen::sren::ZOrder::BACK_TOP_LEFT      ]->bounds.max.x = b_b.x;
+	cs[xen::sren::ZOrder::BACK_BOTTOM_LEFT   ]->bounds.min.x = b_a.x;
+	cs[xen::sren::ZOrder::BACK_BOTTOM_LEFT   ]->bounds.max.x = b_b.x;
+	cs[xen::sren::ZOrder::FRONT_TOP_LEFT     ]->bounds.min.x = b_a.x;
+	cs[xen::sren::ZOrder::FRONT_TOP_LEFT     ]->bounds.max.x = b_b.x;
+	cs[xen::sren::ZOrder::FRONT_BOTTOM_LEFT  ]->bounds.min.x = b_a.x;
+	cs[xen::sren::ZOrder::FRONT_BOTTOM_LEFT  ]->bounds.max.x = b_b.x;
+
+	// For right nodes x is always b -> c
+	cs[xen::sren::ZOrder::BACK_TOP_RIGHT     ]->bounds.min.x = b_a.x;
+	cs[xen::sren::ZOrder::BACK_TOP_RIGHT     ]->bounds.max.x = b_b.x;
+	cs[xen::sren::ZOrder::BACK_BOTTOM_RIGHT  ]->bounds.min.x = b_a.x;
+	cs[xen::sren::ZOrder::BACK_BOTTOM_RIGHT  ]->bounds.max.x = b_b.x;
+	cs[xen::sren::ZOrder::FRONT_TOP_RIGHT    ]->bounds.min.x = b_a.x;
+	cs[xen::sren::ZOrder::FRONT_TOP_RIGHT    ]->bounds.max.x = b_b.x;
+	cs[xen::sren::ZOrder::FRONT_BOTTOM_RIGHT ]->bounds.min.x = b_a.x;
+	cs[xen::sren::ZOrder::FRONT_BOTTOM_RIGHT ]->bounds.max.x = b_b.x;
+}
+
+namespace xen {
+namespace sren {
+
+AtomScene& atomizeScene(const Aabb2u& viewport,
+                        const RenderParameters3d& params,
+                        const Array<RenderCommand3d>& commands,
+                        MeshStore<RasterizerMesh>& mesh_store,
+                        ArenaLinear& arena,
+                        real pixels_per_atom){
+
+	AtomScene& result = _breakSceneIntoAtoms(viewport, params, commands,
+	                                         mesh_store, arena,
+	                                         pixels_per_atom);
+
+	ZOrderTreeNode* root = xen::reserveType<ZOrderTreeNode>(arena);
+
+	root->bounds = result.bounds;
+	root->start  = &result.positions[0                  ];
+	root->end    = &result.positions[result.atom_count-1];
+
+    _splitZOrderTreeNode(arena, root);
+
+	return result;
 }
 
 bool intersectRayPoints(xen::Ray3r ray,
@@ -316,8 +521,8 @@ void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
 
 	///////////////////////////////////////////////////////////////////////////
 	// Rasterizer the points on screen
-	for(u64 atom_index = 0; atom_index < xen::size(ascene.atoms); ++atom_index){
-		Vec4r point_clip  = xen::toHomo(ascene.atoms[atom_index]) * vp_matrix;
+	for(u32 atom_index = 0; atom_index < ascene.atom_count; ++atom_index){
+		Vec4r point_clip  = xen::toHomo(ascene.positions[atom_index]) * vp_matrix;
 
 		if(point_clip.x <= -point_clip.w ||
 		   point_clip.x >=  point_clip.w ||
@@ -351,7 +556,7 @@ void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
 				}
 
 				target.depth[pixel_index]     = point_clip.z;
-				target.color[pixel_index].rgb = atoms_light[atom_index];//xen::Color::WHITE4f;
+				target.color[pixel_index]     = xen::Color::WHITE4f;
 			}
 		}
 	}
@@ -426,7 +631,10 @@ void raytraceAtoms(xen::sren::RenderTargetImpl& target,
 			primary_ray.origin    = image_plane_position;;
 			primary_ray.direction = xen::normalized(image_plane_position - params.camera.position);
 
-			if(!intersectRayPoints(primary_ray, ascene.atoms.elements, ascene.atoms.size, intersection)){
+			if(!intersectRayPoints(primary_ray,
+			                       ascene.positions, ascene.atom_count,
+			                       intersection
+			                      )){
 				continue;
 			}
 
@@ -439,7 +647,6 @@ void raytraceAtoms(xen::sren::RenderTargetImpl& target,
 	}
 }
 
-}
-}
-
+} // end of namespace sren
+} // end of namespace xen
 #endif

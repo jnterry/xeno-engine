@@ -97,9 +97,9 @@ public:
 		cntx.fragment_shader = xen::sren::FragmentShader_AllWhite;
 		cntx.target          = &target;
 		xen::sren::rasterizePointsModel(cntx,
-		                                ascene.atoms.elements,
+		                                ascene.positions,
 		                                nullptr,
-		                                ascene.atoms.size
+		                                ascene.atom_count
 		                                );
 
 		xen::sren::renderCameraDebug(target, viewport,
