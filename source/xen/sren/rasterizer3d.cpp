@@ -169,7 +169,7 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 	//https://www.cs.virginia.edu/luther/blog/posts/492.html
 	real num_pixels = xen::max(abs(line_screen.p1.x - line_screen.p2.x),
 	                           abs(line_screen.p1.y - line_screen.p2.y)
-	                           );
+	                          );
 
 	Vec3r delta_screen = (line_screen.p2 - line_screen.p1) / num_pixels;
 	Vec3r cur_screen   = line_screen.p1;
@@ -439,6 +439,7 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 				xen::Color4f color        = evaluateBarycentricCoordinates(colors,           bary);
 				Vec3r        pos_world    = evaluateBarycentricCoordinates(tri_world,        bary);
 				Vec3r        normal_world = evaluateBarycentricCoordinates(tri_normal_world, bary);
+				Vec2f        uvs          = evaluateBarycentricCoordinates(tri_uvs,          bary);
 
 				// Correct for perspective correct interpolation
 				// https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/perspective-correct-interpolation-vertex-attributes
