@@ -40,18 +40,6 @@ struct ZOrder {
 	};
 };
 
-struct ZOrderTreeNode {
-	xen::Aabb3r bounds;
-
-	/// \brief The first point in this node of the tree
-	Vec3r* start;
-
-	/// \brief The first point past the last point in this node of the tree
-	Vec3r* end;
-
-	ZOrderTreeNode* children[8];
-};
-
 /// \brief Output data from the scene atomiser
 struct AtomScene {
 	typedef u32 AtomIndex;
@@ -118,7 +106,7 @@ bool intersectRayPoints(xen::Ray3r ray,
 void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
                     const xen::Aabb2u& viewport,
                     const xen::RenderParameters3d& params,
-                    const AtomScene& a_out,
+                    const AtomScene& ascene,
                     const Vec3r* atoms_light
                    );
 

@@ -10,6 +10,7 @@
 #define XEN_SREN_ATOMTRACER_CPP
 
 #include "atomtracer.hxx"
+#include "render-utilities.hxx"
 
 #include <xen/math/geometry.hpp>
 #include <xen/math/vector.hpp>
@@ -283,19 +284,22 @@ xen::sren::AtomScene& _breakSceneIntoAtoms
 /// Those with dimension <  threshold will run from [start,     returnval - 1]
 /// Those with dimension >= threshold will run from [returnval, end       - 1]
 /////////////////////////////////////////////////////////////////////
-Vec3r* _splitPointsOnPlane(Vec3r* const start, Vec3r* const end,
-                           u32 dimension, real threshold){
-	Vec3r* cur_front = start;
-	Vec3r* cur_back  = end-1;
+xen::sren::AtomScene::AtomIndex
+_splitPointsOnPlane(xen::sren::AtomScene& scene,
+                    xen::sren::AtomScene::AtomIndex start,
+                    xen::sren::AtomScene::AtomIndex end,
+                    u32 dimension, real threshold
+                   ){
+	xen::sren::AtomScene::AtomIndex cur_front = start;
+	xen::sren::AtomScene::AtomIndex cur_back  = end-1;
+	//printf("Split points on plane between %u and %u\n", cur_front, cur_back);
 
 	Vec3r tmp;
 	while(cur_front < cur_back){
-		while((*cur_front)[dimension] <  threshold){ ++cur_front; }
-		while((*cur_back )[dimension] >= threshold){ --cur_back;  }
+		while(cur_front <  end   && scene.positions[cur_front][dimension] <  threshold){ ++cur_front; }
+		while(cur_back  >= start && scene.positions[cur_back ][dimension] >= threshold){ --cur_back;  }
 
-		tmp = *cur_front;
-		*cur_front = *cur_back;
-		*cur_back = tmp;
+		xen::swap(scene.positions[cur_front], scene.positions[cur_back]);
 
 		++cur_front;
 		--cur_back;
@@ -305,136 +309,87 @@ Vec3r* _splitPointsOnPlane(Vec3r* const start, Vec3r* const end,
 	return cur_front;
 }
 
-struct ZOrderedPoints {
+void _zorderSortPoints(xen::sren::AtomScene& ascene,
+                       u32 start, u32 end,
+                       u32 depth, u32 root_index,
+                       xen::Aabb3r bounds
+                       ){
+
+	///////////////////////////////////////////////////////////
+	// Re-order the points into z-order
+
 	// We split a bounding box into 8 smaller bounding boxes and use the z-curve
 	// ordering to arange the points such that spatially local points are near
 	// each other in the linear array
 	//
-	// The splits array holds a pointer to the first point in each of the 8 blocks
+	// The splits array holds the index of the first point in each of the 8 blocks.
 	// It should be assumed that a block runs from splits[n] to splits[n+1]-1
-	// The semantic meaning of each split is given by the Splits enum
-	Vec3r* splits[9];
-};
+	// The semantic meaning of each split is given by the ZOrder enum
+	u32 splits[9];
 
-/////////////////////////////////////////////////////////////////////
-/// \brief Sorts a continous list of points into z ordered bins
-/// \param start  Pointer to the first point to sort
-/// \param end    Pointer just past the last point to sort
-/// \param bounds The full bounding box of the points to sort
-/////////////////////////////////////////////////////////////////////
-ZOrderedPoints _zorderSplit(Vec3r* const start, Vec3r* const end, xen::Aabb3r bounds){
-	ZOrderedPoints result;
-	result.splits[0] = start;
-	result.splits[8] = end;
+  splits[0] = start;
+  splits[8] = end;
 
 	Vec3r bound_half = bounds.min + ((bounds.max - bounds.min) / 2.0_r);
 
 	// Split the points into two halves based on their z index
-	result.splits[4] = _splitPointsOnPlane(result.splits[0], result.splits[8], 2, bound_half.z);
+  splits[4] = _splitPointsOnPlane(ascene, splits[0], splits[8], 2, bound_half.z);
 
 	// Split each of the z_split groups along y
-	result.splits[2] = _splitPointsOnPlane(result.splits[0], result.splits[4], 1, bound_half.y);
-	result.splits[6] = _splitPointsOnPlane(result.splits[4], result.splits[8], 1, bound_half.y);
+  splits[2] = _splitPointsOnPlane(ascene, splits[0], splits[4], 1, bound_half.y);
+  splits[6] = _splitPointsOnPlane(ascene, splits[4], splits[8], 1, bound_half.y);
 
 	// Split each of those groups along x
-	result.splits[1] = _splitPointsOnPlane(result.splits[0], result.splits[2], 0, bound_half.x);
-	result.splits[3] = _splitPointsOnPlane(result.splits[2], result.splits[4], 0, bound_half.x);
-	result.splits[5] = _splitPointsOnPlane(result.splits[4], result.splits[6], 0, bound_half.x);
-	result.splits[7] = _splitPointsOnPlane(result.splits[6], result.splits[8], 0, bound_half.x);
+  splits[1] = _splitPointsOnPlane(ascene, splits[0], splits[2], 0, bound_half.x);
+  splits[3] = _splitPointsOnPlane(ascene, splits[2], splits[4], 0, bound_half.x);
+  splits[5] = _splitPointsOnPlane(ascene, splits[4], splits[6], 0, bound_half.x);
+  splits[7] = _splitPointsOnPlane(ascene, splits[6], splits[8], 0, bound_half.x);
 
-	return result;
+
+  ///////////////////////////////////////////////////////////
+  // Work out the bounds of all sub-boxes
+  xen::Aabb3r sub_bounds[8];
+  for(u32 i = 0; i < 8; ++i){
+	  // This computes the offset between the min of the main bounds
+	  // and the min of the sub_bounds
+	  // We use the bottom 3 bits of i to work out whether to shift
+	  // in x, y and z directions respectivly
+	  Vec3r delta = Vec3r::Origin;
+	  delta[0] = ((i >> 0) & 1) * (bounds.max[0] - bounds.min[0]);
+	  delta[1] = ((i >> 1) & 1) * (bounds.max[1] - bounds.min[1]);
+	  delta[2] = ((i >> 2) & 1) * (bounds.max[2] - bounds.min[2]);
+	  delta /= 2.0_r; // :TODO: why is this needed... ??!!
+
+	  sub_bounds[i].min = bounds.min + delta;
+	  sub_bounds[i].max = bound_half + delta;
+  }
+
+
+  ///////////////////////////////////////////////////////////
+  // Check if we've reached the end of the recursive splitting
+  if(depth == 1){
+	  // Then we have done all the spliting we need do
+	  for(u32 i = 0; i < 8; ++i){
+		  ascene.boxes[root_index + i].start  = splits[i + 0];
+		  ascene.boxes[root_index + i].end    = splits[i + 1];
+		  ascene.boxes[root_index + i].bounds = sub_bounds[i];
+	  }
+	  return;
+  }
+
+  ///////////////////////////////////////////////////////////
+  // Otherwise recursively split more...
+  u32 root_index_delta = pow(8, depth-1);
+  for(u32 i = 0; i < 8; ++i){
+	  _zorderSortPoints(ascene,
+	                    splits[i+0], splits[i+1],
+	                    depth-1,
+	                    root_index + root_index_delta * i,
+	                    sub_bounds[i]);
+  }
 }
 
 } // end of anon namespace
-
-void _splitZOrderTreeNode(xen::ArenaLinear& node_arena,
-                          xen::sren::ZOrderTreeNode*  node){
-
-	ZOrderedPoints zordered = _zorderSplit(node->start, node->end, node->bounds);
-
-	for(u32 i = 0; i < 8; ++i){
-		node->children[i] = xen::reserveType<xen::sren::ZOrderTreeNode>(node_arena);
-
-		node->children[i]->start = zordered.splits[i+0];
-		node->children[i]->end   = zordered.splits[i+1];
-	}
-
-	Vec3r b_a = node->bounds.min;
-	Vec3r b_b = node->bounds.min;
-	Vec3r b_c = b_a + ((b_c - b_a) / 2.0_r);
-
-	xen::sren::ZOrderTreeNode** cs = node->children;
-
-	// For back nodes, z is always a -> b
-	cs[xen::sren::ZOrder::BACK_TOP_LEFT      ]->bounds.min.z = b_a.z;
-	cs[xen::sren::ZOrder::BACK_TOP_LEFT      ]->bounds.max.z = b_b.z;
-	cs[xen::sren::ZOrder::BACK_TOP_RIGHT     ]->bounds.min.z = b_a.z;
-	cs[xen::sren::ZOrder::BACK_TOP_RIGHT     ]->bounds.max.z = b_b.z;
-	cs[xen::sren::ZOrder::BACK_BOTTOM_RIGHT  ]->bounds.min.z = b_a.z;
-	cs[xen::sren::ZOrder::BACK_BOTTOM_RIGHT  ]->bounds.max.z = b_b.z;
-	cs[xen::sren::ZOrder::BACK_BOTTOM_LEFT   ]->bounds.min.z = b_a.z;
-	cs[xen::sren::ZOrder::BACK_BOTTOM_LEFT   ]->bounds.max.z = b_b.z;
-
-	// For front nodes, z is always b -> c
-	cs[xen::sren::ZOrder::FRONT_TOP_LEFT     ]->bounds.min.z = b_b.z;
-	cs[xen::sren::ZOrder::FRONT_TOP_LEFT     ]->bounds.max.z = b_c.z;
-	cs[xen::sren::ZOrder::FRONT_TOP_RIGHT    ]->bounds.min.z = b_b.z;
-	cs[xen::sren::ZOrder::FRONT_TOP_RIGHT    ]->bounds.max.z = b_c.z;
-	cs[xen::sren::ZOrder::FRONT_BOTTOM_RIGHT ]->bounds.min.z = b_b.z;
-	cs[xen::sren::ZOrder::FRONT_BOTTOM_RIGHT ]->bounds.max.z = b_c.z;
-	cs[xen::sren::ZOrder::FRONT_BOTTOM_LEFT  ]->bounds.min.z = b_b.z;
-	cs[xen::sren::ZOrder::FRONT_BOTTOM_LEFT  ]->bounds.max.z = b_c.z;
-
-	// For bottom nodes y is always a -> b
-	cs[xen::sren::ZOrder::BACK_BOTTOM_LEFT   ]->bounds.min.y = b_a.y;
-	cs[xen::sren::ZOrder::BACK_BOTTOM_LEFT   ]->bounds.max.y = b_b.y;
-	cs[xen::sren::ZOrder::BACK_BOTTOM_RIGHT  ]->bounds.min.y = b_a.y;
-	cs[xen::sren::ZOrder::BACK_BOTTOM_RIGHT  ]->bounds.max.y = b_b.y;
-	cs[xen::sren::ZOrder::FRONT_BOTTOM_LEFT  ]->bounds.min.y = b_a.y;
-	cs[xen::sren::ZOrder::FRONT_BOTTOM_LEFT  ]->bounds.max.y = b_b.y;
-	cs[xen::sren::ZOrder::FRONT_BOTTOM_RIGHT ]->bounds.min.y = b_a.y;
-	cs[xen::sren::ZOrder::FRONT_BOTTOM_RIGHT ]->bounds.max.y = b_b.y;
-
-	// For top nodes y is always b -> c
-	cs[xen::sren::ZOrder::BACK_TOP_LEFT      ]->bounds.min.y = b_b.y;
-	cs[xen::sren::ZOrder::BACK_TOP_LEFT      ]->bounds.max.y = b_c.y;
-	cs[xen::sren::ZOrder::BACK_TOP_RIGHT     ]->bounds.min.y = b_b.y;
-	cs[xen::sren::ZOrder::BACK_TOP_RIGHT     ]->bounds.max.y = b_c.y;
-	cs[xen::sren::ZOrder::FRONT_TOP_LEFT     ]->bounds.min.y = b_b.y;
-	cs[xen::sren::ZOrder::FRONT_TOP_LEFT     ]->bounds.max.y = b_c.y;
-	cs[xen::sren::ZOrder::FRONT_TOP_RIGHT    ]->bounds.min.y = b_b.y;
-	cs[xen::sren::ZOrder::FRONT_TOP_RIGHT    ]->bounds.max.y = b_c.y;
-
-	// For right nodes x is always b -> c
-	cs[xen::sren::ZOrder::BACK_TOP_RIGHT     ]->bounds.min.x = b_a.x;
-	cs[xen::sren::ZOrder::BACK_TOP_RIGHT     ]->bounds.max.x = b_b.x;
-	cs[xen::sren::ZOrder::BACK_BOTTOM_RIGHT  ]->bounds.min.x = b_a.x;
-	cs[xen::sren::ZOrder::BACK_BOTTOM_RIGHT  ]->bounds.max.x = b_b.x;
-	cs[xen::sren::ZOrder::FRONT_TOP_RIGHT    ]->bounds.min.x = b_a.x;
-	cs[xen::sren::ZOrder::FRONT_TOP_RIGHT    ]->bounds.max.x = b_b.x;
-	cs[xen::sren::ZOrder::FRONT_BOTTOM_RIGHT ]->bounds.min.x = b_a.x;
-	cs[xen::sren::ZOrder::FRONT_BOTTOM_RIGHT ]->bounds.max.x = b_b.x;
-
-	// For left nodes x is always a -> b
-	cs[xen::sren::ZOrder::BACK_TOP_LEFT      ]->bounds.min.x = b_a.x;
-	cs[xen::sren::ZOrder::BACK_TOP_LEFT      ]->bounds.max.x = b_b.x;
-	cs[xen::sren::ZOrder::BACK_BOTTOM_LEFT   ]->bounds.min.x = b_a.x;
-	cs[xen::sren::ZOrder::BACK_BOTTOM_LEFT   ]->bounds.max.x = b_b.x;
-	cs[xen::sren::ZOrder::FRONT_TOP_LEFT     ]->bounds.min.x = b_a.x;
-	cs[xen::sren::ZOrder::FRONT_TOP_LEFT     ]->bounds.max.x = b_b.x;
-	cs[xen::sren::ZOrder::FRONT_BOTTOM_LEFT  ]->bounds.min.x = b_a.x;
-	cs[xen::sren::ZOrder::FRONT_BOTTOM_LEFT  ]->bounds.max.x = b_b.x;
-
-	// For right nodes x is always b -> c
-	cs[xen::sren::ZOrder::BACK_TOP_RIGHT     ]->bounds.min.x = b_a.x;
-	cs[xen::sren::ZOrder::BACK_TOP_RIGHT     ]->bounds.max.x = b_b.x;
-	cs[xen::sren::ZOrder::BACK_BOTTOM_RIGHT  ]->bounds.min.x = b_a.x;
-	cs[xen::sren::ZOrder::BACK_BOTTOM_RIGHT  ]->bounds.max.x = b_b.x;
-	cs[xen::sren::ZOrder::FRONT_TOP_RIGHT    ]->bounds.min.x = b_a.x;
-	cs[xen::sren::ZOrder::FRONT_TOP_RIGHT    ]->bounds.max.x = b_b.x;
-	cs[xen::sren::ZOrder::FRONT_BOTTOM_RIGHT ]->bounds.min.x = b_a.x;
-	cs[xen::sren::ZOrder::FRONT_BOTTOM_RIGHT ]->bounds.max.x = b_b.x;
-}
 
 namespace xen {
 namespace sren {
@@ -446,19 +401,27 @@ AtomScene& atomizeScene(const Aabb2u& viewport,
                         ArenaLinear& arena,
                         real pixels_per_atom){
 
-	AtomScene& result = _breakSceneIntoAtoms(viewport, params, commands,
+	AtomScene& ascene = _breakSceneIntoAtoms(viewport, params, commands,
 	                                         mesh_store, arena,
 	                                         pixels_per_atom);
 
-	ZOrderTreeNode* root = xen::reserveType<ZOrderTreeNode>(arena);
+	// :TODO: compute based on number of atoms?
+	ascene.split_count = 4;
 
-	root->bounds = result.bounds;
-	root->start  = &result.positions[0                  ];
-	root->end    = &result.positions[result.atom_count-1];
+	u32 boxes_per_dim = 1 << ascene.split_count;
 
-    _splitZOrderTreeNode(arena, root);
+	// Allocate space for the boxes
+	ascene.boxes.size     = boxes_per_dim * boxes_per_dim * boxes_per_dim;
+	ascene.boxes.elements = xen::reserveTypeArray<xen::sren::AtomScene::Box>
+		(arena, ascene.boxes.size);
 
-	return result;
+	_zorderSortPoints(ascene,
+	                  0, ascene.atom_count,
+	                  ascene.split_count, 0,
+	                  ascene.bounds
+	                 );
+
+	return ascene;
 }
 
 bool intersectRayPoints(xen::Ray3r ray,
@@ -556,7 +519,7 @@ void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
 				}
 
 				target.depth[pixel_index]     = point_clip.z;
-				target.color[pixel_index]     = xen::Color::WHITE4f;
+				target.color[pixel_index].rgb = atoms_light[atom_index];
 			}
 		}
 	}

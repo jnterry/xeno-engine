@@ -87,21 +87,56 @@ public:
 
 		xen::sren::AtomScene& ascene = xen::sren::atomizeScene(viewport, test_params, commands,
 		                                                       mesh_store, frame_scratch,
-		                                                       3.0f);
+                                                               1.0f);
 
+		//////////////////////////////////////////////////////
+		// Render the actual atoms
 		xen::sren::RasterizationContext cntx = {};
 		xen::Aabb2r viewport_r = xen::cast<xen::Aabb2r>(viewport);
 		cntx.m_matrix        = Mat4r::Identity; // points already in world space
 		cntx.vp_matrix       = xen::getViewProjectionMatrix(params.camera, viewport);
 		cntx.viewport        = &viewport_r;
-		cntx.fragment_shader = xen::sren::FragmentShader_AllWhite;
+		cntx.fragment_shader = xen::sren::FragmentShader_DiffuseColor;
 		cntx.target          = &target;
-		xen::sren::rasterizePointsModel(cntx,
+
+		/*		xen::sren::rasterizePointsModel(cntx,
 		                                ascene.positions,
 		                                nullptr,
 		                                ascene.atom_count
-		                                );
+		                                );*/
 
+		for(u32 i = 0; i < ascene.boxes.size; ++i){
+			if(ascene.boxes[i].end <= ascene.boxes[i].start){
+				continue;
+			}
+			switch(i % 6){
+			case 0: cntx.diffuse_color = {1.0f, 0.0f, 0.0f, 1.0f}; break;
+			case 1: cntx.diffuse_color = {0.0f, 1.0f, 0.0f, 1.0f}; break;
+			case 2: cntx.diffuse_color = {0.0f, 0.0f, 1.0f, 1.0f}; break;
+
+			case 3: cntx.diffuse_color = {1.0f, 0.0f, 1.0f, 1.0f}; break;
+			case 4: cntx.diffuse_color = {1.0f, 1.0f, 0.0f, 1.0f}; break;
+			case 5: cntx.diffuse_color = {0.0f, 1.0f, 1.0f, 1.0f}; break;
+			}
+			xen::sren::rasterizePointsModel(cntx,
+			                                &ascene.positions[ascene.boxes[i].start],
+			                                nullptr,
+			                                ascene.boxes[i].end - ascene.boxes[i].start
+			                                );
+		}
+
+
+		//////////////////////////////////////////////////////
+		// Render bounding boxes of occupied nodes of the oct-tree
+		//for(u32 i = 0; i < ascene.boxes.size; ++i){
+		//	if(ascene.boxes[i].start < ascene.boxes[i].end){
+		//		xen::sren::renderDebugBoundingBox(target, viewport, params.camera,
+		//		                                  ascene.boxes[i].bounds);
+		//	}
+		//}
+
+		//////////////////////////////////////////////////////
+		// Render where the virtual debug camera is located
 		xen::sren::renderCameraDebug(target, viewport,
 		                             params.camera, test_params.camera, 2);
 	}

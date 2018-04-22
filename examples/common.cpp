@@ -41,6 +41,7 @@ ExampleApplication createApplication(const char* window_title,
 		int backend         = 0;
 
 		// change to 0 to disable picking a backend - default_backend will be used
+		//default_backend = ExampleApplication::Backend::ATOMTRACER_DEBUG;
 		#if 1
 		printf("Select graphics backend\n");
 		printf("-----------------------\n");
