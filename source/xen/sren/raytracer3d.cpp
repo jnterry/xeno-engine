@@ -179,11 +179,18 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 	Vec2u target_pos;
 	SceneRayCastResult intersection;
 	SceneRayCastResult shadow_intersection;
-	for(target_pos.x = rendering_bounds.min.x; target_pos.x < rendering_bounds.max.x; ++target_pos.x) {
-		for(target_pos.y = rendering_bounds.min.y; target_pos.y < rendering_bounds.max.y; ++target_pos.y) {
+	for(target_pos.x = rendering_bounds.min.x;
+	    target_pos.x < rendering_bounds.max.x;
+	    ++target_pos.x) {
+		for(target_pos.y = rendering_bounds.min.y;
+		    target_pos.y < rendering_bounds.max.y;
+		    ++target_pos.y) {
 			/////////////////////////////////////////////////////////////////////
 			// Compute where the ray would intersect the image plane
-			Vec2r center_offset = ((Vec2r)target_size / 2.0_r) - (Vec2r)target_pos;
+			Vec2r center_offset = (((Vec2r)target_size / 2.0_r) +
+			                       (Vec2r)view_region.min -
+			                       (Vec2r)target_pos
+			                      );
 			Vec3r image_plane_position =
 				image_plane_center +
 				center_offset.x * image_plane_pixel_offset_x +
@@ -192,7 +199,7 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 			/////////////////////////////////////////////////////////////////////
 			// Construct the primary ray
 			Ray3r primary_ray;
-			primary_ray.origin    = image_plane_position;;
+			primary_ray.origin    = image_plane_position;
 			primary_ray.direction = xen::normalized(image_plane_position - params.camera.position);
 
 			/////////////////////////////////////////////////////////////////////
@@ -323,8 +330,7 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 
 			/////////////////////////////////////////////////////////////////////
 			// Color the pixel
-			Vec2u pixel_coord = target_pos + (Vec2u)view_region.min;
-			target.color[pixel_coord.y*target.width + pixel_coord.x] = pixel_color;
+			target.color[target_pos.y*target.width + target_pos.x] = pixel_color;
 		}
 	}
 } // end of renderRaytrace
