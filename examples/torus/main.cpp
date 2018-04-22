@@ -31,7 +31,7 @@ xen::sren::PostProcessor* post_processors[] = {
 #define CMD_IDX_TOR_B  1
 #define CMD_IDX_FLOOR  2
 #define CMD_IDX_STUDS  3
-#define CMD_IDX_LIGHT  6
+#define CMD_IDX_LIGHT  7
 
 void initRenderCommands(){
 	xen::clearToZero(render_commands);
