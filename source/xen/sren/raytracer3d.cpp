@@ -260,8 +260,12 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 					pixel_color *= evaluateBarycentricCoordinates(ctri, bary);
 				}
 
-				Vec3r pixel_normal_model = nbuf_model[buf_index];
-				pixel_normal_world = xen::normalized(pixel_normal_model * model.model_matrix);
+				xen::Triangle3r* ntri_model = (xen::Triangle3r*)&nbuf_model[buf_index];
+				xen::Triangle3r  ntri_world = *ntri_model * model.model_matrix;
+
+				pixel_normal_world = xen::normalized(evaluateBarycentricCoordinates(ntri_world, bary) *
+				                                     model.model_matrix
+				                                    );
 			}
 
 			// compute light hitting surface at intersection point
@@ -306,7 +310,8 @@ void renderRaytrace (xen::sren::RenderTargetImpl&       target,
 							  light_dist_sq,
 							  params.camera.position,
 							  intersection.pos_world,
-							  pixel_normal_world
+							  pixel_normal_world,
+							  0, 0
 							);
 						#else
 						total_light += xen::sren::computeLightInfluenceSimple
