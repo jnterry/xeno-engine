@@ -189,10 +189,13 @@ xen::Vec<T_DIM, T> operator/(const xen::Vec<T_DIM,T>& lhs, T rhs){
 }
 
 template<typename T>
+xen::Vec<2, T> operator-(const xen::Vec<2,T>& vec){
+	return {-vec.x, -vec.y};
+}
+template<typename T>
 xen::Vec<3, T> operator-(const xen::Vec<3,T>& vec){
 	return {-vec.x, -vec.y, -vec.z};
 }
-
 template<typename T>
 xen::Vec<4, T> operator-(const xen::Vec<4,T>& vec){
 	return {-vec.x, -vec.y, -vec.z, -vec.w};
