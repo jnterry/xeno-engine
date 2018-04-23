@@ -1,3 +1,35 @@
+#+TITLE:
+
+#+OPTIONS: author:nil
+#+OPTIONS: date:nil
+#+OPTIONS: toc:nil
+#+OPTIONS: title:nil
+#+DOCUMENT_CLASS: article
+#+Latex_HEADER: \usepackage[left=0.45in, right=0.45in, top=0.7in, bottom=0.7in]{geometry}
+#+Latex_HEADER: \usepackage{fancyvrb}
+#+Latex_HEADER: \usepackage{multicol}
+#+Latex_HEADER: \usepackage{fancyhdr}
+#+Latex_HEADER: \usepackage{titlesec}
+#+Latex_HEADER: \usepackage{subcaption}
+#+Latex_HEADER: \usepackage{enumitem}
+#+Latex: \setlength{\textfloatsep}{0.1cm}
+#+Latex: \addtolength{\parskip}{-0.5mm}
+
+#+Latex: \titlespacing{\section}{6pt plus 4pt minus 2pt}{5pt plus 2pt minus 2pt}{5pt plus 2pt minus 2pt}
+#+Latex: \def \@evenhead {\thepage Jamie Terry}
+
+#+Latex: \pagestyle{fancy}
+#+Latex: \fancyhf{}
+#+Latex: \rhead{\textbf{Jamie Terry - jt15181, Saxon Zerbino - sz15266}}
+#+Latex: \lhead{\textbf{Graphics Coursework Report}}
+#+Latex: \rfoot{Page \thepage}
+
+#+Latex: \setitemize{noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt,leftmargin=10pt}
+
+#+Latex: \twocolumn
+
+#+Latex: \captionsetup[figure]{labelfont={bf},name={Fig},labelsep=period}
+
 * Introduction
 
 	We have implemented all that was requested for the 50% for both the raytracer and rasterizer. The rest of this document explains how we have expanded on this initial task.
@@ -12,7 +44,7 @@
 
 	- =source/xen= - Contains source code for the engine
 		- =core= - Core utility functions and types not directly related to graphics, eg, memory management
-		- =math= - Implementation of mathematical helper functions and types. *Note that we do not rely on glm, but have implemented our own maths from scratch*
+		- =math= - Implementation of mathematical helper functions and types. Note that we do not rely on glm, but have implemented our own maths from scratch
 		- =graphics= - Definition of the shared graphics interface as well as various helper functions and types (eg, for dealing with colors or images). These do not rely on a particular rendering backend.
 		- =sren= - Stands for "software renderer". Contains implementation of both the software rasterizer and software raytracer backends
 		- =gl= - Contains a proof of concept but feature incomplete OpenGL implementation of the rendering interface
@@ -43,7 +75,7 @@
 	- assimp
 		- Used for loading mesh files
 		- We convert the data into our own data structures during the load process for rendering
-	- stb_image
+	- stb\textunderscore{}image
 		- Reading and writing image files to/from arrays of raw pixel values
 	- thpool
 		- Managing a pool of threads and work queue
@@ -83,20 +115,22 @@
 		 - We also have a demo application which loads an image, applies a (set of) post processor(s) and then saves the result, without creating a window etc
 		 - The post-processing framework is highly flexible, additional effects can be added by implementing the logic in a file within the =/post_processors= subdirectory of =/sren= and then including them within =PostProcessor.hpp=
 		 - We have implemented:
-			 - *Color inversion*
+			 - Color inversion
 				 - This can be visualised in the =post-processing= example executable by loading a static image, performing the process and then exporting the image, although it functions in engine as within engine as with all other post processors
 				 - For example, from the =/bin= directory try running: =./post-processing test.bmp test-out.png=
-			 - *Depth buffer visualisation*
+			 - Depth buffer visualisation
 				 - This can be seen in the =triangle-test= example, where it is responsible for the visualisation in the upper right hand corner
 				 - Press "3" to enable it and "4" to disable it
-			 - *Anti-aliasing*
+			 - Screen space anti-aliasing
 				 - This can be visualised in =triangle-test= example
 				 - Press "1" to enable anti-aliasing, and 2 to disable it
 	       - The following images demonstrate the difference with it enabled vs disabled:
-					 - Enabled: [[file:./antialias_enabled.png]]
-					 - Disabled: [[file:./antialias_disabled.png]]
+					 - Enabled: \\
+             [[file:./antialias_enabled.png]]
+					 - Disabled: \\
+              [[file:./antialias_disabled.png]]
 				 - Our anti-aliasing algorithm is inspired by FXAA, with some approximations made to improve performance as the original algorithm was intended to run on GPU.
-			 - *Depth based fog*
+			 - Depth based fog
 				 - This can be seen in the =cornell-box= executable
 				 - Fog can be enabled with the 'F' key and disabled with the 'G' key.
 				 - Our implementation allows us to specify the maximum and minimum fog depths as well as fog color, this allows us to achieve multiple effects with the same post-processor
@@ -104,11 +138,15 @@
 		 - Floats are used to represent framebuffer pixels for better lighting calculations, but the transformation from floating in range 0-1 to bytes in range 0-255 was taking a lot of CPU time (97% in the starfield demo)
 		 - We used SIMD compiler intrinsics to do all 4 color channels simultaneously
 		 - We used threads to do different regions of the buffer in parallel
-		 - Below are recorded FPS's in various configurations using the software rasterizer:
-       | App         | Baseline | With SIMD | With 4 Threads and SIMD |
-       |-------------+----------+-----------+-------------------------|
-       | Starfield   |      250 |       275 | 330                     |
-       | Cornell Box |      235 |       260 | 285                     |
+		 - Below are recorded FPS's (not on a lab machine) in various configurations using the software rasterizer:
+
+       |                    | Starfield | Cornell Box |
+       |               /    |         < |             |
+       |--------------------+-----------+-------------|
+       | Baseline           |       250 |         235 |
+       | With SIMD          |       275 |         260 |
+       | 4 Threads and SIMD |       330 |         285 |
+
 	 - Mesh System and Loading
 		 - Flexible mesh system which can represent meshes with an arbitrary number of attributes (eg position data, normal data, color data, etc) potentially each having a different type
 		 - Use of assimp library to load mesh files (such as obj)
@@ -129,13 +167,13 @@
 
 	 - Multiple primitive types
 		 - Rasterizer can render lines and points as well as just triangles
-		 - We support: TRIANGLES, LINES, LINE_STRIP, POINTS (as defined by the OpenGL standard - but we have implemented them in software)
-		 - Note that the raytracer backend will fall back to using the rasterizer for all primative types except TRIANGLES since it doesn't make sense to ray trace points or lines which are infinitely thin
+		 - We support: =TRIANGLES=, =LINES=, =LINE_STRIP=, =POINTS= (as defined by the OpenGL standard - but we have implemented them in software)
+		 - Note that the raytracer backend will fall back to using the rasterizer for all primative types except =TRIANGLES= since it doesn't make sense to ray trace points or lines which are infinitely thin
 		 - Point and line rendering is shown in the =starfield= demo
 		 - A demo of changing this dynamically per model can be seen in the =torus= demo by pressing
-			 - 1 -> point cloud
-			 - 2 -> wireframe
-			 - 3 -> triangles
+			 - 1 \rightarrow point cloud
+			 - 2 \rightarrow wireframe
+			 - 3 \rightarrow triangles
 	 - Full clipping pipeline
 		 - All primitive types are clipped by the engine such that the camera can be moved without segfaults, all geometry not in view is not drawn
 		 - Geometry partially on and partially off of the screen is clipped to the viewport
@@ -143,20 +181,20 @@
 		 - The rasterizer runs a "fragment shader" per pixel
 		 - The fragment shader can be changed per model
 		 - In the =torus= demo the fragment shader can be changed by pressing:
-			 - 4 -> display mesh normals
-			 - 5 -> display world positions
-			 - 6 -> display phong lighting
-			 - 7 -> display basic lighting model (the engine's default shader)
+			 - 4 \rightarrow display mesh normals
+			 - 5 \rightarrow display world positions
+			 - 6 \rightarrow display phong lighting
+			 - 7 \rightarrow display basic lighting model (the engine's default shader)
 		 - The =texture-test= demo shows off a fragment shader which implements normal mapping
 	 - Texture mapping and Material Properties
 		 - Models can have up to 4 textures
 		 - These are provided to the fragment shader to do with as it wishes
      - The specular exponent and intensity can be varied on a per model basis
 		 - =texture-text= shows an example of diffuse and normal mapping using textures, press:
-			 - 1 -> bricks (low specular intensity and exponent)
-			 - 2 -> metal (high specular intensity and exponent)
-			 - 9 -> enable normal mapping fragment shader
-			 - 0 -> enable standard phong fragment shader
+			 - 1 \rightarrow bricks (low specular intensity and exponent)
+			 - 2 \rightarrow metal (high specular intensity and exponent)
+			 - 9 \rightarrow enable normal mapping fragment shader
+			 - 0 \rightarrow enable standard phong fragment shader
 
 
 ** Meta Extensions
@@ -169,9 +207,10 @@
 	 - Own math library
 		 - We do not rely on GLM but instead have written all of our own maths from scratch
 	 - OpenGL Backend
-		 - The OpenGL backend is unfinished, it was written as a proof of concept to ensure the Graphics Device API we devised could be used with a proper graphics API
+		 - The OpenGL backend is unfinished, it was written as a proof of concept to ensure the GraphicsDevice interface we devised could be used with a traditional graphics API
 	 - Experimental "AtomTracer" backend
 		 - Again, this backend is unfinished
 		 - The idea was to perform global illumination by breaking the scene into "atoms", sorting them into an efficient search structure and then casting rays between atoms in order to distribute light around the scene, before then rasterizing the points onto the screen
 		 - Breaking the scene into atoms has been implemented, as has some initial work on sorting the atoms into an octree with cells arranged according to the z-order curve in order to improve cache performance by ensuring spatially close points are also close in memory
 		 - Lighting calculations were not finished
+		 - You can test this backend by selecting option 5 or 6 from the backend menu - although expect graphical weirdness and the occasional segfault
