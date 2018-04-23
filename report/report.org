@@ -58,8 +58,6 @@
 
 	Due to the way we have structured this coursework some extensions apply to all rendering backends, and others apply only to specific backends. Below we outline those that apply to each specifically, as well as those extensions which are shared between all rendering backends.
 
-	:TODO: ensure all of these extensions have a reference to which demo application shows them off
-
 ** Shared
 
 	 These are extensions which have been implemented for both the software raytracer and rasterizer.
@@ -73,13 +71,14 @@
 		 - Rendering can be performed in arbitrary viewpoints of a render target
 		 - Try running the =cornell-box= demo with the device "Raytracer Camera Debug" to see a demonstration
 		 - :TODO: think raytracer is broken on this... (maybe after parallization)
-	 - Arbitrary number of lights
+	  - Arbitrary number of dynamic lights
 		 - The engine supports multiple dynamic point lights per scene
 		 - The only limit on number is desired performance and hardware capabilities (and having less than 2^32 so we can index them is strongly suggested...)
+		 - For example, see =cornell-box= or =torus= demos
 	 - Per mesh emissive lighting
 		 - Meshes can be assigned an emissive color
-		 - This can be seen in the torus demo, where the 4 outer cubes appear to glow at the same brightness regardless of the light's positions
-		 - Additionally the small yellow cube in the cornell box demo is emissive
+		 - This can be seen in the =torus= demo, where the 4 outer cubes appear to glow at the same brightness regardless of the light's positions
+		 - Additionally the small yellow cube in the =cornell-box= demo is emissive
 	 - Post Processing Pipeline
 		 - The software rendering backends support applying any number of "post-processing" steps after the image has been rendered
 		 - We also have a demo application which loads an image, applies a (set of) post processor(s) and then saves the result, without creating a window etc
