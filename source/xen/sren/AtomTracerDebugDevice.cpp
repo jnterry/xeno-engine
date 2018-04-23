@@ -108,7 +108,10 @@ public:
 		                               );
 		#else
 		for(u32 i = 0; i < ascene.boxes.size; ++i){
-			if(ascene.boxes[i].end <= ascene.boxes[i].start){
+			if(ascene.boxes[i].end <= ascene.boxes[i].start ||
+			   ascene.boxes[i].start >= ascene.atom_count   ||
+			   ascene.boxes[i].end   >= ascene.atom_count ){
+				// Then this box is empty, skip it
 				continue;
 			}
 			switch(i % 6){
@@ -131,12 +134,12 @@ public:
 
 		//////////////////////////////////////////////////////
 		// Render bounding boxes of occupied nodes of the oct-tree
-		//for(u32 i = 0; i < ascene.boxes.size; ++i){
-		//	if(ascene.boxes[i].start < ascene.boxes[i].end){
-		//		xen::sren::renderDebugBoundingBox(target, viewport, params.camera,
-		//		                                  ascene.boxes[i].bounds);
-		//	}
-		//}
+		for(u32 i = 0; i < ascene.boxes.size; ++i){
+			if(ascene.boxes[i].start < ascene.boxes[i].end){
+				xen::sren::renderDebugBoundingBox(target, viewport, params.camera,
+				                                  ascene.boxes[i].bounds);
+			}
+		}
 
 		//////////////////////////////////////////////////////
 		// Render where the virtual debug camera is located

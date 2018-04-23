@@ -406,7 +406,7 @@ AtomScene& atomizeScene(const Aabb2u& viewport,
 	                                         pixels_per_atom);
 
 	// :TODO: compute based on number of atoms?
-	ascene.split_count = 4;
+	ascene.split_count = 5;
 
 	u32 boxes_per_dim = 1 << ascene.split_count;
 
