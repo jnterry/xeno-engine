@@ -2,20 +2,20 @@
 
 	We have implemented all that was requested for the 50% for both the raytracer and rasterizer. The rest of this document explains how we have expanded on this initial task.
 
-	We have implemented this coursework as if it were the beginnings of a full graphics engine (which we have named "Xeno Engine"). That is, the rendering portion is implemented as a (set of) shared libraries which applications link against. Additionally there are many helper utility functions and classes not directly related to graphics, such as memory management, file loading, etc.
+	We have implemented this coursework as if it were the beginnings of a full graphics engine (which we have named "Xeno Engine"). That is, the rendering portion is implemented as a (set of) shared libraries which applications link against. Additionally there are many utility functions and classes not directly related to graphics, such as memory management, file loading, etc.
 
-	Additionally we have structured the engine such that a single interface is exposed to client applications while multiple "rendering backends" can be used. We have implemented a software rasterizer, software raytracer and a proof of concept OpenGL backend using this interface. The OpenGL implementation is not designed to be feature complete, but is to show the interface can also be used as a wrapper around traditional rendering APIs, and we found it useful in our testing to ensure our own rendering achieved visually similar results.
+	Additionally we have structured the engine such that a single interface is exposed to client applications which can be used to drive multiple "rendering backends". The software rasterizer and raytracer both adhere to this interface, and hence all of our demo applications can be rendered using either backend. A prompt is printed at startup allowing you to select the backend you wish to use.
 
 * Code Structure
 
-	This approach has lead to a large code base an outline of which is given below:
+	This way of structuring the code has lead to a relatively large code base, an outline of which is given below:
 
 	- =source/xen= - Contains source code for the engine
 		- =core= - Core utility functions and types not directly related to graphics, eg, memory management
 		- =math= - Implementation of mathematical helper functions and types. *Note that we do not rely on glm, but have implemented our own maths from scratch*
-		- =graphics= - Definition of the shared graphics interface as well as various helper functions and types (eg, for dealing with colors or images) which do not rely on a particular rendering backend
+		- =graphics= - Definition of the shared graphics interface as well as various helper functions and types (eg, for dealing with colors or images). These do not rely on a particular rendering backend.
 		- =sren= - Stands for "software renderer". Contains implementation of both the software rasterizer and software raytracer backends
-		- =gl= - Contains a basic OpenGL implementation of the rendering interface
+		- =gl= - Contains a proof of concept but feature incomplete OpenGL implementation of the rendering interface
 	- =examples= - Source code for various example applications. These are the "mains" and link against the shared xeno-engine libraries
 	- =tests= - Source code for automated unit tests
 
@@ -42,9 +42,9 @@
 
 	- assimp
 		- Used for loading mesh files
-		- We convert the data into our own data structures on load for rendering
+		- We convert the data into our own data structures during the load process for rendering
 	- stb_image
-		- Loading and reading image files into arrays of raw pixel values
+		- Reading and writing image files to/from arrays of raw pixel values
 	- thpool
 		- Managing a pool of threads and work queue
 		- Queue entries consist of a function pointer of the signature fn(void*), and a void pointer to some data
@@ -52,11 +52,11 @@
 		- Used for loading gl extensions
 		- Used only in the OpenGL rendering backend
 
-  Note that we do not depend on SDL or GLM, we have implemented our own versions of both the these libraries.
+  Note that we do not depend on SDL or GLM - we have implemented our own versions of both the these libraries.
 
 * Extensions
 
-	Due to the way we have structured this coursework some extensions apply to all rendering backends, and others apply only to specific backends. Below we outline those that apply to each specifically, as well as those extensions which are shared between all rendering backends.
+	Due to the way we have structured this coursework some extensions apply to all rendering backends as they form part of the shared interface and both backends support the data, where as other extensions apply only to a specific backend. We have categorised the extensions accordingly below.
 
 ** Shared
 
@@ -71,7 +71,7 @@
 		 - Rendering can be performed in arbitrary viewpoints of a render target
 		 - Try running the =cornell-box= demo with the device "Raytracer Camera Debug" to see a demonstration
 		 - :TODO: think raytracer is broken on this... (maybe after parallization)
-	  - Arbitrary number of dynamic lights
+	 - Arbitrary number of dynamic lights
 		 - The engine supports multiple dynamic point lights per scene
 		 - The only limit on number is desired performance and hardware capabilities (and having less than 2^32 so we can index them is strongly suggested...)
 		 - For example, see =cornell-box= or =torus= demos
@@ -86,6 +86,7 @@
 		 - We have implemented:
 			 - *Color inversion*
 				 - This can be visualised in the =post-processing= example executable by loading a static image, performing the process and then exporting the image, although it functions in engine as within engine as with all other post processors
+				 - For example, from the =/bin= directory try running: =./post-processing test.bmp test-out.png=
 			 - *Depth buffer visualisation*
 				 - This can be seen in the =triangle-test= example, where it is responsible for the visualisation in the upper right hand corner
 				 - Press "3" to enable it and "4" to disable it
@@ -101,7 +102,7 @@
 				 - Fog can be enabled with the 'F' key and disabled with the 'G' key.
 				 - Our implementation allows us to specify the maximum and minimum fog depths as well as fog color, this allows us to achieve multiple effects with the same post-processor
 	 - Threading and SIMD optimization for transforming floating framebuffer to byte pixels for display
-		 - Floating framebuffer pixels are used for better lighting calculations, but the transformation from floating in range 0-1 to bytes in range 0-255 was taking a lot of CPU time (97% in the starfield demo)
+		 - Floats are used to represent framebuffer pixels for better lighting calculations, but the transformation from floating in range 0-1 to bytes in range 0-255 was taking a lot of CPU time (97% in the starfield demo)
 		 - We used SIMD compiler intrinsics to do all 4 color channels simultaneously
 		 - We used threads to do different regions of the buffer in parallel
 		 - Below are recorded FPS's in various configurations using the software rasterizer:
@@ -112,7 +113,7 @@
 	 - Mesh System and Loading
 		 - Flexible mesh system which can represent meshes with an arbitrary number of attributes (eg position data, normal data, color data, etc) potentially each having a different type
 		 - Use of assimp library to load mesh files (such as obj)
-		 - Additional "load flags" can be specified to manipulate the mesh as it loads, eg generating normals, centering the local origin to be at (0,0,0), etc
+		 - Additional "load flags" can be specified to manipulate the mesh as it loads, for example generating normals, centering the local origin to be at (0,0,0), etc
 		 - The =torus= demo shows this capability by loading the torus.obj in the bin directory
 
 ** Raytracer
@@ -147,7 +148,7 @@
 			 - 5 -> display world positions
 			 - 6 -> display phong lighting
 			 - 7 -> display basic lighting model (the engine's default shader)
-		 - The =texture-test= demo shows of a fragment shader which implements normal mapping
+		 - The =texture-test= demo shows off a fragment shader which implements normal mapping
 	 - Texture mapping and Material Properties
 		 - Models can have up to 4 textures
 		 - These are provided to the fragment shader to do with as it wishes
@@ -161,7 +162,7 @@
 
 ** Meta Extensions
 
-	 The following extensions may not count due to them being not directly related to software rendering, they were implemented more out of interest than for marks.
+	 The following extensions may not count either due to being not directly related to software rendering, or being unfinished.
 
 	 - Windowing System
 		 - Low level implementation of window management, event polling etc using raw operating system calls with no reliance on external libraries
@@ -174,4 +175,4 @@
 		 - Again, this backend is unfinished
 		 - The idea was to perform global illumination by breaking the scene into "atoms", sorting them into an efficient search structure and then casting rays between atoms in order to distribute light around the scene, before then rasterizing the points onto the screen
 		 - Breaking the scene into atoms has been implemented, as has some initial work on sorting the atoms into an octree with cells arranged according to the z-order curve in order to improve cache performance by ensuring spatially close points are also close in memory
-		 - Lighting calculations we're not finished
+		 - Lighting calculations were not finished
