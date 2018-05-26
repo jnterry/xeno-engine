@@ -11,6 +11,7 @@
 
 #include <xen/graphics/Window.hpp>
 #include <xen/math/vector_types.hpp>
+#include <xen/core/ring_buffer.hpp>
 #include <xen/config.hpp>
 
 namespace xen {
@@ -27,17 +28,8 @@ namespace xen {
 			/// \brief Specifies whether a window is currently open
 			bool is_open;
 
-			// :TODO:COMP: circular queue type and related functions
-
-			/// \brief Queue of events to process for
-			WindowEvent events[64];
-
-			/// \brief Front of the event queue.
-			/// If equal to event_first_free queue then is empty
-			u08 event_front;
-
-			/// \brief Index of the next free slot in the event queue
-			u08 event_first_free;
+			/// \brief Queue of events to process for this window
+			xen::RingBuffer<WindowEvent> events;
 
 			/// \brief The render target representing the area of the window
 			/// that may be drawn to

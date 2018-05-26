@@ -375,6 +375,9 @@ namespace xen {
 				Window* result = xen::reserveType<Window>(arena);
 				*result = {};
 
+				result->events.elements = xen::reserveTypeArray<xen::WindowEvent>(arena, 64);
+				result->events.capacity = 64;
+
 				////////////////////////////////////////////////////////////////////////
 				// Establish connection to x server, setup some parameters
 				if(!doOpenXDisplayConnection()){

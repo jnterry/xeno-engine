@@ -310,6 +310,9 @@ namespace xen{
 			Window* result = xen::reserveType<xen::Window>(arena);
 			*result = {};
 
+		  result->events.elements = xen::reserveTypeArray<xen::WindowEvent>(arena, 64);
+			result->events.capacity = 64;
+
 			result->handle = CreateWindowEx(0,
 			                                impl::WINDOW_CLASS_NAME,
 			                                title,
