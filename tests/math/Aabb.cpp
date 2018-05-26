@@ -179,11 +179,15 @@ TEST_CASE("Aabb Swizzles", "[math][Aabb][swizzle]"){
 TEST_CASE("computeAabb", "[math][Aabb]"){
 
 	SECTION("2d unit axes") {
-		CHECK(xen::computeBoundingBox(Vec2r::UnitAxes, 3) == xen::Aabb2r{{0,0}, {1,1}});
+		CHECK(xen::computeBoundingBox(Vec2r::UnitAxes, 2) == xen::Aabb2r{{0,0}, {1,1}});
 	}
 
 	SECTION("3d unit axes") {
 		CHECK(xen::computeBoundingBox(Vec3r::UnitAxes, 3) == xen::Aabb3r{{0,0,0}, {1,1,1}});
+	}
+
+	SECTION("4d unit axes") {
+		CHECK(xen::computeBoundingBox(Vec4r::UnitAxes, 4) == xen::Aabb4r{{0,0,0,0}, {1,1,1,1}});
 	}
 
 	SECTION("3d arbitrary") {
