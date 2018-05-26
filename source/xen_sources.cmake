@@ -20,6 +20,9 @@ set(XEN_HEADERS_CORE
 	${CMAKE_CURRENT_LIST_DIR}/xen/core/random.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/core/time.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/core/File.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/core/array.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/core/array_types.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/core/ring_buffer.hpp
 )
 
 ##################################################
