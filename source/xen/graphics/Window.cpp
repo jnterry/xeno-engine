@@ -33,11 +33,18 @@ namespace xen {
 	WindowEvent* pollEvent(Window* win){
 		impl::dispatchEvents(win);
 
-		if(win->event_front == win->event_first_free){
+		if(win->events.size == 0){
 			return nullptr;
 		} else {
-			WindowEvent* result = &win->events[win->event_front];
-			(++win->event_front) %= XenArrayLength(win->events);
+			// Note that we are returning a pointer to something that we cannot
+			// guarentee will not be overwritten (eg, if new event comes in).
+			// HOWEVER -> we will only push events during impl::dispatchEvents,
+			// hence the pointer will remain valid at least until the next call
+			// to that function, and that function is called only within pollEvent
+			// currently, hence this is safe provided pollEvent is not called before
+			// the previous event is processed
+			WindowEvent* result = &xen::peak_front(win->events);
+			xen::pop_front(win->events);
 			return result;
 		}
 	}
@@ -48,15 +55,15 @@ namespace xen {
 
 	namespace impl {
 		bool pushEvent(xen::Window* win, const xen::WindowEvent& event){
-			win->events[win->event_first_free] = event;
 
-			(++win->event_first_free) %= XenArrayLength(win->events);
-			if(win->event_front == win->event_first_free){
-				(++win->event_front) %= XenArrayLength(win->events);
-				return false;
-			} else {
-				return true;
+			bool is_full = win->events.capacity == win->events.size;
+			if(is_full){
+				xen::pop_front(win->events);
 			}
+
+			xen::push_back(win->events, event);
+
+			return !is_full;
 		}
 	}
 }

@@ -213,8 +213,14 @@ namespace xen {
 		};
 	};
 
+	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves a pointer to the next event in the event queue of a
 	/// window, or null pointer if there are no more events at the current time
+	///
+	/// \note This pointer refers to memory owned by the window system and no
+	/// attempt should be made to free it. The pointer is guarenteed to remain
+	/// valid until the next call to pollEvent for the same window
+	/////////////////////////////////////////////////////////////////////
 	WindowEvent* pollEvent(Window* window);
 
 	/// \brief Determines if a keyboard key is currently pressed
