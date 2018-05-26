@@ -1,11 +1,11 @@
 language: cpp
 compiler:
   - gcc
-  - clang
+  # - clang # :TODO: assimp doesnt build under clang
 os:
   - linux
 script:
-  - mkdir -p $TRAVIS_BUILD_DIR/build && cd $TRAVIS_BUILD_DIR/build && cmake .. && make
+  - mkdir -p $TRAVIS_BUILD_DIR/build && cd $TRAVIS_BUILD_DIR/build && cmake .. && make -j8
   - cd $TRAVIS_BUILD_DIR/bin && ./unit-tests
 notifications:
   email:
