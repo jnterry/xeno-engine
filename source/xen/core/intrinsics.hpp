@@ -95,7 +95,6 @@ typedef  intptr_t sptr;
 
 namespace xen{
 
-	// :TODO: replace all uses of FLT_MAX or DBL_MAX with these...
 	#ifdef XEN_USE_DOUBLE_PRECISION
 	static const constexpr real RealMax = DBL_MAX;
 	static const constexpr real RealMin = DBL_MIN;

@@ -157,9 +157,9 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 	// Slide the endpoints into the viewport
 	xen::Aabb3r view_volumn;
 	view_volumn.min.xy = cntx.viewport->min;
-	view_volumn.min.z  = FLT_MIN;
+	view_volumn.min.z  = xen::RealMin;
 	view_volumn.max.xy = cntx.viewport->max;
-	view_volumn.max.z  = FLT_MAX;
+	view_volumn.max.z  = xen::RealMax;
 	if(!xen::intersect(line_screen, view_volumn)){
 		return;
 	}
