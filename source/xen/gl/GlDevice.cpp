@@ -12,6 +12,7 @@
 #include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/graphics/Mesh.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/core/memory/ArenaPool.hpp>
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/core/array.hpp>
 #include <xen/core/File.hpp>
@@ -21,6 +22,7 @@
 #include "gl_header.hxx"
 #include "Mesh.hxx"
 #include "Shader.hxx"
+#include "Texture.hxx"
 #include "../graphics/Window.hxx"
 
 #include <GL/glew.h>
@@ -196,6 +198,8 @@ namespace {
 
 		xen::FixedArray<xen::gl::RenderTargetImpl*, 128> render_targets;
 
+		xen::ArenaPool<xen::gl::TextureImpl> textures;
+
 		xen::ArenaLinear misc_arena;
 
 		xen::gl::ShaderProgram* prog;
@@ -216,7 +220,8 @@ namespace {
 		GlDevice()
 			: main_allocator(new xen::AllocatorCounter<xen::AllocatorMalloc>()),
 			  mesh_header_arena(xen::createArenaLinear(*main_allocator, xen::megabytes(1))),
-			  misc_arena       (xen::createArenaLinear(*main_allocator, xen::megabytes(1)))
+			  misc_arena       (xen::createArenaLinear(*main_allocator, xen::megabytes(1))),
+			  textures         (xen::createArenaPool<xen::gl::TextureImpl>(main_allocator, 1024))
 		{
 
 			// :TODO: better way of managing mesh headers:
@@ -351,13 +356,21 @@ namespace {
 		}
 
 
+		xen::gl::TextureImpl* getTextureImpl(const xen::Texture texture){
+			return &this->textures.slots[texture._id].item;
+		}
+
 		xen::Texture createTexture(const xen::RawImage* image) override {
-			return xen::makeNullHandle<xen::Texture>();
-			// :TODO: implement
+			u32 slot = xen::reserveSlot(textures);
+
+			xen::Texture result = this->makeHandle<xen::Texture::HANDLE_ID>(slot, 0);
+		  xen::gl::loadTexture(image, getTextureImpl(result));
+
+			return result;
 		}
 
 		void destroyTexture(xen::Texture texture) override {
-			// :TODO: implement
+			xen::gl::deleteTexture(getTextureImpl(texture));
 		}
 
 		xen::Shader createShader(const void* source) override {

@@ -22,7 +22,7 @@
 
 #include <xen/gl/gl_header.hxx>
 #include <xen/gl/GlDevice.hpp>
-#include <xen/gl/Texture.hpp>
+#include <xen/gl/Texture.hxx>
 
 #include "../common.cpp"
 
@@ -80,7 +80,7 @@ int main(int argc, char** argv){
 	xen::Mesh mesh_cube = device->createMesh(&mesh_data_cube);
 
 	xen::RawImage          test_image   = xen::loadImage(arena, "test.bmp");
-	xen::gl::createTexture(&test_image);
+	device->createTexture(&test_image);
 
 	int CMD_BUNNY  = 0;
 	int CMD_FLOOR  = 1;
