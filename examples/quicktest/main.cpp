@@ -40,18 +40,10 @@ int main(int argc, char** argv){
 
 	render_params.lights = light_sources;
 
-	xen::Allocator* alloc  = new xen::AllocatorCounter<xen::AllocatorMalloc>();
-	xen::ArenaLinear arena = xen::createArenaLinear(*alloc, xen::megabytes(32));
+	ExampleApplication app = createApplication("Quicktest", ExampleApplication::Backend::RASTERIZER);
 
-	printf("Initialized main arena\n");
 
-	xen::GraphicsDevice* device = xen::createGlDevice(arena);
-
-	printf("Created gl device\n");
-
-	xen::Window* app = device->createWindow({800, 600}, "Quicktest");
-
-	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app) };
+	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
 
 	Mat4r model_mat;
 	xen::Color4f point_light_color = xen::Color4f(1,0,0,1);
@@ -61,9 +53,9 @@ int main(int argc, char** argv){
 	vertex_spec[1] = xen::VertexAttribute::Normal3r;
 	vertex_spec[2] = xen::VertexAttribute::Color3f;
 
-	xen::MeshData* mesh_data_bunny = xen::createEmptyMeshData(arena, vertex_spec);
-	xen::loadMeshFile(mesh_data_bunny, arena, "bunny.obj");
-	xen::Mesh mesh_bunny = device->createMesh(mesh_data_bunny);
+	xen::MeshData* mesh_data_bunny = xen::createEmptyMeshData(app.arena, vertex_spec);
+	xen::loadMeshFile(mesh_data_bunny, app.arena, "bunny.obj");
+	xen::Mesh mesh_bunny = app.device->createMesh(mesh_data_bunny);
 
 	void* mesh_cube_attrib_data[] = {
 		xen::TestMeshGeometry_UnitCube.position,
@@ -75,10 +67,10 @@ int main(int argc, char** argv){
 	mesh_data_cube.attrib_types = vertex_spec.elements;
 	mesh_data_cube.vertex_count = 3 * 2 * 6; // (3 vert per tri) * (2 tri per face) * (6 faces)
 	mesh_data_cube.attrib_data  = mesh_cube_attrib_data;
-	xen::Mesh mesh_cube = device->createMesh(&mesh_data_cube);
+	xen::Mesh mesh_cube = app.device->createMesh(&mesh_data_cube);
 
-	xen::RawImage test_image        = xen::loadImage(arena, "test.bmp");
-	xen::Texture  texture_debug_img = device->createTexture(&test_image);
+	xen::RawImage test_image        = xen::loadImage(app.arena, "test.bmp");
+	xen::Texture  texture_debug_img = app.device->createTexture(&test_image);
 
 	int CMD_BUNNY  = 0;
 	int CMD_FLOOR  = 1;
@@ -130,18 +122,17 @@ int main(int argc, char** argv){
 
 	xen::Stopwatch timer;
 	real last_time = 0;
-	printf("Entering main loop\n");
-	while(xen::isWindowOpen(app)){
+	FpsCounter fps_counter;
+	while(xen::isWindowOpen(app.window)){
 	  real time = xen::asSeconds<real>(timer.getElapsedTime());
 		real dt = time - last_time;
 		last_time = time;
-		printf("dt: %f\n", dt);
 
 		xen::WindowEvent* event;
-		while((event = xen::pollEvent(app)) != nullptr){
+		while((event = xen::pollEvent(app.window)) != nullptr){
 			switch(event->type){
 			case xen::WindowEvent::Closed:
-				device->destroyWindow(app);
+				app.device->destroyWindow(app.window);
 				break;
 			case xen::WindowEvent::Resized:
 				viewport.max = event->resize.new_size;
@@ -201,14 +192,15 @@ int main(int argc, char** argv){
 
 		////////////////////////////////////////////
 		// Do rendering
-		device->clear (app, xen::Color::BLACK);
-		device->render(app, viewport, render_params, render_cmds);
-		device->swapBuffers(app);
+		app.device->clear (app.window, xen::Color::BLACK);
+		app.device->render(app.window, viewport, render_params, render_cmds);
+		app.device->swapBuffers(app.window);
+
+		fps_counter.update();
 	}
 	printf("Exiting main loop\n");
 
-	xen::destroyArenaLinear(*alloc, arena);
-	delete alloc;
+  destroyApplication(app);
 
 	return 0;
 }
