@@ -20,9 +20,7 @@
 #include <xen/graphics/Light3d.hpp>
 #include <xen/graphics/Window.hpp>
 
-#include <xen/gl/gl_header.hxx>
 #include <xen/gl/GlDevice.hpp>
-#include <xen/gl/Texture.hxx>
 
 #include "../common.cpp"
 
@@ -79,8 +77,8 @@ int main(int argc, char** argv){
 	mesh_data_cube.attrib_data  = mesh_cube_attrib_data;
 	xen::Mesh mesh_cube = device->createMesh(&mesh_data_cube);
 
-	xen::RawImage          test_image   = xen::loadImage(arena, "test.bmp");
-	device->createTexture(&test_image);
+	xen::RawImage test_image        = xen::loadImage(arena, "test.bmp");
+	xen::Texture  texture_debug_img = device->createTexture(&test_image);
 
 	int CMD_BUNNY  = 0;
 	int CMD_FLOOR  = 1;
@@ -104,6 +102,7 @@ int main(int argc, char** argv){
 	                                           xen::Translation3d(0, -0.5_r, 0)
 	                                          );
 	render_cmds[CMD_FLOOR ].mesh            = mesh_cube;
+	render_cmds[CMD_FLOOR ].textures[0]     = texture_debug_img;
 
 	render_cmds[CMD_LIGHT ].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_cmds[CMD_LIGHT ].color           = xen::Color::RED4f;
