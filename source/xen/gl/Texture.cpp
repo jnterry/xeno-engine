@@ -30,6 +30,7 @@ namespace xen{
 
 			//make the texture
 			XEN_CHECK_GL(glGenTextures(1, &texture->id));
+			XEN_CHECK_GL(glBindTexture(GL_TEXTURE_2D, texture->id));
 
 			//set texture parameters
 			XEN_CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
