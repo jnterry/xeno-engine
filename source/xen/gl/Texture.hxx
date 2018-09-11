@@ -12,14 +12,25 @@
 
 #include <xen/core/intrinsics.hpp>
 
+#include "gl_header.hxx"
+
 namespace xen{
 	struct RawImage;
 	namespace gl {
-		/// \brief Opaque type representing texture usable by graphics device
-		typedef u32 TextureHandle;
 
-		/// \brief Uploads texture data to graphics device, creating a Texture
-		TextureHandle createTexture(RawImage* image);
+		struct TextureImpl {
+			/// \brief The GL id of the texture
+			GLuint id;
+		};
+
+		/// \brief Uploads texture data to graphics card, filling in specified
+		/// texture struct
+		/// \return Pointer to texture parameter
+	  TextureImpl* loadTexture(const RawImage* image, TextureImpl* texture);
+
+		/// \brief Deletes a texture from graphics card, invalidates passed
+		/// in texture object
+		void deleteTexture(TextureImpl* texture);
 	}
 }
 

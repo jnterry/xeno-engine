@@ -20,11 +20,10 @@
 #include <xen/graphics/Light3d.hpp>
 #include <xen/graphics/Window.hpp>
 
-#include <xen/gl/gl_header.hxx>
 #include <xen/gl/GlDevice.hpp>
-#include <xen/gl/Texture.hpp>
 
 #include "../common.cpp"
+#include "../fragment_shaders.cpp"
 
 xen::RenderParameters3d render_params;
 xen::FixedArray<xen::LightSource3d, 1> light_sources;
@@ -40,47 +39,35 @@ int main(int argc, char** argv){
 	camera.axis   = Vec3r::UnitY;
 	camera.angle  = 0_deg;
 
+	xen::clearToZero(&render_params);
+	render_params.ambient_light = xen::Color3f(0.2, 0.2, 0.2);
 	render_params.lights = light_sources;
 
-	xen::Allocator* alloc  = new xen::AllocatorCounter<xen::AllocatorMalloc>();
-	xen::ArenaLinear arena = xen::createArenaLinear(*alloc, xen::megabytes(32));
 
-	printf("Initialized main arena\n");
+	ExampleApplication app = createApplication("Quicktest", ExampleApplication::Backend::RASTERIZER);
 
-	xen::GraphicsDevice* device = xen::createGlDevice(arena);
 
-	printf("Created gl device\n");
-
-	xen::Window* app = device->createWindow({800, 600}, "Quicktest");
-
-	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app) };
+	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
 
 	Mat4r model_mat;
 	xen::Color4f point_light_color = xen::Color4f(1,0,0,1);
 
-	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
+	xen::FixedArray<xen::VertexAttribute::Type, 4> vertex_spec;
 	vertex_spec[0] = xen::VertexAttribute::Position3r;
 	vertex_spec[1] = xen::VertexAttribute::Normal3r;
-	vertex_spec[2] = xen::VertexAttribute::Color3f;
+	vertex_spec[2] = xen::VertexAttribute::Color4b;
+	vertex_spec[3] = xen::VertexAttribute::TexCoord2f;
 
-	xen::MeshData* mesh_data_bunny = xen::createEmptyMeshData(arena, vertex_spec);
-	xen::loadMeshFile(mesh_data_bunny, arena, "bunny.obj");
-	xen::Mesh mesh_bunny = device->createMesh(mesh_data_bunny);
+	xen::MeshData* mesh_data_bunny = xen::createEmptyMeshData(app.arena, vertex_spec);
+	xen::loadMeshFile(mesh_data_bunny, app.arena, "bunny.obj");
+	xen::Mesh mesh_bunny = app.device->createMesh(mesh_data_bunny);
 
-	void* mesh_cube_attrib_data[] = {
-		xen::TestMeshGeometry_UnitCube.position,
-		xen::TestMeshGeometry_UnitCube.normal,
-		xen::TestMeshGeometry_UnitCube.color,
-	};
-  xen::MeshData mesh_data_cube;
-	mesh_data_cube.attrib_count = 3;
-	mesh_data_cube.attrib_types = vertex_spec.elements;
-	mesh_data_cube.vertex_count = 3 * 2 * 6; // (3 vert per tri) * (2 tri per face) * (6 faces)
-	mesh_data_cube.attrib_data  = mesh_cube_attrib_data;
-	xen::Mesh mesh_cube = device->createMesh(&mesh_data_cube);
+	xen::Mesh mesh_cube  = app.device->createMesh(vertex_spec, xen::TestMeshGeometry_UnitCube);
 
-	xen::RawImage          test_image   = xen::loadImage(arena, "test.bmp");
-	xen::gl::createTexture(&test_image);
+	xen::RawImage test_image        = xen::loadImage(app.arena, "test.bmp");
+	xen::Texture  texture_debug_img = app.device->createTexture(&test_image);
+
+	xen::Shader shader_phong = app.device->createShader((void*)&FragmentShader_Phong    );
 
 	int CMD_BUNNY  = 0;
 	int CMD_FLOOR  = 1;
@@ -96,6 +83,7 @@ int main(int argc, char** argv){
 	render_cmds[CMD_BUNNY ].color           = xen::Color::RED4f;
 	render_cmds[CMD_BUNNY ].model_matrix    = Mat4r::Identity;
 	render_cmds[CMD_BUNNY ].mesh            = mesh_bunny;
+	render_cmds[CMD_BUNNY ].shader          = shader_phong;
 
 	render_cmds[CMD_FLOOR ].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_cmds[CMD_FLOOR ].color           = xen::Color::WHITE4f;
@@ -104,6 +92,8 @@ int main(int argc, char** argv){
 	                                           xen::Translation3d(0, -0.5_r, 0)
 	                                          );
 	render_cmds[CMD_FLOOR ].mesh            = mesh_cube;
+	render_cmds[CMD_FLOOR ].textures[0]     = texture_debug_img;
+	render_cmds[CMD_FLOOR ].shader          = shader_phong;
 
 	render_cmds[CMD_LIGHT ].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_cmds[CMD_LIGHT ].color           = xen::Color::RED4f;
@@ -131,18 +121,17 @@ int main(int argc, char** argv){
 
 	xen::Stopwatch timer;
 	real last_time = 0;
-	printf("Entering main loop\n");
-	while(xen::isWindowOpen(app)){
+	FpsCounter fps_counter;
+	while(xen::isWindowOpen(app.window)){
 	  real time = xen::asSeconds<real>(timer.getElapsedTime());
 		real dt = time - last_time;
 		last_time = time;
-		printf("dt: %f\n", dt);
 
 		xen::WindowEvent* event;
-		while((event = xen::pollEvent(app)) != nullptr){
+		while((event = xen::pollEvent(app.window)) != nullptr){
 			switch(event->type){
 			case xen::WindowEvent::Closed:
-				device->destroyWindow(app);
+				app.device->destroyWindow(app.window);
 				break;
 			case xen::WindowEvent::Resized:
 				viewport.max = event->resize.new_size;
@@ -177,6 +166,7 @@ int main(int argc, char** argv){
 		render_params.camera = xen::generateCamera3d(camera);
 		render_params.lights[0].point.position = light_pos;
 		render_params.lights[0].color          = point_light_color;
+	  render_params.lights[0].attenuation    = {0.0f, 0.0f, 2.0f};
 
 		////////////////////////////////////////////
 		// Draw Cube Light
@@ -202,14 +192,15 @@ int main(int argc, char** argv){
 
 		////////////////////////////////////////////
 		// Do rendering
-		device->clear (app, xen::Color::BLACK);
-		device->render(app, viewport, render_params, render_cmds);
-		device->swapBuffers(app);
+		app.device->clear (app.window, xen::Color::BLACK);
+		app.device->render(app.window, viewport, render_params, render_cmds);
+		app.device->swapBuffers(app.window);
+
+		fps_counter.update();
 	}
 	printf("Exiting main loop\n");
 
-	xen::destroyArenaLinear(*alloc, arena);
-	delete alloc;
+  destroyApplication(app);
 
 	return 0;
 }

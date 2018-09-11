@@ -112,6 +112,32 @@ namespace {
 		-Vec3r::UnitX, -Vec3r::UnitX, -Vec3r::UnitX,
 	};
 
+	Vec2r UnitCube_Uvs[] = {
+		// Front Face, z = 0
+		{ 0_r, 0_r }, { 0_r, 1_r }, { 1_r, 0_r },
+		{ 1_r, 0_r }, { 0_r, 1_r }, { 1_r, 1_r },
+
+		// Back Face, z = 1
+		{ 0_r, 0_r }, { 1_r, 0_r }, { 0_r, 1_r },
+		{ 1_r, 0_r }, { 1_r, 1_r }, { 0_r, 1_r },
+
+		// Bottom face, y = 0
+	  { 0_r, 0_r }, { 1_r, 0_r }, { 0_r, 1_r },
+		{ 1_r, 0_r }, { 1_r, 1_r }, { 0_r, 1_r },
+
+		// Top face, y = 1
+		{ 0_r, 0_r }, { 0_r, 1_r }, { 1_r, 0_r },
+		{ 1_r, 0_r }, { 0_r, 1_r }, { 1_r, 1_r },
+
+		// Left face, x = 0
+		{ 0_r, 0_r }, { 0_r, 1_r }, { 1_r, 0_r },
+		{ 1_r, 0_r }, { 0_r, 1_r }, { 1_r, 1_r },
+
+		// Right face, x = 1
+		{ 0_r, 0_r }, { 1_r, 0_r }, { 0_r, 1_r },
+		{ 1_r, 0_r }, { 1_r, 1_r }, { 0_r, 1_r },
+	};
+
 	xen::Color UnitCube_Colors[] = {
 		// Front face, z = 0
 		xen::Color::WHITE, xen::Color::WHITE, xen::Color::WHITE,
@@ -194,7 +220,7 @@ namespace xen {
 		  UnitCube_Positions,
 		  UnitCube_Normals,
 		  UnitCube_Colors,
-		  nullptr // :TOOO: uv coordinates
+		  UnitCube_Uvs
 		);
 
 	const MeshGeometrySource TestMeshGeometry_Axes = MeshGeometrySource

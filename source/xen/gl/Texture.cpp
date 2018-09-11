@@ -9,18 +9,28 @@
 #ifndef XEN_GL_TEXTURE_CPP
 #define XEN_GL_TEXTURE_CPP
 
-#include <xen/gl/Texture.hpp>
 #include <xen/graphics/Image.hpp>
 
 #include "gl_header.hxx"
+#include "Texture.hxx"
 
 namespace xen{
 	namespace gl {
-		TextureHandle createTexture(RawImage* image){
-			GLuint texture_id;
+
+		void deleteTexture(TextureImpl* texture){
+			if(texture->id != 0){
+				XEN_CHECK_GL(glDeleteTextures(1, &texture->id));
+				texture->id = 0;
+			}
+		}
+
+		TextureImpl* loadTexture(const RawImage* image, TextureImpl* texture){
+
+			deleteTexture(texture);
 
 			//make the texture
-			XEN_CHECK_GL(glGenTextures(1, &texture_id));
+			XEN_CHECK_GL(glGenTextures(1, &texture->id));
+			XEN_CHECK_GL(glBindTexture(GL_TEXTURE_2D, texture->id));
 
 			//set texture parameters
 			XEN_CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
@@ -38,7 +48,7 @@ namespace xen{
 			                          image->pixels                // pixel data
 			                          ));
 
-			return (TextureHandle)texture_id;
+			return texture;
 		}
 	}
 }

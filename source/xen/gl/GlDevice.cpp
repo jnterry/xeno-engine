@@ -11,7 +11,9 @@
 
 #include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/graphics/Mesh.hpp>
+#include <xen/graphics/Image.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/core/memory/ArenaPool.hpp>
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/core/array.hpp>
 #include <xen/core/File.hpp>
@@ -21,6 +23,7 @@
 #include "gl_header.hxx"
 #include "Mesh.hxx"
 #include "Shader.hxx"
+#include "Texture.hxx"
 #include "../graphics/Window.hxx"
 
 #include <GL/glew.h>
@@ -196,6 +199,8 @@ namespace {
 
 		xen::FixedArray<xen::gl::RenderTargetImpl*, 128> render_targets;
 
+		xen::ArenaPool<xen::gl::TextureImpl> textures;
+
 		xen::ArenaLinear misc_arena;
 
 		xen::gl::ShaderProgram* prog;
@@ -216,6 +221,7 @@ namespace {
 		GlDevice()
 			: main_allocator(new xen::AllocatorCounter<xen::AllocatorMalloc>()),
 			  mesh_header_arena(xen::createArenaLinear(*main_allocator, xen::megabytes(1))),
+			  textures         (xen::createArenaPool<xen::gl::TextureImpl>(main_allocator, 1024)),
 			  misc_arena       (xen::createArenaLinear(*main_allocator, xen::megabytes(1)))
 		{
 
@@ -274,9 +280,21 @@ namespace {
 			printf("Doing GL setup\n");
 			///////////////////////////////////////////////////
 			// Do GL setup
+
+			// :TODO: -> this broken with multiple targets, we need to share textures, programs
+			// etc between all targets created by this device
+
 			// :TODO: something better with shaders -> ideally expose them to user of xenogin
 			// but how do "programable pipeline" in software / other devices?
 			this->prog = loadShader(mesh_header_arena);
+
+			// Ensure texture 0 is single pixel white
+			xen::RawImage image;
+			image.size.x = 1;
+			image.size.y = 1;
+			xen::Color color = xen::Color::WHITE;
+			image.pixels = &color;
+			this->createTexture(&image);
 
 			XEN_CHECK_GL(glEnable   (GL_DEPTH_TEST));
 			XEN_CHECK_GL(glDepthFunc(GL_LESS      ));
@@ -351,13 +369,21 @@ namespace {
 		}
 
 
+		xen::gl::TextureImpl* getTextureImpl(const xen::Texture texture){
+			return &this->textures.slots[texture._id].item;
+		}
+
 		xen::Texture createTexture(const xen::RawImage* image) override {
-			return xen::makeNullHandle<xen::Texture>();
-			// :TODO: implement
+			u32 slot = xen::reserveSlot(textures);
+
+			xen::Texture result = this->makeHandle<xen::Texture::HANDLE_ID>(slot, 0);
+		  xen::gl::loadTexture(image, getTextureImpl(result));
+
+			return result;
 		}
 
 		void destroyTexture(xen::Texture texture) override {
-			// :TODO: implement
+			xen::gl::deleteTexture(getTextureImpl(texture));
 		}
 
 		xen::Shader createShader(const void* source) override {
@@ -426,6 +452,8 @@ namespace {
 			xen::impl::checkGl(__LINE__, __FILE__);
 			for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 				const xen::RenderCommand3d* cmd = &commands[cmd_index];
+
+				XEN_CHECK_GL(glBindTexture(GL_TEXTURE_2D, getTextureImpl(cmd->textures[0])->id));
 
 				xen::gl::setUniform(mvp_mat_loc,        cmd->model_matrix * vp_mat);
 				xen::gl::setUniform(model_mat_loc,      cmd->model_matrix);
