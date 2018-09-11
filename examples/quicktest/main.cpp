@@ -23,6 +23,7 @@
 #include <xen/gl/GlDevice.hpp>
 
 #include "../common.cpp"
+#include "../fragment_shaders.cpp"
 
 xen::RenderParameters3d render_params;
 xen::FixedArray<xen::LightSource3d, 1> light_sources;
@@ -38,7 +39,10 @@ int main(int argc, char** argv){
 	camera.axis   = Vec3r::UnitY;
 	camera.angle  = 0_deg;
 
+	xen::clearToZero(&render_params);
+	render_params.ambient_light = xen::Color3f(0.2, 0.2, 0.2);
 	render_params.lights = light_sources;
+
 
 	ExampleApplication app = createApplication("Quicktest", ExampleApplication::Backend::RASTERIZER);
 
@@ -63,6 +67,8 @@ int main(int argc, char** argv){
 	xen::RawImage test_image        = xen::loadImage(app.arena, "test.bmp");
 	xen::Texture  texture_debug_img = app.device->createTexture(&test_image);
 
+	xen::Shader shader_phong = app.device->createShader((void*)&FragmentShader_Phong    );
+
 	int CMD_BUNNY  = 0;
 	int CMD_FLOOR  = 1;
 	int CMD_LIGHT  = 2;
@@ -77,6 +83,7 @@ int main(int argc, char** argv){
 	render_cmds[CMD_BUNNY ].color           = xen::Color::RED4f;
 	render_cmds[CMD_BUNNY ].model_matrix    = Mat4r::Identity;
 	render_cmds[CMD_BUNNY ].mesh            = mesh_bunny;
+	render_cmds[CMD_BUNNY ].shader          = shader_phong;
 
 	render_cmds[CMD_FLOOR ].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_cmds[CMD_FLOOR ].color           = xen::Color::WHITE4f;
@@ -86,6 +93,7 @@ int main(int argc, char** argv){
 	                                          );
 	render_cmds[CMD_FLOOR ].mesh            = mesh_cube;
 	render_cmds[CMD_FLOOR ].textures[0]     = texture_debug_img;
+	render_cmds[CMD_FLOOR ].shader          = shader_phong;
 
 	render_cmds[CMD_LIGHT ].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	render_cmds[CMD_LIGHT ].color           = xen::Color::RED4f;
