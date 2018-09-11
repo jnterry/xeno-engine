@@ -54,8 +54,9 @@ namespace xen {
 	                                const MeshGeometrySource& mesh_geom
 	                                ){
 
-		// max number of attribs is 255, so allocate that much stack space
-		void* attrib_data[255];
+		// max number of vertex attributes is 255, so allocate that much stack space
+		XenAssert(vertex_spec.length < 255, "Can only support up to 255 vertex attributes");
+		void* vertex_data[255];
 
 		/////////////////////////////////////////////////////////////////
 		// Construct attrib data array based on vertex_spec and what we
@@ -63,16 +64,16 @@ namespace xen {
 		for(u32 i = 0; i < xen::size(vertex_spec); ++i){
 			switch(vertex_spec[i]){
 			case xen::VertexAttribute::Position3r:
-				attrib_data[i] = mesh_geom.position;
+				vertex_data[i] = mesh_geom.position;
 				break;
 			case xen::VertexAttribute::Normal3r:
-				attrib_data[i] = mesh_geom.normal;
+				vertex_data[i] = mesh_geom.normal;
 				break;
 			case xen::VertexAttribute::Color4b:
-				attrib_data[i] = mesh_geom.color;
+				vertex_data[i] = mesh_geom.color;
 				break;
 			case xen::VertexAttribute::TexCoord2f:
-				attrib_data[i] = mesh_geom.uvs;
+				vertex_data[i] = mesh_geom.uvs;
 			default: break;
 			}
 		}
@@ -81,7 +82,7 @@ namespace xen {
 		// Set mesh data fields
 		xen::MeshData mesh_data;
 		mesh_data.vertex_spec  = vertex_spec;
-		mesh_data.vertex_data  = attrib_data;
+		mesh_data.vertex_data  = vertex_data;
 		mesh_data.vertex_count = mesh_geom.vertex_count;
 
 		/////////////////////////////////////////////////////////////////

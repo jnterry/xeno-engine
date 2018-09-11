@@ -142,7 +142,7 @@ namespace {
 					break;
 				}
 
-				XEN_CHECK_GL(glVertexAttribPointer(i, //attrib layout
+				XEN_CHECK_GL(glVertexAttribPointer(i,
 				                                   component_count,
 				                                   component_type,
 				                                   normalized,
