@@ -21,15 +21,6 @@ namespace xen{
 	struct ArenaLinear;
 
 	// :TODO:REF:
-	// Need a big clean up of the mesh code - was originally designed for
-	// OpenGL only and then split into common code and that specific to GL
-	// Theres a lot of concepts flying around, and conversions between them.
-	// - Do we need flexible mesh data representations, as well as fixed
-	//   representations
-	//   - When meta type system is implemented can we use that for flexible
-	//     representation?
-	//   - Probably have a lot of repeated code
-	// - Make Vertex Attrib / Attribute naming consistent
 	// - VertexAttribute should be a bitfield so we can do
 	//   .aspect, .type and .channels but still used the named constant
 	//   approach so we dont have to support arbitary combinations. Do this
