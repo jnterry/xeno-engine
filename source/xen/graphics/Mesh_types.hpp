@@ -20,12 +20,6 @@
 namespace xen{
 	struct ArenaLinear;
 
-	// :TODO:REF:
-	// - VertexAttribute should be a bitfield so we can do
-	//   .aspect, .type and .channels but still used the named constant
-	//   approach so we dont have to support arbitary combinations. Do this
-	//   using static instances (like Vec3r::Origin)
-
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Container for pointers to in memory arrays of attribute data
 	/// for some mesh
