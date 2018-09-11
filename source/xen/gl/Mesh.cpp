@@ -28,7 +28,7 @@ namespace{
 
 		result->vertex_spec.size     = attrib_count;
 		result->vertex_spec.elements = xen::reserveTypeArray<xen::VertexAttribute::Type    >(arena, attrib_count);
-		result->attrib_sources = xen::reserveTypeArray<xen::gl::VertexAttributeSource>(arena, attrib_count);
+		result->vertex_data = xen::reserveTypeArray<xen::gl::VertexAttributeSource>(arena, attrib_count);
 
 		transaction.commit();
 		return result;
@@ -96,14 +96,14 @@ xen::gl::MeshGlData* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 		}
 
 		if(md.vertex_data[i] == nullptr){
-			result->attrib_sources[i] = getDefaultVertexAttributeSource(md.vertex_spec[i]);
+			result->vertex_data[i] = getDefaultVertexAttributeSource(md.vertex_spec[i]);
 			continue;
 		}
 
-		result->attrib_sources[i].buffer = gpu_buffer;
-		result->attrib_sources[i].offset = gpu_buffer_size;
-		result->attrib_sources[i].stride = getVertexAttributeSize(md.vertex_spec[i]);
-		gpu_buffer_size += result->attrib_sources[i].stride * md.vertex_count;
+		result->vertex_data[i].buffer = gpu_buffer;
+		result->vertex_data[i].offset = gpu_buffer_size;
+		result->vertex_data[i].stride = getVertexAttributeSize(md.vertex_spec[i]);
+		gpu_buffer_size += result->vertex_data[i].stride * md.vertex_count;
 	}
 
 	///////////////////////////////////////////////
@@ -137,12 +137,12 @@ xen::gl::MeshGlData* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 			continue;
 		}
 
-		result->attrib_sources[i].buffer = gpu_buffer;
+		result->vertex_data[i].buffer = gpu_buffer;
 
 		const void* data_source = md.vertex_data[i];
 
 		XEN_CHECK_GL(glBufferSubData(GL_ARRAY_BUFFER,
-		                             result->attrib_sources[i].offset,
+		                             result->vertex_data[i].offset,
 		                             getVertexAttributeSize(result->vertex_spec[i]) * md.vertex_count,
 		                             data_source
 		                             )
@@ -165,7 +165,7 @@ void xen::gl::updateMeshAttribData(xen::gl::MeshGlData* mesh,
 	end_vertex = xen::min(end_vertex, mesh->vertex_count);
 	if(end_vertex < start_vertex){ return; }
 
-	VertexAttributeSource* attrib_source = &mesh->attrib_sources[attrib_index];
+	VertexAttributeSource* attrib_source = &mesh->vertex_data[attrib_index];
 
 	u32 attrib_size = xen::getVertexAttributeSize(mesh->vertex_spec[attrib_index]);
 

@@ -76,20 +76,8 @@ namespace xen{
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Type representing a mesh stored in some set of GpuBuffers which
 		/// can be rendered by OpenGL
-		/// \todo :TODO: comp -> this is identical to xen::MeshData except we've
-		/// changed from array of void* for the attrib_data to an array of
-		/// VertexAttributeSource, can we template xen::MeshData?
 		/////////////////////////////////////////////////////////////////////
-		struct MeshGlData : public xen::MeshHeader{
-			/// \brief Number of vertices in the mesh
-			u32 vertex_count;
-
-			/// \brief The data sources for attributes of this mesh
-			///
-			/// Pointer to first element of array where each element is the source
-			/// of the data for that attribute
-			VertexAttributeSource* attrib_sources;
-		};
+		typedef xen::MeshDataSource<VertexAttributeSource> MeshGlData;
 
 		/// \brief Creates a mesh from segregated buffers of data for each attribute
 		/// \param arena     Arena in which resulting MeshHeader instance is stored

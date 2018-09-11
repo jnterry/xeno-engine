@@ -14,11 +14,11 @@
 
 #include <xen/graphics/GraphicsDevice_types.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
+#include <xen/graphics/Mesh_types.hpp>
 #include <xen/math/geometry_types.hpp>
 #include <xen/core/array.hpp>
 
 namespace xen {
-	struct MeshData;
 	struct Window;
 	struct RawImage;
 

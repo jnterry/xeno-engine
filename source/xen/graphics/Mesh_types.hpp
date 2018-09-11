@@ -206,22 +206,30 @@ namespace xen{
 		// :TODO: support indexed meshes
 	};
 
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Represents mesh data stored in main memory. This allows for
-	/// manipulations to be performed by the CPU, but the data IS NOT
-	/// in an appropriate format for rendering systems to draw the mesh
-	/////////////////////////////////////////////////////////////////////
-	struct MeshData : public MeshHeader {
+	template <typename T>
+	struct MeshDataSource : public MeshHeader {
 		/// \brief The data for each of this mesh's attributes
 		///
-		/// Array of length attrib_count, where each element is a void*
-		/// to the first byte of the data representing that attribute
-		/// or nullptr if no data is stored for that attribute
-		void** vertex_data;
+		/// Array of length vertex_spec.length, where each element is of
+		/// type T which is some type representing how to source the data
+		/// for the vertex
+	  T* vertex_data;
 
 		/// \brief Number of vertices in the mesh
 		u32 vertex_count;
 	};
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents mesh data stored in main memory. This allows for
+	/// manipulations to be performed by the CPU, but the data IS NOT
+	/// in an appropriate format for rendering systems to draw the mesh
+	///
+	/// This is a MeshDataSource with the source type set to void*.
+	/// If an attributes source is set to nullptr then no data is stored for
+	/// that attribute, else the pointer is to the first element of an array
+	// of type specified by vertex_spec[i] storing the data
+	/////////////////////////////////////////////////////////////////////
+	typedef MeshDataSource<void*> MeshData;
 }
 
 #endif
