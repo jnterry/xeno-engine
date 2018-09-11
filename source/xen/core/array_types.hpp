@@ -18,7 +18,14 @@ namespace xen{
 	/////////////////////////////////////////////////////////////////////
 	template<typename T>
 	struct Array {
-	  u64 size;
+
+		// :TODO: length is better name -> size is confusing in some contexts
+		// as to whether we are talking about size in bytes
+		union {
+			u64 size;
+			u64 length;
+		};
+
 		T*  elements;
 
 		inline T&       operator[](u64 i)       { return elements[i]; }

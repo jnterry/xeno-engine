@@ -26,8 +26,8 @@ namespace{
 
 		if(!xen::isValid(arena)){ return nullptr; }
 
-		result->attrib_count   = attrib_count;
-		result->attrib_types   = xen::reserveTypeArray<xen::VertexAttribute::Type    >(arena, attrib_count);
+		result->vertex_spec.size     = attrib_count;
+		result->vertex_spec.elements = xen::reserveTypeArray<xen::VertexAttribute::Type    >(arena, attrib_count);
 		result->attrib_sources = xen::reserveTypeArray<xen::gl::VertexAttributeSource>(arena, attrib_count);
 
 		transaction.commit();
@@ -71,7 +71,7 @@ namespace{
 xen::gl::MeshGlData* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::MeshData& md){
 	xen::MemoryTransaction transaction(arena);
 
-	xen::gl::MeshGlData* result = pushMeshGlData(arena, md.attrib_count);
+	xen::gl::MeshGlData* result = pushMeshGlData(arena, md.vertex_spec.length);
 	result->vertex_count = md.vertex_count;
 
 	u32 gpu_buffer_size =   0;
@@ -85,24 +85,24 @@ xen::gl::MeshGlData* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 
 	///////////////////////////////////////////////
 	// Set up mesh attributes, work out where to store data in gpu buffer
-	for(u08 i = 0; i < md.attrib_count; ++i){
-		result->attrib_types[i] = md.attrib_types[i];
+	for(u08 i = 0; i < md.vertex_spec.length; ++i){
+		result->vertex_spec[i] = md.vertex_spec[i];
 
 		if((xen::VertexAttribute::_AspectPosition ==
-		    (md.attrib_types[i] & xen::VertexAttribute::_AspectMask))){
+		    (md.vertex_spec[i] & xen::VertexAttribute::_AspectMask))){
 			XenAssert(position_index == 255, "Mesh can only have single position attribute");
-			XenAssert(md.attrib_data[i] != nullptr, "Mesh's position data cannot be inferred");
+			XenAssert(md.vertex_data[i] != nullptr, "Mesh's position data cannot be inferred");
 			position_index = i;
 		}
 
-		if(md.attrib_data[i] == nullptr){
-			result->attrib_sources[i] = getDefaultVertexAttributeSource(md.attrib_types[i]);
+		if(md.vertex_data[i] == nullptr){
+			result->attrib_sources[i] = getDefaultVertexAttributeSource(md.vertex_spec[i]);
 			continue;
 		}
 
 		result->attrib_sources[i].buffer = gpu_buffer;
 		result->attrib_sources[i].offset = gpu_buffer_size;
-		result->attrib_sources[i].stride = getVertexAttributeSize(md.attrib_types[i]);
+		result->attrib_sources[i].stride = getVertexAttributeSize(md.vertex_spec[i]);
 		gpu_buffer_size += result->attrib_sources[i].stride * md.vertex_count;
 	}
 
@@ -110,7 +110,7 @@ xen::gl::MeshGlData* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 	// Calculate Mesh Bounds
 	XenAssert(position_index != 255,
 	          "Mesh's does not contain position attribute - and it cannot be inferred");
-	const Vec3r* positions = (const Vec3r*)md.attrib_data[position_index];
+	const Vec3r* positions = (const Vec3r*)md.vertex_data[position_index];
 	result->bounds.min = positions[0];
 	result->bounds.max = positions[0];
 	for(u32 i = 1; i < md.vertex_count; ++i){
@@ -131,19 +131,19 @@ xen::gl::MeshGlData* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 
 	///////////////////////////////////////////////
 	// Upload vertex attrib data to GPU buffer
-	for(u08 i = 0; i < md.attrib_count; ++i){
-		if(md.attrib_data[i] == nullptr) {
+	for(u08 i = 0; i < md.vertex_spec.length; ++i){
+		if(md.vertex_data[i] == nullptr) {
 			// Then its a constant attribute, there is nothing to buffer
 			continue;
 		}
 
 		result->attrib_sources[i].buffer = gpu_buffer;
 
-		const void* data_source = md.attrib_data[i];
+		const void* data_source = md.vertex_data[i];
 
 		XEN_CHECK_GL(glBufferSubData(GL_ARRAY_BUFFER,
 		                             result->attrib_sources[i].offset,
-		                             getVertexAttributeSize(result->attrib_types[i]) * md.vertex_count,
+		                             getVertexAttributeSize(result->vertex_spec[i]) * md.vertex_count,
 		                             data_source
 		                             )
 		            );
@@ -167,7 +167,7 @@ void xen::gl::updateMeshAttribData(xen::gl::MeshGlData* mesh,
 
 	VertexAttributeSource* attrib_source = &mesh->attrib_sources[attrib_index];
 
-	u32 attrib_size = xen::getVertexAttributeSize(mesh->attrib_types[attrib_index]);
+	u32 attrib_size = xen::getVertexAttributeSize(mesh->vertex_spec[attrib_index]);
 
 	if(attrib_source->buffer == 0){
 

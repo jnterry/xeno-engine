@@ -43,7 +43,7 @@ public:
 
 	xen::Mesh createMesh(const xen::MeshData* mesh_data) override;
 	void      destroyMesh         (xen::Mesh mesh) override;
-	void      updateMeshAttribData(xen::Mesh mesh,
+	void      updateMeshVertexData(xen::Mesh mesh,
 	                               u32   attrib_index,
 	                               void* new_data,
 	                               u32   start_vertex,

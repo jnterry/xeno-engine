@@ -194,14 +194,11 @@ namespace xen{
 	/// \brief Meta data about some Mesh
 	/////////////////////////////////////////////////////////////////////
 	struct MeshHeader {
-		/// \brief Index reserved to represent an invalid attribute index
+		/// \brief Index reserved to represent an invalid VertexAttribute index
 		static const constexpr u08 BAD_ATTRIB_INDEX = 255;
 
-		/// \brief The number of attributes this Mesh has
-		u08                    attrib_count;
-
-		/// \brief The types of each mesh attribute
-		VertexAttribute::Type* attrib_types;
+		/// \brief The number of and type of attributes in this mesh
+		VertexSpec vertex_spec;
 
 		/// \brief The bounding box of this mesh
 		xen::Aabb3r            bounds;
@@ -220,7 +217,7 @@ namespace xen{
 		/// Array of length attrib_count, where each element is a void*
 		/// to the first byte of the data representing that attribute
 		/// or nullptr if no data is stored for that attribute
-		void** attrib_data;
+		void** vertex_data;
 
 		/// \brief Number of vertices in the mesh
 		u32 vertex_count;

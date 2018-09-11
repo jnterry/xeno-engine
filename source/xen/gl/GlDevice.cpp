@@ -115,18 +115,18 @@ namespace {
 
 	void renderMesh(xen::PrimitiveType primitive_type,
 	                const xen::gl::MeshGlData* mesh){
-		for(int i = 0; i < mesh->attrib_count; ++i){
+		for(u64 i = 0; i < mesh->vertex_spec.length; ++i){
 			if(mesh->attrib_sources[i].buffer){
 				XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->attrib_sources[i].buffer));
 				XEN_CHECK_GL(glEnableVertexAttribArray(i));
 
-				GLint component_count = (mesh->attrib_types[i] &
+				GLint component_count = (mesh->vertex_spec[i] &
 				                         xen::VertexAttribute::_ComponentCountMask
 				                        );
 
 				GLenum component_type;
 				GLboolean normalized = GL_FALSE;
-				switch(mesh->attrib_types[i] & xen::VertexAttribute::_TypeMask){
+				switch(mesh->vertex_spec[i] & xen::VertexAttribute::_TypeMask){
 				case xen::VertexAttribute::_TypeFloat:
 					component_type = GL_FLOAT;
 					break;
@@ -153,7 +153,7 @@ namespace {
 			} else {
 				XEN_CHECK_GL(glDisableVertexAttribArray(i));
 
-				switch(mesh->attrib_types[i]){
+				switch(mesh->vertex_spec[i]){
 				case xen::VertexAttribute::Position3r:
 				case xen::VertexAttribute::Normal3r:
 					#if XEN_USE_DOUBLE_PRECISION
@@ -351,7 +351,7 @@ namespace {
 			return makeHandle<xen::Mesh::HANDLE_ID>(slot, 0);
 		}
 
-		void updateMeshAttribData(xen::Mesh mesh_handle,
+		void updateMeshVertexData(xen::Mesh mesh_handle,
 		                          u32 attrib_index,
 		                          void* new_data,
 		                          u32 start_vertex,

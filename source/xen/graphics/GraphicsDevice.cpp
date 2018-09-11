@@ -80,10 +80,9 @@ namespace xen {
 		/////////////////////////////////////////////////////////////////
 		// Set mesh data fields
 		xen::MeshData mesh_data;
-		mesh_data.attrib_count = xen::size(vertex_spec);
-		mesh_data.attrib_types = vertex_spec.elements;
+		mesh_data.vertex_spec  = vertex_spec;
+		mesh_data.vertex_data  = attrib_data;
 		mesh_data.vertex_count = mesh_geom.vertex_count;
-		mesh_data.attrib_data  = attrib_data;
 
 		/////////////////////////////////////////////////////////////////
 		// Compute mesh bounding box
@@ -105,13 +104,9 @@ namespace xen {
 
 		MeshData md;
 
-		md.attrib_count = xen::size(vertex_spec);
+		md.vertex_spec  = vertex_spec;
 		md.vertex_count = vertex_count;
-		md.attrib_data  = attrib_data;
-
-		// Its fine to do this const cast since we use md as a const later on,
-		// an we don't modify the vertex_spec in this function
-		md.attrib_types = const_cast<xen::VertexAttribute::Type*>(&vertex_spec[0]);
+		md.vertex_data  = attrib_data;
 
 		Vec3r* pbuf = nullptr;
 
@@ -135,10 +130,7 @@ namespace xen {
 		}
 		/////////////////////////////////////////////////////////////////
 
-		// ensure we use md as const to prevent above const_cast from being invalid
-		// if createMesh is ever changed to take non const pointer
-		const MeshData* md_const = &md;
-		return this->createMesh(md_const);
+		return this->createMesh(&md);
 	}
 
 	void GraphicsDevice::clear(Window* window, xen::Color color){
