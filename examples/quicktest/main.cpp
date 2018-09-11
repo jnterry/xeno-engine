@@ -48,26 +48,17 @@ int main(int argc, char** argv){
 	Mat4r model_mat;
 	xen::Color4f point_light_color = xen::Color4f(1,0,0,1);
 
-	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
+	xen::FixedArray<xen::VertexAttribute::Type, 4> vertex_spec;
 	vertex_spec[0] = xen::VertexAttribute::Position3r;
 	vertex_spec[1] = xen::VertexAttribute::Normal3r;
-	vertex_spec[2] = xen::VertexAttribute::Color3f;
+	vertex_spec[2] = xen::VertexAttribute::Color4b;
+	vertex_spec[3] = xen::VertexAttribute::TexCoord2f;
 
 	xen::MeshData* mesh_data_bunny = xen::createEmptyMeshData(app.arena, vertex_spec);
 	xen::loadMeshFile(mesh_data_bunny, app.arena, "bunny.obj");
 	xen::Mesh mesh_bunny = app.device->createMesh(mesh_data_bunny);
 
-	void* mesh_cube_attrib_data[] = {
-		xen::TestMeshGeometry_UnitCube.position,
-		xen::TestMeshGeometry_UnitCube.normal,
-		xen::TestMeshGeometry_UnitCube.color,
-	};
-  xen::MeshData mesh_data_cube;
-	mesh_data_cube.attrib_count = 3;
-	mesh_data_cube.attrib_types = vertex_spec.elements;
-	mesh_data_cube.vertex_count = 3 * 2 * 6; // (3 vert per tri) * (2 tri per face) * (6 faces)
-	mesh_data_cube.attrib_data  = mesh_cube_attrib_data;
-	xen::Mesh mesh_cube = app.device->createMesh(&mesh_data_cube);
+	xen::Mesh mesh_cube  = app.device->createMesh(vertex_spec, xen::TestMeshGeometry_UnitCube);
 
 	xen::RawImage test_image        = xen::loadImage(app.arena, "test.bmp");
 	xen::Texture  texture_debug_img = app.device->createTexture(&test_image);
@@ -167,6 +158,7 @@ int main(int argc, char** argv){
 		render_params.camera = xen::generateCamera3d(camera);
 		render_params.lights[0].point.position = light_pos;
 		render_params.lights[0].color          = point_light_color;
+	  render_params.lights[0].attenuation    = {0.0f, 0.0f, 2.0f};
 
 		////////////////////////////////////////////
 		// Draw Cube Light
