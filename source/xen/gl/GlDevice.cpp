@@ -115,7 +115,7 @@ namespace {
 
 	void renderMesh(xen::PrimitiveType primitive_type,
 	                const xen::gl::MeshGlData* mesh){
-		for(u64 i = 0; i < mesh->vertex_spec.length; ++i){
+		for(u64 i = 0; i < xen::size(mesh->vertex_spec); ++i){
 			if(mesh->vertex_data[i].buffer){
 				XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_data[i].buffer));
 				XEN_CHECK_GL(glEnableVertexAttribArray(i));

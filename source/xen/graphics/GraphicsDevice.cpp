@@ -55,7 +55,7 @@ namespace xen {
 	                                ){
 
 		// max number of vertex attributes is 255, so allocate that much stack space
-		XenAssert(vertex_spec.length < 255, "Can only support up to 255 vertex attributes");
+		XenAssert(vertex_spec.size < 255, "Can only support up to 255 vertex attributes");
 		void* vertex_data[255];
 
 		/////////////////////////////////////////////////////////////////

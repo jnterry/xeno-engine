@@ -93,7 +93,7 @@ namespace {
 			xen::MeshData::BAD_ATTRIB_INDEX,
 		};
 
-		for(u32 i = 0; i < spec.length; ++i){
+		for(u32 i = 0; i < spec.size; ++i){
 			switch(spec[i] & xen::VertexAttribute::_AspectMask){
 			case xen::VertexAttribute::_AspectPosition:
 				XenAssert(result.position == xen::MeshData::BAD_ATTRIB_INDEX,
@@ -273,14 +273,14 @@ namespace xen {
 
 		if(!xen::isValid(arena)){ return nullptr; }
 
-		result->vertex_spec.length   = spec.length;
-		result->vertex_spec.elements = xen::reserveTypeArray<xen::VertexAttribute::Type>(arena, spec.length);
-		result->vertex_data          = xen::reserveTypeArray<void*                     >(arena, spec.length);
+		result->vertex_spec.size     = spec.size;
+		result->vertex_spec.elements = xen::reserveTypeArray<xen::VertexAttribute::Type>(arena, spec.size);
+		result->vertex_data          = xen::reserveTypeArray<void*                     >(arena, spec.size);
 
 		if(!xen::isValid(arena)){ return nullptr; }
 
-		xen::copyArray<xen::VertexAttribute::Type>(&spec[0], &result->vertex_spec[0], spec.length);
-		xen::clearToZero(result->vertex_data, spec.length * sizeof(void*));
+		xen::copyArray<xen::VertexAttribute::Type>(&spec[0], &result->vertex_spec[0], spec.size);
+		xen::clearToZero(result->vertex_data, spec.size * sizeof(void*));
 
 		transaction.commit();
 		return result;
@@ -312,7 +312,7 @@ namespace xen {
 	}
 
 	u08 findMeshAttrib(const MeshData* mesh_data, VertexAttribute::_Flags aspect){
-		for(u08 i = 0; i < mesh_data->vertex_spec.length; ++i){
+		for(u08 i = 0; i < mesh_data->vertex_spec.size; ++i){
 			if((mesh_data->vertex_spec[i] & VertexAttribute::_AspectMask) == aspect){
 				return i;
 			}

@@ -71,7 +71,7 @@ namespace{
 xen::gl::MeshGlData* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::MeshData& md){
 	xen::MemoryTransaction transaction(arena);
 
-	xen::gl::MeshGlData* result = pushMeshGlData(arena, md.vertex_spec.length);
+	xen::gl::MeshGlData* result = pushMeshGlData(arena, md.vertex_spec.size);
 	result->vertex_count = md.vertex_count;
 
 	u32 gpu_buffer_size =   0;
@@ -85,7 +85,7 @@ xen::gl::MeshGlData* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 
 	///////////////////////////////////////////////
 	// Set up mesh attributes, work out where to store data in gpu buffer
-	for(u08 i = 0; i < md.vertex_spec.length; ++i){
+	for(u08 i = 0; i < md.vertex_spec.size; ++i){
 		result->vertex_spec[i] = md.vertex_spec[i];
 
 		if((xen::VertexAttribute::_AspectPosition ==
@@ -131,7 +131,7 @@ xen::gl::MeshGlData* xen::gl::createMesh(xen::ArenaLinear& arena, const xen::Mes
 
 	///////////////////////////////////////////////
 	// Upload vertex attrib data to GPU buffer
-	for(u08 i = 0; i < md.vertex_spec.length; ++i){
+	for(u08 i = 0; i < md.vertex_spec.size; ++i){
 		if(md.vertex_data[i] == nullptr) {
 			// Then its a constant attribute, there is nothing to buffer
 			continue;
