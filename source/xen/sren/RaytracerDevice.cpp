@@ -41,12 +41,12 @@ xen::Mesh xen::sren::RaytracerDevice::createMesh(const xen::MeshData* mesh_data)
 void xen::sren::RaytracerDevice::destroyMesh(xen::Mesh mesh) {
 	this->mesh_store.destroyMesh(mesh);
 }
-void xen::sren::RaytracerDevice::updateMeshAttribData(xen::Mesh mesh,
+void xen::sren::RaytracerDevice::updateMeshVertexData(xen::Mesh mesh,
                                                       u32   attrib_index,
                                                       void* new_data,
                                                       u32   start_vertex,
                                                       u32   end_vertex) {
-	this->mesh_store.updateMeshAttribData(mesh,
+	this->mesh_store.updateMeshVertexData(mesh,
 	                                      attrib_index,
 	                                      new_data,
 	                                      start_vertex,

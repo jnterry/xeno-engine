@@ -18,7 +18,8 @@ namespace xen{
 	/////////////////////////////////////////////////////////////////////
 	template<typename T>
 	struct Array {
-	  u64 size;
+
+		u64 size;
 		T*  elements;
 
 		inline T&       operator[](u64 i)       { return elements[i]; }

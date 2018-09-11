@@ -20,21 +20,6 @@
 namespace xen{
 	struct ArenaLinear;
 
-	// :TODO:REF:
-	// Need a big clean up of the mesh code - was originally designed for
-	// OpenGL only and then split into common code and that specific to GL
-	// Theres a lot of concepts flying around, and conversions between them.
-	// - Do we need flexible mesh data representations, as well as fixed
-	//   representations
-	//   - When meta type system is implemented can we use that for flexible
-	//     representation?
-	//   - Probably have a lot of repeated code
-	// - Make Vertex Attrib / Attribute naming consistent
-	// - VertexAttribute should be a bitfield so we can do
-	//   .aspect, .type and .channels but still used the named constant
-	//   approach so we dont have to support arbitary combinations. Do this
-	//   using static instances (like Vec3r::Origin)
-
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Container for pointers to in memory arrays of attribute data
 	/// for some mesh
@@ -194,14 +179,11 @@ namespace xen{
 	/// \brief Meta data about some Mesh
 	/////////////////////////////////////////////////////////////////////
 	struct MeshHeader {
-		/// \brief Index reserved to represent an invalid attribute index
+		/// \brief Index reserved to represent an invalid VertexAttribute index
 		static const constexpr u08 BAD_ATTRIB_INDEX = 255;
 
-		/// \brief The number of attributes this Mesh has
-		u08                    attrib_count;
-
-		/// \brief The types of each mesh attribute
-		VertexAttribute::Type* attrib_types;
+		/// \brief The number of and type of attributes in this mesh
+		VertexSpec vertex_spec;
 
 		/// \brief The bounding box of this mesh
 		xen::Aabb3r            bounds;
@@ -209,22 +191,30 @@ namespace xen{
 		// :TODO: support indexed meshes
 	};
 
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Represents mesh data stored in main memory. This allows for
-	/// manipulations to be performed by the CPU, but the data IS NOT
-	/// in an appropriate format for rendering systems to draw the mesh
-	/////////////////////////////////////////////////////////////////////
-	struct MeshData : public MeshHeader {
+	template <typename T>
+	struct MeshDataSource : public MeshHeader {
 		/// \brief The data for each of this mesh's attributes
 		///
-		/// Array of length attrib_count, where each element is a void*
-		/// to the first byte of the data representing that attribute
-		/// or nullptr if no data is stored for that attribute
-		void** attrib_data;
+		/// Array of length vertex_spec.length, where each element is of
+		/// type T which is some type representing how to source the data
+		/// for the vertex
+	  T* vertex_data;
 
 		/// \brief Number of vertices in the mesh
 		u32 vertex_count;
 	};
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents mesh data stored in main memory. This allows for
+	/// manipulations to be performed by the CPU, but the data IS NOT
+	/// in an appropriate format for rendering systems to draw the mesh
+	///
+	/// This is a MeshDataSource with the source type set to void*.
+	/// If an attributes source is set to nullptr then no data is stored for
+	/// that attribute, else the pointer is to the first element of an array
+	// of type specified by vertex_spec[i] storing the data
+	/////////////////////////////////////////////////////////////////////
+	typedef MeshDataSource<void*> MeshData;
 }
 
 #endif

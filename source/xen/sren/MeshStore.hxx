@@ -62,7 +62,7 @@ public:
 
 	void      destroyMesh         (xen::Mesh mesh);
 
-	void      updateMeshAttribData(xen::Mesh mesh,
+	void      updateMeshVertexData(xen::Mesh mesh,
 	                               u32   attrib_index,
 	                               void* new_data,
 	                               u32   start_vertex,
@@ -117,19 +117,19 @@ void MeshStore<T_MESH>::destroyMesh(xen::Mesh mesh) {
 }
 
 template<typename T_MESH>
-void MeshStore<T_MESH>::updateMeshAttribData(xen::Mesh mesh_handle,
+void MeshStore<T_MESH>::updateMeshVertexData(xen::Mesh mesh_handle,
                                              u32 attrib_index,
                                              void* new_data,
                                              u32 start_vertex,
                                              u32 end_vertex
-                                             ) {
+                                            ) {
 	T_MESH* mesh = this->getMesh(mesh_handle);;
 
 	end_vertex = xen::min(end_vertex, mesh->vertex_count);
 	if(end_vertex < start_vertex){ return; }
 
 	void** attrib_data = nullptr;
-	switch(mesh->attrib_types[attrib_index]){
+	switch(mesh->vertex_spec[attrib_index]){
 	case xen::VertexAttribute::Position3r:
 		attrib_data = (void**)&mesh->position;
 		break;
@@ -144,7 +144,7 @@ void MeshStore<T_MESH>::updateMeshAttribData(xen::Mesh mesh_handle,
 		return;
 	}
 
-	u32 attrib_size = xen::getVertexAttributeSize(mesh->attrib_types[attrib_index]);
+	u32 attrib_size = xen::getVertexAttributeSize(mesh->vertex_spec[attrib_index]);
 	if(*attrib_data == nullptr){
 		*attrib_data = mesh_allocator->allocate(attrib_size * mesh->vertex_count);
 		if(start_vertex != 0 || end_vertex != mesh->vertex_count){

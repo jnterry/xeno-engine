@@ -14,11 +14,11 @@
 
 #include <xen/graphics/GraphicsDevice_types.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
+#include <xen/graphics/Mesh_types.hpp>
 #include <xen/math/geometry_types.hpp>
 #include <xen/core/array.hpp>
 
 namespace xen {
-	struct MeshData;
 	struct Window;
 	struct RawImage;
 
@@ -118,11 +118,11 @@ namespace xen {
 		                ...);
 
 		/////////////////////////////////////////////////////////////////////
-		/// \brief Updates the attribute data for a particular attribute of some
+		/// \brief Updates the vertex data for a particular attribute of some
 		/// mesh
 		///
 		/// \param mesh The mesh whose data you wish to modify
-		/// \param attrib_index The index of the attribute you wish to modify
+		/// \param attrib_index The index of the attribute of each vertex you wish to modify
 		/// \param new_data     Pointer to the new data for the attribute
 		/// \param start_index  The first vertex you wish to modify, defaults to 0
 		/// \param end_vertex   The last vertex you wish to modify, defaults to max int
@@ -132,7 +132,7 @@ namespace xen {
 		/// \note new_data should contain data for at least (end_vertex - start_vertex)
 		/// vertices
 		/////////////////////////////////////////////////////////////////////
-		virtual void updateMeshAttribData(Mesh mesh,
+		virtual void updateMeshVertexData(Mesh mesh,
 		                                  u32 attrib_index,
 		                                  void* new_data,
 		                                  u32 start_vertex = 0,

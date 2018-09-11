@@ -104,7 +104,7 @@ int main(int argc, char** argv){
 				star_positions[i].z -= 200.0f;
 			}
 		}
-		app.device->updateMeshAttribData(mesh_stars, 0, star_positions);
+		app.device->updateMeshVertexData(mesh_stars, 0, star_positions);
 
 		app.device->clear      (app.window, xen::Color{20,20,20,255});
 		app.device->render     (app.window, viewport, render_params, render_commands);

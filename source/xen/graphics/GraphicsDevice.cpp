@@ -54,8 +54,9 @@ namespace xen {
 	                                const MeshGeometrySource& mesh_geom
 	                                ){
 
-		// max number of attribs is 255, so allocate that much stack space
-		void* attrib_data[255];
+		// max number of vertex attributes is 255, so allocate that much stack space
+		XenAssert(vertex_spec.size < 255, "Can only support up to 255 vertex attributes");
+		void* vertex_data[255];
 
 		/////////////////////////////////////////////////////////////////
 		// Construct attrib data array based on vertex_spec and what we
@@ -63,16 +64,16 @@ namespace xen {
 		for(u32 i = 0; i < xen::size(vertex_spec); ++i){
 			switch(vertex_spec[i]){
 			case xen::VertexAttribute::Position3r:
-				attrib_data[i] = mesh_geom.position;
+				vertex_data[i] = mesh_geom.position;
 				break;
 			case xen::VertexAttribute::Normal3r:
-				attrib_data[i] = mesh_geom.normal;
+				vertex_data[i] = mesh_geom.normal;
 				break;
 			case xen::VertexAttribute::Color4b:
-				attrib_data[i] = mesh_geom.color;
+				vertex_data[i] = mesh_geom.color;
 				break;
 			case xen::VertexAttribute::TexCoord2f:
-				attrib_data[i] = mesh_geom.uvs;
+				vertex_data[i] = mesh_geom.uvs;
 			default: break;
 			}
 		}
@@ -80,10 +81,9 @@ namespace xen {
 		/////////////////////////////////////////////////////////////////
 		// Set mesh data fields
 		xen::MeshData mesh_data;
-		mesh_data.attrib_count = xen::size(vertex_spec);
-		mesh_data.attrib_types = vertex_spec.elements;
+		mesh_data.vertex_spec  = vertex_spec;
+		mesh_data.vertex_data  = vertex_data;
 		mesh_data.vertex_count = mesh_geom.vertex_count;
-		mesh_data.attrib_data  = attrib_data;
 
 		/////////////////////////////////////////////////////////////////
 		// Compute mesh bounding box
@@ -105,13 +105,9 @@ namespace xen {
 
 		MeshData md;
 
-		md.attrib_count = xen::size(vertex_spec);
+		md.vertex_spec  = vertex_spec;
 		md.vertex_count = vertex_count;
-		md.attrib_data  = attrib_data;
-
-		// Its fine to do this const cast since we use md as a const later on,
-		// an we don't modify the vertex_spec in this function
-		md.attrib_types = const_cast<xen::VertexAttribute::Type*>(&vertex_spec[0]);
+		md.vertex_data  = attrib_data;
 
 		Vec3r* pbuf = nullptr;
 
@@ -135,10 +131,7 @@ namespace xen {
 		}
 		/////////////////////////////////////////////////////////////////
 
-		// ensure we use md as const to prevent above const_cast from being invalid
-		// if createMesh is ever changed to take non const pointer
-		const MeshData* md_const = &md;
-		return this->createMesh(md_const);
+		return this->createMesh(&md);
 	}
 
 	void GraphicsDevice::clear(Window* window, xen::Color color){

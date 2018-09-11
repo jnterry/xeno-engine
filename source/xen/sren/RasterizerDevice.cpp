@@ -46,12 +46,12 @@ public:
 	void      destroyMesh         (xen::Mesh mesh) override{
 		this->mesh_store.destroyMesh(mesh);
 	}
-	void      updateMeshAttribData(xen::Mesh mesh,
+	void      updateMeshVertexData(xen::Mesh mesh,
 	                               u32   attrib_index,
 	                               void* new_data,
 	                               u32   start_vertex,
 	                               u32   end_vertex) override{
-		this->mesh_store.updateMeshAttribData(mesh,
+		this->mesh_store.updateMeshVertexData(mesh,
 		                                      attrib_index,
 		                                      new_data,
 		                                      start_vertex,

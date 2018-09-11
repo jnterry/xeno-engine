@@ -115,18 +115,18 @@ namespace {
 
 	void renderMesh(xen::PrimitiveType primitive_type,
 	                const xen::gl::MeshGlData* mesh){
-		for(int i = 0; i < mesh->attrib_count; ++i){
-			if(mesh->attrib_sources[i].buffer){
-				XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->attrib_sources[i].buffer));
+		for(u64 i = 0; i < xen::size(mesh->vertex_spec); ++i){
+			if(mesh->vertex_data[i].buffer){
+				XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_data[i].buffer));
 				XEN_CHECK_GL(glEnableVertexAttribArray(i));
 
-				GLint component_count = (mesh->attrib_types[i] &
+				GLint component_count = (mesh->vertex_spec[i] &
 				                         xen::VertexAttribute::_ComponentCountMask
 				                        );
 
 				GLenum component_type;
 				GLboolean normalized = GL_FALSE;
-				switch(mesh->attrib_types[i] & xen::VertexAttribute::_TypeMask){
+				switch(mesh->vertex_spec[i] & xen::VertexAttribute::_TypeMask){
 				case xen::VertexAttribute::_TypeFloat:
 					component_type = GL_FLOAT;
 					break;
@@ -142,34 +142,34 @@ namespace {
 					break;
 				}
 
-				XEN_CHECK_GL(glVertexAttribPointer(i, //attrib layout
+				XEN_CHECK_GL(glVertexAttribPointer(i,
 				                                   component_count,
 				                                   component_type,
 				                                   normalized,
-				                                   mesh->attrib_sources[i].stride,
-				                                   (void*)mesh->attrib_sources[i].offset
+				                                   mesh->vertex_data[i].stride,
+				                                   (void*)mesh->vertex_data[i].offset
 				                                   )
 				             );
 			} else {
 				XEN_CHECK_GL(glDisableVertexAttribArray(i));
 
-				switch(mesh->attrib_types[i]){
+				switch(mesh->vertex_spec[i]){
 				case xen::VertexAttribute::Position3r:
 				case xen::VertexAttribute::Normal3r:
 					#if XEN_USE_DOUBLE_PRECISION
-					XEN_CHECK_GL(glVertexAttrib3dv(i, &mesh->attrib_sources[i].vec3r[0]));
+					XEN_CHECK_GL(glVertexAttrib3dv(i, &mesh->vertex_data[i].vec3r[0]));
 					#else
-					XEN_CHECK_GL(glVertexAttrib3fv(i, &mesh->attrib_sources[i].vec3r[0]));
+					XEN_CHECK_GL(glVertexAttrib3fv(i, &mesh->vertex_data[i].vec3r[0]));
 					#endif
 					break;
 				case xen::VertexAttribute::TexCoord2f:
-					XEN_CHECK_GL(glVertexAttrib2fv(i, &mesh->attrib_sources[i].vec2f[0]));
+					XEN_CHECK_GL(glVertexAttrib2fv(i, &mesh->vertex_data[i].vec2f[0]));
 					break;
 				case xen::VertexAttribute::Color3f:
-					XEN_CHECK_GL(glVertexAttrib3fv(i, &mesh->attrib_sources[i].color3f[0]));
+					XEN_CHECK_GL(glVertexAttrib3fv(i, &mesh->vertex_data[i].color3f[0]));
 					break;
 				case xen::VertexAttribute::Color4b: {
-					xen::Color color = mesh->attrib_sources[i].color4b;
+					xen::Color color = mesh->vertex_data[i].color4b;
 					XEN_CHECK_GL(glVertexAttrib4f
 					             (i,
 					              xen::mapToRange<u32, float>(0, 255, 0.0f, 1.0f, color.r),
@@ -351,7 +351,7 @@ namespace {
 			return makeHandle<xen::Mesh::HANDLE_ID>(slot, 0);
 		}
 
-		void updateMeshAttribData(xen::Mesh mesh_handle,
+		void updateMeshVertexData(xen::Mesh mesh_handle,
 		                          u32 attrib_index,
 		                          void* new_data,
 		                          u32 start_vertex,

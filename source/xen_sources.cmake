@@ -73,6 +73,7 @@ set(XEN_HEADERS_GRAPHICS
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Camera3d.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Color.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/RenderCommand3d.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Mesh_types.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/Mesh.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/TestMeshes.hpp
 	${CMAKE_CURRENT_LIST_DIR}/xen/graphics/GraphicsDevice_types.hpp
