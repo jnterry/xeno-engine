@@ -6,50 +6,45 @@
 /// \ingroup kernel
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_KERNEL_CONTEXT_HPP
-#define XEN_KERNEL_CONTEXT_HPP
+#ifndef XEN_KERNEL_KERNEL_HPP
+#define XEN_KERNEL_KERNEL_HPP
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/time.hpp>
 
 namespace xen {
 
-	struct Context;
-
-	/// \brief Type representing a function which
-	typedef bool (*TickFunction)(const Context& cntx);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Pack of settings used to initialise the kernel
 	/////////////////////////////////////////////////////////////////////
 	struct KernelSettings {
-		/// \brief Function which represents all computation that should occur
-		/// in one frame of the application
-		TickFunction loop;
+
 	};
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Context of the engine containing all state passed to a call
-	/// of MainLoopFunction
+	/// \brief Struct containing all state passed to the TickFunction
 	/////////////////////////////////////////////////////////////////////
-	struct Context {
+	struct TickContext {
 		/// \brief Time since the kernel started
 		xen::Duration time;
 
-		/// \brief Delta time since the last call to loop
+		/// \brief Delta time since the last call to the tick function
 		xen::Duration dt;
 
-		/// \brief Integer which is incremented by one just after
-		/// each call to loop
+		/// \brief Integer which is incremented after each call to the tick function
 		u64 tick;
 	};
+
+	/// \brief Type representing a function which
+	typedef bool (*TickFunction)(const TickContext& cntx);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Initialises Xenogin's kernel, after which it will begin calling the
 	/// tick function. This function will not return until the tick function
 	/// returns false
 	/////////////////////////////////////////////////////////////////////
-	void startKernel(const KernelSettings& settings);
+	void startKernel(TickFunction tick_function);
 }
 
 #endif

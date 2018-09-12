@@ -9,15 +9,16 @@
 #ifndef XEN_KERNEL_CONTEXT_CPP
 #define XEN_KERNEL_CONTEXT_CPP
 
-#include <xen/kernel/Context.hpp>
+#include <xen/kernel/Kernel.hpp>
 
 namespace xen {
 
-	void startKernel(const KernelSettings& settings){
-		Context cntx = {0};
+	void startKernel(TickFunction tick_function){
+		TickContext cntx = {0};
+
+		bool tick_result;
 
 		xen::Stopwatch timer;
-		bool loop_return_code;
 		xen::Duration last_time = timer.getElapsedTime();
 
 		printf("Kernel init finished, beginning main loop...\n");
@@ -25,11 +26,11 @@ namespace xen {
 			cntx.time = timer.getElapsedTime();
 			cntx.dt = cntx.time - last_time;
 
-			loop_return_code = settings.loop(cntx);
+		  tick_result = tick_function(cntx);
 
 			++cntx.tick;
 			last_time = cntx.time;
-		} while (loop_return_code);
+		} while (tick_result);
 
 		printf("Main loop requested termination, doing kernel cleanup\n");
 		// free resources, check for memory leaks, etc
