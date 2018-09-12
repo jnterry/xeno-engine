@@ -10,11 +10,27 @@
 #define XEN_KERNEL_CONTEXT_CPP
 
 #include <xen/kernel/Kernel.hpp>
+#include <xen/core/memory/Allocator.hpp>
 
 namespace xen {
 
-	void startKernel(TickFunction tick_function){
+	struct Kernel {
+		xen::Allocator* root_allocator;
+	};
+
+	Kernel* createKernel(const KernelSettings& settings){
+		xen::AllocatorMalloc* allocator = new AllocatorMalloc();
+
+		Kernel* kernel = (Kernel*)allocator->allocate(sizeof(Kernel));
+
+		kernel->root_allocator = allocator;
+
+		return kernel;
+	}
+
+	void startKernel(Kernel* kernel, TickFunction tick_function){
 		TickContext cntx = {0};
+		cntx.kernel = kernel;
 
 		bool tick_result;
 

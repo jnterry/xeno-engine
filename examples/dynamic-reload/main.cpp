@@ -6,7 +6,8 @@
 #include <xen/core/memory.hpp>
 
 int main(){
-	printf("Hello world!\n");
+	xen::KernelSettings settings;
+	xen::Kernel* kernel = xen::createKernel(settings);
 
 	xen::AllocatorMalloc alloc;
 
@@ -16,7 +17,7 @@ int main(){
 	Game* game = (Game*)xen::getDynamicLibrarySymbol(game_lib, "game");
 	printf("Loaded symbol at: %p\n", (void*)game);
 
-	xen::startKernel(game->tick);
+	xen::startKernel(kernel, game->tick);
 
 	printf("End of main\n");
 }
