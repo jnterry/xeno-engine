@@ -23,3 +23,5 @@ bool mainLoop(const xen::Context& cntx){
 	printf("End main loop\n");
 	return true;
 }
+
+Game game = { mainLoop };

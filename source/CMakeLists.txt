@@ -13,7 +13,7 @@ target_include_directories(xen-all PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 target_link_libraries     (xen-all PRIVATE libglew_shared)
 target_link_libraries     (xen-all PRIVATE assimp        )
 target_link_libraries     (xen-all PRIVATE thpool        )
-target_link_libraries     (xen-all PRIVATE pthread)
+target_link_libraries     (xen-all PRIVATE pthread       )
 
 
 add_library(xen-core STATIC ${XEN_HEADERS_CORE} ${XEN_SOURCES_CORE})
@@ -24,6 +24,10 @@ target_include_directories(xen-math PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
 add_library(xen-kernel STATIC ${XEN_HEADERS_KERNEL} ${XEN_SOURCES_KERNEL})
 target_include_directories(xen-kernel PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+if(UNIX)
+	target_link_libraries(xen-all dl)
+	target_link_libraries(xen-kernel dl)
+endif()
 
 add_library(xen-graphics STATIC ${XEN_HEADERS_GRAPHICS} ${XEN_SOURCES_GRAPHICS})
 target_include_directories(xen-graphics PRIVATE "${XEN_EXTLIBS_DIR}/stb/")
@@ -33,6 +37,7 @@ target_link_libraries     (xen-graphics PUBLIC  xen-core)
 target_link_libraries     (xen-graphics PUBLIC  xen-math)
 target_link_libraries     (xen-graphics PRIVATE assimp  )
 if(UNIX)
+	target_link_libraries(xen-all      X11)
 	target_link_libraries(xen-graphics X11)
 endif()
 

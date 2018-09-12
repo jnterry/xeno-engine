@@ -57,9 +57,11 @@ set(XEN_HEADERS_MATH
 ##################################################
 set(XEN_SOURCES_KERNEL
 	${CMAKE_CURRENT_LIST_DIR}/xen/kernel/Context.cpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/kernel/DynamicLibrary.cpp
 )
 set(XEN_HEADERS_KERNEL
 	${CMAKE_CURRENT_LIST_DIR}/xen/kernel/Context.hpp
+	${CMAKE_CURRENT_LIST_DIR}/xen/kernel/DynamicLibrary.hpp
 )
 
 ##################################################
