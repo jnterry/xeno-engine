@@ -11,7 +11,6 @@
 
 #include <xen/config.hpp>
 
-
 #ifdef XEN_OS_WINDOWS
 	#error "Dynamic libraries not implemented on windows"
 #elif defined XEN_OS_UNIX

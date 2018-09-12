@@ -9,17 +9,13 @@
 #ifndef XEN_KERNEL_DYNAMICLIBRARY_UNIX_CPP
 #define XEN_KERNEL_DYNAMICLIBRARY_UNIX_CPP
 
-#include <xen/kernel/DynamicLibrary.hpp>
+#include "DynamicLibrary.hxx"
 
 #include <dlfcn.h>
 
 #include <cstdio>
 
 namespace xen {
-
-	// under unix the dynamic library handle is just a void*, this type
-	// isn't needed, we will just cast the void* to DynamicLibrary
-	struct DynamicLibrary {};
 
 	DynamicLibrary* loadDynamicLibrary(xen::Allocator& alloc, const char* path){
 		char buffer[4096];

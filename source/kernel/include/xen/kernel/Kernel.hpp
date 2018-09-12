@@ -9,13 +9,13 @@
 #ifndef XEN_KERNEL_KERNEL_HPP
 #define XEN_KERNEL_KERNEL_HPP
 
+#include <xen/kernel/Module.hpp>
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/time.hpp>
 
 namespace xen {
 
 	struct Allocator;
-
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Pack of settings used to initialise the kernel
@@ -32,14 +32,29 @@ namespace xen {
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Creates a new Kernel
 	/////////////////////////////////////////////////////////////////////
-	Kernel* createKernel(const KernelSettings& settings);
+	Kernel& createKernel(const KernelSettings& settings);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Loads a kernel module and call's the module's init function
+	/////////////////////////////////////////////////////////////////////
+	Module* loadModule(Kernel& kernel, const ModuleSource& source);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Overload of loadModule which simply takes a path to the shared
+	/// library file to load
+	/////////////////////////////////////////////////////////////////////
+	inline Module* loadModule(Kernel& kernel, const char* lib_path){
+		ModuleSource source = {0};
+		source.lib_path = lib_path;
+		return loadModule(kernel, source);
+	}
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Struct containing all state passed to the TickFunction
 	/////////////////////////////////////////////////////////////////////
 	struct TickContext {
 		/// \brief The kernel causing this tick to occur
-		Kernel* kernel;
+		Kernel& kernel;
 
 		/// \brief Time since the kernel started
 		xen::Duration time;
@@ -59,7 +74,7 @@ namespace xen {
 	/// tick function. This function will not return until the tick function
 	/// returns false
 	/////////////////////////////////////////////////////////////////////
-	void startKernel(Kernel* kernel, TickFunction tick_function);
+	void startKernel(Kernel& kernel, TickFunction tick_function);
 }
 
 #endif

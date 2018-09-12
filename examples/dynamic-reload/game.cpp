@@ -25,4 +25,20 @@ bool mainLoop(const xen::TickContext& cntx){
 	return true;
 }
 
-Game game = { mainLoop };
+bool init(xen::Kernel& kernel){
+	printf("Initialising game module\n");
+	return true;
+}
+
+void shutdown(xen::Kernel& kernel){
+	printf("Shutting down game module\n");
+}
+
+Game::Game()
+	: tick(&mainLoop)
+{
+	this->init     = &::init;
+	this->shutdown = &::shutdown;
+}
+
+Game exported_xen_module = Game();

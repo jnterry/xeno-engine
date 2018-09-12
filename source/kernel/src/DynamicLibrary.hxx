@@ -7,8 +7,10 @@
 /// \ingroup kernel
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_KERNE_DYNAMICLIBRARY_HPP
-#define XEN_KERNE_DYNAMICLIBRARY_HPP
+#ifndef XEN_KERNEL_DYNAMICLIBRARY_HPP
+#define XEN_KERNEL_DYNAMICLIBRARY_HPP
+
+#include <xen/config.hpp>
 
 namespace xen {
 
@@ -40,7 +42,14 @@ namespace xen {
 	/// methods should be called first!
 	/////////////////////////////////////////////////////////////////////
 	void unloadDynamicLibrary(xen::Allocator& alloc, DynamicLibrary* lib);
-
 }
+
+#ifdef XEN_OS_WINDOWS
+	#error "Dynamic libraries not implemented on windows"
+#elif defined XEN_OS_UNIX
+	#include "DynamicLibrary.unix.hxx"
+#else
+	#error "Dynamic libraries not implemented on this platform"
+#endif
 
 #endif

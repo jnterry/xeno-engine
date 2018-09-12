@@ -2,22 +2,17 @@
 
 #include "game.hpp"
 
-#include <xen/kernel/DynamicLibrary.hpp>
 #include <xen/core/memory.hpp>
 
 int main(){
 	xen::KernelSettings settings;
-	xen::Kernel* kernel = xen::createKernel(settings);
+	xen::Kernel& kernel = xen::createKernel(settings);
 
-	xen::AllocatorMalloc alloc;
+	Game* module_game = (Game*)xen::loadModule(kernel, "../lib/libdynamic-reload-gamed");
 
-	xen::DynamicLibrary* game_lib = xen::loadDynamicLibrary(alloc, "../lib/libdynamic-reload-gamed");
-	printf("Loaded lib at: %p\n", (void*)game_lib);
+	printf("Loaded game module: %p\n", (void*)module_game);
 
-	Game* game = (Game*)xen::getDynamicLibrarySymbol(game_lib, "game");
-	printf("Loaded symbol at: %p\n", (void*)game);
-
-	xen::startKernel(kernel, game->tick);
+	xen::startKernel(kernel, module_game->tick);
 
 	printf("End of main\n");
 }
