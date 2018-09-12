@@ -22,6 +22,9 @@ target_include_directories(xen-core PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 add_library(xen-math STATIC ${XEN_HEADERS_MATH} ${XEN_SOURCES_MATH})
 target_include_directories(xen-math PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
+add_library(xen-kernel STATIC ${XEN_HEADERS_KERNEL} ${XEN_SOURCES_KERNEL})
+target_include_directories(xen-kernel PUBLIC ${CMAKE_CURRENT_LIST_DIR})
+
 add_library(xen-graphics STATIC ${XEN_HEADERS_GRAPHICS} ${XEN_SOURCES_GRAPHICS})
 target_include_directories(xen-graphics PRIVATE "${XEN_EXTLIBS_DIR}/stb/")
 target_include_directories(xen-graphics PRIVATE "${XEN_EXTLIBS_DIR}/assimp-3.3.1/include/")

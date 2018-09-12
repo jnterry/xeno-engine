@@ -52,6 +52,15 @@ set(XEN_HEADERS_MATH
 	${CMAKE_CURRENT_LIST_DIR}/xen/math/vertex_group.hpp
 )
 
+##################################################
+## Math
+##################################################
+set(XEN_SOURCES_KERNEL
+	${CMAKE_CURRENT_LIST_DIR}/xen/kernel/Context.cpp
+)
+set(XEN_HEADERS_KERNEL
+	${CMAKE_CURRENT_LIST_DIR}/xen/kernel/Context.hpp
+)
 
 ##################################################
 ## Graphics
@@ -144,8 +153,8 @@ set(XEN_HEADERS_GL
 ##################################################
 set(XEN_SOURCES_ALL
   ${XEN_SOURCES_CORE}
-  ${XEN_SOURCES_UTIL}
   ${XEN_SOURCES_MATH}
+	${XEN_SOURCES_KERNEL}
   ${XEN_SOURCES_GRAPHICS}
 	${XEN_SOURCES_SREN}
 	${XEN_SOURCES_GL}
@@ -153,8 +162,8 @@ set(XEN_SOURCES_ALL
 
 set(XEN_HEADERS_ALL
   ${XEN_HEADERS_CORE}
-  ${XEN_HEADERS_UTIL}
   ${XEN_HEADERS_MATH}
+	${XEN_SOURCES_KERNEL}
   ${XEN_HEADERS_GRAPHICS}
 	${XEN_HEADERS_SREN}
 	${XEN_SOURCES_GL}
