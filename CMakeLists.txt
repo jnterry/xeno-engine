@@ -24,7 +24,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG   ${XEN_BIN_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${XEN_BIN_DIR})
 
 set(XEN_EXTLIBS_DIR     "${CMAKE_CURRENT_LIST_DIR}/extlibs")
-set(XEN_INCLUDE_DIR     "${CMAKE_CURRENT_LIST_DIR}/source/")
+set(XEN_INCLUDE_DIRS
+	${CMAKE_CURRENT_LIST_DIR}/source/core/include/
+	${CMAKE_CURRENT_LIST_DIR}/source/math/include/
+	${CMAKE_CURRENT_LIST_DIR}/source/kernel/include/
+	${CMAKE_CURRENT_LIST_DIR}/source/module-gl/include/
+	${CMAKE_CURRENT_LIST_DIR}/source/module-sren/include/
+)
 
 # Force c++ 11 standard
 macro(use_cxx11)

@@ -10,10 +10,15 @@ function(xen_add_example TARGET_NAME)
 
 	target_include_directories(${TARGET_NAME} PRIVATE ${XEN_INCLUDE_DIR})
 
-	target_link_libraries(${TARGET_NAME} xen-all)
+	target_link_libraries(${TARGET_NAME} xen-core)
+	target_link_libraries(${TARGET_NAME} xen-math)
+	target_link_libraries(${TARGET_NAME} xen-kernel)
+	target_link_libraries(${TARGET_NAME} xen-graphics)
+	target_link_libraries(${TARGET_NAME} xen-module-gl)
+	target_link_libraries(${TARGET_NAME} xen-module-sren)
 
-	target_include_directories(${TARGET_NAME} PRIVATE "${XEN_EXTLIBS_DIR}/glew-2.1.0/include/")
-	target_link_libraries(${TARGET_NAME} libglew_shared)
+	#target_include_directories(${TARGET_NAME} PRIVATE "${XEN_EXTLIBS_DIR}/glew-2.1.0/include/")
+	#target_link_libraries(${TARGET_NAME} libglew_shared)
 
 	# Group all examples together in IDE projects
 	set_target_properties(${TARGET_NAME} PROPERTIES FOLDER "examples")

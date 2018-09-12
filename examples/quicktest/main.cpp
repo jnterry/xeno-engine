@@ -20,8 +20,6 @@
 #include <xen/graphics/Light3d.hpp>
 #include <xen/graphics/Window.hpp>
 
-#include <xen/gl/GlDevice.hpp>
-
 #include "../common.cpp"
 #include "../fragment_shaders.cpp"
 

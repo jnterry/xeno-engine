@@ -1,0 +1,1 @@
+This directory contains header files which should be visible to Xeno Engine modules, but not to users of Xeno Engine
