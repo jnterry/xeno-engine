@@ -19,6 +19,7 @@ line-test
 post-processing
 torus
 texture-test
+dynamic-reload
 
 # Ignore program output
 screenshot.bmp
