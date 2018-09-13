@@ -70,6 +70,26 @@ namespace xen {
 		return false;
 	}
 
+	bool endsWith(const xen::String string, const xen::String suffix){
+		u64 string_length = stringLength(string);
+		u64 suffix_length = stringLength(suffix);
+
+		if(string_length < suffix_length){
+			return false;
+		}
+
+		for(u64 i = suffix_length; i > 0; --i){
+			if(string[string_length - i] != suffix[suffix_length - i]){
+				return false;
+			}
+		}
+		return true;
+	}
+
+	bool endsWith(const xen::String string, const char* suffix){
+		return endsWith(string, xen::makeString(suffix));
+	}
+
 	bool startsWith(const char* string, const char* prefix){
 		const char* cur_string = string;
 		const char* cur_prefix = prefix;
@@ -80,6 +100,14 @@ namespace xen {
 			}
 		}
 		return true;
+	}
+
+	bool startsWith(const xen::String string, const xen::String prefix){
+		return startsWith((const char*)string, (const char*)prefix);
+	}
+
+	bool startsWith(const xen::String string, const char* prefix){
+		return startsWith((const char*)string, prefix);
 	}
 }
 

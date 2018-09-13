@@ -21,7 +21,7 @@ TEST_CASE("stringLength", "[core][string]"){
 	CHECK(xen::stringLength(xen::makeString("hello")) == 5);
 }
 
-TEST_CASE("endsWith", "[core][string]"){
+TEST_CASE("endsWith(const char*, const char*)", "[core][string]"){
 	CHECK(xen::endsWith("",        ""    ) == true);
 	CHECK(xen::endsWith("hello",   ""    ) == true);
 	CHECK(xen::endsWith("abc",     "abc" ) == true);
@@ -35,7 +35,35 @@ TEST_CASE("endsWith", "[core][string]"){
 	CHECK(xen::endsWith("abababa", "aba" ) == true);
 }
 
-TEST_CASE("startsWith", "[core][string]"){
+TEST_CASE("endsWith(xen::String, const char*)", "[core][string]"){
+	CHECK(xen::endsWith(xen::makeString(""       ), ""    ) == true);
+	CHECK(xen::endsWith(xen::makeString("hello"  ), ""    ) == true);
+	CHECK(xen::endsWith(xen::makeString("abc"    ), "abc" ) == true);
+	CHECK(xen::endsWith(xen::makeString("abc"    ), "bc"  ) == true);
+	CHECK(xen::endsWith(xen::makeString("abc"    ), "c"   ) == true);
+	CHECK(xen::endsWith(xen::makeString("abc"    ), ""    ) == true);
+	CHECK(xen::endsWith(xen::makeString("abc"    ), "1abc") == false);
+	CHECK(xen::endsWith(xen::makeString("abc1"   ), "abc" ) == false);
+	CHECK(xen::endsWith(xen::makeString("ababab" ), "ab"  ) == true);
+	CHECK(xen::endsWith(xen::makeString("abababa"), "ab"  ) == false);
+	CHECK(xen::endsWith(xen::makeString("abababa"), "aba" ) == true);
+}
+
+TEST_CASE("endsWith(xen::String, xen::String)", "[core][string]"){
+	CHECK(xen::endsWith(xen::makeString(""       ), xen::makeString(""    )) == true);
+	CHECK(xen::endsWith(xen::makeString("hello"  ), xen::makeString(""    )) == true);
+	CHECK(xen::endsWith(xen::makeString("abc"    ), xen::makeString("abc" )) == true);
+	CHECK(xen::endsWith(xen::makeString("abc"    ), xen::makeString("bc"  )) == true);
+	CHECK(xen::endsWith(xen::makeString("abc"    ), xen::makeString("c"   )) == true);
+	CHECK(xen::endsWith(xen::makeString("abc"    ), xen::makeString(""    )) == true);
+	CHECK(xen::endsWith(xen::makeString("abc"    ), xen::makeString("1abc")) == false);
+	CHECK(xen::endsWith(xen::makeString("abc1"   ), xen::makeString("abc" )) == false);
+	CHECK(xen::endsWith(xen::makeString("ababab" ), xen::makeString("ab"  )) == true);
+	CHECK(xen::endsWith(xen::makeString("abababa"), xen::makeString("ab"  )) == false);
+	CHECK(xen::endsWith(xen::makeString("abababa"), xen::makeString("aba" )) == true);
+}
+
+TEST_CASE("startsWith(const char*, const char*)", "[core][string]"){
 	CHECK(xen::startsWith("",       ""     ) == true);
 	CHECK(xen::startsWith("abc",    ""     ) == true);
 	CHECK(xen::startsWith("abc",    "a"    ) == true);
@@ -44,4 +72,26 @@ TEST_CASE("startsWith", "[core][string]"){
 	CHECK(xen::startsWith("abc",    "abcd" ) == false);
 	CHECK(xen::startsWith("abc",    "aba"  ) == false);
 	CHECK(xen::startsWith("ababaa", "abaa" ) == false);
+}
+
+TEST_CASE("startsWith(xen::String, const char*)", "[core][string]"){
+	CHECK(xen::startsWith(xen::makeString(""      ), ""     ) == true);
+	CHECK(xen::startsWith(xen::makeString("abc"   ), ""     ) == true);
+	CHECK(xen::startsWith(xen::makeString("abc"   ), "a"    ) == true);
+	CHECK(xen::startsWith(xen::makeString("abc"   ), "ab"   ) == true);
+	CHECK(xen::startsWith(xen::makeString("abc"   ), "abc"  ) == true);
+	CHECK(xen::startsWith(xen::makeString("abc"   ), "abcd" ) == false);
+	CHECK(xen::startsWith(xen::makeString("abc"   ), "aba"  ) == false);
+	CHECK(xen::startsWith(xen::makeString("ababaa"), "abaa" ) == false);
+}
+
+TEST_CASE("startsWith(xen::String, xen::String)", "[core][string]"){
+	CHECK(xen::startsWith(xen::makeString(""      ), xen::makeString(""     )) == true);
+	CHECK(xen::startsWith(xen::makeString("abc"   ), xen::makeString(""     )) == true);
+	CHECK(xen::startsWith(xen::makeString("abc"   ), xen::makeString("a"    )) == true);
+	CHECK(xen::startsWith(xen::makeString("abc"   ), xen::makeString("ab"   )) == true);
+	CHECK(xen::startsWith(xen::makeString("abc"   ), xen::makeString("abc"  )) == true);
+	CHECK(xen::startsWith(xen::makeString("abc"   ), xen::makeString("abcd" )) == false);
+	CHECK(xen::startsWith(xen::makeString("abc"   ), xen::makeString("aba"  )) == false);
+	CHECK(xen::startsWith(xen::makeString("ababaa"), xen::makeString("abaa" )) == false);
 }
