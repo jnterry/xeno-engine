@@ -24,7 +24,7 @@ namespace xen {
 		/// \brief Pointer to the null terminator ending the string
 		char* end;
 
-		String(char* string);
+		//String(char* string);
 
 		/// \brief Checks whether the string is not empty
 		inline operator bool() const {
@@ -51,18 +51,6 @@ namespace xen {
 	const String makeString(const char* string);
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Buffer which can be used for manipulating strings
-	/// This is useful for dynamically building a string
-	/////////////////////////////////////////////////////////////////////
-	struct StringBuffer : public String {
-		/// \brief Pointer to first char in the buffer being managed
-		char* buffer_start;
-
-		/// \brief Pointer to last char in the buffer being managed
-		char* buffer_end;
-	};
-
-	/////////////////////////////////////////////////////////////////////
 	/// \brief Determines how long a string is
 	/////////////////////////////////////////////////////////////////////
 	u64 stringLength(const char* str);
@@ -79,6 +67,16 @@ namespace xen {
 	/// \brief Determines if some string starts with some other
 	/////////////////////////////////////////////////////////////////////
 	bool startsWith(const char* string, const char* prefix);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Ensures that a String is properly null terminated
+	/// \note This function should generally not need to be called as
+	/// as string is null-terminated when constructed, but may
+	/// be useful if writing over the end of a string when it is in a char
+	/// array that is longer than the string, and you then want to reset
+	/// the string to its original state
+	/////////////////////////////////////////////////////////////////////
+	void ensureNullTerminated();
 }
 
 #endif

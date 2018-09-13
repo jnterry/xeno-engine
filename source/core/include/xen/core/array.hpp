@@ -39,7 +39,6 @@ namespace xen{
 	//template<typename T, size_t T_ROWS, size_t T_COLS>
 	//inline constexpr size_t size(const FixedArray2d<T, T_ROWS, T_COLS>&){ return T_ROWS * T_COLS; }
 
-	// :TODO: findFirst, findLast, etc
 	// :TODO: iterator syntax?
 
 	template<typename T>
@@ -48,6 +47,26 @@ namespace xen{
 		result.elements = elements;
 		result.size     = count;
 		return result;
+	}
+
+	template<typename T>
+	T* findFirst(const Array<T>& haystack, const T& needle){
+		for(u64 i = 0; i < haystack.elements; ++i){
+			if(haystack[i] == needle){
+				return &haystack[i];
+			}
+		}
+		return nullptr;
+	}
+
+	template<typename T>
+	T* findLast(const Array<T>& haystack, const T& needle){
+		for(u64 i = haystack.size-1; i >= 0; --i){
+			if(haystack[i] == needle){
+				return &haystack[i];
+			}
+		}
+		return nullptr;
 	}
 }
 

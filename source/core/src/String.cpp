@@ -17,22 +17,27 @@ namespace xen {
 
 	const String String::Empty = makeString("");
 
-	String::String(char* string) :
-		start(string){
-		for(end = string; *end != '\0'; ++end){
-			// no-op
-		}
-	}
+	//String::String(char* string) :
+	//	start(string){
+	//	for(end = string; *end != '\0'; ++end){
+	//		// no-op
+	//	}
+	//}
 
 	String makeString(char* string){
-		return String(string);
+		String result;
+		result.start = string;
+		for(result.end = string; *result.end != '\0'; ++result.end){
+			// no-op
+		}
+		return result;
 	}
 
 	const String makeString(const char* string){
 		// We temporarily make the string non-const, then cast it
 		// back to const upon returning. This is fine since we know
 		// we don't modify the string as part of the constructor
-		return String(const_cast<char*>(string));
+		return makeString(const_cast<char*>(string));
 	}
 
 	u64 stringLength(const char* str){
@@ -100,6 +105,10 @@ namespace xen {
 			}
 		}
 		return true;
+	}
+
+	void ensureNullTerminated(const xen::String string){
+		*string.end = '\0';
 	}
 }
 

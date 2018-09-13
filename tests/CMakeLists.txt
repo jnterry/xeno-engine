@@ -9,6 +9,7 @@ add_executable(unit-tests
 	${CMAKE_CURRENT_LIST_DIR}/core/bits.cpp
 	${CMAKE_CURRENT_LIST_DIR}/core/ArenaPool.cpp
 	${CMAKE_CURRENT_LIST_DIR}/core/String.cpp
+	${CMAKE_CURRENT_LIST_DIR}/core/StringBuffer.cpp
 
   ${CMAKE_CURRENT_LIST_DIR}/math/ostream_operators.hpp
 	${CMAKE_CURRENT_LIST_DIR}/math/utilities.cpp
