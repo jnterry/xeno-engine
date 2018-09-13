@@ -17,7 +17,7 @@ static_assert(sizeof(xen::DateTime) <= sizeof(u64),
 
 namespace xen{
 	namespace impl{
-		std::tm asCTime(const DateTime& dt){
+		std::tm asCppTime(const DateTime& dt){
 			time_t seconds_since_epoch = dt._data / (u64)1000000000;
 			tm* time = localtime(&seconds_since_epoch);
 			return *time;
@@ -47,6 +47,12 @@ namespace xen{
 			// xen::log::write(XenFatal("OS does not support REALTIME clock, errno: %i", errno, "xen.time"));
 			return DateTime();
 		}
+	}
+
+	DateTime fromCTime(time_t t){
+		DateTime dt;
+		dt._data = (xen::seconds(t)).nanoseconds;
+		return dt;
 	}
 }
 

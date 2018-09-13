@@ -10,6 +10,7 @@
 #define XEN_CORE_FILE_HPP
 
 #include <xen/core/array_types.hpp>
+#include <xen/core/time.hpp>
 
 namespace xen{
 	struct ArenaLinear;
@@ -21,6 +22,12 @@ namespace xen{
 	/// \note size field will be 0 if file couldn't be opened
 	/// \note File's data will be appended to the ArenaLinear
 	FileData loadFileAndNullTerminate(xen::ArenaLinear& arena, const char* name);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Retrieves the last modification time for some file,
+	/// will return {0}
+	/////////////////////////////////////////////////////////////////////
+	DateTime getFileModificationTime(const char* path);
 }
 
 #endif

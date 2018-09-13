@@ -17,7 +17,7 @@ static_assert(sizeof(xen::DateTime) <= sizeof(FILETIME),
 
 namespace xen{
 	namespace impl{
-		std::tm asCTime(const DateTime& dt){
+		std::tm asCppTime(const DateTime& dt){
 			SYSTEMTIME sys_time;
 			FileTimeToSystemTime((FILETIME*)&dt._data, &sys_time);
 

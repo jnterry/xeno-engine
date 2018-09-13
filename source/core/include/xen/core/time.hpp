@@ -63,6 +63,9 @@ namespace xen{
 	struct DateTime{
 		u64 _data;
 
+		/// \brief The earliest representable DateTime, may vary between platforms
+		const static DateTime Epoch;
+
 		bool operator==(const DateTime& other){ return _data == other._data; }
 		bool operator!=(const DateTime& other){ return _data != other._data; }
 		bool operator>=(const DateTime& other);
@@ -77,6 +80,11 @@ namespace xen{
 	/// \note This isn't guarentied to be very precise, use xen::getTimeStamp
 	/// for precise duration measurments, or the helper class xen::Stopwatch
 	DateTime getLocalTime();
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Creates a Xenogin DateTime object from a C time_t instance
+	/////////////////////////////////////////////////////////////////////
+	DateTime fromCTime(time_t time);
 
 	/// \brief Formats a DateTime as a string, writting the result to the specified buffer
 	/// \param format Desired output format, see <ctime>'s strftime for valid format

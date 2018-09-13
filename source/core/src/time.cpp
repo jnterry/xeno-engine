@@ -28,7 +28,15 @@
 //representations are being converted safely - ie, don't wrap, esp for getTimeStamp
 
 namespace xen{
-	namespace impl{ std::tm asCTime(const DateTime& dt); } //impl in the platform files
+
+	const constexpr DateTime DateTime::Epoch = {0};
+
+	namespace impl{
+
+		//impl in the platform files
+		std::tm asCppTime(const DateTime& dt);
+
+	}
 
 	char* pushDateTimeString(ArenaLinear& arena, DateTime dt, const char* format, u32 align){
 		xen::MemoryTransaction transaction(arena);
@@ -48,7 +56,7 @@ namespace xen{
 	}
 
 	size_t formatDateTime(DateTime dt, char* buffer, size_t buffer_length, const char* format){
-		std::tm dt_tm = impl::asCTime(dt);
+		std::tm dt_tm = impl::asCppTime(dt);
 
 	   auto result = strftime(buffer, buffer_length, format, &dt_tm);
 		if(result == 0){
