@@ -101,14 +101,6 @@ namespace xen {
 		}
 		return true;
 	}
-
-	bool startsWith(const xen::String string, const xen::String prefix){
-		return startsWith((const char*)string, (const char*)prefix);
-	}
-
-	bool startsWith(const xen::String string, const char* prefix){
-		return startsWith((const char*)string, prefix);
-	}
 }
 
 #endif

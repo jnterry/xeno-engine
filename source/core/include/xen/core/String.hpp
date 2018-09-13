@@ -79,8 +79,6 @@ namespace xen {
 	/// \brief Determines if some string starts with some other
 	/////////////////////////////////////////////////////////////////////
 	bool startsWith(const char* string, const char* prefix);
-	bool StartsWith(const xen::String string, const xen::String prefix);
-	bool StartsWith(const xen::String string, const char* prefix);
 }
 
 #endif
