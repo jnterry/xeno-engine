@@ -32,6 +32,8 @@
 
 #include <xen/core/intrinsics.hpp>
 
+#include <ctime>
+
 namespace xen{
 	struct ArenaLinear;
 
@@ -66,12 +68,12 @@ namespace xen{
 		/// \brief The earliest representable DateTime, may vary between platforms
 		const static DateTime Epoch;
 
-		bool operator==(const DateTime& other){ return _data == other._data; }
-		bool operator!=(const DateTime& other){ return _data != other._data; }
-		bool operator>=(const DateTime& other);
-		bool operator<=(const DateTime& other);
-		bool operator< (const DateTime& other);
-		bool operator> (const DateTime& other);
+		inline bool operator==(const DateTime& other){ return _data == other._data; }
+		inline bool operator!=(const DateTime& other){ return _data != other._data; }
+		inline bool operator>=(const DateTime& other){ return _data >= other._data; }
+		inline bool operator<=(const DateTime& other){ return _data <= other._data; }
+		inline bool operator< (const DateTime& other){ return _data <  other._data; }
+		inline bool operator> (const DateTime& other){ return _data >  other._data; }
 	};
 
 	/// \brief Gets a DateTime instance representing the current local time
