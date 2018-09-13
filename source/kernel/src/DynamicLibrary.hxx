@@ -15,6 +15,7 @@
 namespace xen {
 
 	struct Allocator;
+	struct ArenaLinear;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief OS specific opaque type representing a dynamically loaded
@@ -23,9 +24,18 @@ namespace xen {
 	struct DynamicLibrary;
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Loads a dynamic link library at some specified path, note
-	/// that path SHOULD NOT have an extension, instead the OS's default
-	/// extension is used (.dll for windows, .so for linux)
+	/// \brief Resolves a dynamic library name to a path string
+	/// Tries adding common extensions to name (depending on platform, IE:
+	/// so for unix, dll for windows), searching in directory with executable,
+	/// searching in cwd, etc
+	///
+	/// \return Path to the dynamic library, or nullptr if the name could not
+	/// be resolved
+	/////////////////////////////////////////////////////////////////////
+  char* resolveDynamicLibrary(xen::Allocator& alloc, const char* name);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Loads a dynamic link library at some specified path
 	/////////////////////////////////////////////////////////////////////
 	DynamicLibrary* loadDynamicLibrary(xen::Allocator& alloc, const char* path);
 

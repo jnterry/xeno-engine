@@ -3,12 +3,14 @@
 #include "game.hpp"
 
 #include <xen/core/memory.hpp>
+#include <xen/core/File.hpp>
 
 int main(){
 	xen::KernelSettings settings;
+	settings.hot_reload_modules = true;
 	xen::Kernel& kernel = xen::createKernel(settings);
 
-	Game* module_game = (Game*)xen::loadModule(kernel, "../lib/libdynamic-reload-gamed");
+	Game* module_game = (Game*)xen::loadModule(kernel, "dynamic-reload-game");
 
 	printf("Loaded game module: %p\n", (void*)module_game);
 

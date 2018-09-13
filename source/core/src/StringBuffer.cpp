@@ -40,7 +40,7 @@ namespace xen {
 	}
 
 
-	void stringPrepend(StringBuffer& buffer, const String& prefix){
+	void prependString(StringBuffer& buffer, const String& prefix){
 		u64 prefix_len = xen::stringLength(prefix);
 
 		u64 space_start = buffer.start - buffer.buffer_start;
@@ -71,7 +71,7 @@ namespace xen {
 		buffer.start = new_start;
 	}
 
-	void stringAppend (StringBuffer& buffer, const String& suffix){
+	void appendString (StringBuffer& buffer, const String& suffix){
 		u64 suffix_len = xen::stringLength(suffix);
 
 		u64 space_start = buffer.start - buffer.buffer_start;
@@ -100,6 +100,12 @@ namespace xen {
 		char* new_end = (char*)xen::ptrGetAdvanced(buffer.end, suffix_len);
 		memcpy(buffer.end, suffix, suffix_len+1); // +1 for \0
 		buffer.end = new_end;
+	}
+
+	void resetStringBuffer(StringBuffer& buffer, const String old_val){
+		buffer.start = old_val.start;
+		buffer.end   = old_val.end;
+		*buffer.end = '\0';
 	}
 
 }

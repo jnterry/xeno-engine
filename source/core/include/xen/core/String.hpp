@@ -82,17 +82,6 @@ namespace xen {
 	inline bool startsWith(const char* string, char prefix){
 		return *string == prefix;
 	}
-
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Ensures that a String is properly null terminated
-	/// \note This function should generally not need to be called as
-	/// as string is null-terminated when constructed, but may
-	/// be useful if writing over the end of a string when it is in a char
-	/// array that is longer than the string, and you then want to reset
-	/// the string to its original state
-	/////////////////////////////////////////////////////////////////////
-	void ensureNullTerminated();
 }
 
 #endif

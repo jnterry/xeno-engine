@@ -125,10 +125,6 @@ namespace xen {
 		}
 		return true;
 	}
-
-	void ensureNullTerminated(const xen::String string){
-		*string.end = '\0';
-	}
 }
 
 #endif

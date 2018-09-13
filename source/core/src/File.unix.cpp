@@ -13,7 +13,7 @@
 #include <sys/stat.h>
 
 namespace xen {
-	DateTime getFileModificationTime(const char* path){
+	DateTime getPathModificationTime(const char* path){
 		struct stat result;
 		if(stat(path, &result) == 0){
 			return xen::fromCTime(result.st_mtime);
@@ -22,7 +22,7 @@ namespace xen {
 		}
 	}
 
-	bool doesPathExist(const char* path){
+	bool pathExists(const char* path){
 		struct stat tmp;
 		return stat(path, &tmp) == 0;
 	}

@@ -67,7 +67,7 @@ TEST_CASE("StringBuffer prepend", "[core][string]"){
 
 		printBuffer();
 
-		xen::stringPrepend(buffer, "Hello ");
+		xen::prependString(buffer, "Hello ");
 
 		printBuffer();
 
@@ -87,7 +87,7 @@ TEST_CASE("StringBuffer prepend", "[core][string]"){
 
 		printBuffer();
 
-		xen::stringPrepend(buffer, "Hello ");
+		xen::prependString(buffer, "Hello ");
 
 		printBuffer();
 
@@ -107,7 +107,7 @@ TEST_CASE("StringBuffer prepend", "[core][string]"){
 
 		printBuffer();
 
-		xen::stringPrepend(buffer, "Hello ");
+		xen::prependString(buffer, "Hello ");
 
 		printBuffer();
 
@@ -129,7 +129,7 @@ TEST_CASE("StringBuffer prepend", "[core][string]"){
 
 		printBuffer();
 
-		xen::stringPrepend(buffer, "Hello ");
+		xen::prependString(buffer, "Hello ");
 
 		printBuffer();
 
@@ -151,7 +151,7 @@ TEST_CASE("StringBuffer prepend", "[core][string]"){
 
 		printBuffer();
 
-		xen::stringPrepend(buffer, "Hello ");
+		xen::prependString(buffer, "Hello ");
 
 		printBuffer();
 
@@ -160,7 +160,7 @@ TEST_CASE("StringBuffer prepend", "[core][string]"){
 		CHECK(strcmp(buffer.start,        "Hello World!") == 0);
 		CHECK(strcmp(buffer.buffer_start, "Hello World!") != 0);
 
-		xen::stringPrepend(buffer, "123");
+		xen::prependString(buffer, "123");
 
 		printBuffer();
 
@@ -181,7 +181,7 @@ TEST_CASE("StringBuffer prepend", "[core][string]"){
 
 		printBuffer();
 
-		xen::stringPrepend(buffer, "ab");
+		xen::prependString(buffer, "ab");
 
 		printBuffer();
 
@@ -202,7 +202,7 @@ TEST_CASE("StringBuffer prepend", "[core][string]"){
 
 		printBuffer();
 
-		xen::stringPrepend(buffer, "ab");
+		xen::prependString(buffer, "ab");
 
 		printBuffer();
 
@@ -230,7 +230,7 @@ TEST_CASE("StringBuffer append", "[core][string]"){
 
 		printBuffer();
 
-		xen::stringAppend(buffer, "abc");
+		xen::appendString(buffer, "abc");
 
 		printBuffer();
 
@@ -250,7 +250,7 @@ TEST_CASE("StringBuffer append", "[core][string]"){
 
 		printBuffer();
 
-		xen::stringAppend(buffer, "abc");
+		xen::appendString(buffer, "abc");
 
 		printBuffer();
 
@@ -270,7 +270,7 @@ TEST_CASE("StringBuffer append", "[core][string]"){
 
 		printBuffer();
 
-		xen::stringAppend(buffer, "abc");
+		xen::appendString(buffer, "abc");
 
 		printBuffer();
 
@@ -292,7 +292,7 @@ TEST_CASE("StringBuffer append", "[core][string]"){
 
 		printBuffer();
 
-		xen::stringAppend(buffer, "abctestthing");
+		xen::appendString(buffer, "abctestthing");
 
 		printBuffer();
 
@@ -313,7 +313,7 @@ TEST_CASE("StringBuffer append", "[core][string]"){
 
 		printBuffer();
 
-		xen::stringAppend(buffer, "abc");
+		xen::appendString(buffer, "abc");
 
 		printBuffer();
 
@@ -322,7 +322,7 @@ TEST_CASE("StringBuffer append", "[core][string]"){
 		CHECK(strcmp(buffer.start,        "123abc") == 0);
 		CHECK(strcmp(buffer.buffer_start, "123abc") == 0);
 
-		xen::stringAppend(buffer, "987");
+		xen::appendString(buffer, "987");
 
 		printBuffer();
 
@@ -344,7 +344,7 @@ TEST_CASE("StringBuffer append", "[core][string]"){
 
 		printBuffer();
 
-		xen::stringAppend(buffer, "xy");
+		xen::appendString(buffer, "xy");
 
 		printBuffer();
 
@@ -365,7 +365,7 @@ TEST_CASE("StringBuffer append", "[core][string]"){
 
 		printBuffer();
 
-		xen::stringAppend(buffer, "ab");
+		xen::appendString(buffer, "ab");
 
 		printBuffer();
 
@@ -383,12 +383,12 @@ TEST_CASE("StringBuffer mixed prepend and append", "[core][string]"){
 		clearBuffer();
 		xen::StringBuffer buffer(buffer_data, 14, "123", i);
 		printBuffer();
-		xen::stringAppend(buffer, "xyz");
-		xen::stringPrepend(buffer, "3");
-		xen::stringPrepend(buffer, "2");
-		xen::stringPrepend(buffer, "1");
-		xen::stringAppend (buffer, "!");
-		xen::stringAppend (buffer, "@@@");
+		xen::appendString(buffer, "xyz");
+		xen::prependString(buffer, "3");
+		xen::prependString(buffer, "2");
+		xen::prependString(buffer, "1");
+		xen::appendString (buffer, "!");
+		xen::appendString (buffer, "@@@");
 		printBuffer();
 		CHECK(strcmp(buffer, "123123xyz!@@@") == 0);
 		CHECK(buffer.buffer_start == buffer_data);

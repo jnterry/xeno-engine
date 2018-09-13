@@ -14,6 +14,7 @@ bool mainLoop(const xen::TickContext& cntx){
 	      );
 
 	// processing
+	printf("Game module is doing some processing...\n");
 	std::this_thread::sleep_for(std::chrono::milliseconds(16));
 
 	//if(cntx.time > xen::seconds(3)){

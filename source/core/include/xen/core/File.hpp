@@ -27,12 +27,12 @@ namespace xen{
 	/// \brief Retrieves the last modification time for some file,
 	/// will return {0}
 	/////////////////////////////////////////////////////////////////////
-	DateTime getFileModificationTime(const char* path);
+	DateTime getPathModificationTime(const char* path);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Checks if some path exists
 	/////////////////////////////////////////////////////////////////////
-	bool doesPathExist(const char* path);
+	bool pathExists(const char* path);
 }
 
 #endif

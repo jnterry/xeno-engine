@@ -21,7 +21,9 @@ namespace xen {
 	/// \brief Pack of settings used to initialise the kernel
 	/////////////////////////////////////////////////////////////////////
 	struct KernelSettings {
-
+		/// \brief If true then before each tick the library file for any loaded
+		/// modules will be checked for modifications, and be reloaded if necessary
+		bool hot_reload_modules;
 	};
 
 	/////////////////////////////////////////////////////////////////////
@@ -37,17 +39,7 @@ namespace xen {
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Loads a kernel module and call's the module's init function
 	/////////////////////////////////////////////////////////////////////
-	Module* loadModule(Kernel& kernel, const ModuleSource& source);
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Overload of loadModule which simply takes a path to the shared
-	/// library file to load
-	/////////////////////////////////////////////////////////////////////
-	inline Module* loadModule(Kernel& kernel, const char* lib_path){
-		ModuleSource source = {0};
-		source.lib_path = lib_path;
-		return loadModule(kernel, source);
-	}
+	Module* loadModule(Kernel& kernel, const char* lib_path);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Struct containing all state passed to the TickFunction

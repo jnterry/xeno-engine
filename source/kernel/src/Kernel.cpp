@@ -13,6 +13,7 @@
 #include "DynamicLibrary.hxx"
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/core/memory/ArenaPool.hpp>
+#include <xen/core/File.hpp>\
 
 #include <utility>
 #include <new>
@@ -20,13 +21,25 @@
 namespace xen {
 
 	struct LoadedModule {
-		ModuleSource    source;
+		/// \brief The path to the shared library file containing code for module
+		const char*     lib_path;
+
+		/// \brief The modification time of the lib the last time it was loaded
+		xen::DateTime   lib_modification_time;
+
+		/// \brief DynamicLibrary instance representing loaded code for the module
 		DynamicLibrary* library;
+
+		/// \brief The Module instances exported by the library
 		Module*         module;
-		LoadedModule*   next; // next pointer in singly linked list
+
+		/// \brief Next pointer in singly linked list of currently loaded modules
+		LoadedModule*   next;
 	};
 
 	struct Kernel {
+		KernelSettings settings;
+
 		xen::Allocator& root_allocator;
 
 		xen::ArenaPool<LoadedModule> modules;
@@ -39,17 +52,40 @@ namespace xen {
 		}
 	};
 
+}
+
+namespace {
+	void reloadModifiedKernelModules(xen::Kernel& kernel){
+		xen::LoadedModule* cur;
+	  for(cur = kernel.module_head; cur != nullptr; cur = cur->next){
+		  xen::DateTime mod_time = xen::getPathModificationTime(cur->lib_path);
+
+		  printf("Mod time: %lu\n", mod_time._data);
+
+		  if(mod_time > cur->lib_modification_time){
+
+			  printf("Need to reload: %s\n", cur->lib_path);
+		  }
+		}
+	}
+}
+
+
+namespace xen {
 	Kernel& createKernel(const KernelSettings& settings){
 		xen::AllocatorMalloc* allocator = new AllocatorMalloc();
 
 		void* mem = allocator->allocate(sizeof(Kernel));
 		Kernel* kernel = new (mem) (Kernel)(allocator);
 
+		xen::copyBytes(&settings, &kernel->settings, sizeof(KernelSettings));
+
 		return *kernel;
 	}
 
-	Module* loadModule(Kernel& kernel, const ModuleSource& source){
+	Module* loadModule(Kernel& kernel, const char* name){
 		LoadedModule* module = xen::reserveType<LoadedModule>(kernel.modules);
+		char* lib_path = nullptr;
 
 		if(module == nullptr){
 			// :TODO: log
@@ -57,10 +93,17 @@ namespace xen {
 			goto cleanup;
 		}
 
+	  lib_path = xen::resolveDynamicLibrary(kernel.root_allocator, name);
+		if(lib_path == nullptr){
+			printf("Failed to find library file for module: %s\n", name);
+			goto cleanup;
+		}
+
+		module->lib_path   = lib_path;
 		module->next       = kernel.module_head;
 		kernel.module_head = module;
 
-		module->library = xen::loadDynamicLibrary(kernel.root_allocator, source.lib_path);
+		module->library = xen::loadDynamicLibrary(kernel.root_allocator, lib_path);
 
 		if(module->library == nullptr){
 			// :TODO: log
@@ -74,16 +117,14 @@ namespace xen {
 			// :TODO: log
 			printf("Cannot load the shared library '%s' as a kernel module "
 			       "- expected a symbol 'exported_xen_module' to be present\n",
-			       source.lib_path
+			       lib_path
 			      );
 			goto cleanup;
 		}
 
 		if(!module->module->init(kernel)){
 			// :TODO: log
-			printf("Failed to initizalise module '%s'\n",
-			       source.lib_path
-			      );
+			printf("Failed to initizalise module '%s'\n", lib_path);
 			goto cleanup;
 		}
 
@@ -91,6 +132,10 @@ namespace xen {
 
 	cleanup:
 		if(module == nullptr){ return nullptr; }
+
+		if(lib_path != nullptr){
+			kernel.root_allocator.deallocate(lib_path);
+		}
 
 		if(module->library != nullptr){
 			xen::unloadDynamicLibrary(kernel.root_allocator, module->library);
@@ -113,6 +158,10 @@ namespace xen {
 		do {
 			cntx.time = timer.getElapsedTime();
 			cntx.dt = cntx.time - last_time;
+
+			if(kernel.settings.hot_reload_modules){
+				reloadModifiedKernelModules(kernel);
+			}
 
 		  tick_result = tick_function(cntx);
 
