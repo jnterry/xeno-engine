@@ -29,7 +29,7 @@
 
 namespace xen{
 
-	const constexpr DateTime DateTime::Epoch = {0};
+	const DateTime DateTime::Epoch = {0};
 
 	namespace impl{
 

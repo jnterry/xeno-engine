@@ -5,7 +5,7 @@ compiler:
 os:
   - linux
 script:
-  - mkdir -p $TRAVIS_BUILD_DIR/build && cd $TRAVIS_BUILD_DIR/build && cmake .. && make -j8
+  - mkdir -p $TRAVIS_BUILD_DIR/build && cd $TRAVIS_BUILD_DIR/build && cmake .. && make
   - cd $TRAVIS_BUILD_DIR/bin && ./unit-tests
 notifications:
   email:
