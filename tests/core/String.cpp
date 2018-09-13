@@ -63,6 +63,22 @@ TEST_CASE("endsWith(xen::String, xen::String)", "[core][string]"){
 	CHECK(xen::endsWith(xen::makeString("abababa"), xen::makeString("aba" )) == true);
 }
 
+TEST_CASE("endsWith char", "[core][string]"){
+	CHECK(xen::endsWith(xen::makeString("a"      ), 'a' ) == true );
+	CHECK(xen::endsWith(xen::makeString(""       ), 'a' ) == false);
+	CHECK(xen::endsWith(xen::makeString("ab"     ), 'a' ) == false);
+	CHECK(xen::endsWith(xen::makeString("abababa"), 'a' ) == true );
+	CHECK(xen::endsWith(xen::makeString("abababa"), '\0') == false);
+	CHECK(xen::endsWith(xen::makeString(""       ), '\0') == false);
+
+	CHECK(xen::endsWith(               ("a"      ), 'a' ) == true );
+	CHECK(xen::endsWith(               (""       ), 'a' ) == false);
+	CHECK(xen::endsWith(               ("ab"     ), 'a' ) == false);
+	CHECK(xen::endsWith(               ("abababa"), 'a' ) == true );
+	CHECK(xen::endsWith(               ("abababa"), '\0') == false);
+	CHECK(xen::endsWith(               (""       ), '\0') == false);
+}
+
 TEST_CASE("startsWith(const char*, const char*)", "[core][string]"){
 	CHECK(xen::startsWith("",       ""     ) == true);
 	CHECK(xen::startsWith("abc",    ""     ) == true);
@@ -94,4 +110,21 @@ TEST_CASE("startsWith(xen::String, xen::String)", "[core][string]"){
 	CHECK(xen::startsWith(xen::makeString("abc"   ), xen::makeString("abcd" )) == false);
 	CHECK(xen::startsWith(xen::makeString("abc"   ), xen::makeString("aba"  )) == false);
 	CHECK(xen::startsWith(xen::makeString("ababaa"), xen::makeString("abaa" )) == false);
+}
+
+
+TEST_CASE("startsWith char", "[core][string]"){
+	CHECK(xen::startsWith(xen::makeString("a"      ), 'a' ) == true );
+	CHECK(xen::startsWith(xen::makeString(""       ), 'a' ) == false);
+	CHECK(xen::startsWith(xen::makeString("ab"     ), 'a' ) == true );
+	CHECK(xen::startsWith(xen::makeString("bababa" ), 'a' ) == false);
+	CHECK(xen::startsWith(xen::makeString("abababa"), '\0') == false);
+	CHECK(xen::startsWith(xen::makeString(""       ), '\0') == true );
+
+	CHECK(xen::startsWith(               ("a"      ), 'a' ) == true );
+	CHECK(xen::startsWith(               (""       ), 'a' ) == false);
+	CHECK(xen::startsWith(               ("ab"     ), 'a' ) == true );
+	CHECK(xen::startsWith(               ("bababa" ), 'a' ) == false);
+	CHECK(xen::startsWith(               ("abababa"), '\0') == false);
+	CHECK(xen::startsWith(               (""       ), '\0') == true );
 }

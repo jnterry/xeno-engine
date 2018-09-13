@@ -59,14 +59,30 @@ namespace xen {
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Determines if some string ends with some other
 	/////////////////////////////////////////////////////////////////////
-	bool endsWith(const char* string, const char* suffix);
+	bool endsWith(const char*       string, const char*       suffix);
 	bool endsWith(const xen::String string, const xen::String suffix);
-	bool endsWith(const xen::String string, const char* suffix);
+	bool endsWith(const xen::String string, const char*       suffix);
+	bool endsWith(const char*       string, const xen::String suffix);
+	bool endsWith(const char*       string, char suffix);
+	bool endsWith(const xen::String string, char suffix);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Determines if some string starts with some other
 	/////////////////////////////////////////////////////////////////////
 	bool startsWith(const char* string, const char* prefix);
+	inline bool startsWith(const xen::String string, const char* prefix){
+		return startsWith((const char*)string, prefix);
+	}
+	inline bool startsWith(const char* string, const xen::String prefix){
+		return startsWith(string, (const char*)prefix);
+	}
+	inline bool startsWith(const xen::String string, const xen::String prefix){
+		return startsWith((const char*)string, (const char*)prefix);
+	}
+	inline bool startsWith(const char* string, char prefix){
+		return *string == prefix;
+	}
+
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Ensures that a String is properly null terminated

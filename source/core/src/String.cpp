@@ -95,6 +95,25 @@ namespace xen {
 		return endsWith(string, xen::makeString(suffix));
 	}
 
+	bool endsWith(const char* string, const xen::String suffix){
+		return endsWith(string, (const char*)suffix);
+	}
+
+	bool endsWith(const char* string, char suffix){
+		const char* cur = string;
+		while(*cur != '\0'){
+			if(cur[0] == suffix && cur[1] == '\0'){
+				return true;
+			}
+			++cur;
+		}
+		return false;
+	}
+
+	bool endsWith(const xen::String string, char suffix){
+		return (string.end != string.start) && (string.end[-1] == suffix);
+	}
+
 	bool startsWith(const char* string, const char* prefix){
 		const char* cur_string = string;
 		const char* cur_prefix = prefix;
