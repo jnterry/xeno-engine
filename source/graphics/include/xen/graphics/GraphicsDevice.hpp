@@ -32,18 +32,6 @@ namespace xen {
 		/// \brief Creates a new GraphicsDevice
 		/////////////////////////////////////////////////////////////////////
 		GraphicsDevice();
-
-		/////////////////////////////////////////////////////////////////////
-		/// \brief Creates a new GraphicsHandle for an object owned by this
-		/// GraphicsDevice
-		/////////////////////////////////////////////////////////////////////
-		template<u32 T_ID>
-		_GraphicsHandle<T_ID> makeHandle(u32 id, u32 generation){
-			_GraphicsHandle<T_ID> result;
-			result._generation = generation;
-			result._id         = id;
-			return result;
-		}
 	public:
 		virtual ~GraphicsDevice();
 

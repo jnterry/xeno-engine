@@ -52,8 +52,16 @@ namespace xen {
 	};
 
 	template<typename T>
-	T makeNullHandle(){
+	T makeNullGraphicsHandle(){
 		_GraphicsHandle<T::HANDLE_ID> result = {0};
+		return result;
+	}
+
+	template<u32 T_ID>
+	_GraphicsHandle<T_ID> makeGraphicsHandle(u32 id, u32 generation){
+		_GraphicsHandle<T_ID> result;
+		result._generation = generation;
+		result._id         = id;
 		return result;
 	}
 

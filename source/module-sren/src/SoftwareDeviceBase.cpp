@@ -67,7 +67,7 @@ namespace xen {
 		Texture SoftwareDeviceBase::createTexture(const RawImage* image){
 			u32 slot = xen::reserveSlot(textures);
 
-			Texture result = this->makeHandle<Texture::HANDLE_ID>(slot, 0);
+			Texture result = xen::makeGraphicsHandle<Texture::HANDLE_ID>(slot, 0);
 
 			TextureImpl* timpl = this->getTextureImpl(result);
 
@@ -89,7 +89,7 @@ namespace xen {
 		Shader SoftwareDeviceBase::createShader(const void* source){
 			u32 slot = xen::reserveSlot(shaders);
 			shaders.slots[slot].item = (xen::sren::FragmentShader)source;
-			return this->makeHandle<Shader::HANDLE_ID>(slot, 0);
+			return makeGraphicsHandle<Shader::HANDLE_ID>(slot, 0);
 		}
 
 		void SoftwareDeviceBase::destroyShader(Shader shader){
@@ -111,7 +111,7 @@ namespace xen {
 			target->window = window;
 			xen::sren::doPlatformRenderTargetInit(this->main_allocator, *target, target->window);
 
-			return this->makeHandle<RenderTarget::HANDLE_ID>(slot, 0);
+			return xen::makeGraphicsHandle<RenderTarget::HANDLE_ID>(slot, 0);
 		}
 
 		void SoftwareDeviceBase::destroyRenderTarget(RenderTarget render_target){

@@ -226,8 +226,8 @@ int main(int argc, char** argv){
 			render_commands[1].shader = shader_phong;
 		}
 		if(xen::isKeyPressed(xen::Key::Num7)){ // Basic Shaded
-			render_commands[0].shader = xen::makeNullHandle<xen::Shader>();
-			render_commands[1].shader = xen::makeNullHandle<xen::Shader>();
+			render_commands[0].shader = xen::makeNullGraphicsHandle<xen::Shader>();
+			render_commands[1].shader = xen::makeNullGraphicsHandle<xen::Shader>();
 		}
 
 		handleCameraInputCylinder(camera, dt, 30);

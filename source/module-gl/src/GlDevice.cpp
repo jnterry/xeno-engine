@@ -254,7 +254,7 @@ namespace {
 			XenAssert(slot < xen::size(mesh_store), "Render target store full");
 
 			render_targets[slot] = render_target;
-			xen::RenderTarget result = makeHandle<xen::RenderTarget::HANDLE_ID>(slot, 0);
+			xen::RenderTarget result = xen::makeGraphicsHandle<xen::RenderTarget::HANDLE_ID>(slot, 0);
 			window->render_target = result;
 
 			printf("Making render target current\n");
@@ -348,7 +348,7 @@ namespace {
 
 			mesh_store[slot] = xen::gl::createMesh(mesh_header_arena, *mesh_data);
 
-			return makeHandle<xen::Mesh::HANDLE_ID>(slot, 0);
+			return xen::makeGraphicsHandle<xen::Mesh::HANDLE_ID>(slot, 0);
 		}
 
 		void updateMeshVertexData(xen::Mesh mesh_handle,
@@ -376,7 +376,7 @@ namespace {
 		xen::Texture createTexture(const xen::RawImage* image) override {
 			u32 slot = xen::reserveSlot(textures);
 
-			xen::Texture result = this->makeHandle<xen::Texture::HANDLE_ID>(slot, 0);
+			xen::Texture result = xen::makeGraphicsHandle<xen::Texture::HANDLE_ID>(slot, 0);
 		  xen::gl::loadTexture(image, getTextureImpl(result));
 
 			return result;
@@ -387,7 +387,7 @@ namespace {
 		}
 
 		xen::Shader createShader(const void* source) override {
-			return xen::makeNullHandle<xen::Shader>();
+			return xen::makeNullGraphicsHandle<xen::Shader>();
 			// :TODO: implement
 		}
 
