@@ -29,7 +29,7 @@ namespace xen {
 			XImage* ximage;
 
 			#ifndef XEN_NO_XSHM_EXTENSION
-			/// \brief If set true then ximage_pixels is a shared memory segment
+			/// \brief If set true then ximage.data is a shared memory segment
 			/// between the process and x server
 			bool using_shared_memory;
 
