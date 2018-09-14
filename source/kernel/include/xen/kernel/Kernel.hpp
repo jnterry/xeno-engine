@@ -36,10 +36,33 @@ namespace xen {
 	/////////////////////////////////////////////////////////////////////
 	Kernel& createKernel(const KernelSettings& settings);
 
+	/// \brief Opaque handle to a module loaded by the Kernel
+	typedef void* ModuleHandle;
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Loads a kernel module and call's the module's init function
+	/// \return Id of the loaded module which may be used later to fetch
+	/// the module's exposed api
 	/////////////////////////////////////////////////////////////////////
-	Module* loadModule(Kernel& kernel, const char* lib_path);
+  ModuleHandle loadModule(Kernel& kernel, const char* lib_path);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Retrieves the API exposed by some module. Note that this
+	/// should not be cached between ticks, as if the kernel setting
+	/// hot_reload_modules is enabled then it can change upon reload
+	/////////////////////////////////////////////////////////////////////
+	void* getModuleApi(Kernel& kernel, ModuleHandle module);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Allows a module to allocate memory through the kernel
+	/////////////////////////////////////////////////////////////////////
+	void* allocate(Kernel& kernel, u32 size, u32 align = alignof(int));
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Allows a module to deallocate memory previously allocated
+	/// through the kernel
+	/////////////////////////////////////////////////////////////////////
+	void deallocate(Kernel& kernel, void* data);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Struct containing all state passed to the TickFunction
