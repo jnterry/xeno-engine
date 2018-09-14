@@ -6,12 +6,12 @@
 /// \ingroup math
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_MATH_IMPL_VECTOR_OPERATIONS_HXX
-#define XEN_MATH_IMPL_VECTOR_OPERATIONS_HXX
+#ifndef XEN_MATH_IMPL_VECTOR_OPERATIONS_HPP
+#define XEN_MATH_IMPL_VECTOR_OPERATIONS_HPP
 
 #include <xen/math/vector_types.hpp>
 #include <xen/math/angle.hpp>
-#include "swizzles.hxx"
+#include "swizzles.hpp"
 
 namespace xen{
 	template<u32 T_SIZE, typename T>

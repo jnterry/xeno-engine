@@ -14,8 +14,8 @@
 
 #include <xen/math/matrix_types.hpp>
 
-#include "impl/matrix_arithmetic.hxx"
-#include "impl/matrix_transforms.hxx"
-#include "impl/matrix_operations.hxx"
+#include <xen/math/impl/matrix_arithmetic.hpp>
+#include <xen/math/impl/matrix_transforms.hpp>
+#include <xen/math/impl/matrix_operations.hpp>
 
 #endif

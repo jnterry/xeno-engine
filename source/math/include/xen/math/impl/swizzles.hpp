@@ -6,8 +6,8 @@
 /// \ingroup math
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_MATH_SWIZZLE_HXX
-#define XEN_MATH_SWIZZLE_HXX
+#ifndef XEN_MATH_SWIZZLE_HPP
+#define XEN_MATH_SWIZZLE_HPP
 
 namespace xen {
 	namespace impl {

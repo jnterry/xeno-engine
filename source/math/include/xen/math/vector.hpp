@@ -12,7 +12,7 @@
 
 #include <xen/math/vector_types.hpp>
 
-#include "impl/vector_arithmetic.hxx"
-#include "impl/vector_operations.hxx"
+#include <xen/math/impl/vector_arithmetic.hpp>
+#include <xen/math/impl/vector_operations.hpp>
 
 #endif

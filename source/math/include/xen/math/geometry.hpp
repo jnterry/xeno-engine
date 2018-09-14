@@ -18,7 +18,7 @@
 #include <xen/core/bits.hpp>
 #include <xen/core/intrinsics.hpp>
 
-#include "impl/swizzles.hxx"
+#include "impl/swizzles.hpp"
 
 namespace xen{
 

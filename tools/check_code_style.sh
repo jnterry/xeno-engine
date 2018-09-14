@@ -31,7 +31,7 @@ function check_section {
 
 }
 check_section "Public include files should never include private include files" \
-							"find . -type f -regex '.*/include/.*.hpp' | xargs grep --color -n 'hxx'"
+							"find . -type f -regex '.*/include/.*.hpp' | xargs grep --color -n '#include.*hxx'"
 
 
 check_section "Relative includes containing .. is messy" \

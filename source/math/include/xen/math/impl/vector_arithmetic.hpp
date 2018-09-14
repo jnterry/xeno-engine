@@ -6,8 +6,8 @@
 /// \ingroup math
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_MATH_IMPL_VECTOR_ARITHMETIC_HXX
-#define XEN_MATH_IMPL_VECTOR_ARITHMETIC_HXX
+#ifndef XEN_MATH_IMPL_VECTOR_ARITHMETIC_HPP
+#define XEN_MATH_IMPL_VECTOR_ARITHMETIC_HPP
 
 #include <xen/math/vector_types.hpp>
 

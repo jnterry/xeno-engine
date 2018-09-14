@@ -15,7 +15,7 @@
 #include <xen/math/vector.hpp>
 #include <xen/math/utilities.hpp>
 
-#include "impl/swizzles.hxx"
+#include "impl/swizzles.hpp"
 
 namespace xen {
 	/////////////////////////////////////////////////////////////////////
