@@ -22,16 +22,11 @@ namespace xen {
 	struct Window;
 	struct RawImage;
 
-	// :TODO: do we really need the whole graphics device id system and
-	// getting devices by id?
-
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Defines the interface for interacting with a GraphicsDevice
 	/// of some kind
 	/////////////////////////////////////////////////////////////////////
 	class GraphicsDevice {
-	private:
-		u08                id;
 	protected:
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Creates a new GraphicsDevice
@@ -45,18 +40,12 @@ namespace xen {
 		template<u32 T_ID>
 		_GraphicsHandle<T_ID> makeHandle(u32 id, u32 generation){
 			_GraphicsHandle<T_ID> result;
-			result._device     = this->id;
 			result._generation = generation;
 			result._id         = id;
 			return result;
 		}
 	public:
-		/////////////////////////////////////////////////////////////////////
-		/// \brief Destroys a GraphicsDevice and all associated resources
-		/////////////////////////////////////////////////////////////////////
 		virtual ~GraphicsDevice();
-
-		inline u08 getId(){ return this->id; }
 
 		// :TODO: create render target
 		// :TDOO: create window
@@ -217,13 +206,6 @@ namespace xen {
 		            );
 		/// @}
 	};
-
-	GraphicsDevice* getGraphicsDevice(u08 id = 0);
-
-	template<u32 T_ID>
-	GraphicsDevice* getGraphicsDevice(_GraphicsHandle<T_ID> handle){
-		return getGraphicsDevice(handle._device);
-	}
 }
 
 #endif

@@ -106,7 +106,6 @@ xen::Mesh MeshStore<T_MESH>::createMesh(const xen::MeshData* mesh_data) {
   xen::Mesh handle;
   handle._id         = slot;
   handle._generation = 0;
-  handle._device     = this->owner->getId();
   return handle;
 }
 

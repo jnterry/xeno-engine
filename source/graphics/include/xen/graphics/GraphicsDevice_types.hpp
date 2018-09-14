@@ -46,11 +46,9 @@ namespace xen {
 		/// \brief The id of the object referred to by this handle
 		u32 _id;
 
-		u32
-			/// \brief How many times this handle type and id has been reused
-			_generation : 24,
-			/// \brief The device which owns the resource referred to by this handle
-			_device     :  8;
+		/// \brief How many times this handle type and id has been reused
+		u32 _generation;
+
 	};
 
 	template<typename T>
