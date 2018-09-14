@@ -1,6 +1,5 @@
 set(XEN_HEADERS_CORE
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/config.hpp
-	${CMAKE_CURRENT_LIST_DIR}/include/xen/windows_header.hxx
   ${CMAKE_CURRENT_LIST_DIR}/include/xen/core/intrinsics.hpp
   ${CMAKE_CURRENT_LIST_DIR}/include/xen/core/memory.hpp
   ${CMAKE_CURRENT_LIST_DIR}/include/xen/core/memory/Allocator.hpp
@@ -17,6 +16,8 @@ set(XEN_HEADERS_CORE
 )
 
 set(XEN_SOURCES_CORE
+	${CMAKE_CURRENT_LIST_DIR}/impl/xen/windows_header.hxx
+
   ${CMAKE_CURRENT_LIST_DIR}/src/memory/Allocator.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/memory/ArenaLinear.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/random.cpp

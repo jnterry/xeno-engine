@@ -11,7 +11,7 @@
 
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/graphics/Image.hpp>
-#include "../graphics/Window.hxx"
+#include <xen/graphics/Window.hxx>
 #include "RenderTargetImpl.hxx"
 
 namespace xen {

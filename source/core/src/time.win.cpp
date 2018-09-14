@@ -6,7 +6,7 @@
 /// \ingroup core
 ////////////////////////////////////////////////////////////////////////////////
 
-#include "../windows_header.hxx"
+#include <xen/windows_header.hxx>
 #include <ctime>
 
 #include <xen/core/time.hpp>

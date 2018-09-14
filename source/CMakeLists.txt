@@ -4,8 +4,9 @@ link_directories(${XEN_LIB_DIR})
 
 include(sources.cmake)
 
-add_library               (xen-core STATIC ${XEN_HEADERS_CORE} ${XEN_SOURCES_CORE})
-target_include_directories(xen-core PUBLIC ${CMAKE_CURRENT_LIST_DIR}/core/include/)
+add_library               (xen-core STATIC  ${XEN_HEADERS_CORE} ${XEN_SOURCES_CORE})
+target_include_directories(xen-core PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/core/include/)
+target_include_directories(xen-core PRIVATE ${CMAKE_CURRENT_LIST_DIR}/core/impl/)
 
 
 add_library               (xen-math STATIC ${XEN_HEADERS_MATH} ${XEN_SOURCES_MATH} )

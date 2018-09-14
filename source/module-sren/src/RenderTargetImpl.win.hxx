@@ -9,7 +9,7 @@
 #ifndef XEN_SREN_RENDERTARGETIMPL_WIN_HXX
 #define XEN_SREN_RENDERTARGETIMPL_WIN_HXX
 
-#include "../windows_header.hxx"
+#include <xen/windows_header.hxx>
 
 namespace xen {
 	namespace sren {

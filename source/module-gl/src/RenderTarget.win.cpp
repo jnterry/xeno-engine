@@ -9,7 +9,7 @@
 #ifndef XEN_GL_RENDERTARGETIMPL_WIN_CPP
 #define XEN_GL_RENDERTARGETIMPL_WIN_CPP
 
-#include "../graphics/Window.hxx"
+#include <xen/graphics/Window.hxx>
 #include <xen/core/memory/ArenaLinear.hpp>
 
 namespace xen {

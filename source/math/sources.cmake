@@ -4,15 +4,15 @@ set(XEN_HEADERS_MATH
 
   ${CMAKE_CURRENT_LIST_DIR}/include/xen/math/vector_types.hpp
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/vector.hpp
-	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/impl/vector_arithmetic.hxx
-	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/impl/vector_operations.hxx
-	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/impl/swizzles.hxx
+	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/impl/vector_arithmetic.hpp
+	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/impl/vector_operations.hpp
+	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/impl/swizzles.hpp
 
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/matrix_types.hpp
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/matrix.hpp
-	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/impl/matrix_arithmetic.hxx
-	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/impl/matrix_operations.hxx
-	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/impl/matrix_transforms.hxx
+	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/impl/matrix_arithmetic.hpp
+	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/impl/matrix_operations.hpp
+	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/impl/matrix_transforms.hpp
 
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/quaternion_types.hpp
   ${CMAKE_CURRENT_LIST_DIR}/include/xen/math/quaternion.hpp
