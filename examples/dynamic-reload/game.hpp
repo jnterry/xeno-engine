@@ -2,5 +2,4 @@
 #include <xen/kernel/Module.hpp>
 
 struct GameApi {
-	xen::TickFunction tick;
 };

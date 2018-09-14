@@ -14,7 +14,7 @@ int main(){
 
 	printf("Loaded game module: %p\n", (void*)module_game);
 
-	xen::startKernel(kernel, module_game->tick);
+	xen::startKernel(kernel);
 
 	printf("End of main\n");
 }

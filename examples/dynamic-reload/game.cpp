@@ -13,7 +13,7 @@ struct GameState {
 
 GameState* global_state = nullptr;
 
-bool mainLoop(const xen::TickContext& cntx){
+void mainLoop(xen::Kernel& kernel, const xen::TickContext& cntx){
 	printf("Start of game main loop, tick: %5lu, dt: %10f, time: %10f\n",
 	       cntx.tick,
 	       xen::asSeconds<real>(cntx.dt),
@@ -22,8 +22,7 @@ bool mainLoop(const xen::TickContext& cntx){
 
 	// processing
 	printf("Game module is doing some processing...\n");
-	printf("Global state is set to: %p\n", global_state->value);
-	printf("Value is: %i\n", global_state->value);
+	printf("Value is: %lu\n", global_state->value);
 	std::this_thread::sleep_for(std::chrono::milliseconds(16));
 
 	if(cntx.tick % 100 == 0){
@@ -36,7 +35,6 @@ bool mainLoop(const xen::TickContext& cntx){
 	//}
 
 	printf("End main loop\n");
-	return true;
 }
 
 void* init(xen::Kernel& kernel){
@@ -49,7 +47,6 @@ void* init(xen::Kernel& kernel){
 void* load(xen::Kernel& kernel, void* data){
 	global_state = (GameState*)data;
 
-	global_state->api->tick = &mainLoop;
 	return global_state->api;
 }
 
@@ -60,5 +57,6 @@ void shutdown(xen::Kernel& kernel){
 xen::Module exported_xen_module = {
 	&init,
 	&shutdown,
-	&load
+	&load,
+	&mainLoop,
 };

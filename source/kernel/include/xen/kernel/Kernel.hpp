@@ -11,7 +11,6 @@
 
 #include <xen/kernel/Module.hpp>
 #include <xen/core/intrinsics.hpp>
-#include <xen/core/time.hpp>
 
 namespace xen {
 
@@ -35,6 +34,20 @@ namespace xen {
 	/// \brief Creates a new Kernel
 	/////////////////////////////////////////////////////////////////////
 	Kernel& createKernel(const KernelSettings& settings);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Starts running the kernel, which basically amounts to repeatedly
+	/// calling tick for all loaded modules. This function will not return
+	/// until stopKernel is called (hence stopKernel must be called within
+	/// the tick() callback of some loaded module)
+	/////////////////////////////////////////////////////////////////////
+	void startKernel(Kernel& kernel);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Stops a currently running kernel at the end of this tick
+	/// and calls shutdown on all loaded modules
+	/////////////////////////////////////////////////////////////////////
+	void stopKernel(Kernel& kernel);
 
 	/// \brief Opaque handle to a module loaded by the Kernel
 	typedef void* ModuleHandle;
@@ -65,31 +78,10 @@ namespace xen {
 	void deallocate(Kernel& kernel, void* data);
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Struct containing all state passed to the TickFunction
+	/// \brief Requests that the kernel shutdown once the current tick is
+	/// complete
 	/////////////////////////////////////////////////////////////////////
-	struct TickContext {
-		/// \brief The kernel causing this tick to occur
-		Kernel& kernel;
-
-		/// \brief Time since the kernel started
-		xen::Duration time;
-
-		/// \brief Delta time since the last call to the tick function
-		xen::Duration dt;
-
-		/// \brief Integer which is incremented after each call to the tick function
-		u64 tick;
-	};
-
-	/// \brief Type representing a function which
-	typedef bool (*TickFunction)(const TickContext& cntx);
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Initialises Xenogin's kernel, after which it will begin calling the
-	/// tick function. This function will not return until the tick function
-	/// returns false
-	/////////////////////////////////////////////////////////////////////
-	void startKernel(Kernel& kernel, TickFunction tick_function);
+	void requestKernelShutdown(Kernel& kernel);
 }
 
 #endif

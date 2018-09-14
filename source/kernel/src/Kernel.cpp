@@ -13,7 +13,8 @@
 #include "DynamicLibrary.hxx"
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/core/memory/ArenaPool.hpp>
-#include <xen/core/File.hpp>\
+#include <xen/core/File.hpp>
+#include <xen/core/time.hpp>
 
 #include <utility>
 #include <new>
@@ -54,6 +55,8 @@ namespace xen {
 		xen::ArenaPool<LoadedModule> modules;
 		LoadedModule* module_head; // head of singly linked list of modules
 
+		bool stop_requested;
+
 		Kernel(xen::Allocator* root_alloc)
 			: root_allocator(*root_alloc),
 			  modules(xen::createArenaPool<LoadedModule>(root_alloc, 128)) {
@@ -64,18 +67,96 @@ namespace xen {
 }
 
 namespace {
+
+	bool doModuleLoad(xen::Kernel& kernel, xen::LoadedModule* lmod){
+		lmod->library = xen::loadDynamicLibrary(kernel.root_allocator, lmod->lib_path);
+
+		if(lmod->library == nullptr){
+			// :TODO: log
+			printf("Failed to load module shared library\n");
+			return false;
+		}
+
+		lmod->module = (xen::Module*)xen::getDynamicLibrarySymbol(lmod->library, "exported_xen_module");
+
+		if(lmod->module == nullptr){
+			// :TODO: log
+			printf("Cannot load the shared library '%s' as a kernel module "
+			       "- expected a symbol 'exported_xen_module' to be present\n",
+			       lmod->lib_path
+			      );
+			return false;
+		}
+
+		if(lmod->data == nullptr){
+			printf("Initializing module: %s\n", lmod->lib_path);
+			if(lmod->module->initialize == nullptr){
+				lmod->data = nullptr;
+			} else {
+				lmod->data = lmod->module->initialize(kernel);
+				if(lmod->data == nullptr){
+					printf("Failed to initizalise module '%s'\n", lmod->lib_path);
+					return false;
+				}
+			}
+		}
+
+		// :TODO: If a module does not export an API we don't technically need a
+		// load function, however we need to return something from this function
+		// other than nullptr so that caller to loadModule knows that it was
+		printf("Loading module's API: %s\n", lmod->lib_path);
+		if(lmod->module->load == nullptr){
+			lmod->api = (void*)true;
+		} else {
+			lmod->api = lmod->module->load(kernel, lmod->data);
+			if(lmod->api == nullptr){
+				printf("Module's load function returned nullptr, module: '%s'\n", lmod->lib_path);
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	void reloadModifiedKernelModules(xen::Kernel& kernel){
-		xen::LoadedModule* cur;
-	  for(cur = kernel.module_head; cur != nullptr; cur = cur->next){
-		  xen::DateTime mod_time = xen::getPathModificationTime(cur->lib_path);
+		for(xen::LoadedModule* lmod = kernel.module_head;
+		    lmod != nullptr;
+		    lmod = lmod->next
+		   ){
+
+		  xen::DateTime mod_time = xen::getPathModificationTime(lmod->lib_path);
 
 		  printf("Mod time: %lu, load mod time: %lu\n",
 		         mod_time._data,
-		         cur->lib_modification_time
+		         lmod->lib_modification_time
 		        );
 
-		  if(mod_time > cur->lib_modification_time){
-			  printf("Need to reload: %s\n", cur->lib_path);
+		  if(mod_time > lmod->lib_modification_time){
+			  xen::DateTime now = xen::getLocalTime();
+
+			  if(now - mod_time < xen::seconds(1.0f)){
+				  // :TODO: this is a nasty hack - issue is that the linker will
+				  // truncate the file, then begin writing to it. Initial truncation
+				  // changes modification time, so we may start trying to load the
+				  // module before the linker has finished writing it. This says that
+				  // we should only load the module if it changed AND that was at least
+				  // 1 second ago. If linker takes longer than 1 second this will blow
+				  // up and
+				  printf("Need to reload %s but too recently modified\n", lmod->lib_path);
+				  continue;
+			  }
+
+			  printf("Reloading: %s\n", lmod->lib_path);
+			  // :TODO: would be better to attempt to load new version
+			  // before we let go of the old version
+			  // But windows/unix etc doesn't let us load the same dynamic
+			  // library more than once (we could make a copy of the library
+			  // file and load the copy, hence tricking the OS loader to let us
+			  // load a dll multiple times)
+			  xen::unloadDynamicLibrary(kernel.root_allocator, lmod->library);
+
+			  doModuleLoad(kernel, lmod);
+			  lmod->lib_modification_time = mod_time;
 		  }
 		}
 	}
@@ -115,48 +196,8 @@ namespace xen {
 		lmod->next       = kernel.module_head;
 		kernel.module_head = lmod;
 
-	  lmod->library = xen::loadDynamicLibrary(kernel.root_allocator, lib_path);
-
-		if(lmod->library == nullptr){
-			// :TODO: log
-			printf("Failed to load module shared library\n");
+		if(!doModuleLoad(kernel, lmod)){
 			goto cleanup;
-		}
-
-	  lmod->module = (Module*)xen::getDynamicLibrarySymbol(lmod->library, "exported_xen_module");
-
-		if(lmod->module == nullptr){
-			// :TODO: log
-			printf("Cannot load the shared library '%s' as a kernel module "
-			       "- expected a symbol 'exported_xen_module' to be present\n",
-			       lib_path
-			      );
-			goto cleanup;
-		}
-
-		printf("Initializing module: %s\n", name);
-		if(lmod->module->initialize == nullptr){
-			lmod->data = nullptr;
-		} else {
-			lmod->data = lmod->module->initialize(kernel);
-			if(lmod->data == nullptr){
-				printf("Failed to initizalise module '%s'\n", name);
-				goto cleanup;
-			}
-		}
-
-		// :TODO: If a module does not export an API we don't technically need a
-		// load function, however we need to return something from this function
-		// other than nullptr so that caller to loadModule knows that it was
-		printf("Loading module's API: %s\n", name);
-		if(lmod->module->load == nullptr){
-			lmod->api = (void*)true;
-		} else {
-			lmod->api = lmod->module->load(kernel, lmod->data);
-			if(lmod->api == nullptr){
-				printf("Module's load function returned nullptr, module: '%s'\n", name);
-				goto cleanup;
-			}
 		}
 
 		printf("Finished initializing and loading module: %s\n", name);
@@ -179,7 +220,7 @@ namespace xen {
 		return nullptr;
 	}
 
-	void startKernel(Kernel& kernel, TickFunction tick_function){
+	void startKernel(Kernel& kernel){
 		TickContext cntx = {kernel, 0};
 
 		bool tick_result;
@@ -193,14 +234,24 @@ namespace xen {
 			cntx.dt = cntx.time - last_time;
 
 			if(kernel.settings.hot_reload_modules){
+				printf("Checking for module reloads...\n");
 				reloadModifiedKernelModules(kernel);
+				printf("Done reloads\n");
 			}
 
-		  tick_result = tick_function(cntx);
+			for(LoadedModule* lmod = kernel.module_head;
+			    lmod != nullptr;
+			    lmod = lmod->next
+			    ){
+				if(lmod->module->tick != nullptr){
+					printf("Ticking module %s\n", lmod->lib_path);
+					lmod->module->tick(kernel, cntx);
+				}
+			}
 
 			++cntx.tick;
 			last_time = cntx.time;
-		} while (tick_result);
+		} while (!kernel.stop_requested);
 
 		printf("Main loop requested termination, doing kernel cleanup\n");
 
@@ -219,15 +270,17 @@ namespace xen {
 	}
 
 	void* allocate(Kernel& kernel, u32 size, u32 align){
-		printf("Allocating via kernel\n");
 		// :TODO: we ideally want an allocator per module so we can debug memory
 		// leaks etc
 		return kernel.root_allocator.allocate(size, align);
 	}
 
 	void deallocate(Kernel& kernel, void* data){
-		printf("Deallocating via kernel\n");
 		return kernel.root_allocator.deallocate(data);
+	}
+
+	void stopKernel(Kernel& kernel){
+		kernel.stop_requested = true;
 	}
 }
 
