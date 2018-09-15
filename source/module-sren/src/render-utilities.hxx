@@ -47,11 +47,6 @@ void renderCameraDebug(xsren::RenderTarget& target,
 /////////////////////////////////////////////////////////////////////
 /// \brief Renders a bounding box to the screen
 /////////////////////////////////////////////////////////////////////
-void renderDebugBoundingBox(RasterizationContext context,
-                            xen::Aabb3r          aabb,
-                            xen::Color4f         color = xen::Color::RED4f
-                            );
-
 void renderDebugBoundingBox(xsren::RenderTarget& target,
                             const xen::Aabb2u&           viewport,
                             const xen::Camera3d&         camera,

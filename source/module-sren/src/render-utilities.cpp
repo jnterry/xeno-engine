@@ -166,21 +166,6 @@ void renderCameraDebug(xsren::RenderTarget& target,
 	                               XenArrayLength(camera_corner_rays));
 }
 
-// :TODO:*this probably shouldnt take a context...
-void renderDebugBoundingBox(RasterizationContext context,
-                            xen::Aabb3r          aabb,
-                            xen::Color4f         color){
-	context.m_matrix      = (xen::Scale3d      (xen::getSize(aabb)) *
-	                         xen::Translation3d(aabb.min          )
-	                         );
-	context.diffuse_color = color;
-	rasterizeLinesModel(context,
-	                    xen::TestMeshGeometry_UnitCubeLines.position,
-	                    xen::TestMeshGeometry_UnitCubeLines.color,
-	                    xen::TestMeshGeometry_UnitCubeLines.vertex_count,
-	                    2); //advance by 2 vertex for each line drawn
-}
-
 void renderDebugBoundingBox(xsren::RenderTarget& target,
                             const xen::Aabb2u&           viewport,
                             const xen::Camera3d&         camera,
