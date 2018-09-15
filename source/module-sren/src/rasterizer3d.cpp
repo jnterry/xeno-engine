@@ -21,7 +21,7 @@
 #include <xen/sren/FragmentShader.hpp>
 #include "rasterizer3d.hxx"
 #include "render-utilities.hxx"
-#include "RenderTargetImpl.hxx"
+#include <xen/sren/RenderTarget.hxx>
 
 #include <cstring>
 #include <cstdlib>

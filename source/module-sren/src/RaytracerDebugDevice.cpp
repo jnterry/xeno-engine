@@ -12,7 +12,7 @@
 #include "RaytracerDevice.hxx"
 #include "rasterizer3d.hxx"
 #include "raytracer3d.hxx"
-#include "RenderTargetImpl.hxx"
+#include <xen/sren/RenderTarget.hxx>
 #include "render-utilities.hxx"
 
 #include <xen/sren/SoftwareDevice.hpp>

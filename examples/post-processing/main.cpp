@@ -49,7 +49,7 @@ int main(int argc, const char** argv){
 
   //////////////////////////////////////////////////////////////////////////////
 	// Create framebuffer
-	xen::sren::Framebuffer* fb = xen::sren::createFramebuffer(*alloc, image_in.size);
+  xsren::Framebuffer* fb = xsren::createFramebuffer(*alloc, image_in.size);
 	if(fb == nullptr){
 		xen::destroyImage(*alloc, image_in );
 		xen::destroyImage(*alloc, image_out);
@@ -61,10 +61,10 @@ int main(int argc, const char** argv){
 	//////////////////////////////////////////////////////////////////////////////
 	// Do post processing
 	printf("Performing processing... ");
-	xen::sren::putImageOnFramebuffer(fb, image_in);
+	xsren::putImageOnFramebuffer(fb, image_in);
 	xen::sren::PostProcessorInvertColors pp;
 	pp.process(*fb);
-	xen::sren::getImageFromFramebuffer(fb, image_out);
+	xsren::getImageFromFramebuffer(fb, image_out);
 	printf("Complete\n");
 
 	xen::saveImage(image_out, filename_out);
@@ -74,7 +74,7 @@ int main(int argc, const char** argv){
 	// Clean up
 	xen::destroyImage(*alloc, image_in );
 	xen::destroyImage(*alloc, image_out);
-	xen::sren::destroyFramebuffer(*alloc, fb);
+	xsren::destroyFramebuffer(*alloc, fb);
 	delete alloc;
 
 	return 0;

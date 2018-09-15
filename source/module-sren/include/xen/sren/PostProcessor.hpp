@@ -34,21 +34,21 @@ namespace xen {
 
 		  /// \brief Virtual function which when ran performs the post processing
 		  /// step represented by this PostProcessor
-		  virtual void process(Framebuffer& fb) = 0;
+		  virtual void process(xsren::Framebuffer& fb) = 0;
 		};
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Simple PostProcessor which inverts the colors of the framebuffer
 		/////////////////////////////////////////////////////////////////////
 		struct PostProcessorInvertColors : public PostProcessor {
-			void process(Framebuffer& fb);
+			void process(xsren::Framebuffer& fb);
 		};
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief PostProcessor which implents anti-aliasing on screen
 		/////////////////////////////////////////////////////////////////////
 		struct PostProcessorAntialias : public PostProcessor {
-			void process(Framebuffer& fb);
+			void process(xsren::Framebuffer& fb);
 		};
 
 		/////////////////////////////////////////////////////////////////////
@@ -65,7 +65,7 @@ namespace xen {
 			/// \brief Depth at which fog is pure fog_color
 			real z_far;
 
-			void process(Framebuffer& fb);
+			void process(xsren::Framebuffer& fb);
 		};
 
 		/////////////////////////////////////////////////////////////////////
@@ -86,7 +86,7 @@ namespace xen {
 			/// \brief Transparency of the depth buffer overlay
 			float alpha;
 
-			void process(Framebuffer& fb);
+			void process(xsren::Framebuffer& fb);
 		};
 
 		// :TODO: more post processors, ideas:

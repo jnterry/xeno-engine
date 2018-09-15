@@ -9,9 +9,9 @@
 #ifndef XEN_SREN_RENDERTARGETIMPL_UNIX_CPP
 #define XEN_SREN_RENDERTARGETIMPL_UNIX_CPP
 
-#include "RenderTargetImpl.hxx"
 #include <xen/graphics/Window.hxx>
 
+#include <xen/sren/RenderTarget.hxx>
 #include <xen/sren/Framebuffer.hpp>
 #include <xen/graphics/Image.hpp>
 #include <xen/core/memory/Allocator.hpp>
@@ -235,7 +235,7 @@ namespace {
 	};
 	void doThreadPresentRenderTarget(void* voiddata){
 		ThreadGetImageWorkData* data = (ThreadGetImageWorkData*)voiddata;
-		xen::sren::getImageFromFramebuffer(&data->target, data->raw_image);
+	  xsren::getImageFromFramebuffer(&data->target, data->raw_image);
 	}
 }
 void xsren::presentRenderTarget(xen::Window* window, xsren::RenderTarget& target, threadpool thpool){

@@ -18,9 +18,9 @@
 #include <xen/core/array.hpp>
 
 #include <xen/sren/FragmentShader.hpp>
+#include <xen/sren/RenderTarget.hxx>
 #include "raytracer3d.hxx"
 #include "render-utilities.hxx"
-#include "RenderTargetImpl.hxx"
 
 #include <cstring>
 #include <cstdlib>

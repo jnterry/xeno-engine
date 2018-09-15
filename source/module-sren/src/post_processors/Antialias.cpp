@@ -33,7 +33,7 @@ namespace xen {
 		}
 
 		/// brief: get color of a position between pixels by bilinear filtering 4 nearest pixels
-		Vec3f blendColor(Framebuffer& fb, Vec2r subPixelLocation){
+		Vec3f blendColor(xsren::Framebuffer& fb, Vec2r subPixelLocation){
 			int topLeftIndex     = floor(subPixelLocation.y)*fb.size.x + floor(subPixelLocation.x);
 			int bottomLeftIndex  = ceil(subPixelLocation.y)*fb.size.x  + floor(subPixelLocation.x);
 			int topRightIndex    = floor(subPixelLocation.y)*fb.size.x + ceil(subPixelLocation.x);
@@ -42,7 +42,7 @@ namespace xen {
 			return (0.25 * fb.color[topLeftIndex].rgb + 0.25 * fb.color[bottomLeftIndex].rgb + 0.25 * fb.color[topRightIndex].rgb + 0.25 * fb.color[bottomRightIndex].rgb);
 		}
 
-		void fxaaStep(Framebuffer& fb, Framebuffer& fb_out, int x, int y, Vec2r inverseScreenSize) {
+		void fxaaStep(xsren::Framebuffer& fb, xsren::Framebuffer& fb_out, int x, int y, Vec2r inverseScreenSize) {
 			int currentPixelIndex = y*fb.size.x + x;
 
 			// Luma at the current fragment
@@ -223,15 +223,15 @@ namespace xen {
 			fb_out.color[currentPixelIndex].b = finalColor.b;
 		}
 
-		void PostProcessorAntialias::process(Framebuffer& fb) {
+		void PostProcessorAntialias::process(xsren::Framebuffer& fb) {
 			Vec2r inverseScreenSize = {1.0, 1.0};
 
 			// Create a duplicate frame buffer
-			Framebuffer fb_copy;
+			xsren::Framebuffer fb_copy;
 			fb_copy.width  = fb.width;
 			fb_copy.height = fb.height;
 
-			fb_copy.color = (Color4f*)malloc(fb_copy.height*fb_copy.width*sizeof(Color4f));
+			fb_copy.color = (xen::Color4f*)malloc(fb_copy.height*fb_copy.width*sizeof(Color4f));
 
 			memcpy(fb_copy.color, fb.color, (fb_copy.height*fb_copy.width*sizeof(Color4f)));
 

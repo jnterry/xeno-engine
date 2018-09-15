@@ -10,13 +10,16 @@
 #define XEN_SREN_ATOMTRACER_HXX
 
 #include "MeshStore.hxx"
-#include "RenderTargetImpl.hxx"
 #include "rasterizer3d.hxx"
 
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/math/geometry_types.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/core/intrinsics.hpp>
+
+namespace xsren {
+	struct RenderTarget;
+}
 
 namespace xen {
 namespace sren {

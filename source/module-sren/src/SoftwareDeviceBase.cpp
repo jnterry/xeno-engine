@@ -11,7 +11,7 @@
 
 #include "SoftwareDeviceBase.hxx"
 #include "render-utilities.hxx"
-#include "RenderTargetImpl.hxx"
+#include <xen/sren/RenderTarget.hxx>
 
 #include <xen/graphics/Window.hxx>
 

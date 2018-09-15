@@ -17,7 +17,7 @@
 namespace xen {
 	namespace sren {
 
-		void PostProcessorDepthFog::process(Framebuffer& fb) {
+		void PostProcessorDepthFog::process(xsren::Framebuffer& fb) {
 			real z_diff = z_far - z_near;
 
 			for(u32 i = 0; i < fb.size.x * fb.size.y; ++i){

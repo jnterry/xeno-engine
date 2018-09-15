@@ -9,7 +9,7 @@
 #ifndef XEN_SREN_RENDERTARGETIMPL_CPP
 #define XEN_SREN_RENDERTARGETIMPL_CPP
 
-#include "RenderTargetImpl.hxx"
+#include <xen/sren/RenderTarget.hxx>
 #include <xen/graphics/Color.hpp>
 
 void xsren::clear(xsren::RenderTarget& target, xen::Color color) {
@@ -38,9 +38,9 @@ void xsren::clear(xsren::RenderTarget& target, const xen::Aabb2u& viewport, xen:
 
 #include <xen/config.hpp>
 #ifdef XEN_OS_UNIX
-	#include "RenderTargetImpl.unix.cpp"
+	#include "RenderTarget.unix.cpp"
 #elif defined XEN_OS_WINDOWS
-	#include "RenderTargetImpl.win.cpp"
+	#include "RenderTarget.win.cpp"
 #else
 	#error "Software renderer not supported on this platform!"
 #endif

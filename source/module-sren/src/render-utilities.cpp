@@ -17,7 +17,7 @@
 #include <xen/core/array.hpp>
 
 #include <xen/sren/FragmentShader.hpp>
-#include "RenderTargetImpl.hxx"
+#include <xen/sren/RenderTarget.hxx>
 #include "render-utilities.hxx"
 #include "rasterizer3d.hxx"
 

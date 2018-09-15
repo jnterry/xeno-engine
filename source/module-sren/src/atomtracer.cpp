@@ -12,6 +12,7 @@
 #include "atomtracer.hxx"
 #include "render-utilities.hxx"
 
+#include <xen/sren/RenderTarget.hxx>
 #include <xen/math/geometry.hpp>
 #include <xen/math/vector.hpp>
 #include <xen/math/angle.hpp>

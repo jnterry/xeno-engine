@@ -18,7 +18,7 @@
 
 #include <xen/sren/FragmentShader.hpp>
 #include <xen/sren/Texture.hpp>
-#include "RenderTargetImpl.hxx"
+#include <xen/sren/RenderTarget.hxx>
 
 #include <thpool.h>
 

@@ -1,14 +1,14 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \brief Contains definition of the base RenderTargetImpl type and then
+/// \brief Contains definition of the base RenderTarget type and then
 /// includes the platform specific header with the true type
 ///
 /// \ingroup sren
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_SREN_RENDERTARGETIMPL_HXX
-#define XEN_SREN_RENDERTARGETIMPL_HXX
+#ifndef XEN_SREN_RENDERTARGET_HXX
+#define XEN_SREN_RENDERTARGET_HXX
 
 #include <xen/sren/Framebuffer.hpp>
 #include <xen/graphics/Color.hpp>
@@ -26,7 +26,7 @@ namespace xen {
 namespace xsren {
 	struct RenderTarget;
 
-	struct RenderTargetBase : public xen::sren::Framebuffer {
+	struct RenderTargetBase : public xsren::Framebuffer {
 		/// \brief The window this render target is for (or nullptr if an
 		/// off screen render buffer)
 		xen::Window* window;
@@ -60,9 +60,9 @@ namespace xsren {
 }
 
 #ifdef XEN_OS_UNIX
-	#include "RenderTargetImpl.unix.hxx"
+	#include "RenderTarget.unix.hxx"
 #elif defined XEN_OS_WINDOWS
-	#include "RenderTargetImpl.win.hxx"
+	#include "RenderTarget.win.hxx"
 #else
 	#error "Software renderer not supported on this platform!"
 #endif
