@@ -38,7 +38,7 @@ public:
 		this->mesh_store.destroyAllMeshes();
 	}
 
-	AtomTracerDebugDevice(xen::Array<xen::sren::PostProcessor*> post_processors)
+	AtomTracerDebugDevice(xen::Array<xsren::PostProcessor*> post_processors)
 		: SoftwareDeviceBase(post_processors),
 		  mesh_store(main_allocator),
 		  frame_scratch(xen::createArenaLinear(*main_allocator, xen::megabytes(128)))
@@ -151,7 +151,7 @@ public:
 
 namespace xen {
 	GraphicsDevice* createAtomTracerDebugDevice(ArenaLinear& arena,
-	                                            xen::Array<sren::PostProcessor*> post_processors){
+	                                            xen::Array<xsren::PostProcessor*> post_processors){
 		return xen::emplace<AtomTracerDebugDevice>(arena, post_processors);
 	}
 }

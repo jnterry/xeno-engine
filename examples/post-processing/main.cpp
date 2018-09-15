@@ -62,7 +62,7 @@ int main(int argc, const char** argv){
 	// Do post processing
 	printf("Performing processing... ");
 	xsren::putImageOnFramebuffer(fb, image_in);
-	xen::sren::PostProcessorInvertColors pp;
+	xsren::PostProcessorInvertColors pp;
 	pp.process(*fb);
 	xsren::getImageFromFramebuffer(fb, image_out);
 	printf("Complete\n");

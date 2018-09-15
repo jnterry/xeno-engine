@@ -12,70 +12,71 @@
 #include <xen/core/array_types.hpp>
 #include <xen/math/vector_types.hpp>
 
-namespace xen {
-
-struct ArenaLinear;
-struct GraphicsDevice;
-namespace sren {
-class PostProcessor;
+namespace xsren {
+	class PostProcessor;
 }
 
-/////////////////////////////////////////////////////////////////////
-/// \brief Creates a new GraphicsDevice which will perform rendering
-/// using a software raytracer
-/// \param post_processors Array of post processors to call before presenting
-/// the image to the screen. Defaults to empty array
-/////////////////////////////////////////////////////////////////////
-GraphicsDevice* createRaytracerDevice(ArenaLinear& arena,
-                                      xen::Array<sren::PostProcessor*> post_processors =
-                                      xen::Array<sren::PostProcessor*>::EmptyArray
-                                      );
+namespace xen {
 
-/////////////////////////////////////////////////////////////////////
-/// \brief Creates a new GraphicsDevice which will perform rendering
-/// using a software rasterizer
-/// \param post_processors Array of post processors to to call before presenting
-/// the image to the screen. Defaults to an empty array
-/////////////////////////////////////////////////////////////////////
-GraphicsDevice* createRasterizerDevice(ArenaLinear& arena,
-                                       xen::Array<sren::PostProcessor*> post_processors =
-                                       xen::Array<sren::PostProcessor*>::EmptyArray
-                                       );
+	struct ArenaLinear;
+	struct GraphicsDevice;
 
-/////////////////////////////////////////////////////////////////////
-/// \brief Creates a device which will debug the raytracer device by
-/// drawing the same scene with the rasterizer from multiple angles
-/// \param camera_distance Distance along each axis that debug cameras should
-/// be placed at from the camera_center
-/// \param camera_center Center point that debug cameras should look at. If
-/// set to nullptr then position of the main render camera will be used as
-/// center
-/////////////////////////////////////////////////////////////////////
-GraphicsDevice* createRaytracerDebugDevice(ArenaLinear& arena,
-                                           real         camera_distance = 100,
-                                           const Vec3r* camera_center   = nullptr
-                                           );
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Creates a new GraphicsDevice which will perform rendering
+	/// using a software raytracer
+	/// \param post_processors Array of post processors to call before presenting
+	/// the image to the screen. Defaults to empty array
+	/////////////////////////////////////////////////////////////////////
+	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena,
+	                                      xen::Array<xsren::PostProcessor*> post_processors =
+	                                      xen::Array<xsren::PostProcessor*>::EmptyArray
+	                                      );
 
-/////////////////////////////////////////////////////////////////////
-/// \brief Creates a new GraphicsDevice which will perform rendering
-/// using a software atom based raytracer
-/// \param post_processors Array of post processors to to call before presenting
-/// the image to the screen. Defaults to an empty array
-/////////////////////////////////////////////////////////////////////
-GraphicsDevice* createAtomTracerDevice(ArenaLinear& arena,
-                                       xen::Array<sren::PostProcessor*> post_processors =
-                                       xen::Array<sren::PostProcessor*>::EmptyArray
-                                       );
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Creates a new GraphicsDevice which will perform rendering
+	/// using a software rasterizer
+	/// \param post_processors Array of post processors to to call before presenting
+	/// the image to the screen. Defaults to an empty array
+	/////////////////////////////////////////////////////////////////////
+	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena,
+	                                       xen::Array<xsren::PostProcessor*> post_processors =
+	                                       xen::Array<xsren::PostProcessor*>::EmptyArray
+	                                       );
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Creates a device which will debug the raytracer device by
+	/// drawing the same scene with the rasterizer from multiple angles
+	/// \param camera_distance Distance along each axis that debug cameras should
+	/// be placed at from the camera_center
+	/// \param camera_center Center point that debug cameras should look at. If
+	/// set to nullptr then position of the main render camera will be used as
+	/// center
+	/////////////////////////////////////////////////////////////////////
+	GraphicsDevice* createRaytracerDebugDevice(ArenaLinear& arena,
+	                                           real         camera_distance = 100,
+	                                           const Vec3r* camera_center   = nullptr
+	                                           );
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Creates a new GraphicsDevice which will perform rendering
+	/// using a software atom based raytracer
+	/// \param post_processors Array of post processors to to call before presenting
+	/// the image to the screen. Defaults to an empty array
+	/////////////////////////////////////////////////////////////////////
+	GraphicsDevice* createAtomTracerDevice(ArenaLinear& arena,
+	                                       xen::Array<xsren::PostProcessor*> post_processors =
+	                                       xen::Array<xsren::PostProcessor*>::EmptyArray
+	                                       );
 
 
-/////////////////////////////////////////////////////////////////////
-/// \brief Creates a new GraphicsDevice which will present a debugged view
-/// of a standard atom renderer
-/////////////////////////////////////////////////////////////////////
-GraphicsDevice* createAtomTracerDebugDevice(ArenaLinear& arena,
-                                            xen::Array<sren::PostProcessor*> post_processors =
-                                            xen::Array<sren::PostProcessor*>::EmptyArray
-                                           );
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Creates a new GraphicsDevice which will present a debugged view
+	/// of a standard atom renderer
+	/////////////////////////////////////////////////////////////////////
+	GraphicsDevice* createAtomTracerDebugDevice(ArenaLinear& arena,
+	                                            xen::Array<xsren::PostProcessor*> post_processors =
+	                                            xen::Array<xsren::PostProcessor*>::EmptyArray
+	                                            );
 } //end of namespace xen
 
 #endif

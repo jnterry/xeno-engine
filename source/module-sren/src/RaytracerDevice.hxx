@@ -39,7 +39,7 @@ protected:
 public:
 	~RaytracerDevice();
 
-	RaytracerDevice(xen::Array<xen::sren::PostProcessor*> post_processors);
+	RaytracerDevice(xen::Array<xsren::PostProcessor*> post_processors);
 
 	xen::Mesh createMesh(const xen::MeshData* mesh_data) override;
 	void      destroyMesh         (xen::Mesh mesh) override;

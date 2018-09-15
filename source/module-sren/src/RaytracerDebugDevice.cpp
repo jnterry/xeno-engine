@@ -141,7 +141,7 @@ public:
 	}
 
 	RaytracerDebugDevice(real camera_distance, const Vec3r* camera_center)
-		: RaytracerDevice(xen::Array<xen::sren::PostProcessor*>::EmptyArray),
+		: RaytracerDevice(xen::Array<xsren::PostProcessor*>::EmptyArray),
 		  debug_camera_distance(camera_distance),
 		  debug_camera_center  (camera_center)
 	{

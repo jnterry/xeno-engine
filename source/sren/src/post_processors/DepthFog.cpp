@@ -12,28 +12,21 @@
 #define XEN_SREN_POSTPROCESSORS_DEPTHFOG_CPP
 
 #include <xen/sren/PostProcessor.hpp>
-#include <cstdio>
 
-namespace xen {
-	namespace sren {
+void xsren::PostProcessorDepthFog::process(xsren::Framebuffer& fb) {
+	real z_diff = z_far - z_near;
 
-		void PostProcessorDepthFog::process(xsren::Framebuffer& fb) {
-			real z_diff = z_far - z_near;
+	for(u32 i = 0; i < fb.size.x * fb.size.y; ++i){
 
-			for(u32 i = 0; i < fb.size.x * fb.size.y; ++i){
-
-				if (fb.depth[i] <= z_near){
-					continue;
-				}
-				if (fb.depth[i] >= z_far){
-					fb.color[i].rgb = (fb.color[i].rgb * (1-fog_color.a) + (fog_color.rgb * fog_color.a));
-					continue;
-				}
-				real z_ratio = ((fb.depth[i] - z_near) / z_diff)*fog_color.a;
-				fb.color[i].rgb = (fb.color[i].rgb * (1-z_ratio) + (fog_color.rgb * z_ratio));
-			}
+		if (fb.depth[i] <= z_near){
+			continue;
 		}
-
+		if (fb.depth[i] >= z_far){
+			fb.color[i].rgb = (fb.color[i].rgb * (1-fog_color.a) + (fog_color.rgb * fog_color.a));
+			continue;
+		}
+		real z_ratio = ((fb.depth[i] - z_near) / z_diff)*fog_color.a;
+		fb.color[i].rgb = (fb.color[i].rgb * (1-z_ratio) + (fog_color.rgb * z_ratio));
 	}
 }
 

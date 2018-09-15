@@ -33,7 +33,7 @@ public:
 		this->mesh_store.destroyAllMeshes();
 	}
 
-	AtomTracerDevice(xen::Array<xen::sren::PostProcessor*> post_processors)
+	AtomTracerDevice(xen::Array<xsren::PostProcessor*> post_processors)
 		: SoftwareDeviceBase(post_processors),
 		  mesh_store(main_allocator),
 		  frame_scratch(xen::createArenaLinear(*main_allocator, xen::megabytes(128)))
@@ -85,7 +85,7 @@ public:
 
 namespace xen {
 	GraphicsDevice* createAtomTracerDevice(ArenaLinear& arena,
-	                                       xen::Array<sren::PostProcessor*> post_processors){
+	                                       xen::Array<xsren::PostProcessor*> post_processors){
 		return xen::emplace<AtomTracerDevice>(arena, post_processors);
 	}
 }

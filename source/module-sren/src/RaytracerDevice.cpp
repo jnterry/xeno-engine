@@ -27,7 +27,7 @@ xen::sren::RaytracerDevice::~RaytracerDevice(){
 	xen::destroyArenaLinear(*main_allocator, render_scratch_arena);
 }
 
-xen::sren::RaytracerDevice::RaytracerDevice(xen::Array<xen::sren::PostProcessor*> post_processors)
+xen::sren::RaytracerDevice::RaytracerDevice(xen::Array<xsren::PostProcessor*> post_processors)
 	: SoftwareDeviceBase(post_processors),
 	  render_scratch_arena(xen::createArenaLinear(*main_allocator, xen::megabytes(8))),
 	  mesh_store(main_allocator)
@@ -237,7 +237,7 @@ void xen::sren::RaytracerDevice::doRender(xsren::RenderTarget&           target,
 
 namespace xen {
 	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena,
-	                                      xen::Array<sren::PostProcessor*> post_processors){
+	                                      xen::Array<xsren::PostProcessor*> post_processors){
 		return xen::emplace<xen::sren::RaytracerDevice>(arena, post_processors);
 	}
 }

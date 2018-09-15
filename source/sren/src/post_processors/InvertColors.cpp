@@ -11,17 +11,11 @@
 
 #include <xen/sren/PostProcessor.hpp>
 
-namespace xen {
-	namespace sren {
-
-		void PostProcessorInvertColors::process(xsren::Framebuffer& fb) {
-			for(u32 i = 0; i < fb.size.x * fb.size.y; ++i){
-			  fb.color[i].r = 1.0f - fb.color[i].r;
-			  fb.color[i].g = 1.0f - fb.color[i].g;
-			  fb.color[i].b = 1.0f - fb.color[i].b;
-			}
-		}
-
+void xsren::PostProcessorInvertColors::process(xsren::Framebuffer& fb) {
+	for(u32 i = 0; i < fb.size.x * fb.size.y; ++i){
+		fb.color[i].r = 1.0f - fb.color[i].r;
+		fb.color[i].g = 1.0f - fb.color[i].g;
+		fb.color[i].b = 1.0f - fb.color[i].b;
 	}
 }
 

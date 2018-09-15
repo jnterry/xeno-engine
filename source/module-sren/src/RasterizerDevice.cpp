@@ -32,7 +32,7 @@ public:
 		this->mesh_store.destroyAllMeshes();
 	}
 
-	RasterizerDevice(xen::Array<xen::sren::PostProcessor*> post_processors)
+	RasterizerDevice(xen::Array<xsren::PostProcessor*> post_processors)
 		: SoftwareDeviceBase(post_processors),
 		  mesh_store(main_allocator)
 	{
@@ -122,7 +122,7 @@ public:
 
 namespace xen {
 	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena,
-	                                       xen::Array<sren::PostProcessor*> post_processors){
+	                                       xen::Array<xsren::PostProcessor*> post_processors){
 		return xen::emplace<RasterizerDevice>(arena, post_processors);
 	}
 }
