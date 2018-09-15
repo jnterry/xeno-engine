@@ -34,7 +34,7 @@ namespace xgl {
 		// :TODO: don't store pointers in these pools -> this is legacy
 		// code from when we didn't have ArenaPool and looped over an
 		// array checking for nullptr
-		xen::ArenaPool<xen::gl::MeshGlData*>       pool_mesh;
+		xen::ArenaPool<xgl::MeshGlData>        pool_mesh;
 		xen::ArenaPool<xen::gl::TextureImpl>       pool_texture;
 		xen::ArenaPool<xen::gl::RenderTargetImpl*> pool_render_target;
 

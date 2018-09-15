@@ -62,7 +62,7 @@ namespace xen {
 		Shader  (*createShader  )(const void* source);
 		void    (*destroyShader )(Shader shader     );
 
-		void    (*_clearTarget   )(RenderTarget window, xen::Color color);
+		void    (*_clearTarget   )(RenderTarget target, xen::Color color);
 
 		void    (*_renderToTarget)(RenderTarget                 window,
 		                          const Aabb2u&                viewport,

@@ -72,7 +72,7 @@ void doGlStateInit(void* memory_block, const u64 BLK_SIZE){
 	xgl::gl_state->primary_arena.next_byte = xgl::gl_state->primary_arena.start;
 	xgl::gl_state->primary_arena.end       = xen::ptrGetAdvanced(xgl::gl_state, BLK_SIZE);
 
-	xgl::gl_state->pool_mesh          = xen::createArenaPool<xen::gl::MeshGlData*>(xgl::gl_state->primary_arena, 128);
+	xgl::gl_state->pool_mesh          = xen::createArenaPool<xgl::MeshGlData>(xgl::gl_state->primary_arena, 128);
 	xgl::gl_state->pool_texture       = xen::createArenaPool<xen::gl::TextureImpl>(xgl::gl_state->primary_arena, 128);
 	xgl::gl_state->pool_render_target = xen::createArenaPool<xen::gl::RenderTargetImpl*>(xgl::gl_state->primary_arena, 128);
 }
