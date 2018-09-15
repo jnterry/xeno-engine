@@ -11,11 +11,14 @@
 
 #include <xen/math/geometry_types.hpp>
 
+namespace xsren {
+	struct RenderTarget;
+}
+
 namespace xen {
 	struct RenderParameters3d;
 
 	namespace sren {
-		struct RenderTargetImpl;
 
 		struct RaytracerMesh : public MeshHeader, MeshGeometrySource {
 			// Anything else?
@@ -121,13 +124,13 @@ namespace xen {
 		/// to allow for multi-threaded raytracing. If not specified we assumes a
 		/// single threaded renderer and hence use the full viewport
 		/////////////////////////////////////////////////////////////////////
-		void renderRaytrace (xen::sren::RenderTargetImpl&   target,
+		void renderRaytrace (xsren::RenderTarget&   target,
 		                     const xen::Aabb2u&             viewport,
 		                     const xen::RenderParameters3d& params,
 		                     const RaytracerScene&          scene,
 		                     const xen::Aabb2u&             rendering_bounds);
 
-		inline void renderRaytrace (xen::sren::RenderTargetImpl&   target,
+		inline void renderRaytrace (xsren::RenderTarget&   target,
 		                            const xen::Aabb2u&             viewport,
 		                            const xen::RenderParameters3d& params,
 		                            const RaytracerScene&          scene){

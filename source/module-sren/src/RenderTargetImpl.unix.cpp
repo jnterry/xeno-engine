@@ -21,7 +21,7 @@
 namespace {
 
 	void createXImageNonShared(xen::Allocator* alloc,
-	                           xen::sren::RenderTargetImpl& target,
+	                           xsren::RenderTarget& target,
 	                           xen::Window* window){
 
 		void* image_data = (u32*)alloc->allocate(sizeof(u32) * target.width * target.height);
@@ -53,7 +53,7 @@ namespace {
 	}
 
 	void destroyXImageNonShared(xen::Allocator* alloc,
-	                            xen::sren::RenderTargetImpl& target,
+	                            xsren::RenderTarget& target,
 	                            xen::Window* window){
 
 		// XDestroyImage want's to deallocate the image struct and its data, but
@@ -77,7 +77,7 @@ namespace {
 		        );
 	}
 
-	void createXImageShared(xen::sren::RenderTargetImpl& target, xen::Window* window){
+	void createXImageShared(xsren::RenderTarget& target, xen::Window* window){
 
 		// The XShmSegmentInfo struct (target.shminfo) is not created by the
 		// XServer, it is really a pack of parameters describing some shared
@@ -146,7 +146,7 @@ namespace {
 	}
 
 	void destroyXImageShared(xen::Allocator* alloc,
-	                         xen::sren::RenderTargetImpl& target,
+	                         xsren::RenderTarget& target,
 	                         xen::Window* window){
 
 		if(!target.using_shared_memory){
@@ -165,141 +165,141 @@ namespace {
 	#endif
 }
 
-namespace xen {
-	namespace sren {
-		void doPlatformRenderTargetInit(xen::Allocator* alloc, RenderTargetImpl& target, Window* window){
-			if(window == nullptr){
-				// offscreen render targets don't need xlib image/graphics context/etc
-				return;
-			}
-
-			XGCValues values;
-			GC gc = XCreateGC(xen::impl::unix_display, window->xwindow, 0, &values);
-
-			if(gc < 0) {
-				// :TODO: log
-				printf("Failed to create graphics context for software render target\n");
-				return;
-			}
-
-			target.graphics_context = gc;
-
-			target.ximage        = nullptr;
-
-			#ifndef XEN_NO_XSHM_EXTENSION
-			target.using_shared_memory = false;
-			if(canUseSharedMemory()){
-				createXImageShared(target, window);
-			}
-			#endif
-
-			if(target.ximage == nullptr){
-				createXImageNonShared(alloc, target, window);
-			}
-
-			if(target.ximage == nullptr){
-				// :TODO: log
-				printf("ERROR: Failed to create ximage for render target\n");
-				return;
-			}
-
-			XFlush(xen::impl::unix_display);
-		}
-
-		void doPlatformRenderTargetDestruction(xen::Allocator* alloc,
-		                                       RenderTargetImpl& target,
-		                                       Window* window){
-
-			if(target.ximage == nullptr){ return; }
-
-			#ifndef XEN_NO_XSHM_EXTENSION
-			destroyXImageShared(alloc, target, window);
-			#else
-			destroyXImageNonShared(alloc, target, window);
-			#endif
-		}
-
-		void doPlatformRenderTargetResize(xen::Allocator* alloc,
-		                                  RenderTargetImpl& target,
-		                                  Window* window) {
-			doPlatformRenderTargetDestruction(alloc, target, window);
-			doPlatformRenderTargetInit(alloc, target, window);
-		}
-
-
-		struct ThreadGetImageWorkData {
-			xen::RawImage               raw_image;
-			xen::sren::RenderTargetImpl target;
-		};
-		void doThreadPresentRenderTarget(void* voiddata){
-			ThreadGetImageWorkData* data = (ThreadGetImageWorkData*)voiddata;
-			xen::sren::getImageFromFramebuffer(&data->target, data->raw_image);
-		}
-		void presentRenderTarget(Window* window, RenderTargetImpl& target, threadpool thpool){
-
-			// Make sure the previous frame has been presented before we go messing
-			// with the pixel values...
-			XSync(xen::impl::unix_display, True);
-
-			//////////////////////////////////////////////////////////////////////////
-			// Update the byte array we show on screen from the float array we do
-			// our rendering into
-			xen::RawImage raw_image;
-			raw_image.size = target.size;
-			raw_image.pixels = (Color*)target.ximage->data;
-
-			ThreadGetImageWorkData work_data[8];
-			u32 cur_y   = 0;
-			u32 delta_y = target.height / XenArrayLength(work_data);
-			for(u32 i = 0; i < XenArrayLength(work_data); ++i){
-				xen::RawImage& sub_image = work_data[i].raw_image;
-
-				sub_image.size.x = raw_image.size.x;
-				sub_image.size.y = delta_y;
-				sub_image.pixels = &raw_image.pixels[raw_image.size.x * cur_y];
-
-				RenderTargetImpl& sub_target = work_data[i].target;
-				sub_target.width  = target.width;
-				sub_target.height = target.height;
-				sub_target.depth  = &target.depth[target.width * cur_y];
-				sub_target.color  = &target.color[target.width * cur_y];
-
-				thpool_add_work(thpool, &doThreadPresentRenderTarget, &work_data[i]);
-
-				cur_y += delta_y;
-			}
-			thpool_wait(thpool);
-
-			//////////////////////////////////////////////////////////////////////////
-			// Put the image on screen
-			#ifndef XEN_NO_XSHM_EXTENSION
-			if(target.using_shared_memory){
-				XShmPutImage(xen::impl::unix_display,
-				             window->xwindow,
-				             target.graphics_context,
-				             target.ximage,
-				             0, 0,
-				             0, 0,
-				             target.width, target.height,
-				             False);
-			} else {
-			#else
-			{
-			#endif
-				XPutImage(xen::impl::unix_display,
-				          window->xwindow,
-				          target.graphics_context,
-				          target.ximage,
-				          0, 0,
-				          0, 0,
-				          target.width, target.height
-				          );
-			}
-			XFlush(xen::impl::unix_display);
-			return;
-		}
-
+void xsren::doPlatformRenderTargetInit(xen::Allocator* alloc,
+                                       xsren::RenderTarget& target,
+                                       xen::Window* window
+                                       ){
+	if(window == nullptr){
+		// offscreen render targets don't need xlib image/graphics context/etc
+		return;
 	}
+
+	XGCValues values;
+	GC gc = XCreateGC(xen::impl::unix_display, window->xwindow, 0, &values);
+
+	if(gc < 0) {
+		// :TODO: log
+		printf("Failed to create graphics context for software render target\n");
+		return;
+	}
+
+	target.graphics_context = gc;
+
+	target.ximage        = nullptr;
+
+	#ifndef XEN_NO_XSHM_EXTENSION
+	target.using_shared_memory = false;
+	if(canUseSharedMemory()){
+		createXImageShared(target, window);
+	}
+	#endif
+
+	if(target.ximage == nullptr){
+		createXImageNonShared(alloc, target, window);
+	}
+
+	if(target.ximage == nullptr){
+		// :TODO: log
+		printf("ERROR: Failed to create ximage for render target\n");
+		return;
+	}
+
+	XFlush(xen::impl::unix_display);
+}
+
+void xsren::doPlatformRenderTargetDestruction(xen::Allocator* alloc,
+                                              xsren::RenderTarget& target,
+                                              xen::Window* window){
+
+	if(target.ximage == nullptr){ return; }
+
+	#ifndef XEN_NO_XSHM_EXTENSION
+	destroyXImageShared(alloc, target, window);
+	#else
+	destroyXImageNonShared(alloc, target, window);
+	#endif
+}
+
+void xsren::doPlatformRenderTargetResize(xen::Allocator* alloc,
+                                         xsren::RenderTarget& target,
+                                         xen::Window* window) {
+	xsren::doPlatformRenderTargetDestruction(alloc, target, window);
+	xsren::doPlatformRenderTargetInit(alloc, target, window);
+}
+
+
+namespace {
+	struct ThreadGetImageWorkData {
+		xen::RawImage       raw_image;
+		xsren::RenderTarget target;
+	};
+	void doThreadPresentRenderTarget(void* voiddata){
+		ThreadGetImageWorkData* data = (ThreadGetImageWorkData*)voiddata;
+		xen::sren::getImageFromFramebuffer(&data->target, data->raw_image);
+	}
+}
+void xsren::presentRenderTarget(xen::Window* window, xsren::RenderTarget& target, threadpool thpool){
+
+	// Make sure the previous frame has been presented before we go messing
+	// with the pixel values...
+	XSync(xen::impl::unix_display, True);
+
+	//////////////////////////////////////////////////////////////////////////
+	// Update the byte array we show on screen from the float array we do
+	// our rendering into
+	xen::RawImage raw_image;
+	raw_image.size = target.size;
+	raw_image.pixels = (xen::Color*)target.ximage->data;
+
+	ThreadGetImageWorkData work_data[8];
+	u32 cur_y   = 0;
+	u32 delta_y = target.height / XenArrayLength(work_data);
+	for(u32 i = 0; i < XenArrayLength(work_data); ++i){
+		xen::RawImage& sub_image = work_data[i].raw_image;
+
+		sub_image.size.x = raw_image.size.x;
+		sub_image.size.y = delta_y;
+		sub_image.pixels = &raw_image.pixels[raw_image.size.x * cur_y];
+
+		xsren::RenderTarget& sub_target = work_data[i].target;
+		sub_target.width  = target.width;
+		sub_target.height = target.height;
+		sub_target.depth  = &target.depth[target.width * cur_y];
+		sub_target.color  = &target.color[target.width * cur_y];
+
+		thpool_add_work(thpool, &doThreadPresentRenderTarget, &work_data[i]);
+
+		cur_y += delta_y;
+	}
+	thpool_wait(thpool);
+
+	//////////////////////////////////////////////////////////////////////////
+	// Put the image on screen
+	#ifndef XEN_NO_XSHM_EXTENSION
+	if(target.using_shared_memory){
+		XShmPutImage(xen::impl::unix_display,
+		             window->xwindow,
+		             target.graphics_context,
+		             target.ximage,
+		             0, 0,
+		             0, 0,
+		             target.width, target.height,
+		             False);
+	} else {
+	#else
+	{
+	#endif
+		XPutImage(xen::impl::unix_display,
+		          window->xwindow,
+		          target.graphics_context,
+		          target.ximage,
+		          0, 0,
+		          0, 0,
+		          target.width, target.height
+		          );
+	}
+	XFlush(xen::impl::unix_display);
+	return;
 }
 
 #endif

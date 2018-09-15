@@ -65,7 +65,7 @@ public:
 	            const xen::RenderParameters3d& params,
 	            const xen::Array<xen::RenderCommand3d> commands
 	            ) override {
-		xen::sren::RenderTargetImpl& target = *this->getRenderTargetImpl(target_handle);
+		xsren::RenderTarget& target = *this->getRenderTargetImpl(target_handle);
 
 		xen::MemoryTransaction transaction(this->frame_scratch);
 

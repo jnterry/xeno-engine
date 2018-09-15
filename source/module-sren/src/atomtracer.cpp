@@ -516,7 +516,7 @@ void computeLighting(xen::sren::AtomScene&          ascene,
 /////////////////////////////////////////////////////////////////////
 /// \brief Rasterizes some set of atoms onto the screen
 /////////////////////////////////////////////////////////////////////
-void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
+void rasterizeAtoms(xsren::RenderTarget& target,
                     const xen::Aabb2u& viewport,
                     const xen::RenderParameters3d& params,
                     const AtomScene& ascene
@@ -570,7 +570,7 @@ void rasterizeAtoms(xen::sren::RenderTargetImpl& target,
 	}
 }
 
-void raytraceAtoms(xen::sren::RenderTargetImpl& target,
+void raytraceAtoms(xsren::RenderTarget& target,
                    const xen::Aabb2u& viewport,
                    const xen::RenderParameters3d& params,
                    const AtomScene& ascene,

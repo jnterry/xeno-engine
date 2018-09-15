@@ -60,7 +60,7 @@ void xen::sren::RaytracerDevice::render(xen::RenderTarget target_handle,
                                         ) {
 	xen::resetArena(render_scratch_arena);
 
-	xen::sren::RenderTargetImpl& target = *this->getRenderTargetImpl(target_handle);
+	xsren::RenderTarget& target = *this->getRenderTargetImpl(target_handle);
 
 	////////////////////////////////////////////////////////////////////////////
 	// Build up the RaytracerScene by consolidating all triangle drawing
@@ -125,7 +125,7 @@ void xen::sren::RaytracerDevice::render(xen::RenderTarget target_handle,
 // Data passed to a raytracer thread. This is just the parameters to
 // xen::sren::renderRaytracer
 struct ThreadRenderData {
-	xen::sren::RenderTargetImpl*     target;
+	xsren::RenderTarget*     target;
 	xen::Aabb2u                      viewport;
 	xen::Aabb2u                      rendering_bounds;
 	const xen::RenderParameters3d*   params;
@@ -142,7 +142,7 @@ void threadDoRenderWork(void* voiddata){
 	                          data->rendering_bounds);
 }
 
-void xen::sren::RaytracerDevice::doRender(xen::sren::RenderTargetImpl&           target,
+void xen::sren::RaytracerDevice::doRender(xsren::RenderTarget&           target,
                                           const xen::Aabb2u&                     viewport,
                                           const xen::RenderParameters3d&         params,
                                           const xen::Array<xen::RenderCommand3d> commands,

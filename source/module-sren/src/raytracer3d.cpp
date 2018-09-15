@@ -126,7 +126,7 @@ bool castRayIntoScene(const xen::Ray3r& ray_world,
 	return found_intersection;
 } // end of cast ray into scene
 
-void renderRaytrace (xen::sren::RenderTargetImpl&       target,
+void renderRaytrace (xsren::RenderTarget&       target,
                      const xen::Aabb2u&                 viewport,
                      const xen::RenderParameters3d&     params,
                      const RaytracerScene&              scene,

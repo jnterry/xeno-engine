@@ -26,20 +26,8 @@ namespace xen{
 // forward declarations
 struct Camera3d;
 struct RenderCommand3d;
+
 namespace sren {
-struct RenderTargetImpl;
-
-/////////////////////////////////////////////////////////////////////
-/// \brief Clears the diffuse component of a render target to the
-/// specified color
-/////////////////////////////////////////////////////////////////////
-void clear(RenderTargetImpl& target, Color color);
-
-/////////////////////////////////////////////////////////////////////
-/// \brief Clears the diffuse component of a section of a render target
-/// to the specified color
-/////////////////////////////////////////////////////////////////////
-void clear(RenderTargetImpl& target, const xen::Aabb2u& viewport, Color color);
 
 /////////////////////////////////////////////////////////////////////
 /// \brief Draws debug view of a camera (eg, origin, up dir, look dir, etc),
@@ -50,7 +38,7 @@ void clear(RenderTargetImpl& target, const xen::Aabb2u& viewport, Color color);
 /// \param camera      The camera to draw
 /// \param scale       The scale of the camera to draw in world units
 /////////////////////////////////////////////////////////////////////
-void renderCameraDebug(xen::sren::RenderTargetImpl& target,
+void renderCameraDebug(xsren::RenderTarget& target,
                        const xen::Aabb2u&           viewport,
                        const Camera3d&              view_camera,
                        const Camera3d&              camera,
@@ -64,7 +52,7 @@ void renderDebugBoundingBox(RasterizationContext context,
                             xen::Color4f         color = xen::Color::RED4f
                             );
 
-void renderDebugBoundingBox(xen::sren::RenderTargetImpl& target,
+void renderDebugBoundingBox(xsren::RenderTarget& target,
                             const xen::Aabb2u&           viewport,
                             const xen::Camera3d&         camera,
                             xen::Aabb3r                  aabb,

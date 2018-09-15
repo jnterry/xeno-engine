@@ -85,7 +85,7 @@ private:
 		viewport_z.min    += viewport_whole.min;
 	}
 
-	void renderDebugView(xen::sren::RenderTargetImpl&           target,
+	void renderDebugView(xsren::RenderTarget&           target,
 	                     const xen::Aabb2u&                     viewport,
 	                     const xen::RenderParameters3d&         params,
 	                     const xen::Array<xen::RenderCommand3d> commands,
@@ -158,7 +158,7 @@ public:
 		camera_z.up_dir   =  Vec3r::UnitY;
 	}
 
-	virtual void doRender(xen::sren::RenderTargetImpl&           target,
+	virtual void doRender(xsren::RenderTarget&           target,
 	                      const xen::Aabb2u&                     viewport,
 	                      const xen::RenderParameters3d&         params,
 	                      const xen::Array<xen::RenderCommand3d> commands,
@@ -180,11 +180,11 @@ public:
 		camera_z.position = center_point + Vec3r::UnitZ * debug_camera_distance;
 		////////////////////////////////////////////////////////////////////////////
 
-		xen::sren::clear(target, viewport,      xen::Color::WHITE);
-		xen::sren::clear(target, viewport_main, xen::Color::BLACK);
-		xen::sren::clear(target, viewport_x,    xen::Color::BLACK);
-		xen::sren::clear(target, viewport_y,    xen::Color::BLACK);
-		xen::sren::clear(target, viewport_z,    xen::Color::BLACK);
+		xsren::clear(target, viewport,      xen::Color::WHITE);
+		xsren::clear(target, viewport_main, xen::Color::BLACK);
+		xsren::clear(target, viewport_x,    xen::Color::BLACK);
+		xsren::clear(target, viewport_y,    xen::Color::BLACK);
+		xsren::clear(target, viewport_z,    xen::Color::BLACK);
 
 		/////////////////////////////////////////////////////////
 		// Render the raytraced portion to the main view

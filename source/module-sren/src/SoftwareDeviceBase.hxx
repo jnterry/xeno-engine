@@ -33,9 +33,9 @@ namespace xen {
 			xen::Allocator*  main_allocator;
 			xen::ArenaLinear misc_arena;
 
-			xen::ArenaPool<RenderTargetImpl> render_targets;
-			xen::ArenaPool<TextureImpl     > textures;
-			xen::ArenaPool<FragmentShader  > shaders;
+			xen::ArenaPool<xsren::RenderTarget> render_targets;
+			xen::ArenaPool<TextureImpl        > textures;
+			xen::ArenaPool<FragmentShader     > shaders;
 
 			// The threadpool used by this device
 			threadpool thpool;
@@ -48,7 +48,7 @@ namespace xen {
 
 			/// \brief Retrieves the RenderTargetImpl for a particular
 			/// RenderTarget handle
-			RenderTargetImpl* getRenderTargetImpl(RenderTarget target);
+			xsren::RenderTarget* getRenderTargetImpl(RenderTarget target);
 
 			/// \brief Retrieves the RawImage for a particular texture
 			TextureImpl* getTextureImpl(Texture texture);
@@ -61,7 +61,7 @@ namespace xen {
 			/// be called and then rendering be performed
 			/// \note Safe to call if render target has not yet been initialised, IE:
 			/// this will allocate a new set of buffers for an empty target
-			void              resizeRenderTarget (RenderTargetImpl* target, Vec2u new_size);
+			void              resizeRenderTarget (xsren::RenderTarget* target, Vec2u new_size);
 		public:
 
 			SoftwareDeviceBase(xen::Array<PostProcessor*> post_processors);

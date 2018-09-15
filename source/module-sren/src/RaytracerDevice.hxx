@@ -30,7 +30,7 @@ protected:
 
 	/// \brief Called by render after the scene has been generated to actually
 	/// fill the target with pixels
-	virtual void doRender(xen::sren::RenderTargetImpl&           target,
+	virtual void doRender(xsren::RenderTarget&           target,
 	                      const xen::Aabb2u&                     viewport,
 	                      const xen::RenderParameters3d&         params,
 	                      const xen::Array<xen::RenderCommand3d> commands,

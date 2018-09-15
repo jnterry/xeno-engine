@@ -17,11 +17,14 @@
 #include <xen/math/geometry_types.hpp>
 #include <xen/math/vertex_group_types.hpp>
 
+namespace xsren {
+	struct RenderTarget;
+}
+
 namespace xen {
 	struct RenderParameters3d;
 
 	namespace sren {
-		struct RenderTargetImpl;
 
 		struct RasterizerMesh : public MeshHeader, MeshGeometrySource {
 			// Anything else?
@@ -31,7 +34,7 @@ namespace xen {
 
 		/// \brief Bundle of all meta data required for rasterization operations
 		struct RasterizationContext : public FragmentUniforms {
-			xen::sren::RenderTargetImpl* target;
+			xsren::RenderTarget* target;
 			xen::Aabb2r*                 viewport;
 			xen::sren::FragmentShader    fragment_shader;
 		};

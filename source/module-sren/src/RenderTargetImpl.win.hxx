@@ -11,16 +11,14 @@
 
 #include <xen/windows_header.hxx>
 
-namespace xen {
-	namespace sren {
-		struct RenderTargetImpl : public RenderTargetImplBase {
-			/// \brief Array of pixel values to be presented on screen
-			Color* pixels;
+namespace xsren {
+	struct RenderTarget : public RenderTargetBase {
+		/// \brief Array of pixel values to be presented on screen
+		Color* pixels;
 
-			///\ Info about the bitmap represented by pixels array
-			BITMAPINFO bitmap_info;
-		};
-	}
+		///\ Info about the bitmap represented by pixels array
+		BITMAPINFO bitmap_info;
+	};
 }
 
 #endif

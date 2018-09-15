@@ -23,31 +23,8 @@
 
 namespace xen {
 namespace sren {
-void clear(xen::sren::RenderTargetImpl& target, Color color) {
-	Color4f color01 = (Color4f)color;
-	for(u32 i = 0; i < target.width * target.height; ++i){
-		target.color[i] = color01;
-	}
-	for(u32 i = 0; i < target.width * target.height; ++i){
-		target.depth[i] = FLT_MAX;
-	}
-}
 
-void clear(RenderTargetImpl& target, const xen::Aabb2u& viewport, Color color){
-	Color4f color01 = (Color4f)color;
-
-	for(u32 y = viewport.min.y; y < viewport.max.y; ++y){
-		// still need to stride by width of whole target to get to next line in
-		// y, not just the width of the viewport
-		u32 base = y * target.width;
-		for(u32 x = viewport.min.x; x < viewport.max.x; ++x){
-			target.color[base + x] = color01;
-			target.depth[base + x] = FLT_MAX;
-		}
-	}
-}
-
-void renderCameraDebug(xen::sren::RenderTargetImpl& target,
+void renderCameraDebug(xsren::RenderTarget& target,
                        const xen::Aabb2u& viewport,
                        const Camera3d& view_camera,
                        const Camera3d& camera,
@@ -204,7 +181,7 @@ void renderDebugBoundingBox(RasterizationContext context,
 	                    2); //advance by 2 vertex for each line drawn
 }
 
-void renderDebugBoundingBox(xen::sren::RenderTargetImpl& target,
+void renderDebugBoundingBox(xsren::RenderTarget& target,
                             const xen::Aabb2u&           viewport,
                             const xen::Camera3d&         camera,
                             xen::Aabb3r                  aabb,

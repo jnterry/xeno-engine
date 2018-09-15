@@ -13,6 +13,7 @@
 #include <xen/sren/Framebuffer.hpp>
 #include <xen/graphics/Color.hpp>
 #include <xen/core/array_types.hpp>
+#include <xen/math/geometry_types.hpp>
 #include <xen/config.hpp>
 
 #include <thpool.h>
@@ -20,31 +21,42 @@
 namespace xen {
 	struct Window;
 	struct Allocator;
+}
 
-	namespace sren {
+namespace xsren {
+	struct RenderTarget;
 
-		struct RenderTargetImpl;
+	struct RenderTargetBase : public xen::sren::Framebuffer {
+		/// \brief The window this render target is for (or nullptr if an
+		/// off screen render buffer)
+		xen::Window* window;
+	};
 
-		struct RenderTargetImplBase : public xen::sren::Framebuffer {
-			/// \brief The window this render target is for (or nullptr if an
-			/// off screen render buffer)
-			Window* window;
-		};
+	void doPlatformRenderTargetInit(xen::Allocator* alloc,
+	                                xsren::RenderTarget& target,
+	                                xen::Window* window);
 
-		void doPlatformRenderTargetInit(xen::Allocator* alloc,
-		                                RenderTargetImpl& target,
-		                                Window* window);
+	void doPlatformRenderTargetResize(xen::Allocator* alloc,
+	                                  xsren::RenderTarget& target,
+	                                  xen::Window* window);
 
-		void doPlatformRenderTargetResize(xen::Allocator* alloc,
-		                                  RenderTargetImpl& target,
-		                                  Window* window);
+	void doPlatformRenderTargetDestruction(xen::Allocator* alloc,
+	                                       xsren::RenderTarget& target,
+	                                       xen::Window* window);
 
-		void doPlatformRenderTargetDestruction(xen::Allocator* alloc,
-		                                       RenderTargetImpl& target,
-		                                       Window* window);
+	void presentRenderTarget(xen::Window* window, xsren::RenderTarget& target, threadpool thpool);
 
-		void presentRenderTarget(Window* window, RenderTargetImpl& target, threadpool thpool);
-	}
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Clears the diffuse component of a render target to the
+	/// specified color
+	/////////////////////////////////////////////////////////////////////
+	void clear(xsren::RenderTarget& target, xen::Color color);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Clears the diffuse component of a section of a render target
+	/// to the specified color
+	/////////////////////////////////////////////////////////////////////
+	void clear(xsren::RenderTarget& target, const xen::Aabb2u& viewport, xen::Color color);
 }
 
 #ifdef XEN_OS_UNIX
