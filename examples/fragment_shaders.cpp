@@ -11,26 +11,26 @@
 #include <xen/math/quaternion.hpp>
 
 xen::Color4f FragmentShader_Normals(const xsren::FragmentUniforms& uniforms,
-                                    Vec3r                              pos_world,
-                                    Vec3r                              normal_world,
-                                    xen::Color4f                       color,
-                                    Vec2f                              uvs){
+                                    Vec3r                          pos_world,
+                                    Vec3r                          normal_world,
+                                    xen::Color4f                   color,
+                                    Vec2f                          uvs){
 	return xen::mkVec(((Vec3f)normal_world + (Vec3f{1,1,1}) / 2.0f), 1.0f);
 }
 
 xen::Color4f FragmentShader_Positions(const xsren::FragmentUniforms& uniforms,
-                                      Vec3r                              pos_world,
-                                      Vec3r                              normal_world,
-                                      xen::Color4f                       color,
-                                      Vec2f                              uvs){
+                                      Vec3r                          pos_world,
+                                      Vec3r                          normal_world,
+                                      xen::Color4f                   color,
+                                      Vec2f                          uvs){
 	return xen::mkVec(((Vec3f)pos_world), 1.0f);
 }
 
 xen::Color4f FragmentShader_Phong(const xsren::FragmentUniforms& uniforms,
-                                  Vec3r                              pos_world,
-                                  Vec3r                              normal_world,
-                                  xen::Color4f                       color,
-                                  Vec2f                              uvs){
+                                  Vec3r                          pos_world,
+                                  Vec3r                          normal_world,
+                                  xen::Color4f                   color,
+                                  Vec2f                          uvs){
   xen::Color3f total_light = uniforms.ambient_light;
   total_light += (uniforms.emissive_color.rgb * uniforms.emissive_color.a);
 
@@ -69,10 +69,10 @@ xen::Color4f FragmentShader_Phong(const xsren::FragmentUniforms& uniforms,
 }
 
 xen::Color4f FragmentShader_NormalMap(const xsren::FragmentUniforms& uniforms,
-                                      Vec3r                              pos_world,
-                                      Vec3r                              normal_world,
-                                      xen::Color4f                       color,
-                                      Vec2f                              uvs){
+                                      Vec3r                          pos_world,
+                                      Vec3r                          normal_world,
+                                      xen::Color4f                   color,
+                                      Vec2f                          uvs){
   xen::Color3f total_light = uniforms.ambient_light;
   total_light += (uniforms.emissive_color.rgb * uniforms.emissive_color.a);
 
