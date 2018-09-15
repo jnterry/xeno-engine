@@ -33,21 +33,11 @@ namespace xen {
 		};
 
 		/// \brief Bundle of all meta data required for rasterization operations
-		struct RasterizationContext : public FragmentUniforms {
-			xsren::RenderTarget* target;
-			xen::Aabb2r*                 viewport;
-			xen::sren::FragmentShader    fragment_shader;
+		struct RasterizationContext : public xsren::FragmentUniforms {
+			xsren::RenderTarget*  target;
+			xen::Aabb2r*          viewport;
+			xsren::FragmentShader fragment_shader;
 		};
-
-		/////////////////////////////////////////////////////////////////////
-		/// \brief Sets the fragment uniforms which change per render command
-		/// based on specified parameters
-		/////////////////////////////////////////////////////////////////////
-		void setPerCommandFragmentUniforms(FragmentUniforms& uniforms,
-		                                   const Material&   material,
-		                                   const Mat4r&      m_mat,
-		                                   const Mat4r&      vp_mat);
-
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Rasterizes a set of points defined in model space to the screen

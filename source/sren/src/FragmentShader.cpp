@@ -11,6 +11,7 @@
 
 #include <xen/sren/FragmentShader.hpp>
 #include <xen/core/array.hpp>
+#include <xen/graphics/RenderCommand3d.hpp>
 
 /////////////////////////////////////////////////////////////////////
 /// \brief Performs fragment shader computations - IE: lighting
@@ -19,7 +20,7 @@
 /// \param normal_world The normal of the point being filled in world space
 /// \param color        The diffuse color of the point being filled
 /////////////////////////////////////////////////////////////////////
-xen::Color4f _defaultFragmentShader(const xen::sren::FragmentUniforms& uniforms,
+xen::Color4f _defaultFragmentShader(const xsren::FragmentUniforms& uniforms,
                                     Vec3r                              pos_world,
                                     Vec3r                              normal_world,
                                     xen::Color4f                       color,
@@ -36,7 +37,7 @@ xen::Color4f _defaultFragmentShader(const xen::sren::FragmentUniforms& uniforms,
 
 		real dist_sq_world = xen::distanceSq(pos_world, uniforms.lights[i].point.position);
 
-		total_light += xen::sren::computeLightInfluenceSimple
+		total_light += xsren::computeLightInfluenceSimple
 			( uniforms.lights[i].color,
 			  uniforms.lights[i].attenuation,
 			  dist_sq_world
@@ -57,7 +58,7 @@ xen::Color4f _defaultFragmentShader(const xen::sren::FragmentUniforms& uniforms,
 	return result;
 }
 
-xen::Color4f _fragmentShaderAllWhite(const xen::sren::FragmentUniforms& uniforms,
+xen::Color4f _fragmentShaderAllWhite(const xsren::FragmentUniforms& uniforms,
                                      Vec3r                              pos_world,
                                      Vec3r                              normal_world,
                                      xen::Color4f                       color,
@@ -65,7 +66,7 @@ xen::Color4f _fragmentShaderAllWhite(const xen::sren::FragmentUniforms& uniforms
 	return xen::Color::WHITE4f;
 }
 
-xen::Color4f _fragmentShaderDiffuseColor(const xen::sren::FragmentUniforms& uniforms,
+xen::Color4f _fragmentShaderDiffuseColor(const xsren::FragmentUniforms& uniforms,
                                      Vec3r                              pos_world,
                                      Vec3r                              normal_world,
                                      xen::Color4f                       color,
@@ -73,22 +74,19 @@ xen::Color4f _fragmentShaderDiffuseColor(const xen::sren::FragmentUniforms& unif
 	return uniforms.diffuse_color;
 }
 
-namespace xen {
-namespace sren {
+xsren::FragmentShader xsren::FragmentShader_Default      = &_defaultFragmentShader;
+xsren::FragmentShader xsren::FragmentShader_AllWhite     = &_fragmentShaderAllWhite;
+xsren::FragmentShader xsren::FragmentShader_DiffuseColor = &_fragmentShaderDiffuseColor;
 
-FragmentShader FragmentShader_Default       = &_defaultFragmentShader;
-FragmentShader FragmentShader_AllWhite     = &_fragmentShaderAllWhite;
-FragmentShader FragmentShader_DiffuseColor = &_fragmentShaderDiffuseColor;
-
-xen::Color3f computeLightInfluencePhong(Vec3r        light_pos,
-                                        xen::Color4f light_color,
-                                        Vec3f        attenuation_coefficents,
-                                        real         distance_sq,
-                                        Vec3r        eye_pos,
-                                        Vec3r        pos_world,
-                                        Vec3r        normal_world,
-                                        real         specular_exponent,
-                                        real         specular_intensity){
+xen::Color3f xsren::computeLightInfluencePhong(Vec3r        light_pos,
+                                               xen::Color4f light_color,
+                                               Vec3f        attenuation_coefficents,
+                                               real         distance_sq,
+                                               Vec3r        eye_pos,
+                                               Vec3r        pos_world,
+                                               Vec3r        normal_world,
+                                               real         specular_exponent,
+                                               real         specular_intensity){
 
 	normal_world *= -1_r; // :TODO: why?
 
@@ -120,9 +118,9 @@ xen::Color3f computeLightInfluencePhong(Vec3r        light_pos,
 	return diffuse_color + specular_color;
 } // end of computeLightInfulencePhong
 
-xen::Color3f computeLightInfluenceSimple(xen::Color4f light_color,
-                                         Vec3f        attenuation_coefficents,
-                                         real         distance_sq){
+xen::Color3f xsren::computeLightInfluenceSimple(xen::Color4f light_color,
+                                                Vec3f        attenuation_coefficents,
+                                                real         distance_sq){
 	float attenuation = (attenuation_coefficents.x * 1.0 +
 	                     attenuation_coefficents.y * xen::sqrt(distance_sq) +
 	                     attenuation_coefficents.z * distance_sq
@@ -131,7 +129,16 @@ xen::Color3f computeLightInfluenceSimple(xen::Color4f light_color,
 	return (light_color / attenuation).rgb * light_color.w;
 } // end of computeLightInfluenceSimple
 
-}
+void xsren::setPerCommandFragmentUniforms(xsren::FragmentUniforms& uniforms,
+                                          const xen::Material&   material,
+                                          const Mat4r&      m_mat,
+                                          const Mat4r&      vp_mat){
+	uniforms.m_matrix           = m_mat;
+	uniforms.vp_matrix          = vp_mat;
+	uniforms.diffuse_color      = material.color;
+	uniforms.emissive_color     = material.emissive_color;
+	uniforms.specular_exponent  = material.specular_exponent;
+	uniforms.specular_intensity = material.specular_intensity;
 }
 
 #endif

@@ -484,7 +484,7 @@ void computeLighting(xen::sren::AtomScene&          ascene,
 			real distance_sq = xen::distanceSq
 				(ascene.positions[i], params.lights[li].point.position);
 
-			ascene.lighting[i] += xen::sren::computeLightInfluenceSimple
+			ascene.lighting[i] += xsren::computeLightInfluenceSimple
 				(params.lights[li].color, params.lights[li].attenuation, distance_sq);
 		}
 	}

@@ -298,7 +298,7 @@ void renderRaytrace (xsren::RenderTarget&       target,
 						}
 
 						#if 0
-						total_light += xen::sren::computeLightInfluencePhong
+						total_light += xsren::computeLightInfluencePhong
 							( params.lights[i].point.position,
 							  params.lights[i].color,
 							  params.lights[i].attenuation,
@@ -309,7 +309,7 @@ void renderRaytrace (xsren::RenderTarget&       target,
 							  0, 0
 							);
 						#else
-						total_light += xen::sren::computeLightInfluenceSimple
+						total_light += xsren::computeLightInfluenceSimple
 							( params.lights[i].color,
 							  params.lights[i].attenuation,
 							  light_dist_sq

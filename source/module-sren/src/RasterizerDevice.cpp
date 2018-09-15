@@ -96,7 +96,7 @@ public:
 
 			context.fragment_shader = this->getShaderImpl(cmd.shader);
 			if(context.fragment_shader == nullptr){
-				context.fragment_shader = xen::sren::FragmentShader_Default;
+				context.fragment_shader = xsren::FragmentShader_Default;
 			}
 			setPerCommandFragmentUniforms(context,
 			                              (xen::Material&)cmd,

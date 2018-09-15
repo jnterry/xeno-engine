@@ -28,14 +28,14 @@ namespace xen {
 			: post_processors(post_processors),
 			  main_allocator (new xen::AllocatorCounter<xen::AllocatorMalloc>()),
 			  misc_arena     (xen::createArenaLinear(*main_allocator, xen::megabytes(1))),
-			  render_targets (xen::createArenaPool<xsren::RenderTarget>(main_allocator,  128)),
-			  textures       (xen::createArenaPool<xsren::Texture     >(main_allocator, 1024)),
-			  shaders        (xen::createArenaPool<FragmentShader  >(main_allocator,  128))
+			  render_targets (xen::createArenaPool<xsren::RenderTarget  >(main_allocator,  128)),
+			  textures       (xen::createArenaPool<xsren::Texture       >(main_allocator, 1024)),
+			  shaders        (xen::createArenaPool<xsren::FragmentShader>(main_allocator,  128))
 		{
 			this->thpool = thpool_init(4);
 
 			// Ensure shader 0 is the default shader
-			this->createShader((void*)xen::sren::FragmentShader_Default);
+			this->createShader((void*)xsren::FragmentShader_Default);
 
 			// Ensure texture 0 is single pixel white
 			RawImage image;
@@ -60,7 +60,7 @@ namespace xen {
 			return &this->textures.slots[texture._id].item;
 		}
 
-		FragmentShader SoftwareDeviceBase::getShaderImpl(Shader shader){
+		xsren::FragmentShader SoftwareDeviceBase::getShaderImpl(Shader shader){
 			return this->shaders.slots[shader._id].item;
 		}
 
@@ -88,7 +88,7 @@ namespace xen {
 
 		Shader SoftwareDeviceBase::createShader(const void* source){
 			u32 slot = xen::reserveSlot(shaders);
-			shaders.slots[slot].item = (xen::sren::FragmentShader)source;
+			shaders.slots[slot].item = (xsren::FragmentShader)source;
 			return makeGraphicsHandle<Shader::HANDLE_ID>(slot, 0);
 		}
 

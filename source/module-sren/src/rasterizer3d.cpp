@@ -462,18 +462,6 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 namespace xen {
 namespace sren {
 
-void setPerCommandFragmentUniforms(FragmentUniforms& uniforms,
-                                   const Material&   material,
-                                   const Mat4r&      m_mat,
-                                   const Mat4r&      vp_mat){
-	uniforms.m_matrix           = m_mat;
-	uniforms.vp_matrix          = vp_mat;
-	uniforms.diffuse_color      = material.color;
-	uniforms.emissive_color     = material.emissive_color;
-	uniforms.specular_exponent  = material.specular_exponent;
-	uniforms.specular_intensity = material.specular_intensity;
-}
-
 void rasterizePointsModel(const RasterizationContext& cntx,
                           const Vec3r*                pos_model,
                           const Color*                color_buffer,

@@ -1,6 +1,5 @@
 set(XEN_HEADERS_MODULE_SREN
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/sren/SoftwareDevice.hpp
-	${CMAKE_CURRENT_LIST_DIR}/include/xen/sren/FragmentShader.hpp
 
 )
 
@@ -8,8 +7,6 @@ set(XEN_SOURCES_MODULE_SREN
 
 	${CMAKE_CURRENT_LIST_DIR}/src/render-utilities.hxx
 	${CMAKE_CURRENT_LIST_DIR}/src/render-utilities.cpp
-
-	${CMAKE_CURRENT_LIST_DIR}/src/FragmentShader.cpp
 
 	${CMAKE_CURRENT_LIST_DIR}/src/SoftwareDeviceBase.hxx
 	${CMAKE_CURRENT_LIST_DIR}/src/SoftwareDeviceBase.cpp

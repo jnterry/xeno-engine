@@ -10,7 +10,7 @@
 #include <xen/sren/FragmentShader.hpp>
 #include <xen/math/quaternion.hpp>
 
-xen::Color4f FragmentShader_Normals(const xen::sren::FragmentUniforms& uniforms,
+xen::Color4f FragmentShader_Normals(const xsren::FragmentUniforms& uniforms,
                                     Vec3r                              pos_world,
                                     Vec3r                              normal_world,
                                     xen::Color4f                       color,
@@ -18,7 +18,7 @@ xen::Color4f FragmentShader_Normals(const xen::sren::FragmentUniforms& uniforms,
 	return xen::mkVec(((Vec3f)normal_world + (Vec3f{1,1,1}) / 2.0f), 1.0f);
 }
 
-xen::Color4f FragmentShader_Positions(const xen::sren::FragmentUniforms& uniforms,
+xen::Color4f FragmentShader_Positions(const xsren::FragmentUniforms& uniforms,
                                       Vec3r                              pos_world,
                                       Vec3r                              normal_world,
                                       xen::Color4f                       color,
@@ -26,7 +26,7 @@ xen::Color4f FragmentShader_Positions(const xen::sren::FragmentUniforms& uniform
 	return xen::mkVec(((Vec3f)pos_world), 1.0f);
 }
 
-xen::Color4f FragmentShader_Phong(const xen::sren::FragmentUniforms& uniforms,
+xen::Color4f FragmentShader_Phong(const xsren::FragmentUniforms& uniforms,
                                   Vec3r                              pos_world,
                                   Vec3r                              normal_world,
                                   xen::Color4f                       color,
@@ -42,7 +42,7 @@ xen::Color4f FragmentShader_Phong(const xen::sren::FragmentUniforms& uniforms,
 
 	  real dist_sq_world = xen::distanceSq(pos_world, uniforms.lights[i].point.position);
 
-	  total_light += xen::sren::computeLightInfluencePhong
+	  total_light += xsren::computeLightInfluencePhong
 		  ( uniforms.lights[i].point.position,
 		    uniforms.lights[i].color,
 		    uniforms.lights[i].attenuation,
@@ -68,7 +68,7 @@ xen::Color4f FragmentShader_Phong(const xen::sren::FragmentUniforms& uniforms,
   return result;
 }
 
-xen::Color4f FragmentShader_NormalMap(const xen::sren::FragmentUniforms& uniforms,
+xen::Color4f FragmentShader_NormalMap(const xsren::FragmentUniforms& uniforms,
                                       Vec3r                              pos_world,
                                       Vec3r                              normal_world,
                                       xen::Color4f                       color,
@@ -96,7 +96,7 @@ xen::Color4f FragmentShader_NormalMap(const xen::sren::FragmentUniforms& uniform
 
 	  real dist_sq_world = xen::distanceSq(pos_world, uniforms.lights[i].point.position);
 
-	  total_light += xen::sren::computeLightInfluencePhong
+	  total_light += xsren::computeLightInfluencePhong
 		  ( uniforms.lights[i].point.position,
 		    uniforms.lights[i].color,
 		    uniforms.lights[i].attenuation,

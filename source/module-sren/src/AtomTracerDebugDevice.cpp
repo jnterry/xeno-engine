@@ -95,7 +95,7 @@ public:
 		cntx.m_matrix        = Mat4r::Identity; // points already in world space
 		cntx.vp_matrix       = xen::getViewProjectionMatrix(params.camera, viewport);
 		cntx.viewport        = &viewport_r;
-		cntx.fragment_shader = xen::sren::FragmentShader_DiffuseColor;
+		cntx.fragment_shader = xsren::FragmentShader_DiffuseColor;
 		cntx.target          = &target;
 		cntx.diffuse_color   = xen::Color::WHITE4f;
 

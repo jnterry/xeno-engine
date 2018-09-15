@@ -144,7 +144,7 @@ void renderCameraDebug(xsren::RenderTarget& target,
 	RasterizationContext context;
 	context.camera          = view_camera;
 	context.target          = &target;
-	context.fragment_shader = xen::sren::FragmentShader_Default;
+	context.fragment_shader = xsren::FragmentShader_Default;
 	context.viewport        = &view_region;
 	context.m_matrix        = Mat4r::Identity;
 	context.vp_matrix       = vp_matrix;
@@ -178,7 +178,7 @@ void renderDebugBoundingBox(xsren::RenderTarget& target,
 	cntx.target          = &target;
 	cntx.viewport        = &viewport_r; // :TODO: why is this a pointer... :(
 	cntx.vp_matrix       = xen::getViewProjectionMatrix(camera, viewport);
-	cntx.fragment_shader = xen::sren::FragmentShader_Default;
+	cntx.fragment_shader = xsren::FragmentShader_Default;
 	cntx.diffuse_color   = color;
 	cntx.emissive_color  = xen::Color::WHITE4f;
 	cntx.m_matrix        = (xen::Scale3d      (xen::getSize(aabb)) *
