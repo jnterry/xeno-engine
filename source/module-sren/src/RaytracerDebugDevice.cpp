@@ -105,7 +105,7 @@ private:
 		xen::sren::RasterizationContext context;
 		context.target          = &target;
 		context.viewport        = &viewport_r;
-		context.fragment_shader = xen::sren::DefaultFragmentShader;
+		context.fragment_shader = xen::sren::FragmentShader_Default;
 		context.vp_matrix       = vp_matrix;
 		context.m_matrix        = Mat4r::Identity;
 		*(xen::RenderParameters3d*)(&context) = params;

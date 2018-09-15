@@ -102,9 +102,7 @@ namespace xen {
 
 		/// \brief The default fragment shader for use by the software rasterizer
 		/// Performs very basic lighting
-		extern FragmentShader DefaultFragmentShader;
-
-		// :TODO: make names consitant...
+		extern FragmentShader FragmentShader_Default;
 
 		/// \brief Fragment shader which just renderes everything as white
 		extern FragmentShader FragmentShader_AllWhite;

@@ -35,7 +35,7 @@ namespace xen {
 			this->thpool = thpool_init(4);
 
 			// Ensure shader 0 is the default shader
-			this->createShader((void*)xen::sren::DefaultFragmentShader);
+			this->createShader((void*)xen::sren::FragmentShader_Default);
 
 			// Ensure texture 0 is single pixel white
 			RawImage image;

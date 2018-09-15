@@ -76,7 +76,7 @@ xen::Color4f _fragmentShaderDiffuseColor(const xen::sren::FragmentUniforms& unif
 namespace xen {
 namespace sren {
 
-FragmentShader DefaultFragmentShader       = &_defaultFragmentShader;
+FragmentShader FragmentShader_Default       = &_defaultFragmentShader;
 FragmentShader FragmentShader_AllWhite     = &_fragmentShaderAllWhite;
 FragmentShader FragmentShader_DiffuseColor = &_fragmentShaderDiffuseColor;
 
