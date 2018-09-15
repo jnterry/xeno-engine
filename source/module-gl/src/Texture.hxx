@@ -10,9 +10,10 @@
 #ifndef XEN_GL_TEXTURE_HPP
 #define XEN_GL_TEXTURE_HPP
 
+#include "gl_header.hxx"
+#include <xen/graphics/GraphicsDevice_types.hpp>
 #include <xen/core/intrinsics.hpp>
 
-#include "gl_header.hxx"
 
 namespace xen{
 	struct RawImage;
@@ -32,6 +33,12 @@ namespace xen{
 		/// in texture object
 		void deleteTexture(TextureImpl* texture);
 	}
+}
+
+namespace xgl {
+	xen::gl::TextureImpl* getTextureImpl(const xen::Texture texture);
+	xen::Texture          createTexture (const xen::RawImage* image);
+	void                  destroyTexture(const xen::Texture texture);
 }
 
 #endif

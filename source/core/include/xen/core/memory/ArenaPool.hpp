@@ -12,6 +12,7 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/core/memory/utilities.hpp>
+#include <xen/core/memory/ArenaLinear.hpp>
 
 namespace xen {
 	/////////////////////////////////////////////////////////////////////
@@ -57,7 +58,55 @@ namespace xen {
 			slots_used(other.slots_used) {
 			// no-op
 		}
+
+		ArenaPool<T>& operator=(ArenaPool<T>&& other){
+			this->slots           = other.slots;
+			this->capacity        = other.capacity;
+			this->slots_used      = other.slots_used;
+			this->first_free_slot = other.first_free_slot;
+
+			xen::clearToZero(&other);
+
+			return *this;
+		}
 	};
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Resets an ArenaPool such that all slots are once again free
+	/// Any existing allocations should be regarded as invalid
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	void resetArena(ArenaPool<T>& arena){
+		arena.slots_used      = 0;
+		arena.first_free_slot = 0;
+
+		////////////////////////////////////////////////////////////////////
+		// Initialise the slot linked list to have each point at the next
+		for(u32 i = 0; i < arena.capacity-1; ++i){
+			arena.slots[i].next_free = i + 1;
+		}
+		arena.slots[arena.capacity-1].next_free = ArenaPool<T>::BAD_SLOT_INDEX;
+	}
+
+	template<typename T>
+	ArenaPool<T> createArenaPool(ArenaLinear& arena, u32 capacity){
+		ArenaPool<T> result;
+		xen::clearToZero(&result);
+
+		////////////////////////////////////////////////////////////////////
+		// Allocate storage
+		result.slots = xen::reserveTypeArray<typename ArenaPool<T>::Slot>(arena, capacity);
+		if(result.slots == nullptr){
+			return result;
+		}
+
+		////////////////////////////////////////////////////////////////////
+		// Initialise members
+		result.capacity = capacity;
+		resetArena(result);
+
+		return result;
+	}
 
 	template<typename T>
 	ArenaPool<T> createArenaPool(Allocator* allocator, u32 capacity){
@@ -68,7 +117,6 @@ namespace xen {
 		// Allocate storage
 		result.slots = (typename ArenaPool<T>::Slot*)
 			allocator->allocate(sizeof(T) * capacity, alignof(T));
-
 		if(result.slots == nullptr){
 			return result;
 		}
@@ -76,17 +124,9 @@ namespace xen {
 		////////////////////////////////////////////////////////////////////
 		// Initialise members
 		result.capacity        = capacity;
-		result.slots_used      = 0;
-		result.first_free_slot = 0;
+	  resetArena(result);
 
-		////////////////////////////////////////////////////////////////////
-		// Initialise the slot linked list to have each point at the next
-		for(u32 i = 0; i < capacity-1; ++i){
-			result.slots[i].next_free = i + 1;
-		}
-		result.slots[capacity-1].next_free = ArenaPool<T>::BAD_SLOT_INDEX;
-
-		return result;
+	  return result;
 	}
 
 	/////////////////////////////////////////////////////////////////////

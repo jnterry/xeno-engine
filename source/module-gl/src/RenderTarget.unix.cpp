@@ -120,6 +120,7 @@ namespace xen {
 			                                                context_attribs
 			                                               );
 
+			transaction.commit();
 			return result;
 		}
 

@@ -13,6 +13,7 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/math/geometry_types.hpp>
 #include <xen/graphics/Mesh.hpp>
+#include <xen/graphics/GraphicsDevice_types.hpp>
 
 #include "gl_header.hxx"
 
@@ -95,6 +96,18 @@ namespace xen{
 		                          u32                  end_vertex
 		                         );
 	}
+}
+
+namespace xgl {
+	xen::gl::MeshGlData* getMeshGlData(xen::Mesh mesh);
+	xen::Mesh createMesh (const xen::MeshData* mesh_data);
+	void      destroyMesh(xen::Mesh mesh);
+	void      updateMeshVertexData(xen::Mesh mesh,
+	                               u32 attrib_index,
+	                               void* new_data,
+	                               u32 start_vertex,
+	                               u32 end_vertex
+	                              );
 }
 
 #endif

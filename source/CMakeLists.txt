@@ -50,6 +50,7 @@ target_include_directories(xen-module-gl PRIVATE ${XEN_EXTLIBS_DIR}/glew-2.1.0/i
 target_include_directories(xen-module-gl PRIVATE ${CMAKE_CURRENT_LIST_DIR}/graphics/impl/)
 target_link_libraries     (xen-module-gl libglew_shared)
 target_link_libraries     (xen-module-gl xen-graphics)
+target_link_libraries     (xen-module-gl xen-kernel  )
 
 
 set_target_properties(xen-core         PROPERTIES FOLDER "xeno_engine")

@@ -53,6 +53,9 @@ namespace xen{
 		void setUniform(int location, Mat3d data);
 		void setUniform(int location, Mat4f data);
 		void setUniform(int location, Mat4d data);
+
+		// :TODO: temp test function
+		ShaderProgram* loadDefaultShader(xen::ArenaLinear& arena);
 	}
 }
 

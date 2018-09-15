@@ -12,6 +12,7 @@
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/math/matrix_types.hpp>
+#include <xen/core/File.hpp>
 
 #include "Shader.hxx"
 #include "gl_header.hxx"
@@ -38,9 +39,9 @@ namespace xen{
 		};
 
 		ShaderProgram* createShaderProgram(ArenaLinear& arena, const char* vertex_source, const char* pixel_source){
-			xen::MemoryTransaction transaction(arena);
+			MemoryTransaction transaction(arena);
 
-			ShaderProgram* result = xen::reserveType<ShaderProgram>(arena);
+			ShaderProgram* result = reserveType<ShaderProgram>(arena);
 			result->vertex_shader = compileShader(GL_VERTEX_SHADER,   vertex_source);
 			result->pixel_shader  = compileShader(GL_FRAGMENT_SHADER, pixel_source);
 
@@ -183,6 +184,31 @@ namespace xen{
 		void setUniform(int location, Mat4d data){
 			XEN_CHECK_GL(glUniformMatrix4dv(location, 1, GL_TRUE, data.elements));
 		}
+
+		ShaderProgram* loadDefaultShader(ArenaLinear& arena){
+			XenTempArena(scratch, 8196);
+
+			// :TODO: we can't rely on these glsl files just existing in bin dir...
+
+			FileData vertex_src = loadFileAndNullTerminate(scratch, "vertex.glsl");
+			FileData pixel_src  = loadFileAndNullTerminate(scratch, "pixel.glsl");
+
+			auto result = createShaderProgram(arena,
+			                                  (char*)&vertex_src[0],
+			                                  (char*)&pixel_src[0]);
+
+			if(!xen::gl::isOkay(result)){
+				resetArena(scratch);
+				const char* errors = xen::gl::getErrors(result, scratch);
+				printf("Shader Errors:\n%s\n", errors);
+				XenBreak();
+			} else {
+				printf("Shader compiled successfully\n");
+			}
+
+			return result;
+		}
+
 	}
 }
 

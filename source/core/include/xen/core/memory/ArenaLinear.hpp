@@ -29,7 +29,23 @@ namespace xen{
 			: start(block_start), end(ptrGetAdvanced(block_start, block_size)), next_byte(block_start) {
 			// no-op
 		}
-		ArenaLinear (ArenaLinear&& other) : start(other.start), end(other.end), next_byte(other.next_byte) {}
+
+		inline ArenaLinear (ArenaLinear&& other) :
+			start(other.start), end(other.end), next_byte(other.next_byte) {
+			// no-op
+		}
+
+		inline ArenaLinear& operator=(ArenaLinear&& other){
+			this->start           = other.start;
+			this->end             = other.end;
+			this->next_byte       = other.next_byte;
+
+			xen::clearToZero(&other);
+
+			return *this;
+		}
+
+
 		void* start;     /// \brief First byte of the memory block managed by this arena
 		void* end;       /// \brief Last  byte of the memory block managed by this arena
 		void* next_byte; /// \brief Next free byte in the memory block

@@ -13,6 +13,7 @@
 
 #include "gl_header.hxx"
 #include "Texture.hxx"
+#include "ModuleGl.hxx"
 
 namespace xen{
 	namespace gl {
@@ -50,6 +51,28 @@ namespace xen{
 
 			return texture;
 		}
+	}
+}
+
+namespace xgl {
+	xen::gl::TextureImpl* getTextureImpl(const xen::Texture texture){
+		return &gl_state->pool_texture.slots[texture._id].item;
+	}
+
+	xen::Texture createTexture (const xen::RawImage* image){
+		u32 slot = xen::reserveSlot(gl_state->pool_texture);
+
+		xen::Texture result = xen::makeGraphicsHandle<xen::Texture::HANDLE_ID>(slot, 0);
+		xen::gl::loadTexture(image, xgl::getTextureImpl(result));
+
+		return result;
+
+	}
+
+	void destroyTexture(const xen::Texture texture){
+		xen::gl::TextureImpl* timpl = getTextureImpl(texture);
+		xen::gl::deleteTexture(timpl);
+		xen::freeType(gl_state->pool_texture, timpl);
 	}
 }
 

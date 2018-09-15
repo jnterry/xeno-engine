@@ -8,6 +8,7 @@ set(XEN_HEADERS_GRAPHICS
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/graphics/TestMeshes.hpp
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/graphics/GraphicsDevice_types.hpp
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/graphics/GraphicsDevice.hpp
+	${CMAKE_CURRENT_LIST_DIR}/include/xen/graphics/GraphicsModuleApi.hpp
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/graphics/Window.hpp
 )
 
@@ -21,5 +22,6 @@ set(XEN_SOURCES_GRAPHICS
 	${CMAKE_CURRENT_LIST_DIR}/src/Mesh.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/TestMeshes.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/GraphicsDevice.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/GraphicsModuleApi.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Window.cpp
 )

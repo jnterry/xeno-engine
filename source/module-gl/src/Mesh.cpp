@@ -17,6 +17,7 @@
 
 #include "Mesh.hxx"
 #include "gl_header.hxx"
+#include "ModuleGl.hxx"
 
 namespace{
 	xen::gl::MeshGlData* pushMeshGlData(xen::ArenaLinear& arena, u32 attrib_count){
@@ -200,6 +201,37 @@ void xen::gl::updateMeshAttribData(xen::gl::MeshGlData* mesh,
 	                             new_data
 	                            )
 	            );
+}
+
+namespace xgl {
+	xen::Mesh createMesh(const xen::MeshData* mesh_data){
+		u32 slot = xen::reserveSlot(gl_state->pool_mesh);
+		XenAssert(slot != decltype(gl_state->pool_mesh)::BAD_SLOT_INDEX, "Mesh store full");
+
+		gl_state->pool_mesh.slots[slot].item = xen::gl::createMesh(gl_state->primary_arena, *mesh_data);
+		return xen::makeGraphicsHandle<xen::Mesh::HANDLE_ID>(slot, 0);
+	}
+
+	xen::gl::MeshGlData* getMeshGlData(xen::Mesh mesh){
+		return gl_state->pool_mesh.slots[mesh._id].item;
+	}
+
+	void destroyMesh(xen::Mesh mesh){
+		// :TODO: IMPLEMENT - currently resource link, GPU buffers needs destroying
+		xen::freeSlot(xgl::gl_state->pool_mesh, mesh._id);
+	}
+
+	void updateMeshVertexData(xen::Mesh mesh_handle,
+	                          u32 attrib_index,
+	                          void* new_data,
+	                          u32 start_vertex,
+	                          u32 end_vertex
+	                          ){
+		xen::gl::MeshGlData* mesh = xgl::getMeshGlData(mesh_handle);
+		xen::gl::updateMeshAttribData(mesh, attrib_index, new_data,
+		                              start_vertex, end_vertex
+		                              );
+	}
 }
 
 #endif
