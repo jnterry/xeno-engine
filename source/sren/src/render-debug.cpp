@@ -1,13 +1,13 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \brief Contains implementation of utility functions for the 3d renderer
+/// \brief Contains implementation functions for rendering debug visualisations
 ///
 /// \ingroup sren
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_SREN_RENDERUTILITIES_CPP
-#define XEN_SREN_RENDERUTILITIES_CPP
+#ifndef XEN_SREN_RENDERDEBUG_CPP
+#define XEN_SREN_RENDERDEBUG_CPP
 
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/TestMeshes.hpp>
@@ -18,18 +18,15 @@
 
 #include <xen/sren/FragmentShader.hpp>
 #include <xen/sren/RenderTarget.hxx>
-#include "render-utilities.hxx"
-#include "rasterizer3d.hxx"
+#include <xen/sren/render-debug.hxx>
+#include <xen/sren/rasterizer3d.hxx>
 
-namespace xen {
-namespace sren {
-
-void renderCameraDebug(xsren::RenderTarget& target,
-                       const xen::Aabb2u& viewport,
-                       const Camera3d& view_camera,
-                       const Camera3d& camera,
-                       real            camera_scale
-                       ) {
+void xsren::renderCameraDebug(xsren::RenderTarget& target,
+                              const xen::Aabb2u&   viewport,
+                              const xen::Camera3d& view_camera,
+                              const xen::Camera3d& camera,
+                              real                 camera_scale
+                              ) {
 
 	Vec3r camera_local_axes[] = {
 		camera.position, camera.position,
@@ -37,7 +34,7 @@ void renderCameraDebug(xsren::RenderTarget& target,
 		camera.position, camera.position,
 	};
 
-	Color camera_local_axes_colors[] = {
+	xen::Color camera_local_axes_colors[] = {
 		xen::Color::RED,   xen::Color::RED,
 		xen::Color::GREEN, xen::Color::GREEN,
 		xen::Color::BLUE,  xen::Color::BLUE
@@ -60,8 +57,8 @@ void renderCameraDebug(xsren::RenderTarget& target,
 
 	Vec2s target_size = (Vec2s)xen::getSize(view_region);
 
-	Angle fov_y = camera.fov_y;
-	Angle fov_x = camera.fov_y * ((real)target_size.y / (real)target_size.x);
+	xen::Angle fov_y = camera.fov_y;
+	xen::Angle fov_x = camera.fov_y * ((real)target_size.y / (real)target_size.x);
 
 	// Compute the local axes of the camera
 	Vec3r cam_zaxis = camera.look_dir;
@@ -127,7 +124,7 @@ void renderCameraDebug(xsren::RenderTarget& target,
 				center_offset.x * image_plane_pixel_offset_x +
 				center_offset.y * image_plane_pixel_offset_y;
 
-			Ray3r primary_ray;
+			xen::Ray3r primary_ray;
 			primary_ray.origin    = camera.position;
 			primary_ray.direction = xen::normalized(image_plane_position - camera.position);
 
@@ -141,7 +138,7 @@ void renderCameraDebug(xsren::RenderTarget& target,
 
 	Mat4r vp_matrix = xen::getViewProjectionMatrix(view_camera, viewport);
 
-	RasterizationContext context;
+	xsren::RasterizationContext context;
 	context.camera          = view_camera;
 	context.target          = &target;
 	context.fragment_shader = xsren::FragmentShader_Default;
@@ -155,26 +152,26 @@ void renderCameraDebug(xsren::RenderTarget& target,
 	context.textures[2]     = nullptr;
 	context.textures[3]     = nullptr;
 
-	xen::sren::rasterizeLinesModel(context,
-	                               camera_local_axes,
-	                               camera_local_axes_colors,
-	                               XenArrayLength(camera_local_axes));
+	xsren::rasterizeLinesModel(context,
+	                           camera_local_axes,
+	                           camera_local_axes_colors,
+	                           XenArrayLength(camera_local_axes));
 
-	xen::sren::rasterizeLinesModel(context,
-	                               camera_corner_rays,
-	                               nullptr, // color buffer
-	                               XenArrayLength(camera_corner_rays));
+	xsren::rasterizeLinesModel(context,
+	                           camera_corner_rays,
+	                           nullptr, // color buffer
+	                           XenArrayLength(camera_corner_rays));
 }
 
-void renderDebugBoundingBox(xsren::RenderTarget& target,
-                            const xen::Aabb2u&           viewport,
-                            const xen::Camera3d&         camera,
-                            xen::Aabb3r                  aabb,
-                            xen::Color4f                 color){
+void xsren::renderDebugBoundingBox(xsren::RenderTarget& target,
+                                   const xen::Aabb2u&   viewport,
+                                   const xen::Camera3d& camera,
+                                   xen::Aabb3r          aabb,
+                                   xen::Color4f         color){
 
 	xen::Aabb2r viewport_r = xen::cast<xen::Aabb2r>(viewport);
 
-	xen::sren::RasterizationContext cntx = {};
+	xsren::RasterizationContext cntx = {};
 	cntx.target          = &target;
 	cntx.viewport        = &viewport_r; // :TODO: why is this a pointer... :(
 	cntx.vp_matrix       = xen::getViewProjectionMatrix(camera, viewport);
@@ -191,8 +188,5 @@ void renderDebugBoundingBox(xsren::RenderTarget& target,
 	                    2); //advance by 2 vertex for each line drawn
 
 }
-
-} // end of namespace sren
-} // end of namespace xen
 
 #endif

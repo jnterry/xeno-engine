@@ -16,7 +16,7 @@
 #include <xen/math/quaternion.hpp>
 
 #include <xen/sren/FragmentShader.hpp>
-#include "rasterizer3d.hxx"
+#include <xen/sren/rasterizer3d.hxx>
 #include "atomtracer.hxx"
 #include "SoftwareDeviceBase.hxx"
 #include "MeshStore.hxx"
@@ -25,7 +25,7 @@ namespace {
 
 class AtomTracerDevice : public xen::sren::SoftwareDeviceBase {
 private:
-	xen::sren::MeshStore<xen::sren::RasterizerMesh> mesh_store;
+	xen::sren::MeshStore<xsren::RasterizerMesh> mesh_store;
 
 	xen::ArenaLinear frame_scratch;
 public:

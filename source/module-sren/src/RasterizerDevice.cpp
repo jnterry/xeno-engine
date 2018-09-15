@@ -18,15 +18,15 @@
 #include <xen/core/intrinsics.hpp>
 
 #include "SoftwareDeviceBase.hxx"
-#include "render-utilities.hxx"
-#include "rasterizer3d.hxx"
+#include <xen/sren/render-debug.hxx>
+#include <xen/sren/rasterizer3d.hxx>
 #include "MeshStore.hxx"
 
 #include <cstring>
 
 class RasterizerDevice : public xen::sren::SoftwareDeviceBase {
 private:
-	xen::sren::MeshStore<xen::sren::RasterizerMesh> mesh_store;
+	xen::sren::MeshStore<xsren::RasterizerMesh> mesh_store;
 public:
 	~RasterizerDevice(){
 		this->mesh_store.destroyAllMeshes();
@@ -86,7 +86,7 @@ public:
 		}
 		////////////////////////////////////////////////////////////////////////////
 
-		xen::sren::RasterizationContext context;
+		xsren::RasterizationContext context;
 		context.target          = &target;
 		context.viewport        = &view_region;
 

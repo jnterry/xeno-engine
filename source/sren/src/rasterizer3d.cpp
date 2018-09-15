@@ -19,8 +19,7 @@
 #include <xen/core/array.hpp>
 
 #include <xen/sren/FragmentShader.hpp>
-#include "rasterizer3d.hxx"
-#include "render-utilities.hxx"
+#include <xen/sren/rasterizer3d.hxx>
 #include <xen/sren/RenderTarget.hxx>
 
 #include <cstring>
@@ -148,7 +147,7 @@ namespace {
 		return out_screen;
 	}
 
-void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
+void _rasterizeLineScreen(const xsren::RasterizationContext& cntx,
                           const xen::LineSegment3r&        line_world,
                           xen::LineSegment3r               line_screen,
                           const xen::LineSegment4f&        line_color){
@@ -195,7 +194,7 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 }
 
 	// :TODO:OPT: profile -> is passing by reference faster
-	void _rasterizeTriangleScreen(const xen::sren::RasterizationContext& cntx,
+	void _rasterizeTriangleScreen(const xsren::RasterizationContext& cntx,
 	                              xen::Triangle3r                        tri_world,
 	                              xen::Triangle3r                        tri_normal_world,
 	                              xen::Triangle3r                        tri_screen,
@@ -459,13 +458,10 @@ void _rasterizeLineScreen(const xen::sren::RasterizationContext& cntx,
 	}
 } // end of anon namespace
 
-namespace xen {
-namespace sren {
-
-void rasterizePointsModel(const RasterizationContext& cntx,
-                          const Vec3r*                pos_model,
-                          const Color*                color_buffer,
-                          const u32                   vertex_count){
+void xsren::rasterizePointsModel(const xsren::RasterizationContext& cntx,
+                                 const Vec3r*                       pos_model,
+                                 const xen::Color*                  color_buffer,
+                                 const u32                          vertex_count){
 
 	bool colors_per_vertex = (color_buffer != nullptr);
 	if(!colors_per_vertex){
@@ -505,9 +501,9 @@ void rasterizePointsModel(const RasterizationContext& cntx,
 	}
 } // end of rasterizePointsModel
 
-void rasterizeLineModel(const RasterizationContext& cntx,
-                        const LineSegment3r&        line_model,
-                        const LineSegment4f&        line_color){
+void xsren::rasterizeLineModel(const xsren::RasterizationContext& cntx,
+                               const xen::LineSegment3r&          line_model,
+                               const xen::LineSegment4f&          line_color){
 
 	xen::LineSegment3r line_world = line_model * cntx.m_matrix;
 	xen::LineSegment4r line_clip  = xen::toHomo(line_world) * cntx.vp_matrix;
@@ -553,14 +549,14 @@ void rasterizeLineModel(const RasterizationContext& cntx,
 	_rasterizeLineScreen(cntx, line_world, line_screen, line_color);
 } // end of function rasterizeLineModel
 
-void rasterizeLinesModel(const RasterizationContext& cntx,
-                         const Vec3r*                pos_model,
-                         const Color*                color_buffer,
-                         const u32                   vertex_count,
-                         const u32                   stride){
+void xsren::rasterizeLinesModel(const xsren::RasterizationContext& cntx,
+                                const Vec3r*                       pos_model,
+                                const xen::Color*                  color_buffer,
+                                const u32                          vertex_count,
+                                const u32                          stride){
 	for(u32 i = 0; i < vertex_count - 1; i += stride){
-		LineSegment3r* line_model = (LineSegment3r*)(&pos_model[i]);
-		LineSegment4f  line_color = { xen::Color::WHITE4f, xen::Color::WHITE4f };
+		xen::LineSegment3r* line_model = (xen::LineSegment3r*)(&pos_model[i]);
+		xen::LineSegment4f  line_color = { xen::Color::WHITE4f, xen::Color::WHITE4f };
 		if(color_buffer != nullptr){
 			line_color.p1 = xen::makeColor4f(color_buffer[i+0]);
 			line_color.p2 = xen::makeColor4f(color_buffer[i+1]);
@@ -571,12 +567,12 @@ void rasterizeLinesModel(const RasterizationContext& cntx,
 } // end of rasterize lines model
 
 // :TODO:OPT: profile -> is passing by reference faster?
-void rasterizeTriangleModel(const RasterizationContext& cntx,
-                            Triangle3r                  tri_pos_model,
-                            Triangle3r                  tri_nor_model,
-                            Triangle4f                  tri_color,
-                            Triangle2f                  tri_uvs
-                           ){
+void xsren::rasterizeTriangleModel(const xsren::RasterizationContext& cntx,
+                                   xen::Triangle3r                    tri_pos_model,
+                                   xen::Triangle3r                    tri_nor_model,
+                                   xen::Triangle4f                    tri_color,
+                                   xen::Triangle2f                    tri_uvs
+                                   ){
 
 	xen::Triangle3r tri_pos_world = tri_pos_model * cntx.m_matrix;
 	xen::Triangle3r tri_nor_world = tri_nor_model * cntx.m_matrix;
@@ -760,14 +756,14 @@ void rasterizeTriangleModel(const RasterizationContext& cntx,
 } // end of function rasterizeTriangleModel
 
 
-void rasterizeTrianglesModel(const RasterizationContext& cntx,
-                             const Vec3r*                pos_model,
-                             const Vec3r*                nor_model,
-                             const Color*                col_buffer,
-                             const Vec2f*                uvs_buffer,
-                             const u32                   vertex_count){
+void xsren::rasterizeTrianglesModel(const xsren::RasterizationContext& cntx,
+                                    const Vec3r*                       pos_model,
+                                    const Vec3r*                       nor_model,
+                                    const xen::Color*                  col_buffer,
+                                    const Vec2f*                       uvs_buffer,
+                                    const u32                          vertex_count){
 
-	Triangle2f default_uvs    = { Vec2f::Origin, Vec2f::Origin, Vec2f::Origin };
+	xen::Triangle2f default_uvs    = { Vec2f::Origin, Vec2f::Origin, Vec2f::Origin };
 
 	bool multiple_uvs = uvs_buffer != nullptr;
 	if(uvs_buffer == nullptr){
@@ -775,13 +771,13 @@ void rasterizeTrianglesModel(const RasterizationContext& cntx,
 	}
 
 	for(u32 i = 0; i < vertex_count - 1; i += 3){
-		Triangle3r* tri_pos_model = (Triangle3r*)(&pos_model[i]);
-		Triangle3r* tri_nor_model = (Triangle3r*)(&nor_model[i]);
-		Triangle2f* tri_uvs = (Triangle2f*)(&uvs_buffer[i * multiple_uvs   ]);
+		xen::Triangle3r* tri_pos_model = (xen::Triangle3r*)(&pos_model[i]);
+		xen::Triangle3r* tri_nor_model = (xen::Triangle3r*)(&nor_model[i]);
+		xen::Triangle2f* tri_uvs       = (xen::Triangle2f*)(&uvs_buffer[i * multiple_uvs]);
 
-		Triangle4f tri_col = { xen::Color::WHITE4f,
-		                       xen::Color::WHITE4f,
-		                       xen::Color::WHITE4f };
+		xen::Triangle4f tri_col = { xen::Color::WHITE4f,
+		                            xen::Color::WHITE4f,
+		                            xen::Color::WHITE4f };
 		if(col_buffer != nullptr){
 			tri_col.vertices[0] = xen::makeColor4f(col_buffer[i+0]);
 			tri_col.vertices[1] = xen::makeColor4f(col_buffer[i+1]);
@@ -793,9 +789,9 @@ void rasterizeTrianglesModel(const RasterizationContext& cntx,
 } // end of rasterize triangles model
 
 
-void rasterizeMesh(const RasterizationContext&    context,
-                   xen::PrimitiveType             primitive_type,
-                   const xen::MeshAttribArrays& mesh){
+void xsren::rasterizeMesh(const xsren::RasterizationContext& context,
+                          xen::PrimitiveType                 primitive_type,
+                          const xen::MeshAttribArrays&       mesh){
 
 	switch(primitive_type){
 	case xen::PrimitiveType::POINTS:
@@ -833,8 +829,5 @@ void rasterizeMesh(const RasterizationContext&    context,
 	}
 
 } // end of rasterize mesh
-
-} // end of namespace sren
-} // end of namespace xen
 
 #endif

@@ -10,10 +10,10 @@
 #define XEN_SREN_RAYTRACERDEBUGDEVICE_CPP
 
 #include "RaytracerDevice.hxx"
-#include "rasterizer3d.hxx"
+#include <xen/sren/rasterizer3d.hxx>
 #include "raytracer3d.hxx"
 #include <xen/sren/RenderTarget.hxx>
-#include "render-utilities.hxx"
+#include <xen/sren/render-debug.hxx>
 
 #include <xen/sren/SoftwareDevice.hpp>
 #include <xen/sren/FragmentShader.hpp>
@@ -102,7 +102,7 @@ private:
 
 		Mat4r vp_matrix = xen::getViewProjectionMatrix(view_camera, viewport);
 
-		xen::sren::RasterizationContext context;
+		xsren::RasterizationContext context;
 		context.target          = &target;
 		context.viewport        = &viewport_r;
 		context.fragment_shader = xsren::FragmentShader_Default;
@@ -129,10 +129,10 @@ private:
 
 		/////////////////////////////////////////////////
 		// Render geometry for the camera we are debugging
-		xen::sren::renderCameraDebug(target, viewport,
-		                             view_camera, params.camera,
-		                             debug_camera_distance * 0.3_r
-		                            );
+		xsren::renderCameraDebug(target, viewport,
+		                         view_camera, params.camera,
+		                         debug_camera_distance * 0.3_r
+		                        );
 	}
 
 public:

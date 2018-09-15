@@ -9,8 +9,8 @@
 #ifndef XEN_SREN_RAYTRACERDEVICE_CPP
 #define XEN_SREN_RAYTRACERDEVICE_CPP
 
-#include "render-utilities.hxx"
-#include "rasterizer3d.hxx" // fall back to rasterizer for lines and points
+#include <xen/sren/render-debug.hxx>
+#include <xen/sren/rasterizer3d.hxx> // fall back to rasterizer for lines and points
 #include "RaytracerDevice.hxx"
 
 #include <xen/graphics/RenderCommand3d.hpp>
@@ -209,13 +209,13 @@ void xen::sren::RaytracerDevice::doRender(xsren::RenderTarget&           target,
 
 	////////////////////////////////////////////////////////////////////////////
 	// Render the non triangles in the scene
-	RasterizationContext context;
-	context.target          = &target;
-	context.viewport        = &view_region;
-	context.textures[0]     = nullptr;
-	context.textures[1]     = nullptr;
-	context.textures[2]     = nullptr;
-	context.textures[3]     = nullptr;
+	xsren::RasterizationContext context;
+	context.target      = &target;
+	context.viewport    = &view_region;
+	context.textures[0] = nullptr;
+	context.textures[1] = nullptr;
+	context.textures[2] = nullptr;
+	context.textures[3] = nullptr;
 	for(u32 i = 0; i < xen::size(non_triangle_cmds); ++i){
 		u32 cmd_index = non_triangle_cmds[i];
 		const xen::RenderCommand3d* cmd = &commands[cmd_index];

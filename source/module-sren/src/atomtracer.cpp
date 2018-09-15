@@ -10,7 +10,7 @@
 #define XEN_SREN_ATOMTRACER_CPP
 
 #include "atomtracer.hxx"
-#include "render-utilities.hxx"
+#include <xen/sren/render-debug.hxx>
 
 #include <xen/sren/RenderTarget.hxx>
 #include <xen/math/geometry.hpp>
@@ -79,7 +79,7 @@ xen::sren::AtomScene& _breakSceneIntoAtoms
 ( const xen::Aabb2u&                               viewport,
   const xen::RenderParameters3d&                   params,
   const xen::Array<xen::RenderCommand3d>&          commands,
-  xen::sren::MeshStore<xen::sren::RasterizerMesh>& mesh_store,
+  xen::sren::MeshStore<xsren::RasterizerMesh>& mesh_store,
   xen::ArenaLinear&                                arena,
   real                                             pixels_per_atom
 )
@@ -94,7 +94,7 @@ xen::sren::AtomScene& _breakSceneIntoAtoms
 
 	for(u32 cmd_index = 0; cmd_index < xen::size(commands); ++cmd_index){
 		const xen::RenderCommand3d&      cmd  = commands[cmd_index];
-		const xen::sren::RasterizerMesh* mesh = mesh_store.getMesh(cmd.mesh);
+		const xsren::RasterizerMesh* mesh = mesh_store.getMesh(cmd.mesh);
 
 		xen::Aabb3r mesh_bounds = xen::getTransformed(mesh->bounds, cmd.model_matrix);
 		xen::addPoint(result->bounds, mesh_bounds.min);
@@ -398,7 +398,7 @@ namespace sren {
 AtomScene& atomizeScene(const Aabb2u& viewport,
                         const RenderParameters3d& params,
                         const Array<RenderCommand3d>& commands,
-                        MeshStore<RasterizerMesh>& mesh_store,
+                        MeshStore<xsren::RasterizerMesh>& mesh_store,
                         ArenaLinear& arena,
                         real pixels_per_atom){
 

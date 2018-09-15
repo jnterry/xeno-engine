@@ -17,8 +17,8 @@
 #include <xen/math/geometry.hpp>
 
 #include <xen/sren/FragmentShader.hpp>
-#include "render-utilities.hxx"
-#include "rasterizer3d.hxx"
+#include <xen/sren/render-debug.hxx>
+#include <xen/sren/rasterizer3d.hxx>
 #include "atomtracer.hxx"
 #include "SoftwareDeviceBase.hxx"
 #include "MeshStore.hxx"
@@ -27,7 +27,7 @@ namespace {
 
 class AtomTracerDebugDevice : public xen::sren::SoftwareDeviceBase {
 private:
-	xen::sren::MeshStore<xen::sren::RasterizerMesh> mesh_store;
+	xen::sren::MeshStore<xsren::RasterizerMesh> mesh_store;
 
 	xen::ArenaLinear frame_scratch;
 
@@ -90,7 +90,7 @@ public:
 
 		//////////////////////////////////////////////////////
 		// Render the actual atoms
-		xen::sren::RasterizationContext cntx = {};
+		xsren::RasterizationContext cntx = {};
 		xen::Aabb2r viewport_r = xen::cast<xen::Aabb2r>(viewport);
 		cntx.m_matrix        = Mat4r::Identity; // points already in world space
 		cntx.vp_matrix       = xen::getViewProjectionMatrix(params.camera, viewport);
@@ -122,11 +122,11 @@ public:
 			case 4: cntx.diffuse_color = {1.0f, 1.0f, 0.0f, 1.0f}; break;
 			case 5: cntx.diffuse_color = {0.0f, 1.0f, 1.0f, 1.0f}; break;
 			}
-			xen::sren::rasterizePointsModel(cntx,
-			                                &ascene.positions[ascene.boxes[i].start],
-			                                nullptr,
-			                                ascene.boxes[i].end - ascene.boxes[i].start
-			                                );
+			xsren::rasterizePointsModel(cntx,
+			                            &ascene.positions[ascene.boxes[i].start],
+			                            nullptr,
+			                            ascene.boxes[i].end - ascene.boxes[i].start
+			                           );
 		}
 		#endif
 
@@ -135,15 +135,15 @@ public:
 		// Render bounding boxes of occupied nodes of the oct-tree
 		for(u32 i = 0; i < ascene.boxes.size; ++i){
 			if(ascene.boxes[i].start < ascene.boxes[i].end){
-				xen::sren::renderDebugBoundingBox(target, viewport, params.camera,
-				                                  ascene.boxes[i].bounds);
+				xsren::renderDebugBoundingBox(target, viewport, params.camera,
+				                              ascene.boxes[i].bounds);
 			}
 		}
 
 		//////////////////////////////////////////////////////
 		// Render where the virtual debug camera is located
-		xen::sren::renderCameraDebug(target, viewport,
-		                             params.camera, test_params.camera, 2);
+		xsren::renderCameraDebug(target, viewport,
+		                         params.camera, test_params.camera, 2);
 	}
 };
 

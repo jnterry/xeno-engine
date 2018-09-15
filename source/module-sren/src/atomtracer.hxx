@@ -10,7 +10,7 @@
 #define XEN_SREN_ATOMTRACER_HXX
 
 #include "MeshStore.hxx"
-#include "rasterizer3d.hxx"
+#include <xen/sren/rasterizer3d.hxx>
 
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/math/geometry_types.hpp>
@@ -90,7 +90,7 @@ struct AtomScene {
 AtomScene& atomizeScene(const xen::Aabb2u& viewport,
                         const xen::RenderParameters3d& params,
                         const xen::Array<xen::RenderCommand3d>& commands,
-                        xen::sren::MeshStore<xen::sren::RasterizerMesh>& mesh_store,
+                        xen::sren::MeshStore<xsren::RasterizerMesh>& mesh_store,
                         xen::ArenaLinear& arena,
                         real  pixels_per_atom = 1.0_r);
 
