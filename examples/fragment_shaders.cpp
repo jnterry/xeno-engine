@@ -62,7 +62,7 @@ xen::Color4f FragmentShader_Phong(const xen::sren::FragmentUniforms& uniforms,
 
   xen::Color4f result = uniforms.diffuse_color;
 	result     *= color;
-	result     *= xen::sren::sampleTexture(uniforms.textures[0], uvs);
+	result     *= xsren::sampleTexture(uniforms.textures[0], uvs);
 	result.rgb *= total_light;
 
   return result;
@@ -76,7 +76,7 @@ xen::Color4f FragmentShader_NormalMap(const xen::sren::FragmentUniforms& uniform
   xen::Color3f total_light = uniforms.ambient_light;
   total_light += (uniforms.emissive_color.rgb * uniforms.emissive_color.a);
 
-  Vec3r normal_map = (Vec3r)(xen::sren::sampleTexture(uniforms.textures[1], uvs).xyz);
+  Vec3r normal_map = (Vec3r)(xsren::sampleTexture(uniforms.textures[1], uvs).xyz);
 
   // Normal maps point primarily in positive z direction, rotate the normal by
   // the same rotation that would be required to get the +ve z axis lining up
@@ -116,7 +116,7 @@ xen::Color4f FragmentShader_NormalMap(const xen::sren::FragmentUniforms& uniform
 
   xen::Color4f result = uniforms.diffuse_color;
 	result     *= color;
-	result     *= xen::sren::sampleTexture(uniforms.textures[0], uvs);
+	result     *= xsren::sampleTexture(uniforms.textures[0], uvs);
 	result.rgb *= total_light;
 
   return result;

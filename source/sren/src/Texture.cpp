@@ -11,10 +11,9 @@
 
 #include <xen/sren/Texture.hpp>
 
-namespace xen {
-namespace sren{
+namespace xsren {
 
-Color4f sampleTexture(const TextureImpl* texture, Vec2f uv){
+	xen::Color4f sampleTexture(const Texture* texture, Vec2f uv){
 	if(texture == nullptr){
 		return xen::Color::WHITE4f;
 	}
@@ -28,7 +27,6 @@ Color4f sampleTexture(const TextureImpl* texture, Vec2f uv){
 	return xen::makeColor4f(texture->image[uv_int.u][uv_int.v]);
 }
 
-}
 }
 
 #endif

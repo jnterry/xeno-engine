@@ -13,22 +13,19 @@
 #include <xen/graphics/Color.hpp>
 #include <xen/math/vector_types.hpp>
 
-namespace xen {
-namespace sren {
+namespace xsren {
 
-struct TextureImpl {
-	// :TODO: mipmaps
-	// :TODO: texture wrapping/clamping/etc settings
-	xen::RawImage image;
-};
+	struct Texture {
+		// :TODO: mipmaps
+		// :TODO: texture wrapping/clamping/etc settings
+		xen::RawImage image;
+	};
 
-/////////////////////////////////////////////////////////////////////
-/// \brief Samples a texture returning the color of the specified uv
-/// coordinate
-/////////////////////////////////////////////////////////////////////
-Color4f sampleTexture(const TextureImpl*, Vec2f uv);
-
-}
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Samples a texture returning the color of the specified uv
+	/// coordinate
+	/////////////////////////////////////////////////////////////////////
+	xen::Color4f sampleTexture(const Texture*, Vec2f uv);
 }
 
 #endif

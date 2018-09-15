@@ -29,7 +29,7 @@ namespace xen {
 			  main_allocator (new xen::AllocatorCounter<xen::AllocatorMalloc>()),
 			  misc_arena     (xen::createArenaLinear(*main_allocator, xen::megabytes(1))),
 			  render_targets (xen::createArenaPool<xsren::RenderTarget>(main_allocator,  128)),
-			  textures       (xen::createArenaPool<TextureImpl     >(main_allocator, 1024)),
+			  textures       (xen::createArenaPool<xsren::Texture     >(main_allocator, 1024)),
 			  shaders        (xen::createArenaPool<FragmentShader  >(main_allocator,  128))
 		{
 			this->thpool = thpool_init(4);
@@ -56,7 +56,7 @@ namespace xen {
 			return &this->render_targets.slots[target._id].item;
 		}
 
-		TextureImpl* SoftwareDeviceBase::getTextureImpl(Texture texture){
+		xsren::Texture* SoftwareDeviceBase::getTextureImpl(Texture texture){
 			return &this->textures.slots[texture._id].item;
 		}
 
@@ -69,7 +69,7 @@ namespace xen {
 
 			Texture result = xen::makeGraphicsHandle<Texture::HANDLE_ID>(slot, 0);
 
-			TextureImpl* timpl = this->getTextureImpl(result);
+			xsren::Texture* timpl = this->getTextureImpl(result);
 
 			u32 num_bytes = sizeof(xen::Color) * image->width * image->height;
 
@@ -81,7 +81,7 @@ namespace xen {
 		}
 
 		void SoftwareDeviceBase::destroyTexture(Texture texture){
-			TextureImpl* timpl = this->getTextureImpl(texture);
+			xsren::Texture* timpl = this->getTextureImpl(texture);
 			main_allocator->deallocate(timpl->image.pixels);
 			xen::freeSlot(textures, texture._id);
 		}

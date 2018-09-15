@@ -38,7 +38,7 @@ namespace xen {
 			/// \brief The view projection matrix
 			Mat4r vp_matrix;
 
-			TextureImpl* textures[4];
+			xsren::Texture* textures[4];
 		};
 
 		typedef Color4f (*FragmentShader)(const xen::sren::FragmentUniforms& uniforms,
