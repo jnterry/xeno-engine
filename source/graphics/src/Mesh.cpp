@@ -25,11 +25,23 @@
 #include <assimp/color4.h>
 
 namespace {
+	void doComputeFlatNormals(u32 vertex_count, Vec3r* pbuf, Vec3r* nbuf){
+		for(u32 i = 0; i < vertex_count; i += 3){
+			xen::Triangle3r* ptri = (xen::Triangle3r*)&pbuf[i];
+			Vec3r normal = xen::computeNormal(*ptri);
+			nbuf[i+0] = normal;
+			nbuf[i+1] = normal;
+			nbuf[i+2] = normal;
+		}
+	}
+
 	/// \brief Recenters a mesh such that its local origin is at the center of
 	/// its aabb
 	void processMeshVertexPositionsAndComputeBounds(xen::MeshData* mesh,
-	                                                xen::MeshLoadFlags flags){
+	                                                xen::MeshLoadFlags flags,
+	                                                xen::ArenaLinear& arena){
 		u08 pos_attrib_index = findMeshAttrib(mesh, xen::VertexAttribute::_AspectPosition);
+		u08 nor_attrib_index = findMeshAttrib(mesh, xen::VertexAttribute::_AspectNormal);
 		if(pos_attrib_index == xen::MeshData::BAD_ATTRIB_INDEX){ return; }
 
 		Vec3r* pbuf = (Vec3r*)mesh->vertex_data[pos_attrib_index];
@@ -73,9 +85,18 @@ namespace {
 		mesh->bounds.max += post_scale;
 
 		mesh->bounds = xen::computeBoundingBox(pbuf, mesh->vertex_count);
-		//XenDebugAssert(real_bounds == mesh->bounds,
-		                //               "Something went wrong with mesh position manipulation"
-		                //              );
+
+		if(nor_attrib_index != xen::MeshData::BAD_ATTRIB_INDEX &&
+		   flags & xen::MeshLoadFlags::GENERATE_FLAT_NORMALS &&
+		   mesh->vertex_data[nor_attrib_index] == nullptr){
+			// then we need to generate normals
+			XenAssert(mesh->vertex_spec[nor_attrib_index] == xen::VertexAttribute::Normal3r,
+			          "Other normal formats not yet supported"
+			         );
+			Vec3r* nbuf = xen::reserveTypeArray<Vec3r>(arena, mesh->vertex_count);
+			mesh->vertex_data[nor_attrib_index] = nbuf;
+			doComputeFlatNormals(mesh->vertex_count, pbuf, nbuf);
+		}
 	}
 
 	struct VertexAttributeAspects {
@@ -288,6 +309,7 @@ namespace xen {
 
 	bool loadMeshFile(MeshData* md, ArenaLinear& arena, const char* path,
 	                  MeshLoadFlags flags){
+
 		const aiScene* scene = aiImportFile(path,
 		                                    aiProcess_Triangulate
 		                                    );
@@ -306,7 +328,7 @@ namespace xen {
 
 		aiReleaseImport(scene);
 
-		processMeshVertexPositionsAndComputeBounds(md, flags);
+		processMeshVertexPositionsAndComputeBounds(md, flags, arena);
 
 		return result;
 	}
@@ -322,7 +344,8 @@ namespace xen {
 
 	void fillMeshAttribArrays(MeshAttribArrays* mesh_geom,
 	                          const MeshData*   mesh_data,
-	                          Allocator*        allocator
+	                          Allocator*        allocator,
+	                          MeshLoadFlags     flags
 	                         ){
 		xen::clearToZero(mesh_geom);
 		mesh_geom->vertex_count = mesh_data->vertex_count;
@@ -410,6 +433,19 @@ namespace xen {
 				XenInvalidCodePath("Found bad color format in mesh");
 			}
 		}
+
+		XenAssert(flags == 0 || flags == MeshLoadFlags::GENERATE_FLAT_NORMALS,
+		          "Other flags not yet implemented"
+		         );
+
+		if(flags & MeshLoadFlags::GENERATE_FLAT_NORMALS != 0 &&
+		   mesh_geom->normal == nullptr &&
+		   mesh_geom->vertex_count % 3 == 0){
+			mesh_geom->normal = (Vec3r*)allocator->allocate
+				(sizeof(Vec3r) * mesh_geom->vertex_count);
+			xen::computeFlatNormals(mesh_geom);
+		}
+
 	}
 
 	void freeMeshAttribArrays(MeshAttribArrays* mesh,
@@ -437,18 +473,6 @@ namespace xen {
 
 }
 
-namespace {
-	void doComputeFlatNormals(u32 vertex_count, Vec3r* pbuf, Vec3r* nbuf){
-		for(u32 i = 0; i < vertex_count; i += 3){
-			xen::Triangle3r* ptri = (xen::Triangle3r*)&pbuf[i];
-			Vec3r normal = xen::computeNormal(*ptri);
-			nbuf[i+0] = normal;
-			nbuf[i+1] = normal;
-			nbuf[i+2] = normal;
-		}
-	}
-}
-
 void xen::computeFlatNormals(xen::MeshData* mesh_data){
 	VertexAttributeAspects aspects = findVertexSpecAspectIndices(mesh_data->vertex_spec);
 	Vec3r* pbuf = (Vec3r*)mesh_data->vertex_data[aspects.position];
@@ -458,6 +482,52 @@ void xen::computeFlatNormals(xen::MeshData* mesh_data){
 
 void xen::computeFlatNormals(xen::MeshAttribArrays* mesh){
 	doComputeFlatNormals(mesh->vertex_count, mesh->position, mesh->normal);
+}
+
+
+void xen::setMeshAttribArraysData(xen::MeshAttribArrays* mesh,
+                                  xen::Allocator& alloc,
+                                  const xen::VertexSpec& vertex_spec,
+                                  u32 attrib_index,
+                                  void* new_data,
+                                  u32 start_vertex,
+                                  u32 end_vertex
+                                 ){
+
+	end_vertex = xen::min(end_vertex, mesh->vertex_count);
+	if(end_vertex < start_vertex){ return; }
+
+	void** attrib_data = nullptr;
+	switch(vertex_spec[attrib_index]){
+	case xen::VertexAttribute::Position3r:
+		attrib_data = (void**)&mesh->position;
+		break;
+	case xen::VertexAttribute::Normal3r:
+		attrib_data = (void**)&mesh->normal;
+		break;
+	case xen::VertexAttribute::Color4b:
+		attrib_data = (void**)&mesh->color;
+		break;
+	default:
+		XenInvalidCodePath("Attempt to update unsupported mesh attribute type");
+		return;
+	}
+
+	u32 attrib_size = xen::getVertexAttributeSize(vertex_spec[attrib_index]);
+	if(*attrib_data == nullptr){
+		*attrib_data = alloc.allocate(attrib_size * mesh->vertex_count);
+		if(start_vertex != 0 || end_vertex != mesh->vertex_count){
+			// :TODO: log
+			printf("WARN: Updating mesh attrib %i but there is no existing data and "
+			       "the new data set is not complete\n", attrib_index);
+		}
+	}
+
+	memcpy(xen::ptrGetAdvanced(*attrib_data, start_vertex * attrib_size),
+	       new_data,
+	       (end_vertex - start_vertex) * attrib_size
+	       );
+
 }
 
 #endif

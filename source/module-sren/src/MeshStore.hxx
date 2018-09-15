@@ -83,20 +83,11 @@ xen::Mesh MeshStore<T_MESH>::createMesh(const xen::MeshData* mesh_data) {
 
   // Allocate storage and copy over attributes, this is equivalent
   // to uploading to the gpu in a gl device
-  xen::fillMeshAttribArrays(mesh_geom, mesh_data, mesh_allocator);
+  xen::fillMeshAttribArrays(mesh_geom, mesh_data, mesh_allocator,
+                            xen::MeshLoadFlags::GENERATE_FLAT_NORMALS
+                           );
 
-  ////////////////////////////////////////////////////////////////////////////
-  // Compute face normals
-  if(mesh_geom->normal == nullptr && mesh_data->vertex_count % 3 == 0){
-	  mesh_geom->normal = (Vec3r*)mesh_allocator->allocate
-		  (sizeof(Vec3r) * mesh_geom->vertex_count);
-	  xen::computeFlatNormals(mesh_geom);
-  }
-
-  xen::Mesh handle;
-  handle._id         = slot;
-  handle._generation = 0;
-  return handle;
+  return xen::makeGraphicsHandle<xen::Mesh::HANDLE_ID>(slot, 0);
 }
 
 template<typename T_MESH>
@@ -112,41 +103,13 @@ void MeshStore<T_MESH>::updateMeshVertexData(xen::Mesh mesh_handle,
                                              u32 start_vertex,
                                              u32 end_vertex
                                             ) {
-	T_MESH* mesh = this->getMesh(mesh_handle);;
-
-	end_vertex = xen::min(end_vertex, mesh->vertex_count);
-	if(end_vertex < start_vertex){ return; }
-
-	void** attrib_data = nullptr;
-	switch(mesh->vertex_spec[attrib_index]){
-	case xen::VertexAttribute::Position3r:
-		attrib_data = (void**)&mesh->position;
-		break;
-	case xen::VertexAttribute::Normal3r:
-		attrib_data = (void**)&mesh->normal;
-		break;
-	case xen::VertexAttribute::Color4b:
-		attrib_data = (void**)&mesh->color;
-		break;
-	default:
-		XenInvalidCodePath("Attempt to update unsupported mesh attribute type");
-		return;
-	}
-
-	u32 attrib_size = xen::getVertexAttributeSize(mesh->vertex_spec[attrib_index]);
-	if(*attrib_data == nullptr){
-		*attrib_data = mesh_allocator->allocate(attrib_size * mesh->vertex_count);
-		if(start_vertex != 0 || end_vertex != mesh->vertex_count){
-			// :TODO: log
-			printf("WARN: Updating mesh attrib %i but there is no existing data and "
-			       "the new data set is not complete\n", attrib_index);
-		}
-	}
-
-	memcpy(xen::ptrGetAdvanced(*attrib_data, start_vertex * attrib_size),
-	       new_data,
-	       (end_vertex - start_vertex) * attrib_size
-	       );
+	T_MESH* mesh = this->getMesh(mesh_handle);
+	xen::setMeshAttribArraysData(mesh,
+	                             *mesh_allocator,
+	                             mesh->vertex_spec, attrib_index,
+	                             new_data,
+	                             start_vertex, end_vertex
+	                            );
 }
 
 } // end of namespace sren
