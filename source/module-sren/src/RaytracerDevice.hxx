@@ -9,8 +9,8 @@
 #ifndef XEN_SREN_RAYTRACERDEVICE_HXX
 #define XEN_SREN_RAYTRACERDEVICE_HXX
 
-#include "SoftwareDeviceBase.hxx"
-#include "MeshStore.hxx"
+#include <xen/sren/SoftwareDeviceBase.hxx>
+#include <xen/sren/MeshStore.hxx>
 #include "raytracer3d.hxx"
 
 #include <xen/core/memory/ArenaLinear.hpp>

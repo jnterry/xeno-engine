@@ -18,8 +18,8 @@
 #include <xen/sren/FragmentShader.hpp>
 #include <xen/sren/rasterizer3d.hxx>
 #include "atomtracer.hxx"
-#include "SoftwareDeviceBase.hxx"
-#include "MeshStore.hxx"
+#include <xen/sren/SoftwareDeviceBase.hxx>
+#include <xen/sren/MeshStore.hxx>
 
 namespace {
 

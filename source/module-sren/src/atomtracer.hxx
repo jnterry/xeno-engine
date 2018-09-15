@@ -9,7 +9,7 @@
 #ifndef XEN_SREN_ATOMTRACER_HXX
 #define XEN_SREN_ATOMTRACER_HXX
 
-#include "MeshStore.hxx"
+#include <xen/sren/MeshStore.hxx>
 #include <xen/sren/rasterizer3d.hxx>
 
 #include <xen/graphics/RenderCommand3d.hpp>

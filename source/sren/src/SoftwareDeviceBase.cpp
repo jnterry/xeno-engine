@@ -9,7 +9,7 @@
 #ifndef XEN_SREN_SOFTWAREDEVICEBASE_CPP
 #define XEN_SREN_SOFTWAREDEVICEBASE_CPP
 
-#include "SoftwareDeviceBase.hxx"
+#include <xen/sren/SoftwareDeviceBase.hxx>
 #include <xen/sren/render-debug.hxx>
 #include <xen/sren/RenderTarget.hxx>
 

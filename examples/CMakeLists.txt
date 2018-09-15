@@ -16,6 +16,7 @@ function(xen_add_example TARGET_NAME)
 	target_link_libraries(${TARGET_NAME} xen-graphics)
 	target_link_libraries(${TARGET_NAME} xen-module-gl)
 	target_link_libraries(${TARGET_NAME} xen-module-sren)
+	target_link_libraries(${TARGET_NAME} xen-module-sren-rasterize)
 
 	#target_include_directories(${TARGET_NAME} PRIVATE "${XEN_EXTLIBS_DIR}/glew-2.1.0/include/")
 	#target_link_libraries(${TARGET_NAME} libglew_shared)

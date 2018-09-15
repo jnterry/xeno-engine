@@ -1,0 +1,7 @@
+set(XEN_HEADERS_MODULE_SREN_RASTERIZE
+	${CMAKE_CURRENT_LIST_DIR}/include/xen/sren/RasterizerDevice.hpp
+)
+
+set(XEN_SOURCES_MODULE_SREN_RASTERIZE
+	${CMAKE_CURRENT_LIST_DIR}/src/RasterizerDevice.cpp
+)

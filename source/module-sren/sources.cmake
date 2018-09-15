@@ -4,12 +4,6 @@ set(XEN_HEADERS_MODULE_SREN
 )
 
 set(XEN_SOURCES_MODULE_SREN
-	${CMAKE_CURRENT_LIST_DIR}/src/SoftwareDeviceBase.hxx
-	${CMAKE_CURRENT_LIST_DIR}/src/SoftwareDeviceBase.cpp
-
-
-	${CMAKE_CURRENT_LIST_DIR}/src/RasterizerDevice.cpp
-
 	${CMAKE_CURRENT_LIST_DIR}/src/RaytracerDevice.hxx
 	${CMAKE_CURRENT_LIST_DIR}/src/RaytracerDevice.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/RaytracerDebugDevice.cpp

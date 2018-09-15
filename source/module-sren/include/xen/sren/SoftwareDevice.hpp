@@ -33,17 +33,6 @@ namespace xen {
 	                                      );
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Creates a new GraphicsDevice which will perform rendering
-	/// using a software rasterizer
-	/// \param post_processors Array of post processors to to call before presenting
-	/// the image to the screen. Defaults to an empty array
-	/////////////////////////////////////////////////////////////////////
-	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena,
-	                                       xen::Array<xsren::PostProcessor*> post_processors =
-	                                       xen::Array<xsren::PostProcessor*>::EmptyArray
-	                                       );
-
-	/////////////////////////////////////////////////////////////////////
 	/// \brief Creates a device which will debug the raytracer device by
 	/// drawing the same scene with the rasterizer from multiple angles
 	/// \param camera_distance Distance along each axis that debug cameras should

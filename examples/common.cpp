@@ -10,6 +10,7 @@
 #define XEN_EXAMPLES_COMMON_CPP
 
 #include <xen/sren/SoftwareDevice.hpp>
+#include <xen/sren/RasterizerDevice.hpp>
 #include <xen/gl/GlDevice.hpp>
 
 #include "common.hpp"

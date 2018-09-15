@@ -67,6 +67,17 @@ target_link_libraries     (xen-module-gl libglew_shared)
 target_link_libraries     (xen-module-gl xen-graphics)
 target_link_libraries     (xen-module-gl xen-kernel  )
 
+add_library               (xen-module-sren-rasterize STATIC  ${XEN_HEADERS_MODULE_SREN_RASTERIZE} ${XEN_SOURCES_MODULE_SREN_RASTERIZE})
+target_include_directories(xen-module-sren-rasterize PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/module-sren-rasterize/include/)
+target_include_directories(xen-module-sren-rasterize PRIVATE ${CMAKE_CURRENT_LIST_DIR}/graphics/impl/)
+target_include_directories(xen-module-sren-rasterize PRIVATE ${CMAKE_CURRENT_LIST_DIR}/sren/impl/)
+target_include_directories(xen-module-sren-rasterize PRIVATE ${XEN_EXTLIBS_DIR}/thpool/)
+target_link_libraries     (xen-module-sren-rasterize PRIVATE thpool)
+target_link_libraries     (xen-module-sren-rasterize PRIVATE pthread)
+target_link_libraries     (xen-module-sren-rasterize PRIVATE xen-sren)
+target_link_libraries     (xen-module-sren-rasterize PRIVATE xen-graphics)
+target_link_libraries     (xen-module-sren-rasterize PRIVATE xen-kernel  )
+
 
 set_target_properties(xen-core         PROPERTIES FOLDER "xeno_engine")
 set_target_properties(xen-math         PROPERTIES FOLDER "xeno_engine")
