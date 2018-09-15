@@ -35,7 +35,7 @@ public:
 
 	AtomTracerDevice(xen::Array<xen::sren::PostProcessor*> post_processors)
 		: SoftwareDeviceBase(post_processors),
-		  mesh_store(this, main_allocator),
+		  mesh_store(main_allocator),
 		  frame_scratch(xen::createArenaLinear(*main_allocator, xen::megabytes(128)))
 	{
 		// no-op

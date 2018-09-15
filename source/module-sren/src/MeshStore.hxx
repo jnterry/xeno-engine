@@ -10,11 +10,13 @@
 #ifndef XEN_SREN_MESHSTORE_HXX
 #define XEN_SREN_MESHSTORE_HXX
 
-#include <xen/graphics/GraphicsDevice.hpp>
+#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/Mesh.hpp>
 #include <xen/math/vertex_group.hpp>
 #include <xen/core/memory/utilities.hpp>
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/core/memory/ArenaPool.hpp>
+#include <xen/core/array.hpp>
 
 #include <cstring>
 
@@ -30,9 +32,6 @@ namespace sren {
 template<typename T_MESH>
 class MeshStore {
 private:
-	/// \brief The device which owns this MeshStore
-	xen::GraphicsDevice*   owner;
-
 	/// \brief The allocator for mesh attribute data
 	xen::Allocator*        mesh_allocator;
 
@@ -46,9 +45,8 @@ public:
 	/// \note The MeshStore does not own the allocator passed in and will not
 	/// attempt to free it upon destruction, it merely uses the allocator
 	/////////////////////////////////////////////////////////////////////
-	MeshStore(xen::GraphicsDevice* owner, xen::Allocator* alloc)
-		: owner(owner),
-		  mesh_allocator(alloc),
+	MeshStore(xen::Allocator* alloc)
+		: mesh_allocator(alloc),
 		  mesh_pool(xen::createArenaPool<T_MESH>(alloc, 1024)) {
 		// no-op
 	}

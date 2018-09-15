@@ -34,7 +34,7 @@ public:
 
 	RasterizerDevice(xen::Array<xen::sren::PostProcessor*> post_processors)
 		: SoftwareDeviceBase(post_processors),
-		  mesh_store(this, main_allocator)
+		  mesh_store(main_allocator)
 	{
 		// no-op
 	}

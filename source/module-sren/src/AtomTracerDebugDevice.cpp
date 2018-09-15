@@ -14,7 +14,6 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/time.hpp>
 #include <xen/math/quaternion.hpp>
-#include <xen/math/angle.hpp>
 #include <xen/math/geometry.hpp>
 
 #include <xen/sren/FragmentShader.hpp>
@@ -41,7 +40,7 @@ public:
 
 	AtomTracerDebugDevice(xen::Array<xen::sren::PostProcessor*> post_processors)
 		: SoftwareDeviceBase(post_processors),
-		  mesh_store(this, main_allocator),
+		  mesh_store(main_allocator),
 		  frame_scratch(xen::createArenaLinear(*main_allocator, xen::megabytes(128)))
 	{
 		// no-op
