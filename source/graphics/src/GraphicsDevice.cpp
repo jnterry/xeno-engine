@@ -28,7 +28,7 @@ namespace xen {
 
 
 	Mesh GraphicsDevice::createMesh(const VertexSpec&         vertex_spec,
-	                                const MeshGeometrySource& mesh_geom
+	                                const MeshAttribArrays& mesh_geom
 	                                ){
 
 		// max number of vertex attributes is 255, so allocate that much stack space

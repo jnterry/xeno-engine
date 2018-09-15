@@ -113,22 +113,22 @@ namespace xen{
 	/// this will cause a memory leak if any of the attribute are pointing to
 	/// memory not managed by anything else!
 	///
-	/// \note The allocated memory may be freed by passing the MeshGeometrySource
-	/// to freeMeshGeometrySourceData
+	/// \note The allocated memory may be freed by passing the MeshAttribArrays
+	/// to freeMeshAttribArraysData
 	///
-	/// \param result    The MeshGeometrySource which will be initialised
-	/// \param mesh_data The source of data to copy into the MeshGeometrySource
+	/// \param result    The MeshAttribArrays which will be initialised
+	/// \param mesh_data The source of data to copy into the MeshAttribArrays
 	/// \param allocator The allocator with which to get memory to store mesh data
 	/////////////////////////////////////////////////////////////////////
 	void fillMeshAttribArrays(MeshAttribArrays* result,
 	                          const MeshData*   mesh_data,
 	                          Allocator*        allocator
-	                          );
+	                         );
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Frees any non-null pointers in the specified MeshGeometrySource
+	/// \brief Frees any non-null pointers in the specified MeshAttribArrays
 	/// by deallocating the memory using the specified Allocator
-	/// \note This DOES NOT free the actual MeshGeometrySource instance
+	/// \note This DOES NOT free the actual MeshAttribArrays instance
 	/////////////////////////////////////////////////////////////////////
 	void freeMeshAttribArrays(MeshAttribArrays* mesh,
 	                          Allocator*        allocator);
@@ -139,6 +139,7 @@ namespace xen{
 	/// in the mesh
 	/////////////////////////////////////////////////////////////////////
 	void computeFlatNormals(MeshData* mesh_data);
+	void computeFlatNormals(MeshAttribArrays* mesh_attribs);
 }
 
 #endif

@@ -807,7 +807,7 @@ void rasterizeTrianglesModel(const RasterizationContext& cntx,
 
 void rasterizeMesh(const RasterizationContext&    context,
                    xen::PrimitiveType             primitive_type,
-                   const xen::MeshGeometrySource& mesh){
+                   const xen::MeshAttribArrays& mesh){
 
 	switch(primitive_type){
 	case xen::PrimitiveType::POINTS:

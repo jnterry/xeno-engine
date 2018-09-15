@@ -67,7 +67,7 @@ namespace xen {
 		/// (not sure about gl device?)
 		/////////////////////////////////////////////////////////////////////
 		Mesh createMesh(const VertexSpec&         vertex_spec,
-		                const MeshGeometrySource& mesh_geom
+		                const MeshAttribArrays& mesh_geom
 		                );
 
 		/////////////////////////////////////////////////////////////////////

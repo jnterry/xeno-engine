@@ -101,7 +101,7 @@ namespace xen {
 		/// vertex_spec. This is in software devices which don't make deep copy
 		/// (not sure about gl device?)
 		/////////////////////////////////////////////////////////////////////
-		Mesh createMesh(const VertexSpec& vertex_spec, const MeshGeometrySource& mesh_geom);
+		Mesh createMesh(const VertexSpec& vertex_spec, const MeshAttribArrays& mesh_geom);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Uploads mesh data to the graphics device

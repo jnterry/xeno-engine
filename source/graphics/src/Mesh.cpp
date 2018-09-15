@@ -325,7 +325,7 @@ namespace xen {
 	                          Allocator*        allocator
 	                         ){
 		xen::clearToZero(mesh_geom);
-
+		mesh_geom->vertex_count = mesh_data->vertex_count;
 
 		VertexAttributeAspects aspect = findVertexSpecAspectIndices(mesh_data->vertex_spec);
 
@@ -435,12 +435,11 @@ namespace xen {
 		}
 	}
 
-	void computeFlatNormals(MeshData* mesh_data){
-		VertexAttributeAspects aspects = findVertexSpecAspectIndices(mesh_data->vertex_spec);
+}
 
-		Vec3r* pbuf = (Vec3r*)mesh_data->vertex_data[aspects.position];
-		Vec3r* nbuf = (Vec3r*)mesh_data->vertex_data[aspects.normal ];
-		for(u32 i = 0; i < mesh_data->vertex_count; i += 3){
+namespace {
+	void doComputeFlatNormals(u32 vertex_count, Vec3r* pbuf, Vec3r* nbuf){
+		for(u32 i = 0; i < vertex_count; i += 3){
 			xen::Triangle3r* ptri = (xen::Triangle3r*)&pbuf[i];
 			Vec3r normal = xen::computeNormal(*ptri);
 			nbuf[i+0] = normal;
@@ -448,6 +447,17 @@ namespace xen {
 			nbuf[i+2] = normal;
 		}
 	}
+}
+
+void xen::computeFlatNormals(xen::MeshData* mesh_data){
+	VertexAttributeAspects aspects = findVertexSpecAspectIndices(mesh_data->vertex_spec);
+	Vec3r* pbuf = (Vec3r*)mesh_data->vertex_data[aspects.position];
+	Vec3r* nbuf = (Vec3r*)mesh_data->vertex_data[aspects.normal ];
+	doComputeFlatNormals(mesh_data->vertex_count, pbuf, nbuf);
+}
+
+void xen::computeFlatNormals(xen::MeshAttribArrays* mesh){
+	doComputeFlatNormals(mesh->vertex_count, mesh->position, mesh->normal);
 }
 
 #endif

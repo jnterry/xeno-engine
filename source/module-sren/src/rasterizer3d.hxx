@@ -26,7 +26,7 @@ namespace xen {
 
 	namespace sren {
 
-		struct RasterizerMesh : public MeshHeader, MeshGeometrySource {
+		struct RasterizerMesh : public MeshHeader, MeshAttribArrays {
 			// Anything else?
 			// - can we sort the geometry to make rendering more efficient somehow?
 			// - anything we can pre-compute?
@@ -110,7 +110,7 @@ namespace xen {
 		/////////////////////////////////////////////////////////////////////
 		void rasterizeMesh(const RasterizationContext& context,
 		                   xen::PrimitiveType          primitive_type,
-		                   const MeshGeometrySource&   mesh);
+		                   const MeshAttribArrays&   mesh);
 	}
 }
 

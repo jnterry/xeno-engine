@@ -207,7 +207,7 @@ namespace {
 }
 
 namespace xen {
-	const MeshGeometrySource TestMeshGeometry_UnitCubeLines = MeshGeometrySource
+	const MeshAttribArrays TestMeshGeometry_UnitCubeLines = MeshAttribArrays
 		( XenArrayLength(UnitCubeLines_Positions),
 		  UnitCubeLines_Positions,
 		  nullptr,
@@ -215,7 +215,7 @@ namespace xen {
 		  nullptr
 		);
 
-	const MeshGeometrySource TestMeshGeometry_UnitCube = MeshGeometrySource
+	const MeshAttribArrays TestMeshGeometry_UnitCube = MeshAttribArrays
 		( XenArrayLength(UnitCube_Positions),
 		  UnitCube_Positions,
 		  UnitCube_Normals,
@@ -223,7 +223,7 @@ namespace xen {
 		  UnitCube_Uvs
 		);
 
-	const MeshGeometrySource TestMeshGeometry_Axes = MeshGeometrySource
+	const MeshAttribArrays TestMeshGeometry_Axes = MeshAttribArrays
 		( XenArrayLength(Axes_Positions),
 		  Axes_Positions,
 		  nullptr,
@@ -231,7 +231,7 @@ namespace xen {
 		  nullptr
 		);
 
-	const MeshGeometrySource TestMeshGeometry_UnitXzPlaneCentered = MeshGeometrySource
+	const MeshAttribArrays TestMeshGeometry_UnitXzPlaneCentered = MeshAttribArrays
 		( XenArrayLength(XzSquare_Positions),
 		  XzSquare_Positions,
 		  XzSquare_Normals,
