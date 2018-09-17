@@ -24,18 +24,18 @@
 namespace xen {
 	namespace sren {
 
-		SoftwareDeviceBase::SoftwareDeviceBase(xen::Array<xsren::PostProcessor*> post_processors)
+		SoftwareDeviceBase::SoftwareDeviceBase(xen::Array<xsr::PostProcessor*> post_processors)
 			: post_processors(post_processors),
 			  main_allocator (new xen::AllocatorCounter<xen::AllocatorMalloc>()),
 			  misc_arena     (xen::createArenaLinear(*main_allocator, xen::megabytes(1))),
-			  render_targets (xen::createArenaPool<xsren::RenderTarget  >(main_allocator,  128)),
-			  textures       (xen::createArenaPool<xsren::Texture       >(main_allocator, 1024)),
-			  shaders        (xen::createArenaPool<xsren::FragmentShader>(main_allocator,  128))
+			  render_targets (xen::createArenaPool<xsr::RenderTarget  >(main_allocator,  128)),
+			  textures       (xen::createArenaPool<xsr::Texture       >(main_allocator, 1024)),
+			  shaders        (xen::createArenaPool<xsr::FragmentShader>(main_allocator,  128))
 		{
 			this->thpool = thpool_init(4);
 
 			// Ensure shader 0 is the default shader
-			this->createShader((void*)xsren::FragmentShader_Default);
+			this->createShader((void*)xsr::FragmentShader_Default);
 
 			// Ensure texture 0 is single pixel white
 			RawImage image;
@@ -52,15 +52,15 @@ namespace xen {
 			thpool_destroy(this->thpool);
 		}
 
-		xsren::RenderTarget* SoftwareDeviceBase::getRenderTargetImpl(RenderTarget target){
+		xsr::RenderTarget* SoftwareDeviceBase::getRenderTargetImpl(RenderTarget target){
 			return &this->render_targets.slots[target._id].item;
 		}
 
-		xsren::Texture* SoftwareDeviceBase::getTextureImpl(Texture texture){
+		xsr::Texture* SoftwareDeviceBase::getTextureImpl(Texture texture){
 			return &this->textures.slots[texture._id].item;
 		}
 
-		xsren::FragmentShader SoftwareDeviceBase::getShaderImpl(Shader shader){
+		xsr::FragmentShader SoftwareDeviceBase::getShaderImpl(Shader shader){
 			return this->shaders.slots[shader._id].item;
 		}
 
@@ -69,7 +69,7 @@ namespace xen {
 
 			Texture result = xen::makeGraphicsHandle<Texture::HANDLE_ID>(slot, 0);
 
-			xsren::Texture* timpl = this->getTextureImpl(result);
+			xsr::Texture* timpl = this->getTextureImpl(result);
 
 			u32 num_bytes = sizeof(xen::Color) * image->width * image->height;
 
@@ -81,14 +81,14 @@ namespace xen {
 		}
 
 		void SoftwareDeviceBase::destroyTexture(Texture texture){
-			xsren::Texture* timpl = this->getTextureImpl(texture);
+			xsr::Texture* timpl = this->getTextureImpl(texture);
 			main_allocator->deallocate(timpl->image.pixels);
 			xen::freeSlot(textures, texture._id);
 		}
 
 		Shader SoftwareDeviceBase::createShader(const void* source){
 			u32 slot = xen::reserveSlot(shaders);
-			shaders.slots[slot].item = (xsren::FragmentShader)source;
+			shaders.slots[slot].item = (xsr::FragmentShader)source;
 			return makeGraphicsHandle<Shader::HANDLE_ID>(slot, 0);
 		}
 
@@ -97,25 +97,25 @@ namespace xen {
 		}
 
 		void SoftwareDeviceBase::clear(xen::RenderTarget& target, xen::Color color){
-			xsren::clear(*this->getRenderTargetImpl(target), color);
+			xsr::clear(*this->getRenderTargetImpl(target), color);
 		}
 
 		RenderTarget SoftwareDeviceBase::createRenderTarget (Vec2u size, Window* window){
 			// :TODO:COMP::ISSUE_31: object pool with automatic handles / resizeable pool
 			u32 slot = xen::reserveSlot(this->render_targets);
-			xsren::RenderTarget* target = &this->render_targets.slots[slot].item;
+			xsr::RenderTarget* target = &this->render_targets.slots[slot].item;
 
-			xen::clearToZero<xsren::RenderTarget>(target);
+			xen::clearToZero<xsr::RenderTarget>(target);
 			this->resizeRenderTarget(target, size);
 
 			target->window = window;
-			xsren::doPlatformRenderTargetInit(this->main_allocator, *target, target->window);
+			xsr::doPlatformRenderTargetInit(this->main_allocator, *target, target->window);
 
 			return xen::makeGraphicsHandle<RenderTarget::HANDLE_ID>(slot, 0);
 		}
 
 		void SoftwareDeviceBase::destroyRenderTarget(RenderTarget render_target){
-			xsren::RenderTarget* target = getRenderTargetImpl(render_target);
+			xsr::RenderTarget* target = getRenderTargetImpl(render_target);
 
 			this->main_allocator->deallocate(target->color);
 			this->main_allocator->deallocate(target->depth);
@@ -123,12 +123,12 @@ namespace xen {
 			target->color = nullptr;
 			target->depth = nullptr;
 
-			xsren::doPlatformRenderTargetDestruction(this->main_allocator, *target, target->window);
+			xsr::doPlatformRenderTargetDestruction(this->main_allocator, *target, target->window);
 
 			xen::freeType(this->render_targets, target);
 		}
 
-		void SoftwareDeviceBase::resizeRenderTarget(xsren::RenderTarget* target, Vec2u size){
+		void SoftwareDeviceBase::resizeRenderTarget(xsr::RenderTarget* target, Vec2u size){
 			target->size = size;
 
 			if(target->color != nullptr){
@@ -143,7 +143,7 @@ namespace xen {
 			target->color = (Color4f*)main_allocator->allocate(sizeof(Color4f) * num_pixels);
 			target->depth = (float*  )main_allocator->allocate(sizeof(float  ) * num_pixels);
 
-			xsren::doPlatformRenderTargetResize(main_allocator, *target, target->window);
+			xsr::doPlatformRenderTargetResize(main_allocator, *target, target->window);
 		}
 
 		Window* SoftwareDeviceBase::createWindow(Vec2u size, const char* title) {
@@ -152,7 +152,7 @@ namespace xen {
 			xen::Window* window = xen::impl::createWindow(misc_arena, size, title);
 
 			window->render_target    = this->createRenderTarget(size, window);
-			xsren::RenderTarget* target = this->getRenderTargetImpl(window->render_target);
+			xsr::RenderTarget* target = this->getRenderTargetImpl(window->render_target);
 
 			target->window = window;
 
@@ -168,7 +168,7 @@ namespace xen {
 
 		void SoftwareDeviceBase::swapBuffers(Window* window) {
 			if(!window->is_open){ return; }
-			xsren::RenderTarget& target = *this->getRenderTargetImpl(window->render_target);
+			xsr::RenderTarget& target = *this->getRenderTargetImpl(window->render_target);
 
 			for(u32 i = 0; i < xen::size(this->post_processors); ++i){
 				if(this->post_processors[i]->disabled){ continue; }
@@ -176,7 +176,7 @@ namespace xen {
 				this->post_processors[i]->process(target);
 			}
 
-		  xsren::presentRenderTarget(window, target, thpool);
+		  xsr::presentRenderTarget(window, target, thpool);
 		}
 	}
 }

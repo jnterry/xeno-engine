@@ -147,7 +147,7 @@ namespace {
 		return out_screen;
 	}
 
-void _rasterizeLineScreen(const xsren::RasterizationContext& cntx,
+void _rasterizeLineScreen(const xsr::RasterizationContext& cntx,
                           const xen::LineSegment3r&        line_world,
                           xen::LineSegment3r               line_screen,
                           const xen::LineSegment4f&        line_color){
@@ -194,7 +194,7 @@ void _rasterizeLineScreen(const xsren::RasterizationContext& cntx,
 }
 
 	// :TODO:OPT: profile -> is passing by reference faster
-	void _rasterizeTriangleScreen(const xsren::RasterizationContext& cntx,
+	void _rasterizeTriangleScreen(const xsr::RasterizationContext& cntx,
 	                              xen::Triangle3r                        tri_world,
 	                              xen::Triangle3r                        tri_normal_world,
 	                              xen::Triangle3r                        tri_screen,
@@ -458,7 +458,7 @@ void _rasterizeLineScreen(const xsren::RasterizationContext& cntx,
 	}
 } // end of anon namespace
 
-void xsren::rasterizePointsModel(const xsren::RasterizationContext& cntx,
+void xsr::rasterizePointsModel(const xsr::RasterizationContext& cntx,
                                  const Vec3r*                       pos_model,
                                  const xen::Color*                  color_buffer,
                                  const u32                          vertex_count){
@@ -501,7 +501,7 @@ void xsren::rasterizePointsModel(const xsren::RasterizationContext& cntx,
 	}
 } // end of rasterizePointsModel
 
-void xsren::rasterizeLineModel(const xsren::RasterizationContext& cntx,
+void xsr::rasterizeLineModel(const xsr::RasterizationContext& cntx,
                                const xen::LineSegment3r&          line_model,
                                const xen::LineSegment4f&          line_color){
 
@@ -549,7 +549,7 @@ void xsren::rasterizeLineModel(const xsren::RasterizationContext& cntx,
 	_rasterizeLineScreen(cntx, line_world, line_screen, line_color);
 } // end of function rasterizeLineModel
 
-void xsren::rasterizeLinesModel(const xsren::RasterizationContext& cntx,
+void xsr::rasterizeLinesModel(const xsr::RasterizationContext& cntx,
                                 const Vec3r*                       pos_model,
                                 const xen::Color*                  color_buffer,
                                 const u32                          vertex_count,
@@ -567,7 +567,7 @@ void xsren::rasterizeLinesModel(const xsren::RasterizationContext& cntx,
 } // end of rasterize lines model
 
 // :TODO:OPT: profile -> is passing by reference faster?
-void xsren::rasterizeTriangleModel(const xsren::RasterizationContext& cntx,
+void xsr::rasterizeTriangleModel(const xsr::RasterizationContext& cntx,
                                    xen::Triangle3r                    tri_pos_model,
                                    xen::Triangle3r                    tri_nor_model,
                                    xen::Triangle4f                    tri_color,
@@ -756,7 +756,7 @@ void xsren::rasterizeTriangleModel(const xsren::RasterizationContext& cntx,
 } // end of function rasterizeTriangleModel
 
 
-void xsren::rasterizeTrianglesModel(const xsren::RasterizationContext& cntx,
+void xsr::rasterizeTrianglesModel(const xsr::RasterizationContext& cntx,
                                     const Vec3r*                       pos_model,
                                     const Vec3r*                       nor_model,
                                     const xen::Color*                  col_buffer,
@@ -789,7 +789,7 @@ void xsren::rasterizeTrianglesModel(const xsren::RasterizationContext& cntx,
 } // end of rasterize triangles model
 
 
-void xsren::rasterizeMesh(const xsren::RasterizationContext& context,
+void xsr::rasterizeMesh(const xsr::RasterizationContext& context,
                           xen::PrimitiveType                 primitive_type,
                           const xen::MeshAttribArrays&       mesh){
 

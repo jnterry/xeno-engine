@@ -11,7 +11,7 @@
 
 #include <xen/sren/Texture.hpp>
 
-namespace xsren {
+namespace xsr {
 
 	xen::Color4f sampleTexture(const Texture* texture, Vec2f uv){
 	if(texture == nullptr){

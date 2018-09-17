@@ -21,9 +21,9 @@ xen::Shader  shader_positions;
 
 xen::FixedArray<xen::RenderCommand3d, 10> render_commands;
 
-xsren::PostProcessorDisplayDepthBuffer pp_displayDepthBuffer;
+xsr::PostProcessorDisplayDepthBuffer pp_displayDepthBuffer;
 
-xsren::PostProcessor* post_processors[] = {
+xsr::PostProcessor* post_processors[] = {
 	&pp_displayDepthBuffer,
 };
 

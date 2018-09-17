@@ -85,7 +85,7 @@ private:
 		viewport_z.min    += viewport_whole.min;
 	}
 
-	void renderDebugView(xsren::RenderTarget&           target,
+	void renderDebugView(xsr::RenderTarget&           target,
 	                     const xen::Aabb2u&                     viewport,
 	                     const xen::RenderParameters3d&         params,
 	                     const xen::Array<xen::RenderCommand3d> commands,
@@ -102,10 +102,10 @@ private:
 
 		Mat4r vp_matrix = xen::getViewProjectionMatrix(view_camera, viewport);
 
-		xsren::RasterizationContext context;
+		xsr::RasterizationContext context;
 		context.target          = &target;
 		context.viewport        = &viewport_r;
-		context.fragment_shader = xsren::FragmentShader_Default;
+		context.fragment_shader = xsr::FragmentShader_Default;
 		context.vp_matrix       = vp_matrix;
 		context.m_matrix        = Mat4r::Identity;
 		*(xen::RenderParameters3d*)(&context) = params;
@@ -129,7 +129,7 @@ private:
 
 		/////////////////////////////////////////////////
 		// Render geometry for the camera we are debugging
-		xsren::renderCameraDebug(target, viewport,
+		xsr::renderCameraDebug(target, viewport,
 		                         view_camera, params.camera,
 		                         debug_camera_distance * 0.3_r
 		                        );
@@ -141,7 +141,7 @@ public:
 	}
 
 	RaytracerDebugDevice(real camera_distance, const Vec3r* camera_center)
-		: RaytracerDevice(xen::Array<xsren::PostProcessor*>::EmptyArray),
+		: RaytracerDevice(xen::Array<xsr::PostProcessor*>::EmptyArray),
 		  debug_camera_distance(camera_distance),
 		  debug_camera_center  (camera_center)
 	{
@@ -158,7 +158,7 @@ public:
 		camera_z.up_dir   =  Vec3r::UnitY;
 	}
 
-	virtual void doRender(xsren::RenderTarget&           target,
+	virtual void doRender(xsr::RenderTarget&           target,
 	                      const xen::Aabb2u&                     viewport,
 	                      const xen::RenderParameters3d&         params,
 	                      const xen::Array<xen::RenderCommand3d> commands,
@@ -180,11 +180,11 @@ public:
 		camera_z.position = center_point + Vec3r::UnitZ * debug_camera_distance;
 		////////////////////////////////////////////////////////////////////////////
 
-		xsren::clear(target, viewport,      xen::Color::WHITE);
-		xsren::clear(target, viewport_main, xen::Color::BLACK);
-		xsren::clear(target, viewport_x,    xen::Color::BLACK);
-		xsren::clear(target, viewport_y,    xen::Color::BLACK);
-		xsren::clear(target, viewport_z,    xen::Color::BLACK);
+		xsr::clear(target, viewport,      xen::Color::WHITE);
+		xsr::clear(target, viewport_main, xen::Color::BLACK);
+		xsr::clear(target, viewport_x,    xen::Color::BLACK);
+		xsr::clear(target, viewport_y,    xen::Color::BLACK);
+		xsr::clear(target, viewport_z,    xen::Color::BLACK);
 
 		/////////////////////////////////////////////////////////
 		// Render the raytraced portion to the main view

@@ -13,7 +13,7 @@
 #include <xen/graphics/Color.hpp>
 #include <xen/math/vector_types.hpp>
 
-namespace xsren {
+namespace xsr {
 
 	struct Texture {
 		// :TODO: mipmaps

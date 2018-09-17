@@ -13,7 +13,7 @@
 
 #include <xen/sren/PostProcessor.hpp>
 
-void xsren::PostProcessorDepthFog::process(xsren::Framebuffer& fb) {
+void xsr::PostProcessorDepthFog::process(xsr::Framebuffer& fb) {
 	real z_diff = z_far - z_near;
 
 	for(u32 i = 0; i < fb.size.x * fb.size.y; ++i){

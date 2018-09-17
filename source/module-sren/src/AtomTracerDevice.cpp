@@ -25,7 +25,7 @@ namespace {
 
 class AtomTracerDevice : public xen::sren::SoftwareDeviceBase {
 private:
-	xen::sren::MeshStore<xsren::RasterizerMesh> mesh_store;
+	xen::sren::MeshStore<xsr::RasterizerMesh> mesh_store;
 
 	xen::ArenaLinear frame_scratch;
 public:
@@ -33,7 +33,7 @@ public:
 		this->mesh_store.destroyAllMeshes();
 	}
 
-	AtomTracerDevice(xen::Array<xsren::PostProcessor*> post_processors)
+	AtomTracerDevice(xen::Array<xsr::PostProcessor*> post_processors)
 		: SoftwareDeviceBase(post_processors),
 		  mesh_store(main_allocator),
 		  frame_scratch(xen::createArenaLinear(*main_allocator, xen::megabytes(128)))
@@ -65,7 +65,7 @@ public:
 	            const xen::RenderParameters3d& params,
 	            const xen::Array<xen::RenderCommand3d> commands
 	            ) override {
-		xsren::RenderTarget& target = *this->getRenderTargetImpl(target_handle);
+		xsr::RenderTarget& target = *this->getRenderTargetImpl(target_handle);
 
 		xen::MemoryTransaction transaction(this->frame_scratch);
 
@@ -85,7 +85,7 @@ public:
 
 namespace xen {
 	GraphicsDevice* createAtomTracerDevice(ArenaLinear& arena,
-	                                       xen::Array<xsren::PostProcessor*> post_processors){
+	                                       xen::Array<xsr::PostProcessor*> post_processors){
 		return xen::emplace<AtomTracerDevice>(arena, post_processors);
 	}
 }

@@ -11,9 +11,9 @@ const Vec3r short_box_center = { 0.18_r,  0.0_r,  0.18_r};
 xen::Camera3dCylinder                  camera;
 xen::RenderParameters3d                render_params;
 xen::FixedArray<xen::LightSource3d, 2> scene_lights;
-xsren::PostProcessorDepthFog       pp_fog;
+xsr::PostProcessorDepthFog       pp_fog;
 
-xsren::PostProcessor* post_processors[] = {
+xsr::PostProcessor* post_processors[] = {
 	&pp_fog,
 };
 

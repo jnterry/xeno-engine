@@ -15,7 +15,7 @@
 #include <cfloat>
 #include <cmath>
 
-void xsren::PostProcessorDisplayDepthBuffer::process(xsren::Framebuffer& fb) {
+void xsr::PostProcessorDisplayDepthBuffer::process(xsr::Framebuffer& fb) {
 
 	for(u32 y = screen_region.min.y; y < screen_region.max.y; ++y){
 		u32 pixel_index_base = y * fb.width;

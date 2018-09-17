@@ -16,10 +16,10 @@
 #include <xen/core/memory/utilities.hpp>
 #include <xen/core/simd_intrinsics.hpp>
 
-xsren::Framebuffer* xsren::createFramebuffer(xen::Allocator& alloc, Vec2u size){
+xsr::Framebuffer* xsr::createFramebuffer(xen::Allocator& alloc, Vec2u size){
 	u32 pixel_count = size.x * size.y;
-	xsren::Framebuffer* result  = (xsren::Framebuffer*)alloc.allocate
-		( sizeof(xsren::Framebuffer) +
+	xsr::Framebuffer* result  = (xsr::Framebuffer*)alloc.allocate
+		( sizeof(xsr::Framebuffer) +
 		  sizeof(xen::Color4f) * pixel_count +
 		  sizeof(float)   * pixel_count +
 		  alignof(float) + alignof(xen::Color4f)
@@ -35,11 +35,11 @@ xsren::Framebuffer* xsren::createFramebuffer(xen::Allocator& alloc, Vec2u size){
 	return result;
 }
 
-void xsren::destroyFramebuffer(xen::Allocator& alloc, xsren::Framebuffer* fb){
+void xsr::destroyFramebuffer(xen::Allocator& alloc, xsr::Framebuffer* fb){
 	alloc.deallocate(fb);
 }
 
-void xsren::putImageOnFramebuffer(xsren::Framebuffer* fb, const xen::RawImage& image){
+void xsr::putImageOnFramebuffer(xsr::Framebuffer* fb, const xen::RawImage& image){
 	u32 max_x = xen::min(image.size.x, fb->size.x);
 	u32 max_y = xen::min(image.size.y, fb->size.y);
 
@@ -54,7 +54,7 @@ void xsren::putImageOnFramebuffer(xsren::Framebuffer* fb, const xen::RawImage& i
 }
 
 #if XEN_USE_SSE
-void xsren::getImageFromFramebuffer(const Framebuffer* fb, xen::RawImage& image){
+void xsr::getImageFromFramebuffer(const Framebuffer* fb, xen::RawImage& image){
 	//////////////////////////////////////////////////////////////////////////
 	// Set values of pixels - converting from our float colors to 32bit colors
 	xen::Color4f color;
@@ -109,7 +109,7 @@ void xsren::getImageFromFramebuffer(const Framebuffer* fb, xen::RawImage& image)
 	}
 }
 #else
-void xsren::getImageFromFramebuffer(const xsren::Framebuffer* fb, xen::RawImage& image){
+void xsr::getImageFromFramebuffer(const xsr::Framebuffer* fb, xen::RawImage& image){
 	//////////////////////////////////////////////////////////////////////////
 	// Set values of pixels - converting from our float colors to 32bit colors
 	xen::Color4f color;

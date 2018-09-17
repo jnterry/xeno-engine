@@ -26,13 +26,13 @@
 
 class RasterizerDevice : public xen::sren::SoftwareDeviceBase {
 private:
-	xen::sren::MeshStore<xsren::RasterizerMesh> mesh_store;
+	xen::sren::MeshStore<xsr::RasterizerMesh> mesh_store;
 public:
 	~RasterizerDevice(){
 		this->mesh_store.destroyAllMeshes();
 	}
 
-	RasterizerDevice(xen::Array<xsren::PostProcessor*> post_processors)
+	RasterizerDevice(xen::Array<xsr::PostProcessor*> post_processors)
 		: SoftwareDeviceBase(post_processors),
 		  mesh_store(main_allocator)
 	{
@@ -63,7 +63,7 @@ public:
 	            const xen::RenderParameters3d& params,
 	            const xen::Array<xen::RenderCommand3d> commands
 	            ) override {
-		xsren::RenderTarget& target = *this->getRenderTargetImpl(target_handle);
+		xsr::RenderTarget& target = *this->getRenderTargetImpl(target_handle);
 
 		////////////////////////////////////////////////////////////////////////////
 		// Generate view projection matrix
@@ -86,7 +86,7 @@ public:
 		}
 		////////////////////////////////////////////////////////////////////////////
 
-		xsren::RasterizationContext context;
+		xsr::RasterizationContext context;
 		context.target          = &target;
 		context.viewport        = &view_region;
 
@@ -96,7 +96,7 @@ public:
 
 			context.fragment_shader = this->getShaderImpl(cmd.shader);
 			if(context.fragment_shader == nullptr){
-				context.fragment_shader = xsren::FragmentShader_Default;
+				context.fragment_shader = xsr::FragmentShader_Default;
 			}
 			setPerCommandFragmentUniforms(context,
 			                              (xen::Material&)cmd,
@@ -122,7 +122,7 @@ public:
 
 namespace xen {
 	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena,
-	                                       xen::Array<xsren::PostProcessor*> post_processors){
+	                                       xen::Array<xsr::PostProcessor*> post_processors){
 		return xen::emplace<RasterizerDevice>(arena, post_processors);
 	}
 }

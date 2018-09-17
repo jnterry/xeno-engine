@@ -7,10 +7,10 @@
 
 xen::RenderParameters3d render_params;
 
-xsren::PostProcessorAntialias          pp_antialias;
-xsren::PostProcessorDisplayDepthBuffer pp_displayDepthBuffer;
+xsr::PostProcessorAntialias          pp_antialias;
+xsr::PostProcessorDisplayDepthBuffer pp_displayDepthBuffer;
 
-xsren::PostProcessor* post_processors[] = {
+xsr::PostProcessor* post_processors[] = {
 	&pp_antialias,
 	&pp_displayDepthBuffer,
 };

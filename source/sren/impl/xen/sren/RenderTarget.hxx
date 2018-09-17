@@ -23,40 +23,40 @@ namespace xen {
 	struct Allocator;
 }
 
-namespace xsren {
+namespace xsr {
 	struct RenderTarget;
 
-	struct RenderTargetBase : public xsren::Framebuffer {
+	struct RenderTargetBase : public xsr::Framebuffer {
 		/// \brief The window this render target is for (or nullptr if an
 		/// off screen render buffer)
 		xen::Window* window;
 	};
 
 	void doPlatformRenderTargetInit(xen::Allocator* alloc,
-	                                xsren::RenderTarget& target,
+	                                xsr::RenderTarget& target,
 	                                xen::Window* window);
 
 	void doPlatformRenderTargetResize(xen::Allocator* alloc,
-	                                  xsren::RenderTarget& target,
+	                                  xsr::RenderTarget& target,
 	                                  xen::Window* window);
 
 	void doPlatformRenderTargetDestruction(xen::Allocator* alloc,
-	                                       xsren::RenderTarget& target,
+	                                       xsr::RenderTarget& target,
 	                                       xen::Window* window);
 
-	void presentRenderTarget(xen::Window* window, xsren::RenderTarget& target, threadpool thpool);
+	void presentRenderTarget(xen::Window* window, xsr::RenderTarget& target, threadpool thpool);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Clears the diffuse component of a render target to the
 	/// specified color
 	/////////////////////////////////////////////////////////////////////
-	void clear(xsren::RenderTarget& target, xen::Color color);
+	void clear(xsr::RenderTarget& target, xen::Color color);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Clears the diffuse component of a section of a render target
 	/// to the specified color
 	/////////////////////////////////////////////////////////////////////
-	void clear(xsren::RenderTarget& target, const xen::Aabb2u& viewport, xen::Color color);
+	void clear(xsr::RenderTarget& target, const xen::Aabb2u& viewport, xen::Color color);
 }
 
 #ifdef XEN_OS_UNIX

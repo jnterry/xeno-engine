@@ -25,7 +25,7 @@ namespace xen {
 	struct RenderParameters3d;
 }
 
-namespace xsren {
+namespace xsr {
 	struct RenderTarget;
 
 	struct RasterizerMesh : public xen::MeshHeader, xen::MeshAttribArrays {
@@ -35,10 +35,10 @@ namespace xsren {
 	};
 
 	/// \brief Bundle of all meta data required for rasterization operations
-	struct RasterizationContext : public xsren::FragmentUniforms {
-		xsren::RenderTarget*  target;
+	struct RasterizationContext : public xsr::FragmentUniforms {
+		xsr::RenderTarget*  target;
 		xen::Aabb2r*          viewport;
-		xsren::FragmentShader fragment_shader;
+		xsr::FragmentShader fragment_shader;
 	};
 
 	/////////////////////////////////////////////////////////////////////

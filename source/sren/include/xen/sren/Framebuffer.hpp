@@ -22,7 +22,7 @@ namespace xen {
 	struct RawImage;
 }
 
-namespace xsren{
+namespace xsr{
 	// Disable gcc's warning about anonymous structs in unions temporarily...
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wpedantic"

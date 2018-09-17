@@ -27,7 +27,7 @@ namespace {
 
 class AtomTracerDebugDevice : public xen::sren::SoftwareDeviceBase {
 private:
-	xen::sren::MeshStore<xsren::RasterizerMesh> mesh_store;
+	xen::sren::MeshStore<xsr::RasterizerMesh> mesh_store;
 
 	xen::ArenaLinear frame_scratch;
 
@@ -38,7 +38,7 @@ public:
 		this->mesh_store.destroyAllMeshes();
 	}
 
-	AtomTracerDebugDevice(xen::Array<xsren::PostProcessor*> post_processors)
+	AtomTracerDebugDevice(xen::Array<xsr::PostProcessor*> post_processors)
 		: SoftwareDeviceBase(post_processors),
 		  mesh_store(main_allocator),
 		  frame_scratch(xen::createArenaLinear(*main_allocator, xen::megabytes(128)))
@@ -70,7 +70,7 @@ public:
 	            const xen::RenderParameters3d& params,
 	            const xen::Array<xen::RenderCommand3d> commands
 	            ) override {
-		xsren::RenderTarget& target = *this->getRenderTargetImpl(target_handle);
+		xsr::RenderTarget& target = *this->getRenderTargetImpl(target_handle);
 
 		xen::MemoryTransaction transaction(this->frame_scratch);
 
@@ -90,12 +90,12 @@ public:
 
 		//////////////////////////////////////////////////////
 		// Render the actual atoms
-		xsren::RasterizationContext cntx = {};
+		xsr::RasterizationContext cntx = {};
 		xen::Aabb2r viewport_r = xen::cast<xen::Aabb2r>(viewport);
 		cntx.m_matrix        = Mat4r::Identity; // points already in world space
 		cntx.vp_matrix       = xen::getViewProjectionMatrix(params.camera, viewport);
 		cntx.viewport        = &viewport_r;
-		cntx.fragment_shader = xsren::FragmentShader_DiffuseColor;
+		cntx.fragment_shader = xsr::FragmentShader_DiffuseColor;
 		cntx.target          = &target;
 		cntx.diffuse_color   = xen::Color::WHITE4f;
 
@@ -122,7 +122,7 @@ public:
 			case 4: cntx.diffuse_color = {1.0f, 1.0f, 0.0f, 1.0f}; break;
 			case 5: cntx.diffuse_color = {0.0f, 1.0f, 1.0f, 1.0f}; break;
 			}
-			xsren::rasterizePointsModel(cntx,
+			xsr::rasterizePointsModel(cntx,
 			                            &ascene.positions[ascene.boxes[i].start],
 			                            nullptr,
 			                            ascene.boxes[i].end - ascene.boxes[i].start
@@ -135,14 +135,14 @@ public:
 		// Render bounding boxes of occupied nodes of the oct-tree
 		for(u32 i = 0; i < ascene.boxes.size; ++i){
 			if(ascene.boxes[i].start < ascene.boxes[i].end){
-				xsren::renderDebugBoundingBox(target, viewport, params.camera,
+				xsr::renderDebugBoundingBox(target, viewport, params.camera,
 				                              ascene.boxes[i].bounds);
 			}
 		}
 
 		//////////////////////////////////////////////////////
 		// Render where the virtual debug camera is located
-		xsren::renderCameraDebug(target, viewport,
+		xsr::renderCameraDebug(target, viewport,
 		                         params.camera, test_params.camera, 2);
 	}
 };
@@ -151,7 +151,7 @@ public:
 
 namespace xen {
 	GraphicsDevice* createAtomTracerDebugDevice(ArenaLinear& arena,
-	                                            xen::Array<xsren::PostProcessor*> post_processors){
+	                                            xen::Array<xsr::PostProcessor*> post_processors){
 		return xen::emplace<AtomTracerDebugDevice>(arena, post_processors);
 	}
 }

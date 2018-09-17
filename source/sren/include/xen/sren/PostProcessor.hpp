@@ -12,7 +12,7 @@
 #include <xen/sren/Framebuffer.hpp>
 #include <xen/math/geometry_types.hpp>
 
-namespace xsren {
+namespace xsr {
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Functor type which represents a Post Processing operation to
@@ -32,21 +32,21 @@ namespace xsren {
 
 		/// \brief Virtual function which when ran performs the post processing
 		/// step represented by this PostProcessor
-		virtual void process(xsren::Framebuffer& fb) = 0;
+		virtual void process(xsr::Framebuffer& fb) = 0;
 	};
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Simple PostProcessor which inverts the colors of the framebuffer
 	/////////////////////////////////////////////////////////////////////
 	struct PostProcessorInvertColors : public PostProcessor {
-		void process(xsren::Framebuffer& fb);
+		void process(xsr::Framebuffer& fb);
 	};
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief PostProcessor which implents anti-aliasing on screen
 	/////////////////////////////////////////////////////////////////////
 	struct PostProcessorAntialias : public PostProcessor {
-		void process(xsren::Framebuffer& fb);
+		void process(xsr::Framebuffer& fb);
 	};
 
 	/////////////////////////////////////////////////////////////////////
@@ -63,7 +63,7 @@ namespace xsren {
 		/// \brief Depth at which fog is pure fog_color
 		real z_far;
 
-		void process(xsren::Framebuffer& fb);
+		void process(xsr::Framebuffer& fb);
 	};
 
 	/////////////////////////////////////////////////////////////////////
@@ -84,7 +84,7 @@ namespace xsren {
 		/// \brief Transparency of the depth buffer overlay
 		float alpha;
 
-		void process(xsren::Framebuffer& fb);
+		void process(xsr::Framebuffer& fb);
 	};
 }
 

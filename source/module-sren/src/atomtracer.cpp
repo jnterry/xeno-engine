@@ -79,7 +79,7 @@ xen::sren::AtomScene& _breakSceneIntoAtoms
 ( const xen::Aabb2u&                               viewport,
   const xen::RenderParameters3d&                   params,
   const xen::Array<xen::RenderCommand3d>&          commands,
-  xen::sren::MeshStore<xsren::RasterizerMesh>& mesh_store,
+  xen::sren::MeshStore<xsr::RasterizerMesh>& mesh_store,
   xen::ArenaLinear&                                arena,
   real                                             pixels_per_atom
 )
@@ -94,7 +94,7 @@ xen::sren::AtomScene& _breakSceneIntoAtoms
 
 	for(u32 cmd_index = 0; cmd_index < xen::size(commands); ++cmd_index){
 		const xen::RenderCommand3d&      cmd  = commands[cmd_index];
-		const xsren::RasterizerMesh* mesh = mesh_store.getMesh(cmd.mesh);
+		const xsr::RasterizerMesh* mesh = mesh_store.getMesh(cmd.mesh);
 
 		xen::Aabb3r mesh_bounds = xen::getTransformed(mesh->bounds, cmd.model_matrix);
 		xen::addPoint(result->bounds, mesh_bounds.min);
@@ -398,7 +398,7 @@ namespace sren {
 AtomScene& atomizeScene(const Aabb2u& viewport,
                         const RenderParameters3d& params,
                         const Array<RenderCommand3d>& commands,
-                        MeshStore<xsren::RasterizerMesh>& mesh_store,
+                        MeshStore<xsr::RasterizerMesh>& mesh_store,
                         ArenaLinear& arena,
                         real pixels_per_atom){
 
@@ -484,7 +484,7 @@ void computeLighting(xen::sren::AtomScene&          ascene,
 			real distance_sq = xen::distanceSq
 				(ascene.positions[i], params.lights[li].point.position);
 
-			ascene.lighting[i] += xsren::computeLightInfluenceSimple
+			ascene.lighting[i] += xsr::computeLightInfluenceSimple
 				(params.lights[li].color, params.lights[li].attenuation, distance_sq);
 		}
 	}
@@ -517,7 +517,7 @@ void computeLighting(xen::sren::AtomScene&          ascene,
 /////////////////////////////////////////////////////////////////////
 /// \brief Rasterizes some set of atoms onto the screen
 /////////////////////////////////////////////////////////////////////
-void rasterizeAtoms(xsren::RenderTarget& target,
+void rasterizeAtoms(xsr::RenderTarget& target,
                     const xen::Aabb2u& viewport,
                     const xen::RenderParameters3d& params,
                     const AtomScene& ascene
@@ -571,7 +571,7 @@ void rasterizeAtoms(xsren::RenderTarget& target,
 	}
 }
 
-void raytraceAtoms(xsren::RenderTarget& target,
+void raytraceAtoms(xsr::RenderTarget& target,
                    const xen::Aabb2u& viewport,
                    const xen::RenderParameters3d& params,
                    const AtomScene& ascene,

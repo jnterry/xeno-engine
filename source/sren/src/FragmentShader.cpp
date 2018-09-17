@@ -20,7 +20,7 @@
 /// \param normal_world The normal of the point being filled in world space
 /// \param color        The diffuse color of the point being filled
 /////////////////////////////////////////////////////////////////////
-xen::Color4f _defaultFragmentShader(const xsren::FragmentUniforms& uniforms,
+xen::Color4f _defaultFragmentShader(const xsr::FragmentUniforms& uniforms,
                                     Vec3r                              pos_world,
                                     Vec3r                              normal_world,
                                     xen::Color4f                       color,
@@ -37,7 +37,7 @@ xen::Color4f _defaultFragmentShader(const xsren::FragmentUniforms& uniforms,
 
 		real dist_sq_world = xen::distanceSq(pos_world, uniforms.lights[i].point.position);
 
-		total_light += xsren::computeLightInfluenceSimple
+		total_light += xsr::computeLightInfluenceSimple
 			( uniforms.lights[i].color,
 			  uniforms.lights[i].attenuation,
 			  dist_sq_world
@@ -52,13 +52,13 @@ xen::Color4f _defaultFragmentShader(const xsren::FragmentUniforms& uniforms,
 
 	xen::Color4f result = uniforms.diffuse_color;
 	result     *= color;
-	result     *= xsren::sampleTexture(uniforms.textures[0], uvs);
+	result     *= xsr::sampleTexture(uniforms.textures[0], uvs);
 	result.rgb *= total_light;
 
 	return result;
 }
 
-xen::Color4f _fragmentShaderAllWhite(const xsren::FragmentUniforms& uniforms,
+xen::Color4f _fragmentShaderAllWhite(const xsr::FragmentUniforms& uniforms,
                                      Vec3r                              pos_world,
                                      Vec3r                              normal_world,
                                      xen::Color4f                       color,
@@ -66,7 +66,7 @@ xen::Color4f _fragmentShaderAllWhite(const xsren::FragmentUniforms& uniforms,
 	return xen::Color::WHITE4f;
 }
 
-xen::Color4f _fragmentShaderDiffuseColor(const xsren::FragmentUniforms& uniforms,
+xen::Color4f _fragmentShaderDiffuseColor(const xsr::FragmentUniforms& uniforms,
                                      Vec3r                              pos_world,
                                      Vec3r                              normal_world,
                                      xen::Color4f                       color,
@@ -74,11 +74,11 @@ xen::Color4f _fragmentShaderDiffuseColor(const xsren::FragmentUniforms& uniforms
 	return uniforms.diffuse_color;
 }
 
-xsren::FragmentShader xsren::FragmentShader_Default      = &_defaultFragmentShader;
-xsren::FragmentShader xsren::FragmentShader_AllWhite     = &_fragmentShaderAllWhite;
-xsren::FragmentShader xsren::FragmentShader_DiffuseColor = &_fragmentShaderDiffuseColor;
+xsr::FragmentShader xsr::FragmentShader_Default      = &_defaultFragmentShader;
+xsr::FragmentShader xsr::FragmentShader_AllWhite     = &_fragmentShaderAllWhite;
+xsr::FragmentShader xsr::FragmentShader_DiffuseColor = &_fragmentShaderDiffuseColor;
 
-xen::Color3f xsren::computeLightInfluencePhong(Vec3r        light_pos,
+xen::Color3f xsr::computeLightInfluencePhong(Vec3r        light_pos,
                                                xen::Color4f light_color,
                                                Vec3f        attenuation_coefficents,
                                                real         distance_sq,
@@ -118,7 +118,7 @@ xen::Color3f xsren::computeLightInfluencePhong(Vec3r        light_pos,
 	return diffuse_color + specular_color;
 } // end of computeLightInfulencePhong
 
-xen::Color3f xsren::computeLightInfluenceSimple(xen::Color4f light_color,
+xen::Color3f xsr::computeLightInfluenceSimple(xen::Color4f light_color,
                                                 Vec3f        attenuation_coefficents,
                                                 real         distance_sq){
 	float attenuation = (attenuation_coefficents.x * 1.0 +
@@ -129,7 +129,7 @@ xen::Color3f xsren::computeLightInfluenceSimple(xen::Color4f light_color,
 	return (light_color / attenuation).rgb * light_color.w;
 } // end of computeLightInfluenceSimple
 
-void xsren::setPerCommandFragmentUniforms(xsren::FragmentUniforms& uniforms,
+void xsr::setPerCommandFragmentUniforms(xsr::FragmentUniforms& uniforms,
                                           const xen::Material&   material,
                                           const Mat4r&      m_mat,
                                           const Mat4r&      vp_mat){

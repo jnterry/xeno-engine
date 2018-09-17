@@ -21,7 +21,7 @@
 #include <xen/sren/render-debug.hxx>
 #include <xen/sren/rasterizer3d.hxx>
 
-void xsren::renderCameraDebug(xsren::RenderTarget& target,
+void xsr::renderCameraDebug(xsr::RenderTarget& target,
                               const xen::Aabb2u&   viewport,
                               const xen::Camera3d& view_camera,
                               const xen::Camera3d& camera,
@@ -138,10 +138,10 @@ void xsren::renderCameraDebug(xsren::RenderTarget& target,
 
 	Mat4r vp_matrix = xen::getViewProjectionMatrix(view_camera, viewport);
 
-	xsren::RasterizationContext context;
+	xsr::RasterizationContext context;
 	context.camera          = view_camera;
 	context.target          = &target;
-	context.fragment_shader = xsren::FragmentShader_Default;
+	context.fragment_shader = xsr::FragmentShader_Default;
 	context.viewport        = &view_region;
 	context.m_matrix        = Mat4r::Identity;
 	context.vp_matrix       = vp_matrix;
@@ -152,18 +152,18 @@ void xsren::renderCameraDebug(xsren::RenderTarget& target,
 	context.textures[2]     = nullptr;
 	context.textures[3]     = nullptr;
 
-	xsren::rasterizeLinesModel(context,
+	xsr::rasterizeLinesModel(context,
 	                           camera_local_axes,
 	                           camera_local_axes_colors,
 	                           XenArrayLength(camera_local_axes));
 
-	xsren::rasterizeLinesModel(context,
+	xsr::rasterizeLinesModel(context,
 	                           camera_corner_rays,
 	                           nullptr, // color buffer
 	                           XenArrayLength(camera_corner_rays));
 }
 
-void xsren::renderDebugBoundingBox(xsren::RenderTarget& target,
+void xsr::renderDebugBoundingBox(xsr::RenderTarget& target,
                                    const xen::Aabb2u&   viewport,
                                    const xen::Camera3d& camera,
                                    xen::Aabb3r          aabb,
@@ -171,11 +171,11 @@ void xsren::renderDebugBoundingBox(xsren::RenderTarget& target,
 
 	xen::Aabb2r viewport_r = xen::cast<xen::Aabb2r>(viewport);
 
-	xsren::RasterizationContext cntx = {};
+	xsr::RasterizationContext cntx = {};
 	cntx.target          = &target;
 	cntx.viewport        = &viewport_r; // :TODO: why is this a pointer... :(
 	cntx.vp_matrix       = xen::getViewProjectionMatrix(camera, viewport);
-	cntx.fragment_shader = xsren::FragmentShader_Default;
+	cntx.fragment_shader = xsr::FragmentShader_Default;
 	cntx.diffuse_color   = color;
 	cntx.emissive_color  = xen::Color::WHITE4f;
 	cntx.m_matrix        = (xen::Scale3d      (xen::getSize(aabb)) *

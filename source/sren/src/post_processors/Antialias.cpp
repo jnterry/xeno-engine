@@ -32,7 +32,7 @@ namespace {
 	}
 
 	/// \brief get color of a position between pixels by bilinear filtering 4 nearest pixels
-	Vec3f blendColor(xsren::Framebuffer& fb, Vec2r subPixelLocation){
+	Vec3f blendColor(xsr::Framebuffer& fb, Vec2r subPixelLocation){
 		int topLeftIndex     = floor(subPixelLocation.y)*fb.size.x + floor(subPixelLocation.x);
 		int bottomLeftIndex  = ceil(subPixelLocation.y)*fb.size.x  + floor(subPixelLocation.x);
 		int topRightIndex    = floor(subPixelLocation.y)*fb.size.x + ceil(subPixelLocation.x);
@@ -41,7 +41,7 @@ namespace {
 		return (0.25 * fb.color[topLeftIndex].rgb + 0.25 * fb.color[bottomLeftIndex].rgb + 0.25 * fb.color[topRightIndex].rgb + 0.25 * fb.color[bottomRightIndex].rgb);
 	}
 
-	void fxaaStep(xsren::Framebuffer& fb, xsren::Framebuffer& fb_out,
+	void fxaaStep(xsr::Framebuffer& fb, xsr::Framebuffer& fb_out,
 	              int x, int y,
 	              Vec2r inverseScreenSize
 	             ) {
@@ -226,11 +226,11 @@ namespace {
 	}
 } // end of anon namespace
 
-void xsren::PostProcessorAntialias::process(xsren::Framebuffer& fb) {
+void xsr::PostProcessorAntialias::process(xsr::Framebuffer& fb) {
 	Vec2r inverseScreenSize = {1.0, 1.0};
 
 	// Create a duplicate frame buffer
-	xsren::Framebuffer fb_copy;
+	xsr::Framebuffer fb_copy;
 	fb_copy.width  = fb.width;
 	fb_copy.height = fb.height;
 

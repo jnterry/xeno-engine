@@ -27,7 +27,7 @@ xen::sren::RaytracerDevice::~RaytracerDevice(){
 	xen::destroyArenaLinear(*main_allocator, render_scratch_arena);
 }
 
-xen::sren::RaytracerDevice::RaytracerDevice(xen::Array<xsren::PostProcessor*> post_processors)
+xen::sren::RaytracerDevice::RaytracerDevice(xen::Array<xsr::PostProcessor*> post_processors)
 	: SoftwareDeviceBase(post_processors),
 	  render_scratch_arena(xen::createArenaLinear(*main_allocator, xen::megabytes(8))),
 	  mesh_store(main_allocator)
@@ -60,7 +60,7 @@ void xen::sren::RaytracerDevice::render(xen::RenderTarget target_handle,
                                         ) {
 	xen::resetArena(render_scratch_arena);
 
-	xsren::RenderTarget& target = *this->getRenderTargetImpl(target_handle);
+	xsr::RenderTarget& target = *this->getRenderTargetImpl(target_handle);
 
 	////////////////////////////////////////////////////////////////////////////
 	// Build up the RaytracerScene by consolidating all triangle drawing
@@ -125,7 +125,7 @@ void xen::sren::RaytracerDevice::render(xen::RenderTarget target_handle,
 // Data passed to a raytracer thread. This is just the parameters to
 // xen::sren::renderRaytracer
 struct ThreadRenderData {
-	xsren::RenderTarget*     target;
+	xsr::RenderTarget*     target;
 	xen::Aabb2u                      viewport;
 	xen::Aabb2u                      rendering_bounds;
 	const xen::RenderParameters3d*   params;
@@ -142,7 +142,7 @@ void threadDoRenderWork(void* voiddata){
 	                          data->rendering_bounds);
 }
 
-void xen::sren::RaytracerDevice::doRender(xsren::RenderTarget&           target,
+void xen::sren::RaytracerDevice::doRender(xsr::RenderTarget&           target,
                                           const xen::Aabb2u&                     viewport,
                                           const xen::RenderParameters3d&         params,
                                           const xen::Array<xen::RenderCommand3d> commands,
@@ -209,7 +209,7 @@ void xen::sren::RaytracerDevice::doRender(xsren::RenderTarget&           target,
 
 	////////////////////////////////////////////////////////////////////////////
 	// Render the non triangles in the scene
-	xsren::RasterizationContext context;
+	xsr::RasterizationContext context;
 	context.target      = &target;
 	context.viewport    = &view_region;
 	context.textures[0] = nullptr;
@@ -237,7 +237,7 @@ void xen::sren::RaytracerDevice::doRender(xsren::RenderTarget&           target,
 
 namespace xen {
 	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena,
-	                                      xen::Array<xsren::PostProcessor*> post_processors){
+	                                      xen::Array<xsr::PostProcessor*> post_processors){
 		return xen::emplace<xen::sren::RaytracerDevice>(arena, post_processors);
 	}
 }

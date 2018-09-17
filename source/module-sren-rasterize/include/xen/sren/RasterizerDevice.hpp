@@ -9,7 +9,7 @@
 
 #include <xen/core/array_types.hpp>
 
-namespace xsren {
+namespace xsr {
 	class PostProcessor;
 }
 
@@ -24,8 +24,8 @@ namespace xen {
 	/// the image to the screen. Defaults to an empty array
 	/////////////////////////////////////////////////////////////////////
 	GraphicsDevice* createRasterizerDevice(ArenaLinear& arena,
-	                                       xen::Array<xsren::PostProcessor*> post_processors =
-	                                       xen::Array<xsren::PostProcessor*>::EmptyArray
+	                                       xen::Array<xsr::PostProcessor*> post_processors =
+	                                       xen::Array<xsr::PostProcessor*>::EmptyArray
 	                                      );
 }
 

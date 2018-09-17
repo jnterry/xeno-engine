@@ -126,7 +126,7 @@ bool castRayIntoScene(const xen::Ray3r& ray_world,
 	return found_intersection;
 } // end of cast ray into scene
 
-void renderRaytrace (xsren::RenderTarget&       target,
+void renderRaytrace (xsr::RenderTarget&       target,
                      const xen::Aabb2u&                 viewport,
                      const xen::RenderParameters3d&     params,
                      const RaytracerScene&              scene,
@@ -298,7 +298,7 @@ void renderRaytrace (xsren::RenderTarget&       target,
 						}
 
 						#if 0
-						total_light += xsren::computeLightInfluencePhong
+						total_light += xsr::computeLightInfluencePhong
 							( params.lights[i].point.position,
 							  params.lights[i].color,
 							  params.lights[i].attenuation,
@@ -309,7 +309,7 @@ void renderRaytrace (xsren::RenderTarget&       target,
 							  0, 0
 							);
 						#else
-						total_light += xsren::computeLightInfluenceSimple
+						total_light += xsr::computeLightInfluenceSimple
 							( params.lights[i].color,
 							  params.lights[i].attenuation,
 							  light_dist_sq

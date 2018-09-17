@@ -17,7 +17,7 @@
 #include <xen/math/vector_types.hpp>
 #include <xen/core/intrinsics.hpp>
 
-namespace xsren {
+namespace xsr {
 	struct RenderTarget;
 }
 
@@ -90,7 +90,7 @@ struct AtomScene {
 AtomScene& atomizeScene(const xen::Aabb2u& viewport,
                         const xen::RenderParameters3d& params,
                         const xen::Array<xen::RenderCommand3d>& commands,
-                        xen::sren::MeshStore<xsren::RasterizerMesh>& mesh_store,
+                        xen::sren::MeshStore<xsr::RasterizerMesh>& mesh_store,
                         xen::ArenaLinear& arena,
                         real  pixels_per_atom = 1.0_r);
 
@@ -117,7 +117,7 @@ void computeLighting(xen::sren::AtomScene&          ascene,
 /////////////////////////////////////////////////////////////////////
 /// \brief Rasterizes some set of atoms onto the screen
 /////////////////////////////////////////////////////////////////////
-void rasterizeAtoms(xsren::RenderTarget& target,
+void rasterizeAtoms(xsr::RenderTarget& target,
                     const xen::Aabb2u& viewport,
                     const xen::RenderParameters3d& params,
                     const AtomScene& ascene
@@ -126,7 +126,7 @@ void rasterizeAtoms(xsren::RenderTarget& target,
 /////////////////////////////////////////////////////////////////////
 /// \brief Raytraces some set of atoms onto the screen
 /////////////////////////////////////////////////////////////////////
-void raytraceAtoms(xsren::RenderTarget& target,
+void raytraceAtoms(xsr::RenderTarget& target,
                    const xen::Aabb2u& viewport,
                    const xen::RenderParameters3d& params,
                    const AtomScene& a_out,

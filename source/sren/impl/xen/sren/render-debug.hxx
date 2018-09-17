@@ -26,7 +26,7 @@ namespace xen{
 	struct RenderCommand3d;
 }
 
-namespace xsren {
+namespace xsr {
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Draws debug view of a camera (eg, origin, up dir, look dir, etc),
@@ -37,7 +37,7 @@ namespace xsren {
 	/// \param camera      The camera to draw
 	/// \param scale       The scale of the camera to draw in world units
 	/////////////////////////////////////////////////////////////////////
-	void renderCameraDebug(xsren::RenderTarget& target,
+	void renderCameraDebug(xsr::RenderTarget& target,
 	                       const xen::Aabb2u&   viewport,
 	                       const xen::Camera3d& view_camera,
 	                       const xen::Camera3d& camera,
@@ -46,7 +46,7 @@ namespace xsren {
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Renders a bounding box to the screen
 	/////////////////////////////////////////////////////////////////////
-	void renderDebugBoundingBox(xsren::RenderTarget& target,
+	void renderDebugBoundingBox(xsr::RenderTarget& target,
 	                            const xen::Aabb2u&   viewport,
 	                            const xen::Camera3d& camera,
 	                            xen::Aabb3r          aabb,

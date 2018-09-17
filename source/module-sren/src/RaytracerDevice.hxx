@@ -30,7 +30,7 @@ protected:
 
 	/// \brief Called by render after the scene has been generated to actually
 	/// fill the target with pixels
-	virtual void doRender(xsren::RenderTarget&           target,
+	virtual void doRender(xsr::RenderTarget&           target,
 	                      const xen::Aabb2u&                     viewport,
 	                      const xen::RenderParameters3d&         params,
 	                      const xen::Array<xen::RenderCommand3d> commands,
@@ -39,7 +39,7 @@ protected:
 public:
 	~RaytracerDevice();
 
-	RaytracerDevice(xen::Array<xsren::PostProcessor*> post_processors);
+	RaytracerDevice(xen::Array<xsr::PostProcessor*> post_processors);
 
 	xen::Mesh createMesh(const xen::MeshData* mesh_data) override;
 	void      destroyMesh         (xen::Mesh mesh) override;

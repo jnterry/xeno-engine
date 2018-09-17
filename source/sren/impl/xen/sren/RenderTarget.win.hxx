@@ -11,7 +11,7 @@
 
 #include <xen/windows_header.hxx>
 
-namespace xsren {
+namespace xsr {
 	struct RenderTarget : public RenderTargetBase {
 		/// \brief Array of pixel values to be presented on screen
 		Color* pixels;

@@ -16,7 +16,7 @@
 	#include <X11/extensions/XShm.h>
 #endif
 
-namespace xsren {
+namespace xsr {
 	struct RenderTarget : public RenderTargetBase {
 		// These values need only be set for a render target for a window
 

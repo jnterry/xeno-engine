@@ -21,7 +21,7 @@
 namespace {
 
 	void createXImageNonShared(xen::Allocator* alloc,
-	                           xsren::RenderTarget& target,
+	                           xsr::RenderTarget& target,
 	                           xen::Window* window){
 
 		void* image_data = (u32*)alloc->allocate(sizeof(u32) * target.width * target.height);
@@ -53,7 +53,7 @@ namespace {
 	}
 
 	void destroyXImageNonShared(xen::Allocator* alloc,
-	                            xsren::RenderTarget& target,
+	                            xsr::RenderTarget& target,
 	                            xen::Window* window){
 
 		// XDestroyImage want's to deallocate the image struct and its data, but
@@ -77,7 +77,7 @@ namespace {
 		        );
 	}
 
-	void createXImageShared(xsren::RenderTarget& target, xen::Window* window){
+	void createXImageShared(xsr::RenderTarget& target, xen::Window* window){
 
 		// The XShmSegmentInfo struct (target.shminfo) is not created by the
 		// XServer, it is really a pack of parameters describing some shared
@@ -146,7 +146,7 @@ namespace {
 	}
 
 	void destroyXImageShared(xen::Allocator* alloc,
-	                         xsren::RenderTarget& target,
+	                         xsr::RenderTarget& target,
 	                         xen::Window* window){
 
 		if(!target.using_shared_memory){
@@ -165,8 +165,8 @@ namespace {
 	#endif
 }
 
-void xsren::doPlatformRenderTargetInit(xen::Allocator* alloc,
-                                       xsren::RenderTarget& target,
+void xsr::doPlatformRenderTargetInit(xen::Allocator* alloc,
+                                       xsr::RenderTarget& target,
                                        xen::Window* window
                                        ){
 	if(window == nullptr){
@@ -207,8 +207,8 @@ void xsren::doPlatformRenderTargetInit(xen::Allocator* alloc,
 	XFlush(xen::impl::unix_display);
 }
 
-void xsren::doPlatformRenderTargetDestruction(xen::Allocator* alloc,
-                                              xsren::RenderTarget& target,
+void xsr::doPlatformRenderTargetDestruction(xen::Allocator* alloc,
+                                              xsr::RenderTarget& target,
                                               xen::Window* window){
 
 	if(target.ximage == nullptr){ return; }
@@ -220,25 +220,25 @@ void xsren::doPlatformRenderTargetDestruction(xen::Allocator* alloc,
 	#endif
 }
 
-void xsren::doPlatformRenderTargetResize(xen::Allocator* alloc,
-                                         xsren::RenderTarget& target,
+void xsr::doPlatformRenderTargetResize(xen::Allocator* alloc,
+                                         xsr::RenderTarget& target,
                                          xen::Window* window) {
-	xsren::doPlatformRenderTargetDestruction(alloc, target, window);
-	xsren::doPlatformRenderTargetInit(alloc, target, window);
+	xsr::doPlatformRenderTargetDestruction(alloc, target, window);
+	xsr::doPlatformRenderTargetInit(alloc, target, window);
 }
 
 
 namespace {
 	struct ThreadGetImageWorkData {
 		xen::RawImage       raw_image;
-		xsren::RenderTarget target;
+		xsr::RenderTarget target;
 	};
 	void doThreadPresentRenderTarget(void* voiddata){
 		ThreadGetImageWorkData* data = (ThreadGetImageWorkData*)voiddata;
-	  xsren::getImageFromFramebuffer(&data->target, data->raw_image);
+	  xsr::getImageFromFramebuffer(&data->target, data->raw_image);
 	}
 }
-void xsren::presentRenderTarget(xen::Window* window, xsren::RenderTarget& target, threadpool thpool){
+void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target, threadpool thpool){
 
 	// Make sure the previous frame has been presented before we go messing
 	// with the pixel values...
@@ -261,7 +261,7 @@ void xsren::presentRenderTarget(xen::Window* window, xsren::RenderTarget& target
 		sub_image.size.y = delta_y;
 		sub_image.pixels = &raw_image.pixels[raw_image.size.x * cur_y];
 
-		xsren::RenderTarget& sub_target = work_data[i].target;
+		xsr::RenderTarget& sub_target = work_data[i].target;
 		sub_target.width  = target.width;
 		sub_target.height = target.height;
 		sub_target.depth  = &target.depth[target.width * cur_y];

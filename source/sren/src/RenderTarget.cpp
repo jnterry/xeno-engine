@@ -12,7 +12,7 @@
 #include <xen/sren/RenderTarget.hxx>
 #include <xen/graphics/Color.hpp>
 
-void xsren::clear(xsren::RenderTarget& target, xen::Color color) {
+void xsr::clear(xsr::RenderTarget& target, xen::Color color) {
 	xen::Color4f color01 = (xen::Color4f)color;
 	for(u32 i = 0; i < target.width * target.height; ++i){
 		target.color[i] = color01;
@@ -22,7 +22,7 @@ void xsren::clear(xsren::RenderTarget& target, xen::Color color) {
 	}
 }
 
-void xsren::clear(xsren::RenderTarget& target, const xen::Aabb2u& viewport, xen::Color color){
+void xsr::clear(xsr::RenderTarget& target, const xen::Aabb2u& viewport, xen::Color color){
 	xen::Color4f color01 = (xen::Color4f)color;
 
 	for(u32 y = viewport.min.y; y < viewport.max.y; ++y){

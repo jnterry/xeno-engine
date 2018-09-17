@@ -19,7 +19,7 @@ namespace xen {
   struct Material;
 }
 
-namespace xsren {
+namespace xsr {
 
 	/// \brief Bundle of extra parameters needed for the fragment shader
 	struct FragmentUniforms : public xen::RenderParameters3d {
@@ -41,7 +41,7 @@ namespace xsren {
 		/// \brief The view projection matrix
 		Mat4r vp_matrix;
 
-		xsren::Texture* textures[4];
+		xsr::Texture* textures[4];
 	};
 
 	/////////////////////////////////////////////////////////////////////
@@ -54,7 +54,7 @@ namespace xsren {
 	                                   const Mat4r&      vp_mat
 	                                  );
 
-	typedef xen::Color4f (*FragmentShader)(const xsren::FragmentUniforms& uniforms,
+	typedef xen::Color4f (*FragmentShader)(const xsr::FragmentUniforms& uniforms,
 	                                       Vec3r                        pos_world,
 	                                       Vec3r                        normal_world,
 	                                       xen::Color4f                 color,

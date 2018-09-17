@@ -14,8 +14,8 @@
 #include <xen/graphics/Window.hxx>
 #include "RenderTargetImpl.hxx"
 
-void xsren::doPlatformRenderTargetInit(xen::Allocator* alloc,
-                                       xsren::RenderTargetImpl& target,
+void xsr::doPlatformRenderTargetInit(xen::Allocator* alloc,
+                                       xsr::RenderTargetImpl& target,
                                        xen::Window* window){
 	if(window == nullptr || window->handle == nullptr){
 		// offscreen render targets don't need windows bitmapinfo, etc
@@ -43,20 +43,20 @@ void xsren::doPlatformRenderTargetInit(xen::Allocator* alloc,
 	printf("Created software render target for window\n");
 }
 
-void xsren::doPlatformRenderTargetDestruction(xen::Allocator* alloc,
-                                              xsren::RenderTarget& target,
+void xsr::doPlatformRenderTargetDestruction(xen::Allocator* alloc,
+                                              xsr::RenderTarget& target,
                                               xen::Window* window){
 	alloc->deallocate(target.pixels);
 }
 
-void xsren::doPlatformRenderTargetResize(xen::Allocator* alloc,
-                                         xsren::RenderTarget& target,
+void xsr::doPlatformRenderTargetResize(xen::Allocator* alloc,
+                                         xsr::RenderTarget& target,
                                          xen::Window* window) {
 	doPlatformRenderTargetDestruction(alloc, target, window);
 	doPlatformRenderTargetInit(alloc, target, window);
 }
 
-void xsren::presentRenderTarget(xen::Window* window, xsren::RenderTarget& target, threadpool thpool){
+void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target, threadpool thpool){
 	//////////////////////////////////////////////////////////////////////////
 	// Update the byte array we show on screen from the float array we do
 	// our rendering into

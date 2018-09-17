@@ -12,7 +12,7 @@
 #include <xen/core/array_types.hpp>
 #include <xen/math/vector_types.hpp>
 
-namespace xsren {
+namespace xsr {
 	class PostProcessor;
 }
 
@@ -28,8 +28,8 @@ namespace xen {
 	/// the image to the screen. Defaults to empty array
 	/////////////////////////////////////////////////////////////////////
 	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena,
-	                                      xen::Array<xsren::PostProcessor*> post_processors =
-	                                      xen::Array<xsren::PostProcessor*>::EmptyArray
+	                                      xen::Array<xsr::PostProcessor*> post_processors =
+	                                      xen::Array<xsr::PostProcessor*>::EmptyArray
 	                                      );
 
 	/////////////////////////////////////////////////////////////////////
@@ -53,8 +53,8 @@ namespace xen {
 	/// the image to the screen. Defaults to an empty array
 	/////////////////////////////////////////////////////////////////////
 	GraphicsDevice* createAtomTracerDevice(ArenaLinear& arena,
-	                                       xen::Array<xsren::PostProcessor*> post_processors =
-	                                       xen::Array<xsren::PostProcessor*>::EmptyArray
+	                                       xen::Array<xsr::PostProcessor*> post_processors =
+	                                       xen::Array<xsr::PostProcessor*>::EmptyArray
 	                                       );
 
 
@@ -63,8 +63,8 @@ namespace xen {
 	/// of a standard atom renderer
 	/////////////////////////////////////////////////////////////////////
 	GraphicsDevice* createAtomTracerDebugDevice(ArenaLinear& arena,
-	                                            xen::Array<xsren::PostProcessor*> post_processors =
-	                                            xen::Array<xsren::PostProcessor*>::EmptyArray
+	                                            xen::Array<xsr::PostProcessor*> post_processors =
+	                                            xen::Array<xsr::PostProcessor*>::EmptyArray
 	                                            );
 } //end of namespace xen
 

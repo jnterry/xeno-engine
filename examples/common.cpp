@@ -26,7 +26,7 @@ const char* ExampleApplication::BACKEND_NAMES[Backend::COUNT] = {
 
 ExampleApplication createApplication(const char* window_title,
                                      ExampleApplication::Backend default_backend,
-                                     xen::Array<xsren::PostProcessor*> post_processors){
+                                     xen::Array<xsr::PostProcessor*> post_processors){
 	xen::Allocator* alloc = new xen::AllocatorCounter<xen::AllocatorMalloc>();
 	ExampleApplication app = {
 		alloc,
