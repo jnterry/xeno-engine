@@ -10,6 +10,7 @@
 #define XEN_SREN_RAYTRACER3D_HXX
 
 #include <xen/math/geometry_types.hpp>
+#include <xen/sren/rasterizer3d.hxx>
 
 namespace xen {
 	struct RenderParameters3d;
@@ -18,11 +19,11 @@ namespace xen {
 namespace xsr {
 	struct RenderTarget;
 
-	struct RaytracerMesh : public xen::MeshHeader, xen::MeshAttribArrays {
-		// Anything else?
-		// - can we sort the geometry to make rendering more efficient somehow?
-		// - anything we can pre-compute?
-	};
+	// If we ever want to pre-compute things for raytracer we can change this
+	// to use a different type. Currently raytracer relies on all the rasterizer
+	// module stuff except for the actual render function, would need to change
+	// that if this ever changed...
+	typedef RasterizerMesh RaytracerMesh;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents a single model in a RaytracerScene, IE: an instance

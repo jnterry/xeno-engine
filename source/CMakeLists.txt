@@ -73,6 +73,7 @@ add_library               (xen-module-sren-raytrace STATIC  ${XEN_HEADERS_MODULE
 target_include_directories(xen-module-sren-raytrace PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/module-sren-raytrace/include/)
 target_include_directories(xen-module-sren-raytrace PRIVATE ${CMAKE_CURRENT_LIST_DIR}/graphics/impl/)
 target_include_directories(xen-module-sren-raytrace PRIVATE ${CMAKE_CURRENT_LIST_DIR}/sren/impl/)
+target_include_directories(xen-module-sren-raytrace PRIVATE ${CMAKE_CURRENT_LIST_DIR}/module-sren-rasterize/src/)
 target_include_directories(xen-module-sren-raytrace PRIVATE ${XEN_EXTLIBS_DIR}/thpool/)
 target_link_libraries     (xen-module-sren-raytrace PRIVATE thpool)
 target_link_libraries     (xen-module-sren-raytrace PRIVATE pthread)
