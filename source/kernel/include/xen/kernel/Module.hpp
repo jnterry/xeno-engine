@@ -38,9 +38,9 @@ namespace xen {
 	/// expose to the Kernel
 	/////////////////////////////////////////////////////////////////////
 	struct Module {
-		typedef void* (*FunctionInitialize)(Kernel& kernel);
+		typedef void* (*FunctionInitialize)(Kernel& kernel, const void* params);
 		typedef void  (*FunctionShutdown  )(Kernel& kernel);
-		typedef void* (*FunctionLoad      )(Kernel& kernel, void* data);
+		typedef void* (*FunctionLoad      )(Kernel& kernel, void* data, const void* params);
 		typedef void  (*FunctionTick)      (Kernel& kernel, const TickContext& tick);
 
 		/////////////////////////////////////////////////////////////////////

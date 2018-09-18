@@ -54,12 +54,17 @@ namespace xen {
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Loads a kernel module and call's the module's init function
+	///
+	/// \param params Data passed to the module's init and load functions in order
+	/// to configure the modules behaviour. Note that the kernel expects this
+	/// pointer  to be valid for the entire lifetime of the kernel, since the
+	/// params may need to be reused at any point if the hot_reload_modules
+	/// is true
+	///
 	/// \return Id of the loaded module which may be used later to fetch
 	/// the module's exposed api
 	/////////////////////////////////////////////////////////////////////
-  ModuleHandle loadModule(Kernel& kernel, const char* lib_path);
-
-
+	ModuleHandle loadModule(Kernel& kernel, const char* lib_path, const void* params);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves the API exposed by some module. Note that this

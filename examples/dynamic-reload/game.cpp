@@ -8,6 +8,7 @@
 
 struct GameState {
 	u64 value;
+	int increment_delay;
 	GameApi* api;
 };
 
@@ -25,7 +26,7 @@ void mainLoop(xen::Kernel& kernel, const xen::TickContext& cntx){
 	printf("Value is: %lu\n", global_state->value);
 	std::this_thread::sleep_for(std::chrono::milliseconds(16));
 
-	if(cntx.tick % 100 == 0){
+	if(cntx.tick % global_state->increment_delay == 0){
 		++global_state->value;
 	}
 
@@ -37,14 +38,15 @@ void mainLoop(xen::Kernel& kernel, const xen::TickContext& cntx){
 	printf("End main loop\n");
 }
 
-void* init(xen::Kernel& kernel){
+void* init(xen::Kernel& kernel, const void* params){
 	global_state = (GameState*)xen::allocate(kernel, sizeof(GameState));
 	global_state->value = 10;
 	global_state->api = (GameApi*)xen::allocate(kernel, sizeof(GameApi));
+	global_state->increment_delay = ((const GameModuleParams*)params)->increment_delay;
 	return global_state;
 }
 
-void* load(xen::Kernel& kernel, void* data){
+void* load(xen::Kernel& kernel, void* data, const void* params){
 	global_state = (GameState*)data;
 
 	return global_state->api;

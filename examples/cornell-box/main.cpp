@@ -132,7 +132,7 @@ int main(int argc, char** argv){
 	pp_fog.fog_color = xen::Color4f{0.5f, 0.5f, 0.5f, 0.90f};
 	pp_fog.z_near    = render_params.camera.z_near+0.1;
 	pp_fog.z_far     = 4.0;
-	pp_fog.disabled  = true;
+	pp_fog.disabled  = false;
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
 

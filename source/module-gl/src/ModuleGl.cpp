@@ -78,7 +78,7 @@ void doGlStateInit(void* memory_block, const u64 BLK_SIZE){
 }
 
 namespace {
-	void* init(xen::Kernel& kernel){
+	void* init(xen::Kernel& kernel, const void* params){
 
 		constexpr u64 BLK_SIZE = xen::megabytes(1);
 
@@ -94,7 +94,7 @@ namespace {
 		xen::deallocate(kernel, xgl::gl_state);
 	}
 
-	void* load(xen::Kernel& kernel, void* data){
+	void* load(xen::Kernel& kernel, void* data, const void* params){
 		xgl::gl_state = (xgl::GlState*)data;
 
 

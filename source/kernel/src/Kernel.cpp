@@ -43,6 +43,9 @@ namespace xen {
 		/// \brief The api returned by module->onLoad
 		void*           api;
 
+		/// \brief Parameters to the module passed to init and load functions
+		const void*     params;
+
 		/// \brief Next pointer in singly linked list of currently loaded modules
 		LoadedModule*   next;
 	};
@@ -93,7 +96,7 @@ namespace {
 			if(lmod->module->initialize == nullptr){
 				lmod->data = nullptr;
 			} else {
-				lmod->data = lmod->module->initialize(kernel);
+				lmod->data = lmod->module->initialize(kernel, lmod->params);
 				if(lmod->data == nullptr){
 					printf("Failed to initizalise module '%s'\n", lmod->lib_path);
 					return false;
@@ -101,14 +104,11 @@ namespace {
 			}
 		}
 
-		// :TODO: If a module does not export an API we don't technically need a
-		// load function, however we need to return something from this function
-		// other than nullptr so that caller to loadModule knows that it was
 		printf("Loading module's API: %s\n", lmod->lib_path);
 		if(lmod->module->load == nullptr){
 			lmod->api = (void*)true;
 		} else {
-			lmod->api = lmod->module->load(kernel, lmod->data);
+			lmod->api = lmod->module->load(kernel, lmod->data, lmod->params);
 			if(lmod->api == nullptr){
 				printf("Module's load function returned nullptr, module: '%s'\n", lmod->lib_path);
 				return false;
@@ -141,7 +141,7 @@ namespace {
 				  // module before the linker has finished writing it. This says that
 				  // we should only load the module if it changed AND that was at least
 				  // 1 second ago. If linker takes longer than 1 second this will blow
-				  // up and
+				  // up
 				  printf("Need to reload %s but too recently modified\n", lmod->lib_path);
 				  continue;
 			  }
@@ -175,7 +175,7 @@ namespace xen {
 		return *kernel;
 	}
 
-  void* loadModule(Kernel& kernel, const char* name){
+	void* loadModule(Kernel& kernel, const char* name, const void* params){
 		LoadedModule* lmod = xen::reserveType<LoadedModule>(kernel.modules);
 		char* lib_path = nullptr;
 
@@ -192,6 +192,7 @@ namespace xen {
 		}
 		lmod->lib_modification_time = xen::getPathModificationTime(lib_path);
 
+		lmod->params     = params;
 		lmod->lib_path   = lib_path;
 		lmod->next       = kernel.module_head;
 		kernel.module_head = lmod;

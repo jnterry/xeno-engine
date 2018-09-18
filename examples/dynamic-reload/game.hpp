@@ -3,3 +3,7 @@
 
 struct GameApi {
 };
+
+struct GameModuleParams {
+	int increment_delay;
+};
