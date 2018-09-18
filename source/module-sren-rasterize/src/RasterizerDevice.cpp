@@ -22,40 +22,43 @@
 #include <xen/sren/rasterizer3d.hxx>
 #include <xen/sren/MeshStore.hxx>
 
+#include "ModuleRasterize.hxx"
+#include "Mesh.hxx"
+
 #include <cstring>
 
+void doRasterizerStateInit(void* block, const u64 BLK_SIZE);
+
 class RasterizerDevice : public xen::sren::SoftwareDeviceBase {
-private:
-	xen::sren::MeshStore<xsr::RasterizerMesh> mesh_store;
 public:
 	~RasterizerDevice(){
-		this->mesh_store.destroyAllMeshes();
 	}
 
 	RasterizerDevice(xen::Array<xsr::PostProcessor*> post_processors)
-		: SoftwareDeviceBase(post_processors),
-		  mesh_store(main_allocator)
+		: SoftwareDeviceBase(post_processors)
 	{
-		// no-op
+		void* data = malloc(xen::megabytes(4));
+	  doRasterizerStateInit(data, xen::megabytes(4));
 	}
 
 
 	xen::Mesh createMesh(const xen::MeshData* mesh_data) override{
-		return this->mesh_store.createMesh(mesh_data);
+		return xsr::createMesh(mesh_data);
 	}
 	void      destroyMesh         (xen::Mesh mesh) override{
-		this->mesh_store.destroyMesh(mesh);
+		return xsr::destroyMesh(mesh);
 	}
 	void      updateMeshVertexData(xen::Mesh mesh,
 	                               u32   attrib_index,
 	                               void* new_data,
 	                               u32   start_vertex,
 	                               u32   end_vertex) override{
-		this->mesh_store.updateMeshVertexData(mesh,
-		                                      attrib_index,
-		                                      new_data,
-		                                      start_vertex,
-		                                      end_vertex);
+		return xsr::updateMeshVertexData(mesh,
+		                                 attrib_index,
+		                                 new_data,
+		                                 start_vertex,
+		                                 end_vertex
+		                                );
 	}
 
 	void render(xen::RenderTarget target_handle,
@@ -107,7 +110,7 @@ public:
 			context.textures[1] = this->getTextureImpl(cmd.textures[1]);
 			context.textures[2] = this->getTextureImpl(cmd.textures[2]);
 			context.textures[3] = this->getTextureImpl(cmd.textures[3]);
-			auto mesh = this->mesh_store.getMesh(cmd.mesh);
+			auto mesh = xsr::getMeshImpl(cmd.mesh);
 
 			#if 0
 			renderDebugBoundingBox(context,
