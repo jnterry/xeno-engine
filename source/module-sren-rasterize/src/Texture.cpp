@@ -6,8 +6,8 @@
 /// \ingroup module-sren-texture
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_MODULESRENTEXTURE_TEXTURE_CPP
-#define XEN_MODULESRENTEXTURE_TEXTURE_CPP
+#ifndef XEN_MODULESRENRASTERIZE_TEXTURE_CPP
+#define XEN_MODULESRENRASTERIZE_TEXTURE_CPP
 
 #include "Texture.hxx"
 #include "ModuleRasterize.hxx"

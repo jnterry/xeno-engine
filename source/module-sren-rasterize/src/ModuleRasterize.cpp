@@ -15,6 +15,9 @@
 #include <xen/kernel/Kernel.hpp>
 #include <xen/core/memory/utilities.hpp>
 
+#include "Shader.hxx"
+#include "Texture.hxx"
+
 #include <new>
 
 namespace xen {
@@ -39,6 +42,8 @@ void doRasterizerStateInit(void* block, const u64 BLK_SIZE){
 	xsr::state->texture_pool        = xen::createArenaPool<xsr::Texture>(xsr::state->root_arena, 128);
 	xsr::state->texture_pixel_alloc = xen::emplace<xen::AllocatorMalloc>(xsr::state->root_arena);
 
+	xsr::state->shader_pool         = xen::createArenaPool<xsr::FragmentShader>(xsr::state->root_arena, 128);
+
 
 	// Ensure texture 0 is single pixel white
 	xen::RawImage image;
@@ -47,6 +52,9 @@ void doRasterizerStateInit(void* block, const u64 BLK_SIZE){
 	xen::Color color = xen::Color::WHITE;
 	image.pixels = &color;
 	xsr::createTexture(&image);
+
+	// Ensure shader 0 is the default shader
+	xsr::createShader((void*)xsr::FragmentShader_Default);
 }
 
 namespace {

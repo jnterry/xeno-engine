@@ -39,10 +39,10 @@
 
 #include "ModuleRasterize.hxx"
 #include "Mesh.hxx"
+#include "Shader.hxx"
+#include "Texture.hxx"
 
 #include <cstring>
-
-#include <thpool.h>
 
 void doRasterizerStateInit(void* block, const u64 BLK_SIZE);
 
@@ -54,7 +54,6 @@ protected:
 	xen::ArenaLinear misc_arena;
 
 	xen::ArenaPool<xsr::RenderTarget  > render_targets;
-	xen::ArenaPool<xsr::FragmentShader> shaders;
 
 	threadpool thpool;
 
@@ -69,34 +68,16 @@ public:
 	  : post_processors(post_processors),
 	    main_allocator (new xen::AllocatorCounter<xen::AllocatorMalloc>()),
 	    misc_arena     (xen::createArenaLinear(*main_allocator, xen::megabytes(1))),
-	    render_targets (xen::createArenaPool<xsr::RenderTarget  >(main_allocator,  128)),
-	    shaders        (xen::createArenaPool<xsr::FragmentShader>(main_allocator,  128))
+	    render_targets (xen::createArenaPool<xsr::RenderTarget  >(main_allocator,  128))
 	{
 		this->thpool = thpool_init(4);
 
 		void* data = malloc(xen::megabytes(4));
 	  doRasterizerStateInit(data, xen::megabytes(4));
-
-	  // Ensure shader 0 is the default shader
-	  this->createShader((void*)xsr::FragmentShader_Default);
 	}
 
 	xsr::RenderTarget* getRenderTargetImpl(xen::RenderTarget target){
 		return &this->render_targets.slots[target._id].item;
-	}
-
-	xsr::FragmentShader getShaderImpl(xen::Shader shader){
-		return this->shaders.slots[shader._id].item;
-	}
-
-	xen::Shader createShader(const void* source){
-		u32 slot = xen::reserveSlot(shaders);
-		shaders.slots[slot].item = (xsr::FragmentShader)source;
-		return xen::makeGraphicsHandle<xen::Shader::HANDLE_ID>(slot, 0);
-	}
-
-	void destroyShader(xen::Shader shader){
-		xen::freeSlot(shaders, shader._id);
 	}
 
 	void clear(xen::RenderTarget& target, xen::Color color){
@@ -219,13 +200,26 @@ public:
 		                                );
 	}
 
+
+
 	xen::Texture createTexture(const xen::RawImage* image){
 		return xsr::createTexture(image);
 	}
-
 	void destroyTexture(xen::Texture texture){
 		xsr::destroyTexture(texture);
 	}
+
+
+
+
+	xen::Shader createShader(const void* source){
+		return xsr::createShader(source);
+	}
+	void destroyShader(xen::Shader shader){
+		return xsr::destroyShader(shader);
+	}
+
+
 
 	void render(xen::RenderTarget target_handle,
 	            const xen::Aabb2u& viewport,
@@ -263,7 +257,7 @@ public:
 		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 			const xen::RenderCommand3d& cmd = commands[cmd_index];
 
-			context.fragment_shader = this->getShaderImpl(cmd.shader);
+			context.fragment_shader = xsr::getShaderImpl(cmd.shader);
 			if(context.fragment_shader == nullptr){
 				context.fragment_shader = xsr::FragmentShader_Default;
 			}

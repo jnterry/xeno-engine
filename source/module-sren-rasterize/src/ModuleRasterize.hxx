@@ -24,6 +24,8 @@ namespace xsr {
 
 		xen::ArenaPool<xsr::Texture>        texture_pool;
 		xen::Allocator*                     texture_pixel_alloc;
+
+		xen::ArenaPool<xsr::FragmentShader> shader_pool;
 	};
 
 	extern ModuleRasterize* state;
