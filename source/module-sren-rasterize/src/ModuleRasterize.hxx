@@ -12,6 +12,8 @@
 #include <xen/core/memory/ArenaPool.hpp>
 #include <xen/sren/rasterizer3d.hxx>
 
+#include "Texture.hxx"
+
 namespace xsr {
 
 	struct ModuleRasterize {
@@ -19,6 +21,9 @@ namespace xsr {
 
 		xen::ArenaPool<xsr::RasterizerMesh> mesh_pool;
 		xen::Allocator*                     mesh_attrib_alloc;
+
+		xen::ArenaPool<xsr::Texture>        texture_pool;
+		xen::Allocator*                     texture_pixel_alloc;
 	};
 
 	extern ModuleRasterize* state;

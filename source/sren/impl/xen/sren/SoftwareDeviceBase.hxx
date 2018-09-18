@@ -77,8 +77,8 @@ namespace xen {
 			void    destroyWindow(Window* window) override;
 			void    swapBuffers(Window* window) override;
 
-			Texture createTexture (const RawImage* image) override;
-			void    destroyTexture(Texture texture      ) override;
+			virtual Texture createTexture (const RawImage* image);
+			virtual void    destroyTexture(Texture texture      );
 
 			Shader createShader (const void* source) override;
 			void   destroyShader(Shader shader     ) override;

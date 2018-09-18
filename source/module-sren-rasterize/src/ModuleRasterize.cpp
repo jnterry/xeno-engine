@@ -10,6 +10,7 @@
 #define XEN_MODULESRENRASTERIZE_MODULERASTERIZE_CPP
 
 #include "ModuleRasterize.hxx"
+#include <xen/graphics/GraphicsDevice_types.hpp>
 #include <xen/sren/rasterizer3d.hxx>
 #include <xen/kernel/Kernel.hpp>
 #include <xen/core/memory/utilities.hpp>
@@ -34,6 +35,18 @@ void doRasterizerStateInit(void* block, const u64 BLK_SIZE){
 
 	xsr::state->mesh_pool         = xen::createArenaPool<xsr::RasterizerMesh >(xsr::state->root_arena, 128);
 	xsr::state->mesh_attrib_alloc = xen::emplace<xen::AllocatorMalloc>(xsr::state->root_arena);
+
+	xsr::state->texture_pool        = xen::createArenaPool<xsr::Texture>(xsr::state->root_arena, 128);
+	xsr::state->texture_pixel_alloc = xen::emplace<xen::AllocatorMalloc>(xsr::state->root_arena);
+
+
+	// Ensure texture 0 is single pixel white
+	xen::RawImage image;
+	image.size.x = 1;
+	image.size.y = 1;
+	xen::Color color = xen::Color::WHITE;
+	image.pixels = &color;
+	xsr::createTexture(&image);
 }
 
 namespace {
