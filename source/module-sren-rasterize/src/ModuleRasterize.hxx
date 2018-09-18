@@ -11,10 +11,15 @@
 
 #include <xen/core/memory/ArenaPool.hpp>
 #include <xen/sren/rasterizer3d.hxx>
+#include <xen/sren/RenderTarget.hxx>
 
 #include "Texture.hxx"
 
+#include <thpool.h>
+
 namespace xsr {
+
+	struct PostProcessor;
 
 	struct ModuleRasterize {
 		xen::ArenaLinear root_arena;
@@ -26,6 +31,13 @@ namespace xsr {
 		xen::Allocator*                     texture_pixel_alloc;
 
 		xen::ArenaPool<xsr::FragmentShader> shader_pool;
+
+		xen::Array<xsr::PostProcessor*>     post_processors;
+
+		xen::ArenaPool<xsr::RenderTarget>   render_target_pool;
+		xen::Allocator*                     render_target_alloc;
+
+		threadpool thpool;
 	};
 
 	extern ModuleRasterize* state;

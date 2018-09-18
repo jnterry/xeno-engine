@@ -36,14 +36,18 @@ void doRasterizerStateInit(void* block, const u64 BLK_SIZE){
 	xsr::state->root_arena.end       = xen::ptrGetAdvanced(block, BLK_SIZE);
 	xsr::state->root_arena.next_byte = xsr::state->root_arena.start;
 
-	xsr::state->mesh_pool         = xen::createArenaPool<xsr::RasterizerMesh >(xsr::state->root_arena, 128);
-	xsr::state->mesh_attrib_alloc = xen::emplace<xen::AllocatorMalloc>(xsr::state->root_arena);
+	xsr::state->mesh_pool            = xen::createArenaPool<xsr::RasterizerMesh >(xsr::state->root_arena, 128);
+	xsr::state->mesh_attrib_alloc    = xen::emplace<xen::AllocatorMalloc>(xsr::state->root_arena);
 
-	xsr::state->texture_pool        = xen::createArenaPool<xsr::Texture>(xsr::state->root_arena, 128);
-	xsr::state->texture_pixel_alloc = xen::emplace<xen::AllocatorMalloc>(xsr::state->root_arena);
+	xsr::state->texture_pool         = xen::createArenaPool<xsr::Texture>(xsr::state->root_arena, 128);
+	xsr::state->texture_pixel_alloc  = xen::emplace<xen::AllocatorMalloc>(xsr::state->root_arena);
 
-	xsr::state->shader_pool         = xen::createArenaPool<xsr::FragmentShader>(xsr::state->root_arena, 128);
+	xsr::state->shader_pool          = xen::createArenaPool<xsr::FragmentShader>(xsr::state->root_arena, 128);
 
+	xsr::state->render_target_pool   = xen::createArenaPool<xsr::RenderTarget>(xsr::state->root_arena, 128);
+	xsr::state->render_target_alloc  = xen::emplace<xen::AllocatorMalloc>(xsr::state->root_arena);
+
+	xsr::state->thpool = thpool_init(16);
 
 	// Ensure texture 0 is single pixel white
 	xen::RawImage image;

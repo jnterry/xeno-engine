@@ -41,145 +41,53 @@
 #include "Mesh.hxx"
 #include "Shader.hxx"
 #include "Texture.hxx"
+#include "RenderTarget.hxx"
 
 #include <cstring>
 
 void doRasterizerStateInit(void* block, const u64 BLK_SIZE);
 
 class RasterizerDevice : public xen::GraphicsDevice {
-private:
-	xen::Array<xsr::PostProcessor*> post_processors;
-protected:
-	xen::Allocator*  main_allocator;
-	xen::ArenaLinear misc_arena;
-
-	xen::ArenaPool<xsr::RenderTarget  > render_targets;
-
-	threadpool thpool;
-
 public:
-	~RasterizerDevice(){
-		xen::destroyArenaLinear(*main_allocator, misc_arena);
-		delete main_allocator;
-		thpool_destroy(this->thpool);
-	}
+	~RasterizerDevice(){}
 
 	RasterizerDevice(xen::Array<xsr::PostProcessor*> post_processors)
-	  : post_processors(post_processors),
-	    main_allocator (new xen::AllocatorCounter<xen::AllocatorMalloc>()),
-	    misc_arena     (xen::createArenaLinear(*main_allocator, xen::megabytes(1))),
-	    render_targets (xen::createArenaPool<xsr::RenderTarget  >(main_allocator,  128))
 	{
-		this->thpool = thpool_init(4);
-
 		void* data = malloc(xen::megabytes(4));
 	  doRasterizerStateInit(data, xen::megabytes(4));
 	}
 
 	xsr::RenderTarget* getRenderTargetImpl(xen::RenderTarget target){
-		return &this->render_targets.slots[target._id].item;
+		return xsr::getRenderTargetImpl(target);
 	}
 
 	void clear(xen::RenderTarget& target, xen::Color color){
-		xsr::clear(*this->getRenderTargetImpl(target), color);
+		return xsr::clear(target, color);
 	}
 
 	xen::RenderTarget createRenderTarget (Vec2u size, xen::Window* window){
-		// :TODO:COMP::ISSUE_31: object pool with automatic handles / resizeable pool
-		u32 slot = xen::reserveSlot(this->render_targets);
-		xsr::RenderTarget* target = &this->render_targets.slots[slot].item;
-
-		xen::clearToZero<xsr::RenderTarget>(target);
-		this->resizeRenderTarget(target, size);
-
-		target->window = window;
-		xsr::doPlatformRenderTargetInit(this->main_allocator, *target, target->window);
-
-		return xen::makeGraphicsHandle<xen::RenderTarget::HANDLE_ID>(slot, 0);
+		return xsr::createRenderTarget(size, window);
 	}
 
 	void destroyRenderTarget(xen::RenderTarget render_target){
-		xsr::RenderTarget* target = getRenderTargetImpl(render_target);
-
-		this->main_allocator->deallocate(target->color);
-		this->main_allocator->deallocate(target->depth);
-
-		target->color = nullptr;
-		target->depth = nullptr;
-
-		xsr::doPlatformRenderTargetDestruction(this->main_allocator, *target, target->window);
-
-		xen::freeType(this->render_targets, target);
+		return xsr::destroyRenderTarget(render_target);
 	}
 
 	void resizeRenderTarget(xsr::RenderTarget* target, Vec2u size){
-		target->size = size;
-
-		if(target->color != nullptr){
-			main_allocator->deallocate(target->color);
-		}
-		if(target->depth != nullptr){
-			main_allocator->deallocate(target->depth);
-		}
-
-		u32 num_pixels = size.x * size.y;
-
-		target->color = (xen::Color4f*)main_allocator->allocate(sizeof(xen::Color4f) * num_pixels);
-		target->depth = (float*  )main_allocator->allocate(sizeof(float  ) * num_pixels);
-
-		xsr::doPlatformRenderTargetResize(main_allocator, *target, target->window);
+		return xsr::resizeRenderTarget(target, size);
 	}
 
 	xen::Window* createWindow(Vec2u size, const char* title) {
-		xen::MemoryTransaction transaction(misc_arena);
-
-		xen::Window* window = xen::impl::createWindow(misc_arena, size, title);
-
-		window->render_target    = this->createRenderTarget(size, window);
-		xsr::RenderTarget* target = this->getRenderTargetImpl(window->render_target);
-
-		target->window = window;
-
-		transaction.commit();
-		return window;
+		return xsr::createWindow(size, title);
 	}
 
 	void destroyWindow(xen::Window* window) {
-		destroyRenderTarget(window->render_target);
-		xen::impl::destroyWindow(window);
-		window->is_open = false;
+		return xsr::destroyWindow(window);
 	}
 
 	void swapBuffers(xen::Window* window) {
-		if(!window->is_open){ return; }
-		xsr::RenderTarget& target = *this->getRenderTargetImpl(window->render_target);
-
-		for(u32 i = 0; i < xen::size(this->post_processors); ++i){
-			if(this->post_processors[i]->disabled){ continue; }
-
-			this->post_processors[i]->process(target);
-		}
-
-		xsr::presentRenderTarget(window, target, thpool);
+		return xsr::swapBuffers(window);
 	}
-
-
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
-	//
 
 	xen::Mesh createMesh(const xen::MeshData* mesh_data) override{
 		return xsr::createMesh(mesh_data);
