@@ -9,8 +9,9 @@
 #ifndef XEN_EXAMPLES_COMMON_CPP
 #define XEN_EXAMPLES_COMMON_CPP
 
-#include <xen/sren/SoftwareDevice.hpp>
 #include <xen/sren/RasterizerDevice.hpp>
+#include <xen/sren/RaytracerDevice.hpp>
+#include <xen/sren/AtomDevice.hpp>
 #include <xen/gl/GlDevice.hpp>
 
 #include "common.hpp"

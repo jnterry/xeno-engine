@@ -14,7 +14,7 @@
 #include "RaytracerDevice.hxx"
 
 #include <xen/graphics/RenderCommand3d.hpp>
-#include <xen/sren/SoftwareDevice.hpp>
+#include <xen/sren/RaytracerDevice.hpp>
 #include <xen/sren/FragmentShader.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/math/matrix.hpp>

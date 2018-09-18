@@ -15,7 +15,7 @@
 #include <xen/sren/RenderTarget.hxx>
 #include <xen/sren/render-debug.hxx>
 
-#include <xen/sren/SoftwareDevice.hpp>
+#include <xen/sren/RaytracerDevice.hpp>
 #include <xen/sren/FragmentShader.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
 #include <xen/math/geometry.hpp>
