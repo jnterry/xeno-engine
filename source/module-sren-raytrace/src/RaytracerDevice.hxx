@@ -17,8 +17,7 @@
 #include <xen/math/geometry_types.hpp>
 #include <xen/graphics/GraphicsDevice.hpp>
 
-namespace xen {
-namespace sren {
+namespace xsr {
 
 class RaytracerDevice : public xen::sren::SoftwareDeviceBase {
 private:
@@ -26,7 +25,7 @@ private:
 	xen::ArenaLinear                         render_scratch_arena;
 
 protected:
-	xen::sren::MeshStore<xen::sren::RaytracerMesh> mesh_store;
+	xen::sren::MeshStore<xsr::RaytracerMesh> mesh_store;
 
 	/// \brief Called by render after the scene has been generated to actually
 	/// fill the target with pixels
@@ -57,6 +56,5 @@ public:
 }; // end of class RaytracerDevice
 
 } // end of namespace xen
-} // end of namespace sren
 
 #endif

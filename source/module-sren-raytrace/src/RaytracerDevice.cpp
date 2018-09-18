@@ -22,12 +22,12 @@
 
 #include <cstring>
 
-xen::sren::RaytracerDevice::~RaytracerDevice(){
+xsr::RaytracerDevice::~RaytracerDevice(){
 	this->mesh_store.destroyAllMeshes();
 	xen::destroyArenaLinear(*main_allocator, render_scratch_arena);
 }
 
-xen::sren::RaytracerDevice::RaytracerDevice(xen::Array<xsr::PostProcessor*> post_processors)
+xsr::RaytracerDevice::RaytracerDevice(xen::Array<xsr::PostProcessor*> post_processors)
 	: SoftwareDeviceBase(post_processors),
 	  render_scratch_arena(xen::createArenaLinear(*main_allocator, xen::megabytes(8))),
 	  mesh_store(main_allocator)
@@ -35,13 +35,13 @@ xen::sren::RaytracerDevice::RaytracerDevice(xen::Array<xsr::PostProcessor*> post
 	// no-op
 }
 
-xen::Mesh xen::sren::RaytracerDevice::createMesh(const xen::MeshData* mesh_data) {
+xen::Mesh xsr::RaytracerDevice::createMesh(const xen::MeshData* mesh_data) {
 	return this->mesh_store.createMesh(mesh_data);
 }
-void xen::sren::RaytracerDevice::destroyMesh(xen::Mesh mesh) {
+void xsr::RaytracerDevice::destroyMesh(xen::Mesh mesh) {
 	this->mesh_store.destroyMesh(mesh);
 }
-void xen::sren::RaytracerDevice::updateMeshVertexData(xen::Mesh mesh,
+void xsr::RaytracerDevice::updateMeshVertexData(xen::Mesh mesh,
                                                       u32   attrib_index,
                                                       void* new_data,
                                                       u32   start_vertex,
@@ -53,7 +53,7 @@ void xen::sren::RaytracerDevice::updateMeshVertexData(xen::Mesh mesh,
 	                                      end_vertex);
 }
 
-void xen::sren::RaytracerDevice::render(xen::RenderTarget target_handle,
+void xsr::RaytracerDevice::render(xen::RenderTarget target_handle,
                                         const xen::Aabb2u& viewport,
                                         const xen::RenderParameters3d& params,
                                         const xen::Array<xen::RenderCommand3d> commands
@@ -75,12 +75,12 @@ void xen::sren::RaytracerDevice::render(xen::RenderTarget target_handle,
 	                                                        xen::size(commands)
 	                                                        );
 
-	xen::sren::RaytracerScene scene;
+	xsr::RaytracerScene scene;
 	scene.models.size         = 0;
 	scene.first_shadow_caster = 0;
 	scene.models.elements     =
-		(xen::sren::RaytracerModel*)xen::ptrGetAlignedForward(render_scratch_arena.next_byte,
-		                                                      alignof(xen::sren::RaytracerModel)
+		(xsr::RaytracerModel*)xen::ptrGetAlignedForward(render_scratch_arena.next_byte,
+		                                                      alignof(xsr::RaytracerModel)
 		                                                      );
 
 	for(u32 i = 0; i < xen::size(commands); ++i){
@@ -88,13 +88,13 @@ void xen::sren::RaytracerDevice::render(xen::RenderTarget target_handle,
 
 		switch(cmd->primitive_type){
 		case xen::PrimitiveType::TRIANGLES: {
-			xen::sren::RaytracerModel* model = &scene.models[scene.models.size];
+			xsr::RaytracerModel* model = &scene.models[scene.models.size];
 			++scene.models.size;
 
 			if(cmd->flags & xen::RenderCommand3d::Flags::DisableShadowCast){
 				// We want to sort the scene so all non-shadow casters are
 				// at the front of the array
-				xen::sren::RaytracerModel* model_swap = &scene.models[scene.first_shadow_caster];
+				xsr::RaytracerModel* model_swap = &scene.models[scene.first_shadow_caster];
 				++scene.first_shadow_caster;
 				*model = *model_swap;
 				model = model_swap;
@@ -116,38 +116,38 @@ void xen::sren::RaytracerDevice::render(xen::RenderTarget target_handle,
 	}
 
 	xen::ptrAdvance(&render_scratch_arena.next_byte,
-	                sizeof(xen::sren::RaytracerModel) * scene.models.size);
+	                sizeof(xsr::RaytracerModel) * scene.models.size);
 
 	this->doRender(target, viewport, params, commands, non_triangle_cmds, scene);
 }
 
 
 // Data passed to a raytracer thread. This is just the parameters to
-// xen::sren::renderRaytracer
+// xsr::renderRaytracer
 struct ThreadRenderData {
 	xsr::RenderTarget*     target;
 	xen::Aabb2u                      viewport;
 	xen::Aabb2u                      rendering_bounds;
 	const xen::RenderParameters3d*   params;
-	const xen::sren::RaytracerScene* scene;
+	const xsr::RaytracerScene* scene;
 
 };
 // Function that should be called by each thread to perform a block of raytracing
 void threadDoRenderWork(void* voiddata){
 	ThreadRenderData* data = (ThreadRenderData*)voiddata;
-	xen::sren::renderRaytrace(*data->target,
+	xsr::renderRaytrace(*data->target,
 	                          data->viewport,
 	                          *data->params,
 	                          *data->scene,
 	                          data->rendering_bounds);
 }
 
-void xen::sren::RaytracerDevice::doRender(xsr::RenderTarget&           target,
+void xsr::RaytracerDevice::doRender(xsr::RenderTarget&           target,
                                           const xen::Aabb2u&                     viewport,
                                           const xen::RenderParameters3d&         params,
                                           const xen::Array<xen::RenderCommand3d> commands,
                                           const xen::Array<u32>                  non_triangle_cmds,
-                                          const xen::sren::RaytracerScene&       scene){
+                                          const xsr::RaytracerScene&       scene){
 
 	////////////////////////////////////////////////////////////////////////////
 	// Render the triangles in the scene
@@ -238,7 +238,7 @@ void xen::sren::RaytracerDevice::doRender(xsr::RenderTarget&           target,
 namespace xen {
 	GraphicsDevice* createRaytracerDevice(ArenaLinear& arena,
 	                                      xen::Array<xsr::PostProcessor*> post_processors){
-		return xen::emplace<xen::sren::RaytracerDevice>(arena, post_processors);
+		return xen::emplace<xsr::RaytracerDevice>(arena, post_processors);
 	}
 }
 

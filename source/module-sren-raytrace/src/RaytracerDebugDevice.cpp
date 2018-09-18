@@ -22,7 +22,7 @@
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/intrinsics.hpp>
 
-class RaytracerDebugDevice : public xen::sren::RaytracerDevice {
+class RaytracerDebugDevice : public xsr::RaytracerDevice {
 private:
 	xen::Camera3d         camera_x;
 	xen::Camera3d         camera_y;
@@ -163,7 +163,7 @@ public:
 	                      const xen::RenderParameters3d&         params,
 	                      const xen::Array<xen::RenderCommand3d> commands,
 	                      const xen::Array<u32>                  non_triangle_cmds,
-	                      const xen::sren::RaytracerScene&       scene){
+	                      const xsr::RaytracerScene&       scene){
 
 		////////////////////////////////////////////////////////////////////////////
 		// Update viewport and cameras

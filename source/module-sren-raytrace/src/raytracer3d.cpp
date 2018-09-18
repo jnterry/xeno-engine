@@ -25,8 +25,7 @@
 #include <cstring>
 #include <cstdlib>
 
-namespace xen {
-namespace sren {
+namespace xsr {
 
 bool castRayIntoScene(const xen::Ray3r& ray_world,
                       const RaytracerScene& scene,
@@ -53,7 +52,7 @@ bool castRayIntoScene(const xen::Ray3r& ray_world,
 	for(u32 model_index = start_index;
 	    model_index < xen::size(scene.models);
 	    ++model_index){
-		const xen::sren::RaytracerModel& model = scene.models[model_index];
+		const xsr::RaytracerModel& model = scene.models[model_index];
 
 		////////////////////////////////////////////////////////////////////////////
 		// Check if the ray intersects the model's aabb in world space.
@@ -66,8 +65,8 @@ bool castRayIntoScene(const xen::Ray3r& ray_world,
 			real t1 = (b.min.x - r.origin.x) * ray_world_dir_inv.x;
 			real t2 = (b.max.x - r.origin.x) * ray_world_dir_inv.x;
 
-			real tmin = min(t1, t2);
-			real tmax = max(t1, t2);
+			real tmin = xen::min(t1, t2);
+			real tmax = xen::max(t1, t2);
 
 			for(u32 i = 1; i < 3; ++i){
 				t1 = (b.min[i] - r.origin[i]) * ray_world_dir_inv[i];
@@ -137,8 +136,8 @@ void renderRaytrace (xsr::RenderTarget&       target,
 	xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
 	Vec2s       target_size = (Vec2s)xen::getSize(view_region);
 
-	Angle fov_y = params.camera.fov_y;
-	Angle fov_x = params.camera.fov_y * ((real)target_size.y / (real)target_size.x);
+	xen::Angle fov_y = params.camera.fov_y;
+	xen::Angle fov_x = params.camera.fov_y * ((real)target_size.y / (real)target_size.x);
 
 	// Compute the local axes of the camera
 	Vec3r cam_zaxis = params.camera.look_dir;
@@ -198,7 +197,7 @@ void renderRaytrace (xsr::RenderTarget&       target,
 
 			/////////////////////////////////////////////////////////////////////
 			// Construct the primary ray
-			Ray3r primary_ray;
+			xen::Ray3r primary_ray;
 			primary_ray.origin    = image_plane_position;
 			primary_ray.direction = xen::normalized(image_plane_position - params.camera.position);
 
@@ -222,10 +221,10 @@ void renderRaytrace (xsr::RenderTarget&       target,
 			xen::Color4f pixel_color        = model.color;
 			Vec3r        pixel_normal_world = Vec3r::Origin;
 			{
-				Vec3r* pbuf_model = model.mesh->position;
-				Vec3r* nbuf_model = model.mesh->normal;
-				Color* cbuf       = model.mesh->color;
-				u32    buf_index = intersection.tri_index * 3;
+				Vec3r*      pbuf_model = model.mesh->position;
+				Vec3r*      nbuf_model = model.mesh->normal;
+				xen::Color* cbuf       = model.mesh->color;
+				u32          buf_index = intersection.tri_index * 3;
 
 				xen::Triangle3r ptri_model = *(xen::Triangle3r*)&pbuf_model[buf_index];
 
@@ -264,7 +263,7 @@ void renderRaytrace (xsr::RenderTarget&       target,
 			}
 
 			// compute light hitting surface at intersection point
-			Color3f total_light = params.ambient_light;
+			xen::Color3f total_light = params.ambient_light;
 			total_light += model.emissive_color.rgb * model.emissive_color.a;
 			{
 				/////////////////////////////////////////////////////////////////////
@@ -272,7 +271,7 @@ void renderRaytrace (xsr::RenderTarget&       target,
 				for(u64 i = 0; i < params.lights.size; ++i){
 					//printf("%i, %i :::::: Casting shadow ray for light %i\n",
 					//       target_pos.x, target_pos.y, i);
-					Ray3r shadow_ray;
+					xen::Ray3r shadow_ray;
 
 					switch(params.lights[i].type){
 					case xen::LightSource3d::POINT: {
@@ -334,7 +333,6 @@ void renderRaytrace (xsr::RenderTarget&       target,
 		}
 	}
 } // end of renderRaytrace
-} // end of namespace sren
-} // end of namespace xen
+} // end of namespace xsr
 
 #endif
