@@ -14,4 +14,6 @@ set(XEN_SOURCES_MODULE_SREN_RASTERIZE
 	${CMAKE_CURRENT_LIST_DIR}/src/Shader.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/RenderTarget.hxx
 	${CMAKE_CURRENT_LIST_DIR}/src/RenderTarget.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/render.hxx
+	${CMAKE_CURRENT_LIST_DIR}/src/render.cpp
 )

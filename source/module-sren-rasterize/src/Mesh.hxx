@@ -13,6 +13,8 @@
 #include <xen/graphics/GraphicsDevice_types.hpp>
 
 namespace xsr {
+	struct RasterizerMesh;
+
 	xsr::RasterizerMesh* getMeshImpl(xen::Mesh mesh);
 
 	xen::Mesh createMesh (const xen::MeshData* mesh_data);
