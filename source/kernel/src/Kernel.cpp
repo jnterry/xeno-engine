@@ -72,6 +72,7 @@ namespace xen {
 namespace {
 
 	bool doModuleLoad(xen::Kernel& kernel, xen::LoadedModule* lmod){
+		printf("Loading shared library: %s\n", lmod->lib_path);
 		lmod->library = xen::loadDynamicLibrary(kernel.root_allocator, lmod->lib_path);
 
 		if(lmod->library == nullptr){
@@ -79,6 +80,7 @@ namespace {
 			printf("Failed to load module shared library\n");
 			return false;
 		}
+
 
 		lmod->module = (xen::Module*)xen::getDynamicLibrarySymbol(lmod->library, "exported_xen_module");
 
@@ -126,10 +128,10 @@ namespace {
 
 		  xen::DateTime mod_time = xen::getPathModificationTime(lmod->lib_path);
 
-		  printf("Mod time: %lu, load mod time: %lu\n",
-		         mod_time._data,
-		         lmod->lib_modification_time
-		        );
+		  //printf("Mod time: %lu, load mod time: %lu\n",
+		  //       mod_time._data,
+		  //       lmod->lib_modification_time
+		  //      );
 
 		  if(mod_time > lmod->lib_modification_time){
 			  xen::DateTime now = xen::getLocalTime();
@@ -235,9 +237,9 @@ namespace xen {
 			cntx.dt = cntx.time - last_time;
 
 			if(kernel.settings.hot_reload_modules){
-				printf("Checking for module reloads...\n");
+				// printf("Checking for module reloads...\n");
 				reloadModifiedKernelModules(kernel);
-				printf("Done reloads\n");
+				// printf("Done reloads\n");
 			}
 
 			for(LoadedModule* lmod = kernel.module_head;
@@ -245,7 +247,6 @@ namespace xen {
 			    lmod = lmod->next
 			    ){
 				if(lmod->module->tick != nullptr){
-					printf("Ticking module %s\n", lmod->lib_path);
 					lmod->module->tick(kernel, cntx);
 				}
 			}
