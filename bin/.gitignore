@@ -23,6 +23,7 @@ post-processing
 torus
 texture-test
 dynamic-reload
+run-example
 
 # Ignore program output
 screenshot.bmp

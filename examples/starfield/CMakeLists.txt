@@ -1,3 +1,7 @@
-xen_add_example(starfield
-  ${CMAKE_CURRENT_LIST_DIR}/main.cpp
-)
+add_library(starfield SHARED ${CMAKE_CURRENT_LIST_DIR}/starfield.cpp)
+target_include_directories(starfield PRIVATE ${XEN_INCLUDE_DIRS})
+target_link_libraries(starfield xen-core)
+target_link_libraries(starfield xen-math)
+target_link_libraries(starfield xen-graphics)
+target_link_libraries(starfield xen-kernel)
+target_link_libraries(starfield xen-module-sren-rasterize)

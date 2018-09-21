@@ -32,6 +32,27 @@ function(xen_add_example TARGET_NAME)
 	)
 endfunction()
 
+
+# Adds an example application to the build process
+# TARGET_NAME -> name of the executable to add
+# All further parameters will be treated as source files for the application
+function(xen_add_example_module TARGET_NAME)
+	message("Adding example application module: ${TARGET_NAME}")
+
+	add_library(${TARGET_NAME} SHARED ${ARGN})
+
+	target_include_directories(${TARGET_NAME} PRIVATE ${XEN_INCLUDE_DIR})
+
+	target_link_libraries(${TARGET_NAME} xen-core)
+	target_link_libraries(${TARGET_NAME} xen-math)
+	target_link_libraries(${TARGET_NAME} xen-kernel)
+	target_link_libraries(${TARGET_NAME} xen-graphics)
+	target_link_libraries(${TARGET_NAME} xen-module-sren-rasterize)
+
+	# Group all examples together in IDE projects
+	set_target_properties(${TARGET_NAME} PROPERTIES FOLDER "examples")
+endfunction()
+
 add_subdirectory(quicktest)
 add_subdirectory(starfield)
 add_subdirectory(cornell-box)
@@ -41,3 +62,5 @@ add_subdirectory(post-processing)
 add_subdirectory(torus)
 add_subdirectory(texture-test)
 add_subdirectory(dynamic-reload)
+
+xen_add_example(run-example ${CMAKE_CURRENT_LIST_DIR}/example-main.cpp)
