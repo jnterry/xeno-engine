@@ -62,7 +62,7 @@
 		  }*/
 
 
-xgl::GlState* xgl::gl_state;
+xgl::GlState* xgl::gl_state = nullptr;
 
 // :TODO: this function temporary so we can call from GlDevice... once we
 // remove GraphicsDevice code this can be folded into init

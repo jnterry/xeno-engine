@@ -30,7 +30,10 @@
 
 #include <GL/glew.h>
 
-#include "ModuleGl.cpp"
+#include "ModuleGl.hxx"
+#include "Window.hxx"
+
+void doGlStateInit(void* memory_block, const u64 BLK_SIZE);
 
 namespace {
 

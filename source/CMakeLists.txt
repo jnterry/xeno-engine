@@ -48,7 +48,7 @@ if(UNIX)
 	target_link_libraries(xen-sren PUBLIC Xext)
 endif()
 
-add_library               (xen-module-gl STATIC  ${XEN_HEADERS_GL} ${XEN_SOURCES_GL})
+add_library               (xen-module-gl SHARED  ${XEN_HEADERS_GL} ${XEN_SOURCES_GL})
 target_include_directories(xen-module-gl PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/module-gl/include/)
 target_include_directories(xen-module-gl PRIVATE ${XEN_EXTLIBS_DIR}/glew-2.1.0/include/)
 target_include_directories(xen-module-gl PRIVATE ${CMAKE_CURRENT_LIST_DIR}/graphics/impl/)
