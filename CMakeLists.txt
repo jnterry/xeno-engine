@@ -51,6 +51,12 @@ macro(use_cxx11)
 endmacro(use_cxx11)
 use_cxx11()
 
+
+# Include function names in backtrace()
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set (CMAKE_CXX_FLAGS "-g -rdynamic ${CMAKE_CXX_FLAGS}")
+endif()
+
 add_subdirectory(extlibs)
 add_subdirectory(source)
 add_subdirectory(tests)

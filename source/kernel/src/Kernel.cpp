@@ -19,6 +19,13 @@
 #include <utility>
 #include <new>
 
+// sigsegv handler includes
+#include <stdio.h>
+#include <execinfo.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 namespace xen {
 
 	/////////////////////////////////////////////////////////////////////
@@ -162,11 +169,25 @@ namespace {
 		  }
 		}
 	}
-}
 
+	void sigsegvHandler(int sig) {
+		void* array[256];
+		size_t size;
+
+		// get void*'s for all entries on the stack
+		size = backtrace(array, 256);
+
+		// print out all the frames to stderr
+		fprintf(stderr, "Error: signal SIGSEGV\n", sig);
+		backtrace_symbols_fd(array, size, STDERR_FILENO);
+		exit(1);
+	}
+}
 
 namespace xen {
 	Kernel& createKernel(const KernelSettings& settings){
+		signal(SIGSEGV, sigsegvHandler);
+
 		xen::AllocatorMalloc* allocator = new AllocatorMalloc();
 
 		void* mem = allocator->allocate(sizeof(Kernel));
@@ -177,7 +198,7 @@ namespace xen {
 		return *kernel;
 	}
 
-	void* loadModule(Kernel& kernel, const char* name, const void* params){
+  StringHash loadModule(Kernel& kernel, const char* name, const void* params){
 		LoadedModule* lmod = xen::reserveType<LoadedModule>(kernel.modules);
 		char* lib_path = nullptr;
 
@@ -204,11 +225,11 @@ namespace xen {
 		}
 
 		printf("Finished initializing and loading module: %s\n", name);
-		return lmod->api;
+		return lmod->module->type_hash;
 
 	cleanup:
 		printf("Cleaning up from failed module load: %s\n", name);
-		if(lmod == nullptr){ return nullptr; }
+		if(lmod == nullptr){ return 0; }
 
 		if(lib_path != nullptr){
 			kernel.root_allocator.deallocate(lib_path);
@@ -220,7 +241,7 @@ namespace xen {
 
 		xen::freeType<LoadedModule>(kernel.modules, lmod);
 
-		return nullptr;
+		return 0;
 	}
 
 	void startKernel(Kernel& kernel){
@@ -267,8 +288,16 @@ namespace xen {
 		printf("Kernel terminating\n");
 	}
 
-	void* getModuleApi(Kernel& kernel, ModuleHandle module){
-		return ((LoadedModule*)module)->api;
+	void* getModuleApi(Kernel& kernel, StringHash hash){
+		for(LoadedModule* cur = kernel.module_head;
+		    cur != nullptr;
+		    cur = cur->next
+		   ){
+			if(cur->module->type_hash == hash){
+				return cur->api;
+			}
+		}
+		return nullptr;
 	}
 
 	void* allocate(Kernel& kernel, u32 size, u32 align){
@@ -281,10 +310,9 @@ namespace xen {
 		return kernel.root_allocator.deallocate(data);
 	}
 
-	void stopKernel(Kernel& kernel){
+	void requestKernelShutdown(Kernel& kernel){
 		kernel.stop_requested = true;
 	}
 }
-
 
 #endif
