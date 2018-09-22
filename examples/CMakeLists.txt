@@ -49,6 +49,7 @@ function(xen_add_example_module TARGET_NAME)
 	target_link_libraries(${TARGET_NAME} xen-math)
 	target_link_libraries(${TARGET_NAME} xen-kernel)
 	target_link_libraries(${TARGET_NAME} xen-graphics)
+	target_link_libraries(${TARGET_NAME} xen-sren)
 
 	# Group all examples together in IDE projects
 	set_target_properties(${TARGET_NAME} PROPERTIES FOLDER "examples")
@@ -60,7 +61,7 @@ add_subdirectory(cornell-box)
 add_subdirectory(triangle-test)
 add_subdirectory(line-test)
 add_subdirectory(post-processing)
-#add_subdirectory(torus)
+add_subdirectory(torus)
 #add_subdirectory(texture-test)
 add_subdirectory(dynamic-reload)
 
