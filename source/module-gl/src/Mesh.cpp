@@ -14,7 +14,7 @@
 #include <xen/core/File.hpp>
 #include <xen/math/vector.hpp>
 #include <xen/graphics/Mesh.hpp>
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 
 #include "Mesh.hxx"
 #include "gl_header.hxx"

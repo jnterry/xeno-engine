@@ -10,7 +10,7 @@
 #define XEN_MODULESRENRASTERIZE_MODULERASTERIZE_CPP
 
 #include "ModuleRasterize.hxx"
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 #include <xen/sren/rasterizer3d.hxx>
 #include <xen/kernel/Kernel.hpp>
 #include <xen/core/memory/utilities.hpp>

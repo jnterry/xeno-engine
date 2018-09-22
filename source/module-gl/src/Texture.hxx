@@ -11,7 +11,7 @@
 #define XEN_GL_TEXTURE_HPP
 
 #include "gl_header.hxx"
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 #include <xen/core/intrinsics.hpp>
 
 

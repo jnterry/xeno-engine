@@ -18,7 +18,7 @@
 #include <xen/graphics/Light3d.hpp>
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/Mesh.hpp>
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 
 namespace xen{
 

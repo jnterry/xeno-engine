@@ -13,7 +13,7 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/math/geometry_types.hpp>
 #include <xen/graphics/Mesh.hpp>
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 
 #include "gl_header.hxx"
 

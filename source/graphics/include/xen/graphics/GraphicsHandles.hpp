@@ -8,29 +8,12 @@
 /// \ingroup graphics
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_GRAPHICS_GRAPHICSDEVICE_TYPES_HPP
-#define XEN_GRAPHICS_GRAPHICSDEVICE_TYPES_HPP
+#ifndef XEN_GRAPHICS_GRAPHICSHANDLES_HPP
+#define XEN_GRAPHICS_GRAPHICSHANDLES_HPP
 
 #include <xen/core/intrinsics.hpp>
 
 namespace xen {
-
-	/// \brief Opaque type representing a entry point into xeno engine's rendering
-	/// system. In short, the GraphicsDevice is responsible for managing some set
-	/// of  hardware resources in order to facilitate rendering operations.
-	///
-	/// Xeno Engine supports the creation of multiple graphics devices
-	/// simultaneously, although in most applications only one will be required.
-	/// Note that the number supported is low.
-	///
-	/// One possible use case for creating multiple devices is to create one
-	/// backed by the GPU and another backed by a software only renderer.
-	/// This could allow for better use of compute resources if we can use the
-	/// GPU to 100% without using 100% of the CPU.
-	/// Additionally, it could allow for the GPU to perform real time rendering
-	/// for a game, while rendering higher fidelity raytraced images on the CPU
-	/// which may then be presented as a part of the real time application.
-	struct GraphicsDevice;
 
 	/// \brief Handle type which refers to some object owned by a GraphicsDevice
 	///

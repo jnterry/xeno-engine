@@ -11,7 +11,7 @@
 
 #include "Shader.hxx"
 #include "ModuleRasterize.hxx"
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 
 xsr::FragmentShader xsr::getShaderImpl(const xen::Shader shader){
 	return xsr::state->shader_pool.slots[shader._id].item;

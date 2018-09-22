@@ -10,7 +10,7 @@
 #ifndef XEN_SREN_MESHSTORE_HXX
 #define XEN_SREN_MESHSTORE_HXX
 
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 #include <xen/graphics/Mesh.hpp>
 #include <xen/math/vertex_group.hpp>
 #include <xen/core/memory/utilities.hpp>

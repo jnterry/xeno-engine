@@ -10,7 +10,7 @@
 #define XEN_MODULESRENRASTERIZE_SHADER_HXX
 
 #include <xen/sren/FragmentShader.hpp>
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 
 namespace xsr {
 	xen::Shader createShader(const void* source);

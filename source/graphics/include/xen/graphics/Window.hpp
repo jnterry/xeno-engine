@@ -10,7 +10,7 @@
 #define XEN_GRAPHICS_WINDOW_HPP
 
 #include <xen/math/vector_types.hpp>
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 
 namespace xen {
 

@@ -1,11 +1,8 @@
 set(XEN_HEADERS_GL
-	${CMAKE_CURRENT_LIST_DIR}/include/xen/gl/GlDevice.hpp
 )
 
 set(XEN_SOURCES_GL
   ${CMAKE_CURRENT_LIST_DIR}/src/gl_header.hxx
-
-	${CMAKE_CURRENT_LIST_DIR}/src/GlDevice.cpp
 
 	${CMAKE_CURRENT_LIST_DIR}/src/Shader.hxx
 	${CMAKE_CURRENT_LIST_DIR}/src/Shader.cpp

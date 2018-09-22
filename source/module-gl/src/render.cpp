@@ -15,7 +15,7 @@
 #include "RenderTarget.hxx"
 #include "ModuleGl.hxx"
 
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/core/array.hpp>
 #include <xen/math/utilities.hpp>

@@ -10,7 +10,7 @@
 #define XEN_MODULESRENRASTERIZE_TEXTURE_HXX
 
 #include <xen/sren/Texture.hpp>
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 
 namespace xsr {
 	xsr::Texture* getTextureImpl(const xen::Texture texture);

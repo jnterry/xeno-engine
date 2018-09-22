@@ -10,7 +10,7 @@
 #ifndef XEN_MODULESRENRASTERIZE_RENDER_HXX
 #define XEN_MODULESRENRASTERIZE_RENDER_HXX
 
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/math/geometry_types.hpp>
 #include <xen/core/array_types.hpp>

@@ -10,7 +10,7 @@
 #ifndef XEN_MODULESRENRASTERIZE_MESH_HXX
 #define XEN_MODULESRENRASTERIZE_MESH_HXX
 
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 
 namespace xsr {
 	struct RasterizerMesh;

@@ -10,7 +10,7 @@
 #ifndef XEN_GRAPHICS_GRAPHICSMODULEAPI_HPP
 #define XEN_GRAPHICS_GRAPHICSMODULEAPI_HPP
 
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/Mesh_types.hpp>
 #include <xen/math/geometry_types.hpp>

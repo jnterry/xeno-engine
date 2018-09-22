@@ -11,7 +11,7 @@
 
 #include "RenderTarget.hxx"
 #include "ModuleRasterize.hxx"
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 #include <xen/graphics/Window.hxx>
 #include <xen/sren/RenderTarget.hxx>
 #include <xen/sren/PostProcessor.hpp>

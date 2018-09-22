@@ -9,7 +9,7 @@
 #ifndef XEN_GL_RENDER_TARGET_HXX
 #define XEN_GL_RENDER_TARGET_HXX
 
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 #include <xen/graphics/Color.hpp>
 
 namespace xen {
