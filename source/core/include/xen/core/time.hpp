@@ -13,7 +13,7 @@
 /// C++ does not provide a cross platform way to measure such durations with
 /// high precision (except std::chrono - but we're trying to avoid relying on
 /// std), hence we use platform specific functions to do this. High precision
-/// measurements can be accessed with xen::getTimeStamp()
+/// measurements can be accessed with xen::getTimestamp()
 ///
 /// There is also a need for getting the local time, eg for recording the times
 /// at which log messages are generated, displaying times to the user etc.
@@ -22,7 +22,7 @@
 ///
 /// The xen::DateTime type represents these local times, and may be obtained
 /// with xen::getLocalTime(), note that this is not as precise as
-/// xen::getTimeStamp() and hence should not be used for measuing time intervals.
+/// xen::getTimestamp() and hence should not be used for measuing time intervals.
 ///
 /// \ingroup core
 ////////////////////////////////////////////////////////////////////////////////
@@ -49,7 +49,7 @@ namespace xen{
 	/// \c time_stamp_1 <= \c time_stamp_2
 	/// \todo :TODO: Check thread statement is actually true
 	/// \public \memberof Duration
-	Duration getTimeStamp();
+	Duration getTimestamp();
 
 	/// \brief Opqaue type representing a calendar date and time
 	///
@@ -79,7 +79,7 @@ namespace xen{
 	/// \brief Gets a DateTime instance representing the current local time
 	/// of the system (ie: including daylight saving, time zone, etc).
 	///
-	/// \note This isn't guarentied to be very precise, use xen::getTimeStamp
+	/// \note This isn't guarentied to be very precise, use xen::getTimestamp
 	/// for precise duration measurments, or the helper class xen::Stopwatch
 	DateTime getLocalTime();
 
@@ -249,12 +249,12 @@ namespace xen {
 	/////////////////////////////////////////////////////////////////////
 	struct Stopwatch {
 		Duration start_time;
-		inline Stopwatch() : start_time(getTimeStamp()) {}
-		inline Duration getElapsedTime() { return getTimeStamp() - start_time; }
+		inline Stopwatch() : start_time(getTimestamp()) {}
+		inline Duration getElapsedTime() { return getTimestamp() - start_time; }
 
 		/// \brief Restarts the stopwatch and returns the elapsed time just before reset
 		inline Duration restart() {
-			Duration now = getTimeStamp();
+			Duration now = getTimestamp();
 			Duration last_start = start_time;
 			start_time = now;
 			return now - last_start;

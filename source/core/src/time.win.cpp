@@ -35,7 +35,7 @@ namespace xen{
 		}
 	}
 
-	Duration getTimeStamp(){
+	Duration getTimestamp(){
 		LARGE_INTEGER time, frequency;
 		QueryPerformanceFrequency(&frequency);
 		QueryPerformanceCounter(&time);
