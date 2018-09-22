@@ -11,7 +11,6 @@
 #include <xen/math/utilities.hpp>
 #include <xen/math/quaternion.hpp>
 #include <xen/core/memory/utilities.hpp>
-#include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/String.hpp>
 
 #define STAR_COUNT 1024
@@ -19,8 +18,6 @@
 #include "../utilities.hpp"
 
 struct StarfieldState {
-	xen::ArenaLinear arena;
-
 	Vec3r       star_positions[STAR_COUNT];
 	xen::Color  star_colors   [STAR_COUNT];
 
@@ -42,12 +39,7 @@ void* init(xen::Kernel& kernel, const void* params){
 	xen::GraphicsModuleApi* mod_graphics = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, xen::hash("graphics"));
 	XenAssert(mod_graphics != nullptr, "Graphics module must be loaded before starfield module");
 
-	const constexpr u64 BLK_SIZE = sizeof(StarfieldState) + xen::kilobytes(128);
-
-	StarfieldState* ss = (StarfieldState*)xen::allocate(kernel, BLK_SIZE);
-	ss->arena.start     = xen::ptrGetAdvanced(ss, sizeof(StarfieldState));
-	ss->arena.end       = xen::ptrGetAdvanced(ss, BLK_SIZE);
-	ss->arena.next_byte = ss->arena.start;
+	StarfieldState* ss = (StarfieldState*)xen::allocate(kernel, sizeof(StarfieldState));
 
 	ss->camera.z_near = 0.001;
 	ss->camera.z_far  = 1000;
