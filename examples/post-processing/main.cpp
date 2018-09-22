@@ -8,8 +8,8 @@
 ////////////////////////////////////////////////////////////////////////////
 
 #include <cstdio>
-#include "../common.hpp"
 
+#include <xen/core/memory/Allocator.hpp>
 #include <xen/sren/PostProcessor.hpp>
 #include <xen/sren/Framebuffer.hpp>
 
