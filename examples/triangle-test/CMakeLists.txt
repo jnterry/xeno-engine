@@ -1,3 +1,3 @@
-xen_add_example(triangle-test
-  ${CMAKE_CURRENT_LIST_DIR}/main.cpp
+xen_add_example_module(triangle-test
+  ${CMAKE_CURRENT_LIST_DIR}/triangle-test.cpp
 )

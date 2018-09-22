@@ -10,6 +10,9 @@
 #define XEN_EXAMPLES_UTILITIES_HPP
 
 #include <xen/core/intrinsics.hpp>
+#include <xen/graphics/Window.hpp>
+#include <xen/graphics/GraphicsModuleApi.hpp>
+#include <xen/kernel/Kernel.hpp>
 
 namespace xen {
 	struct Window;
