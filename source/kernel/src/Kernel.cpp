@@ -198,7 +198,7 @@ namespace xen {
 
 		xen::copyBytes(&settings, &kernel->settings, sizeof(KernelSettings));
 
-		kernel->tick_scratch_space = xen::createArenaLinear(*allocator, xen::megabytes(1));
+		kernel->tick_scratch_space = xen::createArenaLinear(*allocator, xen::megabytes(16));
 
 		return *kernel;
 	}

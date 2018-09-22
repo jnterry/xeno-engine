@@ -1,163 +1,181 @@
 #include <stdio.h>
 
-#include "../common.cpp"
+#include "../utilities.hpp"
 #include "../fragment_shaders.cpp"
 #include <xen/graphics/Image.hpp>
+#include <xen/graphics/TestMeshes.hpp>
 #include <xen/sren/FragmentShader.hpp>
+#include <xen/core/memory/ArenaLinear.hpp>
 
-xen::Camera3dCylinder                  camera;
-xen::RenderParameters3d                render_params;
-xen::FixedArray<xen::LightSource3d, 1> scene_lights;
+struct State{
+	xen::Camera3dCylinder                  camera;
+	xen::RenderParameters3d                render_params;
+	xen::FixedArray<xen::LightSource3d, 1> scene_lights;
 
-xen::FixedArray<xen::VertexAttribute::Type, 4> vertex_spec;
+	xen::FixedArray<xen::VertexAttribute::Type, 4> vertex_spec;
 
-xen::Mesh    mesh_xzplane;
+	xen::Mesh    mesh_xzplane;
 
-xen::Texture texture_bricks_diffuse;
-xen::Texture texture_bricks_normal;
-xen::Texture texture_metal_diffuse;
-xen::Texture texture_metal_normal;
+	xen::Window* window;
 
-xen::Shader  shader_normal_map;
-xen::Shader  shader_phong;
+	xen::Texture texture_bricks_diffuse;
+	xen::Texture texture_bricks_normal;
+	xen::Texture texture_metal_diffuse;
+	xen::Texture texture_metal_normal;
 
-xen::FixedArray<xen::RenderCommand3d, 1> render_commands;
+	xen::Shader  shader_normal_map;
+	xen::Shader  shader_phong;
+
+	xen::FixedArray<xen::RenderCommand3d, 1> render_commands;
+};
+
+State* state = nullptr;
 
 void initRenderCommands(){
-	xen::clearToZero(render_commands);
+	xen::clearToZero(state->render_commands);
 
-	render_commands[0].primitive_type     = xen::PrimitiveType::TRIANGLES;
-	render_commands[0].color              = xen::Color::WHITE4f;
-	render_commands[0].model_matrix       = Mat4r::Identity;
-	render_commands[0].mesh               = mesh_xzplane;
-	render_commands[0].textures[0]        = texture_bricks_diffuse;
-	render_commands[0].textures[1]        = texture_bricks_normal;
-	render_commands[0].specular_exponent  = 3_r;
-	render_commands[0].specular_intensity = 0.1_r;
-	render_commands[0].shader             = shader_normal_map;
+	state->render_commands[0].primitive_type     = xen::PrimitiveType::TRIANGLES;
+	state->render_commands[0].color              = xen::Color::WHITE4f;
+	state->render_commands[0].model_matrix       = Mat4r::Identity;
+	state->render_commands[0].mesh               = state->mesh_xzplane;
+	state->render_commands[0].textures[0]        = state->texture_bricks_diffuse;
+	state->render_commands[0].textures[1]        = state->texture_bricks_normal;
+	state->render_commands[0].specular_exponent  = 3_r;
+	state->render_commands[0].specular_intensity = 0.1_r;
+	state->render_commands[0].shader             = state->shader_normal_map;
 }
 
 void initCamera(){
-	camera.z_near   = 0.001;
-	camera.z_far    = 1000;
-	camera.fov_y    = 70_deg;
-	camera.radius   = 3;
-	camera.height   = 1;
-	camera.up_dir   = Vec3r::UnitY;
-	camera.axis     = Vec3r::UnitY;
-	camera.target   = Vec3r::Origin;
-	camera.angle    = 0.0_deg;
+	state->camera.z_near   = 0.001;
+	state->camera.z_far    = 1000;
+	state->camera.fov_y    = 70_deg;
+	state->camera.radius   = 3;
+	state->camera.height   = 1;
+	state->camera.up_dir   = Vec3r::UnitY;
+	state->camera.axis     = Vec3r::UnitY;
+	state->camera.target   = Vec3r::Origin;
+	state->camera.angle    = 0.0_deg;
 }
 
 void initSceneLights(){
-	xen::clearToZero(&render_params, sizeof(xen::RenderParameters3d));
+	xen::clearToZero(&state->render_params);
 
-	scene_lights[0].type           = xen::LightSource3d::POINT;
-	scene_lights[0].point.position = Vec3r{0.5_r, 0.5_r, 0.0_r};
-	scene_lights[0].color          = Vec4f{1.0f, 0.95f, 0.8f, 0.5f};
-	scene_lights[0].attenuation    = {0.0f, 0.0f, 2.0f};
+	state->scene_lights[0].type           = xen::LightSource3d::POINT;
+	state->scene_lights[0].point.position = Vec3r{0.5_r, 0.5_r, 0.0_r};
+	state->scene_lights[0].color          = Vec4f{1.0f, 0.95f, 0.8f, 0.5f};
+	state->scene_lights[0].attenuation    = {0.0f, 0.0f, 2.0f};
 
-	render_params.ambient_light = xen::Color3f(0.1f, 0.1f, 0.1f);
-	render_params.lights        = scene_lights;
+	state->render_params.ambient_light = xen::Color3f(0.1f, 0.1f, 0.1f);
+	state->render_params.lights        = state->scene_lights;
 }
 
-void initMeshes(xen::GraphicsDevice* device, xen::ArenaLinear& arena){
+void initMeshes(xen::Kernel& kernel, xen::GraphicsModuleApi* gmod){
+	xen::ArenaLinear& arena = xen::getTickScratchSpace(kernel);
+
 	xen::MemoryTransaction transaction(arena);
 
-	vertex_spec[0] = xen::VertexAttribute::Position3r;
-	vertex_spec[1] = xen::VertexAttribute::Normal3r;
-	vertex_spec[2] = xen::VertexAttribute::Color4b;
-	vertex_spec[3] = xen::VertexAttribute::TexCoord2f;
+	state->vertex_spec[0] = xen::VertexAttribute::Position3r;
+	state->vertex_spec[1] = xen::VertexAttribute::Normal3r;
+	state->vertex_spec[2] = xen::VertexAttribute::Color4b;
+	state->vertex_spec[3] = xen::VertexAttribute::TexCoord2f;
 
-	mesh_xzplane = device->createMesh(vertex_spec,
-	                                  xen::TestMeshGeometry_UnitXzPlaneCentered
-	                                 );
+	state->mesh_xzplane = gmod->createMesh(state->vertex_spec,
+	                                       xen::TestMeshGeometry_UnitXzPlaneCentered
+	                                      );
 
 	xen::RawImage image_bricks_diffuse = xen::loadImage(arena, "bricks-diffuse.jpg");
 	xen::RawImage image_bricks_normal  = xen::loadImage(arena, "bricks-normal.jpg");
 	xen::RawImage image_metal_diffuse  = xen::loadImage(arena, "metal-plate-diffuse.jpg");
 	xen::RawImage image_metal_normal   = xen::loadImage(arena, "metal-plate-normal.jpg");
 
-	texture_bricks_diffuse = device->createTexture(&image_bricks_diffuse);
-	texture_bricks_normal  = device->createTexture(&image_bricks_normal);
-	texture_metal_diffuse  = device->createTexture(&image_metal_diffuse);
-	texture_metal_normal   = device->createTexture(&image_metal_normal);
+	state->texture_bricks_diffuse = gmod->createTexture(&image_bricks_diffuse);
+	state->texture_bricks_normal  = gmod->createTexture(&image_bricks_normal);
+	state->texture_metal_diffuse  = gmod->createTexture(&image_metal_diffuse);
+	state->texture_metal_normal   = gmod->createTexture(&image_metal_normal);
 
-	shader_normal_map = device->createShader((void*)&FragmentShader_NormalMap);
-	shader_phong      = device->createShader((void*)&FragmentShader_Phong    );
+	state->shader_normal_map = gmod->createShader((void*)&FragmentShader_NormalMap);
+	state->shader_phong      = gmod->createShader((void*)&FragmentShader_Phong    );
 }
 
-int main(int argc, char** argv){
+void* init(xen::Kernel& kernel, const void* params){
+	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, "graphics");
+	XenAssert(gmod != nullptr, "Expected graphics module to be loaded before texture-test");
+
+	state = (State*)xen::allocate(kernel, sizeof(State));
+
+	state->window = gmod->createWindow({800, 600}, "texture-test");
+
 	initCamera();
 	initSceneLights();
-
-	ExampleApplication app = createApplication("torus",
-	                                           ExampleApplication::Backend::RASTERIZER
-	                                          );
-
-	initMeshes(app.device, app.arena);
+	initMeshes(kernel, gmod);
 	initRenderCommands();
 
-	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(app.window) };
-
-	xen::Stopwatch timer;
-	real last_time = 0;
-	printf("Entering main loop\n");
-
-	FpsCounter fps_counter;
-
-	while(xen::isWindowOpen(app.window)) {
-		real time = xen::asSeconds<real>(timer.getElapsedTime());
-		real dt = time - last_time;
-		last_time = time;
-
-		xen::WindowEvent* event;
-		while((event = xen::pollEvent(app.window)) != nullptr){
-			switch(event->type){
-			case xen::WindowEvent::Closed:
-				app.device->destroyWindow(app.window);
-				break;
-			default: break;
-			}
-		}
-
-		if(xen::isKeyPressed(xen::Key::Num1, app.window)){ // bricks
-		  render_commands[0].textures[0]        = texture_bricks_diffuse;
-		  render_commands[0].textures[1]        = texture_bricks_normal;
-		  render_commands[0].specular_exponent  = 5_r;
-		  render_commands[0].specular_intensity = 0.5_r;
-		}
-		if(xen::isKeyPressed(xen::Key::Num2, app.window)){ // metal
-		  render_commands[0].textures[0]        = texture_metal_diffuse;
-			render_commands[0].textures[1]        = texture_metal_normal;
-		  render_commands[0].specular_exponent  = 100_r;
-		  render_commands[0].specular_intensity = 5_r;
-		}
-
-		if(xen::isKeyPressed(xen::Key::Num9, app.window)){ // normal
-			render_commands[0].shader = shader_normal_map;
-		}
-		if(xen::isKeyPressed(xen::Key::Num0, app.window)){ // phong
-			render_commands[0].shader = shader_phong;
-		}
-
-		handleCameraInputCylinder(app.window, camera, dt, 30);
-		render_params.camera = xen::generateCamera3d(camera);
-
-		scene_lights[0].point.position = xen::rotated(Vec3r{0.5_r, 0.5_r, 0.0_r},
-		                                              Vec3r::UnitY,
-		                                              180_deg * time
-		                                             );
-
-		app.device->clear      (app.window, xen::Color{20, 20, 20, 255});
-	  app.device->render     (app.window, viewport, render_params, render_commands);
-	  app.device->swapBuffers(app.window);
-
-	  fps_counter.update();
-	}
-	printf("Exiting main loop\n");
-
-	destroyApplication(app);
-
-	return 0;
+	return state;
 }
+
+void* load(xen::Kernel& kernel, void* data, const void* params){
+	state = (State*)data;
+	return (void*)true;
+}
+
+void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
+	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, "graphics");
+	XenAssert(gmod != nullptr, "Expected graphics module to be loaded before texture-test");
+
+	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(state->window) };
+
+	xen::WindowEvent* event;
+	while((event = xen::pollEvent(state->window)) != nullptr){
+		switch(event->type){
+		case xen::WindowEvent::Closed:
+		  gmod->destroyWindow(state->window);
+			xen::requestKernelShutdown(kernel);
+			break;
+		default: break;
+		}
+	}
+
+	if(xen::isKeyPressed(xen::Key::Num1, state->window)){ // bricks
+		state->render_commands[0].textures[0]        = state->texture_bricks_diffuse;
+		state->render_commands[0].textures[1]        = state->texture_bricks_normal;
+		state->render_commands[0].specular_exponent  = 5_r;
+		state->render_commands[0].specular_intensity = 0.5_r;
+	}
+	if(xen::isKeyPressed(xen::Key::Num2, state->window)){ // metal
+		state->render_commands[0].textures[0]        = state->texture_metal_diffuse;
+		state->render_commands[0].textures[1]        = state->texture_metal_normal;
+		state->render_commands[0].specular_exponent  = 100_r;
+		state->render_commands[0].specular_intensity = 5_r;
+	}
+
+	if(xen::isKeyPressed(xen::Key::Num9, state->window)){ // normal
+		state->render_commands[0].shader = state->shader_normal_map;
+	}
+	if(xen::isKeyPressed(xen::Key::Num0, state->window)){ // phong
+		state->render_commands[0].shader = state->shader_phong;
+	}
+
+	handleCameraInputCylinder(state->window, state->camera, xen::asSeconds<real>(cntx.dt), 30);
+	state->render_params.camera = xen::generateCamera3d(state->camera);
+
+	state->scene_lights[0].point.position = xen::rotated(Vec3r{0.5_r, 0.5_r, 0.0_r},
+	                                                     Vec3r::UnitY,
+	                                                     180_deg * xen::asSeconds<real>(cntx.time)
+	                                                    );
+
+  gmod->clear      (state->window, xen::Color{20, 20, 20, 255});
+  gmod->render     (state->window, viewport, state->render_params, state->render_commands);
+  gmod->swapBuffers(state->window);
+}
+
+void shutdown(xen::Kernel& kernel){
+	xen::deallocate(kernel, state);
+}
+
+xen::Module exported_xen_module = {
+	xen::hash("game"),
+	&init,
+	&shutdown,
+	&load,
+	&tick,
+};
