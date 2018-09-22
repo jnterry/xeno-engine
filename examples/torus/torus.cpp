@@ -153,15 +153,15 @@ void initMeshes(xen::Kernel& kernel, xen::GraphicsModuleApi* gmod){
 	state->mesh_torus_flat = gmod->createMesh(mesh_data_torus);
 
 	state->mesh_cube  = gmod->createMesh(state->vertex_spec,
-	                                       xen::TestMeshGeometry_UnitCube
-	                                      );
+	                                     xen::TestMeshGeometry_UnitCube
+	                                    );
 	state->mesh_axes = gmod->createMesh(state->vertex_spec,
-	                                      xen::TestMeshGeometry_Axes
-	                                      );
+	                                    xen::TestMeshGeometry_Axes
+	                                   );
 
 	state->mesh_xzplane = gmod->createMesh(state->vertex_spec,
-	                                         xen::TestMeshGeometry_UnitXzPlaneCentered
-	                                         );
+	                                       xen::TestMeshGeometry_UnitXzPlaneCentered
+	                                      );
 
 	state->shader_phong     = gmod->createShader((void*)&FragmentShader_Phong    );
 	state->shader_normals   = gmod->createShader((void*)&FragmentShader_Normals  );
