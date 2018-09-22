@@ -13,6 +13,7 @@
 #include <xen/core/memory/utilities.hpp>
 
 #include <cstring>
+#include <cstdarg>
 
 namespace xen {
 	StringBuffer::StringBuffer(char* buffer, u64 buffer_size,
@@ -100,6 +101,23 @@ namespace xen {
 		char* new_end = (char*)xen::ptrGetAdvanced(buffer.end, suffix_len);
 		memcpy(buffer.end, suffix, suffix_len+1); // +1 for \0
 		buffer.end = new_end;
+	}
+
+	void appendStringf(StringBuffer& buffer, const char* format, ...){
+		va_list args;
+		va_start(args, format);
+
+	  int space_end = buffer.buffer_end - buffer.end;
+
+	  int written = vsnprintf(buffer.end, space_end, format, args);
+
+	  XenAssert(written < space_end, "No room for appended string");
+	  // :TODO: we should move the string forward in the buffer if there is space
+	  // at the front, just as is done with appendString -> written will be the
+	  // number of characters that should have been written in total, so we
+	  // know total string length
+
+		va_end(args);
 	}
 
 	void resetStringBuffer(StringBuffer& buffer, const String old_val){

@@ -63,6 +63,13 @@ namespace xen {
 		return appendString(buffer, xen::makeString(prefix));
 	}
 
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Appends a string to some buffer using printf style format
+	/// string and arguments
+	/////////////////////////////////////////////////////////////////////
+	void appendStringf(StringBuffer& buffer, const char* format, ...);
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Resets a string buffer to a previous state
 	///
