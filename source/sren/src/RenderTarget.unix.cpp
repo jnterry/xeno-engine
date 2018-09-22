@@ -31,7 +31,7 @@ namespace {
 			return;
 		}
 
-		target.ximage = XCreateImage(xen::impl::unix_display,
+		target.ximage = XCreateImage(window->display,
 		                             window->visual,
 		                             32,
 		                             ZPixmap,
@@ -68,12 +68,12 @@ namespace {
 	}
 
 	#ifndef XEN_NO_XSHM_EXTENSION
-	bool canUseSharedMemory(){
+	bool canUseSharedMemory(xen::Window* window){
 		const char* display_name = XDisplayName(NULL);
 		return ((strncmp(display_name, ":",     1) == 0 ||
 		         strncmp(display_name, "unix:", 5) == 0
 		         ) &&
-		        XShmQueryExtension(xen::impl::unix_display)
+		        XShmQueryExtension(window->display)
 		        );
 	}
 
@@ -110,7 +110,7 @@ namespace {
 
 		///////////////////////////////////////////////////////////////////
 		// Attach the shared memory segment to the X Server's address space
-		if(!XShmAttach(xen::impl::unix_display, &target.shminfo)){
+		if(!XShmAttach(window->display, &target.shminfo)){
 			printf("Failed to attach shared memory segment to X Server\n");
 			shmdt(target.shminfo.shmaddr);
 			// mark segment to be destroyed after last process detaches
@@ -120,7 +120,7 @@ namespace {
 
 		///////////////////////////////////////////////////////////////////
 		// Create the image wrapping the shared memory segment
-		XImage* ximage = XShmCreateImage(xen::impl::unix_display,
+		XImage* ximage = XShmCreateImage(window->display,
 		                                 window->visual,
 		                                 32,                      //depth
 		                                 ZPixmap,                 // format
@@ -128,7 +128,7 @@ namespace {
 		                                 &target.shminfo,        // shared memory info
 		                                 target.width, target.height);
 		if(!ximage){
-			XShmDetach(xen::impl::unix_display, &target.shminfo);
+			XShmDetach(window->display, &target.shminfo);
 			shmdt(target.shminfo.shmaddr);
 			// mark segment to be destroyed after last process detaches
 			shmctl(target.shminfo.shmid, IPC_RMID, NULL);
@@ -156,7 +156,7 @@ namespace {
 
 		XDestroyImage(target.ximage);
 
-		XShmDetach(xen::impl::unix_display, &target.shminfo);
+		XShmDetach(window->display, &target.shminfo);
 		shmdt(target.shminfo.shmaddr);
 	  shmctl(target.shminfo.shmid, IPC_RMID, NULL);
 
@@ -175,7 +175,7 @@ void xsr::doPlatformRenderTargetInit(xen::Allocator* alloc,
 	}
 
 	XGCValues values;
-	GC gc = XCreateGC(xen::impl::unix_display, window->xwindow, 0, &values);
+	GC gc = XCreateGC(window->display, window->xwindow, 0, &values);
 
 	if(gc < 0) {
 		// :TODO: log
@@ -189,7 +189,7 @@ void xsr::doPlatformRenderTargetInit(xen::Allocator* alloc,
 
 	#ifndef XEN_NO_XSHM_EXTENSION
 	target.using_shared_memory = false;
-	if(canUseSharedMemory()){
+	if(canUseSharedMemory(window)){
 		createXImageShared(target, window);
 	}
 	#endif
@@ -204,7 +204,7 @@ void xsr::doPlatformRenderTargetInit(xen::Allocator* alloc,
 		return;
 	}
 
-	XFlush(xen::impl::unix_display);
+	XFlush(window->display);
 }
 
 void xsr::doPlatformRenderTargetDestruction(xen::Allocator* alloc,
@@ -242,7 +242,7 @@ void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target, th
 
 	// Make sure the previous frame has been presented before we go messing
 	// with the pixel values...
-	XSync(xen::impl::unix_display, True);
+	XSync(window->display, True);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Update the byte array we show on screen from the float array we do
@@ -277,7 +277,7 @@ void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target, th
 	// Put the image on screen
 	#ifndef XEN_NO_XSHM_EXTENSION
 	if(target.using_shared_memory){
-		XShmPutImage(xen::impl::unix_display,
+		XShmPutImage(window->display,
 		             window->xwindow,
 		             target.graphics_context,
 		             target.ximage,
@@ -289,7 +289,7 @@ void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target, th
 	#else
 	{
 	#endif
-		XPutImage(xen::impl::unix_display,
+		XPutImage(window->display,
 		          window->xwindow,
 		          target.graphics_context,
 		          target.ximage,
@@ -298,7 +298,7 @@ void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target, th
 		          target.width, target.height
 		          );
 	}
-	XFlush(xen::impl::unix_display);
+	XFlush(window->display);
 	return;
 }
 

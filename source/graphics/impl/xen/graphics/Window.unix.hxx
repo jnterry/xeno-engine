@@ -22,6 +22,8 @@ namespace xen {
 
 		::Visual* visual;
 
+		Display* display;
+
 		/*::XVisualInfo visual_info;
 
 		/// \brief Number of bits to left shift an 8bit red value by to get it
@@ -36,10 +38,6 @@ namespace xen {
 		/// in the correct location in a 32bit int for display on this window
 		u32 shift_b;*/
 	};
-
-	namespace impl {
-		extern Display* unix_display;
-	}
 }
 
 #endif

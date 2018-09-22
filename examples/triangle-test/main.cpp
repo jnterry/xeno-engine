@@ -104,11 +104,11 @@ int main(int argc, char** argv){
 			default: break;
 			}
 		}
-		handleCameraInputPlane(render_params.camera, dt);
-		if(xen::isKeyPressed(xen::Key::Num1)){ pp_antialias.disabled          = false; }
-		if(xen::isKeyPressed(xen::Key::Num2)){ pp_antialias.disabled          = true;  }
-		if(xen::isKeyPressed(xen::Key::Num3)){ pp_displayDepthBuffer.disabled = false; }
-		if(xen::isKeyPressed(xen::Key::Num4)){ pp_displayDepthBuffer.disabled = true;  }
+		handleCameraInputPlane(app.window, render_params.camera, dt);
+		if(xen::isKeyPressed(xen::Key::Num1, app.window)){ pp_antialias.disabled          = false; }
+		if(xen::isKeyPressed(xen::Key::Num2, app.window)){ pp_antialias.disabled          = true;  }
+		if(xen::isKeyPressed(xen::Key::Num3, app.window)){ pp_displayDepthBuffer.disabled = false; }
+		if(xen::isKeyPressed(xen::Key::Num4, app.window)){ pp_displayDepthBuffer.disabled = true;  }
 
 		render_commands[2].model_matrix = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
 		                                   xen::Rotation3dy(90_deg * time) *

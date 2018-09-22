@@ -156,10 +156,10 @@ int main(int argc, char** argv){
 			default: break;
 			}
 		}
-		handleCameraInputCylinder(camera, dt, 20);
+		handleCameraInputCylinder(app.window, camera, dt, 20);
 		render_params.camera = xen::generateCamera3d(camera);
-		if(xen::isKeyPressed(xen::Key::F)){ pp_fog.disabled = false; }
-		if(xen::isKeyPressed(xen::Key::G)){ pp_fog.disabled = true;  }
+		if(xen::isKeyPressed(xen::Key::F, app.window)){ pp_fog.disabled = false; }
+		if(xen::isKeyPressed(xen::Key::G, app.window)){ pp_fog.disabled = true;  }
 
 		Vec3r light_1_pos = (tall_box_center +
 		                     xen::rotated(Vec3r{0.3_r, 0.5_r, 0.0_r}, Vec3r::UnitY, 90_deg * time)

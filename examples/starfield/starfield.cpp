@@ -16,37 +16,37 @@
 
 #define STAR_COUNT 1024
 
-void handleCameraInputCylinder(xen::Camera3dCylinder& camera, real dt, real max_radius = 750_r){
+void handleCameraInputCylinder(xen::Window* win, xen::Camera3dCylinder& camera, real dt, real max_radius = 750_r){
 	// compute speed such that can get from full zoom to no zoom in 3 seconds
 	const real       camera_speed        = (max_radius / 3_r);
 	const xen::Angle camera_rotate_speed = 120_deg;
 
-	if(xen::isKeyPressed(xen::Key::ArrowUp)){
+	if(xen::isKeyPressed(xen::Key::ArrowUp, win)){
 		camera.radius -= camera_speed * dt;
 	}
-	if(xen::isKeyPressed(xen::Key::ArrowDown)){
+	if(xen::isKeyPressed(xen::Key::ArrowDown, win)){
 		camera.radius += camera_speed * dt;
 	}
 	camera.radius = xen::clamp(camera.radius, 0.005_r, max_radius);
 
-  if(xen::isKeyPressed(xen::Key::ArrowLeft)){
+	if(xen::isKeyPressed(xen::Key::ArrowLeft, win)){
 		camera.angle -= camera_rotate_speed * dt;
 	}
-  if(xen::isKeyPressed(xen::Key::ArrowRight)){
+	if(xen::isKeyPressed(xen::Key::ArrowRight, win)){
 		camera.angle += camera_rotate_speed * dt;
 	}
 
-  if(xen::isKeyPressed(xen::Key::A)){
+	if(xen::isKeyPressed(xen::Key::A, win)){
 		camera.height += camera_speed * dt;
 	}
-  if(xen::isKeyPressed(xen::Key::Z)){
+	if(xen::isKeyPressed(xen::Key::Z, win)){
 		camera.height -= camera_speed * dt;
 	}
 
-  if(xen::isKeyPressed(xen::Key::Q)){
+	if(xen::isKeyPressed(xen::Key::Q, win)){
 		camera.up_dir = xen::rotated(camera.up_dir,  Vec3r::UnitZ, 90_deg * dt);
 	}
-  if(xen::isKeyPressed(xen::Key::E)){
+	if(xen::isKeyPressed(xen::Key::E, win)){
 		camera.up_dir = xen::rotated(camera.up_dir, -Vec3r::UnitZ, 90_deg * dt);
 	}
 }
@@ -143,11 +143,6 @@ void shutdown(xen::Kernel& kernel){
 	star_state = nullptr;
 }
 
-void* load(xen::Kernel& kernel, void* data, const void* params){
-	star_state = (StarfieldState*)data;
-	return (void*)true;
-}
-
 void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(star_state->window) };
 
@@ -160,11 +155,12 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 		default: break;
 		}
 	}
-	handleCameraInputCylinder(star_state->camera, xen::asSeconds<real>(cntx.dt));
+
+	handleCameraInputCylinder(star_state->window, star_state->camera, xen::asSeconds<real>(cntx.dt));
 	star_state->render_params.camera = xen::generateCamera3d(star_state->camera);
 
 	for(u32 i = 0; i < STAR_COUNT; ++i){
-		star_state->star_positions[i].z += xen::asSeconds<real>(cntx.dt) * 10.0_r;
+		star_state->star_positions[i].z += xen::asSeconds<real>(cntx.dt) * 100.0f;
 		if(star_state->star_positions[i].z >= 100.0f){
 			star_state->star_positions[i].z -= 200.0f;
 		}
@@ -175,6 +171,12 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 	star_state->device->render     (star_state->window, viewport,
 	                                star_state->render_params, star_state->render_commands);
 	star_state->device->swapBuffers(star_state->window);
+}
+
+void* load(xen::Kernel& kernel, void* data, const void* params){
+	star_state = (StarfieldState*)data;
+
+	return (void*)true;
 }
 
 xen::Module exported_xen_module = {

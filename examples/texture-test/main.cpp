@@ -121,27 +121,27 @@ int main(int argc, char** argv){
 			}
 		}
 
-		if(xen::isKeyPressed(xen::Key::Num1)){ // bricks
+		if(xen::isKeyPressed(xen::Key::Num1, app.window)){ // bricks
 		  render_commands[0].textures[0]        = texture_bricks_diffuse;
 		  render_commands[0].textures[1]        = texture_bricks_normal;
 		  render_commands[0].specular_exponent  = 5_r;
 		  render_commands[0].specular_intensity = 0.5_r;
 		}
-		if(xen::isKeyPressed(xen::Key::Num2)){ // metal
+		if(xen::isKeyPressed(xen::Key::Num2, app.window)){ // metal
 		  render_commands[0].textures[0]        = texture_metal_diffuse;
 			render_commands[0].textures[1]        = texture_metal_normal;
 		  render_commands[0].specular_exponent  = 100_r;
 		  render_commands[0].specular_intensity = 5_r;
 		}
 
-		if(xen::isKeyPressed(xen::Key::Num9)){ // normal
+		if(xen::isKeyPressed(xen::Key::Num9, app.window)){ // normal
 			render_commands[0].shader = shader_normal_map;
 		}
-		if(xen::isKeyPressed(xen::Key::Num0)){ // phong
+		if(xen::isKeyPressed(xen::Key::Num0, app.window)){ // phong
 			render_commands[0].shader = shader_phong;
 		}
 
-		handleCameraInputCylinder(camera, dt, 30);
+		handleCameraInputCylinder(app.window, camera, dt, 30);
 		render_params.camera = xen::generateCamera3d(camera);
 
 		scene_lights[0].point.position = xen::rotated(Vec3r{0.5_r, 0.5_r, 0.0_r},

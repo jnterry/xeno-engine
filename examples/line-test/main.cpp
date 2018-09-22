@@ -93,7 +93,7 @@ int main(int argc, char** argv){
 			default: break;
 			}
 		}
-		handleCameraInputPlane(render_params.camera, dt);
+		handleCameraInputPlane(app.window, render_params.camera, dt);
 
 		// Rendering
 	  app.device->clear      (app.window, xen::Color{20, 20, 20, 255});

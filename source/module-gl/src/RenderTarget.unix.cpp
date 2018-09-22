@@ -62,8 +62,8 @@ namespace xen {
 			/////////////////////////////////////////////////////////////////////
 			// Get list of supported frame buffer configurations
 			int          fb_config_count = 0;
-			GLXFBConfig* fb_configs = glXChooseFBConfig(xen::impl::unix_display,
-			                                            DefaultScreen(xen::impl::unix_display),
+			GLXFBConfig* fb_configs = glXChooseFBConfig(window->display,
+			                                            DefaultScreen(window->display),
 			                                            gl_attribs,
 			                                            &fb_config_count
 			                                           );
@@ -80,10 +80,10 @@ namespace xen {
 			/////////////////////////////////////////////////////////////////////
 			// Create an old GL context so we can get function pointer to
 			// glXCreateContextAttribsARBProc
-			XVisualInfo* visual_info = glXGetVisualFromFBConfig(xen::impl::unix_display,
-			                                           fb_configs[0]
-			                                          );
-			GLXContext ctx_old = glXCreateContext(xen::impl::unix_display,
+			XVisualInfo* visual_info = glXGetVisualFromFBConfig(window->display,
+			                                                    fb_configs[0]
+			                                                   );
+			GLXContext ctx_old = glXCreateContext(window->display,
 			                                      visual_info,
 			                                      0,
 			                                      GL_TRUE
@@ -95,8 +95,8 @@ namespace xen {
 
 			/////////////////////////////////////////////////////////////////////
 			// Destroy the old context
-			glXMakeCurrent(xen::impl::unix_display, 0, 0);
-			glXDestroyContext(xen::impl::unix_display, ctx_old);
+			glXMakeCurrent(window->display, 0, 0);
+			glXDestroyContext(window->display, ctx_old);
 			if (!glXCreateContextAttribsARB) {
 				printf("ERROR: glXCreateContextAttribsARB() not found\n");
 				XenBreak();
@@ -113,7 +113,7 @@ namespace xen {
 
 			/////////////////////////////////////////////////////////////////////
 			// Create the GL Context
-			result->gl_context = glXCreateContextAttribsARB(xen::impl::unix_display,
+			result->gl_context = glXCreateContextAttribsARB(window->display,
 			                                                fb_configs[0],
 			                                                NULL,
 			                                                true,
@@ -125,18 +125,18 @@ namespace xen {
 		}
 
 		void destroyRenderTarget(RenderTargetImpl* target){
-			glXDestroyContext(xen::impl::unix_display, target->gl_context);
+			glXDestroyContext(target->window->display, target->gl_context);
 		}
 
 		void makeCurrent(RenderTargetImpl* target){
-			glXMakeCurrent(xen::impl::unix_display,
+			glXMakeCurrent(target->window->display,
 			               target->drawable,
 			               target->gl_context
 			              );
 		}
 
 		void swapBuffers(RenderTargetImpl* target){
-			glXSwapBuffers(xen::impl::unix_display, target->drawable);
+			glXSwapBuffers(target->window->display, target->drawable);
 		}
 	}
 

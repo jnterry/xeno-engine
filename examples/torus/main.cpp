@@ -204,33 +204,33 @@ int main(int argc, char** argv){
 		}
 
 		// :TODO: these should use window events...
-		if(xen::isKeyPressed(xen::Key::Num1)){ // points
+		if(xen::isKeyPressed(xen::Key::Num1, app.window)){ // points
 		  render_commands[0].primitive_type = xen::PrimitiveType::POINTS;
 		}
-		if(xen::isKeyPressed(xen::Key::Num2)){ // lines
+		if(xen::isKeyPressed(xen::Key::Num2, app.window)){ // lines
 		  render_commands[0].primitive_type = xen::PrimitiveType::LINES;
 		}
-		if(xen::isKeyPressed(xen::Key::Num3)){ // triangles
+		if(xen::isKeyPressed(xen::Key::Num3, app.window)){ // triangles
 			render_commands[0].primitive_type = xen::PrimitiveType::TRIANGLES;
 		}
-		if(xen::isKeyPressed(xen::Key::Num4)){ // normals
+		if(xen::isKeyPressed(xen::Key::Num4, app.window)){ // normals
 			render_commands[0].shader = shader_normals;
 			render_commands[1].shader = shader_normals;
 		}
-		if(xen::isKeyPressed(xen::Key::Num5)){ // world positions
+		if(xen::isKeyPressed(xen::Key::Num5, app.window)){ // world positions
 			render_commands[0].shader = shader_positions;
 			render_commands[1].shader = shader_positions;
 		}
-		if(xen::isKeyPressed(xen::Key::Num6)){ // Shaded
+		if(xen::isKeyPressed(xen::Key::Num6, app.window)){ // Shaded
 			render_commands[0].shader = shader_phong;
 			render_commands[1].shader = shader_phong;
 		}
-		if(xen::isKeyPressed(xen::Key::Num7)){ // Basic Shaded
+		if(xen::isKeyPressed(xen::Key::Num7, app.window)){ // Basic Shaded
 			render_commands[0].shader = xen::makeNullGraphicsHandle<xen::Shader>();
 			render_commands[1].shader = xen::makeNullGraphicsHandle<xen::Shader>();
 		}
 
-		handleCameraInputCylinder(camera, dt, 30);
+		handleCameraInputCylinder(app.window, camera, dt, 30);
 		render_params.camera = xen::generateCamera3d(camera);
 
 		for(u32 i = 0; i < 3; ++i){

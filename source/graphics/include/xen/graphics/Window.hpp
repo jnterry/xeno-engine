@@ -224,7 +224,10 @@ namespace xen {
 	WindowEvent* pollEvent(Window* window);
 
 	/// \brief Determines if a keyboard key is currently pressed
-	bool isKeyPressed(Key key);
+	/// \todo :TODO: only reason we need to pass a Window in is that on unix
+	/// we need a display connection -> turn window management into a reloadable
+	/// module so we can store some global state
+	bool isKeyPressed(Key key, Window* window);
 }
 
 #endif

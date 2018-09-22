@@ -84,13 +84,13 @@ void destroyApplication(ExampleApplication& app);
 /////////////////////////////////////////////////////////////////////
 /// \brief Handles the control input for a cylinder orbit camera
 /////////////////////////////////////////////////////////////////////
-void handleCameraInputCylinder(xen::Camera3dCylinder& camera, real dt, real max_radius = 750_r);
+void handleCameraInputCylinder(xen::Window* win, xen::Camera3dCylinder& camera, real dt, real max_radius = 750_r);
 
 /////////////////////////////////////////////////////////////////////
 /// \brief Handles the control input for a camera which moves around in
 /// the xy plane
 /////////////////////////////////////////////////////////////////////
-void handleCameraInputPlane   (xen::Camera3d& camera, real dt);
+void handleCameraInputPlane   (xen::Window* win, xen::Camera3d& camera, real dt);
 
 /// \brief Utility for measuring fps
 struct FpsCounter {
