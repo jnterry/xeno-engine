@@ -2,7 +2,7 @@
 #include <xen/math/vector_types.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 
-#include "cornell-box.hpp"
+#include "mesh.hpp"
 
 // ---------------------------------------------------------------------------
 // Define room coordinates
