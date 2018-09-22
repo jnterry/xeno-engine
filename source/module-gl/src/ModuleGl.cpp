@@ -95,13 +95,26 @@ namespace {
 		xen::deallocate(kernel, xgl::gl_state);
 	}
 
+	void pushOp(const xen::RenderOp& op){
+		switch(op.type){
+		case xen::RenderOp::CLEAR:
+			xgl::clearTarget(op.clear.target, op.clear.color);
+			break;
+		case xen::RenderOp::DRAW:
+			xgl::render(op.draw.target, op.draw.viewport, *op.draw.params, *op.draw.commands);
+			break;
+		case xen::RenderOp::SWAP_BUFFERS:
+			xgl::swapBuffers(op.swap_buffers.window);
+			break;
+		}
+	}
+
 	void* load(xen::Kernel& kernel, void* data, const void* params){
 		xgl::gl_state = (xgl::GlState*)data;
 
 
 		xgl::gl_state->api.createWindow            = &xgl::createWindow;
 		xgl::gl_state->api.destroyWindow           = &xgl::destroyWindow;
-		xgl::gl_state->api.swapBuffers             = &xgl::swapBuffers;
 
 		xgl::gl_state->api._createMeshFromMeshData = &xgl::createMesh;
 		xgl::gl_state->api.destroyMesh             = &xgl::destroyMesh;
@@ -111,8 +124,7 @@ namespace {
 		xgl::gl_state->api.createTexture           = &xgl::createTexture;
 		xgl::gl_state->api.destroyTexture          = &xgl::destroyTexture;
 
-		xgl::gl_state->api._clearTarget            = &xgl::clearTarget;
-		xgl::gl_state->api._renderToTarget         = &xgl::render;
+		xgl::gl_state->api.pushOp                  = &pushOp;
 
 		return &xgl::gl_state->api;
 	}

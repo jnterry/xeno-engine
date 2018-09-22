@@ -81,6 +81,20 @@ namespace {
 		xen::deallocate(kernel, xsr::state);
 	}
 
+	void pushOp(const xen::RenderOp& op){
+		switch(op.type){
+		case xen::RenderOp::CLEAR:
+			xsr::clear(op.clear.target, op.clear.color);
+			break;
+		case xen::RenderOp::DRAW:
+			xsr::render(op.draw.target, op.draw.viewport, *op.draw.params, *op.draw.commands);
+			break;
+		case xen::RenderOp::SWAP_BUFFERS:
+			xsr::swapBuffers(op.swap_buffers.window);
+			break;
+		}
+	}
+
 	void* load(xen::Kernel& kernel, void* data, const void* params){
 		xsr::state = (xsr::ModuleRasterize*)data;
 
@@ -89,7 +103,6 @@ namespace {
 
 		api.createWindow            = &xsr::createWindow;
 		api.destroyWindow           = &xsr::destroyWindow;
-		api.swapBuffers             = &xsr::swapBuffers;
 		api._createMeshFromMeshData = &xsr::createMesh;
 		api.destroyMesh             = &xsr::destroyMesh;
 		api._updateMeshVertexData   = &xsr::updateMeshVertexData;
@@ -97,8 +110,7 @@ namespace {
 		api.destroyTexture          = &xsr::destroyTexture;
 		api.createShader            = &xsr::createShader;
 		api.destroyShader           = &xsr::destroyShader;
-		api._clearTarget            = &xsr::clear;
-		api._renderToTarget         = &xsr::render;
+		api.pushOp                  = &pushOp;
 
 		return &api;
 	}

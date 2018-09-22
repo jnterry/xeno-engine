@@ -20,6 +20,45 @@ namespace xen {
 	struct Window;
 	struct RawImage;
 
+	/// \brief Structure which represents some rendering operation
+	/// that may be performed by the graphics module
+	struct RenderOp {
+		enum Type {
+			CLEAR,
+			DRAW,
+			SWAP_BUFFERS,
+		};
+
+		Type type;
+
+		struct ClearParams {
+			xen::RenderTarget target;
+			xen::Color color;
+		};
+
+		struct DrawParams {
+			xen::RenderTarget            target;
+			xen::Aabb2u                  viewport;
+			xen::RenderParameters3d*     params;
+			xen::Array<RenderCommand3d>* commands;
+		};
+
+		struct SwapBufferParams {
+			xen::Window* window;
+		};
+
+		union {
+			ClearParams      clear;
+			DrawParams       draw;
+			SwapBufferParams swap_buffers;
+		};
+
+		// Named constructors for RenderOp
+		static RenderOp Clear(xen::RenderTarget, xen::Color color);
+		static RenderOp Draw(xen::RenderTarget, xen::Aabb2u viewport, xen::RenderParameters3d& params, xen::Array<RenderCommand3d>& commands);
+		static RenderOp SwapBuffers(xen::Window* window);
+	};
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Type representing the Api that a graphics module is expected
 	/// to expose
@@ -27,7 +66,6 @@ namespace xen {
 	struct GraphicsModuleApi {
 		Window* (*createWindow )(Vec2u size, const char* title);
 		void    (*destroyWindow)(Window* window);
-		void    (*swapBuffers  )(Window* window);
 
 		Mesh    (*_createMeshFromMeshData)(const MeshData* mesh_data);
 		void    (*destroyMesh           )(Mesh mesh);
@@ -62,13 +100,14 @@ namespace xen {
 		Shader  (*createShader  )(const void* source);
 		void    (*destroyShader )(Shader shader     );
 
-		void    (*_clearTarget   )(RenderTarget target, xen::Color color);
-
-		void    (*_renderToTarget)(RenderTarget                window,
-		                          const Aabb2u&                viewport,
-		                          const RenderParameters3d&    params,
-		                          const Array<RenderCommand3d> commands
-		                         );
+		/// \brief Pushes some rendering operation
+		/// Depending on the operation and graphics api in use, this may cause
+		/// rendering to take place immediately, or to place it in some internal
+		/// queue. In either case, it is guarantied the operation will be performed
+		/// at least by the point the tick() function of the graphics module
+		/// terminates, and the visible behaviour will be as though the operation
+		/// were completed immediately as it was called
+		void (*pushOp)(const xen::RenderOp& op);
 
 		/////////////////////////////////////////////////////////////////////
 		/////////////////////////////////////////////////////////////////////
@@ -125,28 +164,6 @@ namespace xen {
 		/////////////////////////////////////////////////////////////////////
 		Mesh createMesh(const VertexSpec& vertex_spec, u32 vertex_count, ...);
 
-		inline void clear(RenderTarget& target, xen::Color color){
-		  this->_clearTarget(target, color);
-		}
-		void clear(Window* window,       xen::Color color);
-
-		/////////////////////////////////////////////////////////////////////
-		/// \brief Renders a series of render commands to some viewport of
-		/// some RenderTarget
-		/////////////////////////////////////////////////////////////////////
-		inline void render(RenderTarget target,
-		                   const xen::Aabb2u& viewport,
-		                   const RenderParameters3d& params,
-		                   const xen::Array<RenderCommand3d> commands
-		                  ){
-			this->_renderToTarget(target, viewport, params, commands);
-		}
-		void render(Window* window,
-		            const xen::Aabb2u& viewport,
-		            const RenderParameters3d& params,
-		            const xen::Array<RenderCommand3d> commands
-		           );
-
 		inline void updateMeshVertexData(Mesh mesh,
 		                                 u32 attrib_index,
 		                                 void* new_data,
@@ -155,6 +172,12 @@ namespace xen {
 		                                 ){
 			this->_updateMeshVertexData(mesh, attrib_index, new_data, start_vertex, end_vertex);
 		}
+
+		void clear(xen::RenderTarget target, xen::Color color);
+		void clear(Window* window, xen::Color color);
+		void render(xen::RenderTarget, xen::Aabb2u viewport, xen::RenderParameters3d& params, xen::Array<RenderCommand3d> commands);
+		void render(xen::Window*, xen::Aabb2u viewport, xen::RenderParameters3d& params, xen::Array<RenderCommand3d> commands);
+		void swapBuffers(Window* window);
 	};
 }
 

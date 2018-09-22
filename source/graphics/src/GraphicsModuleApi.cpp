@@ -17,6 +17,33 @@
 
 #include <cstdarg>
 
+xen::RenderOp xen::RenderOp::Clear(xen::RenderTarget target, xen::Color color){
+	xen::RenderOp result;
+	result.type         = xen::RenderOp::CLEAR;
+	result.clear.target = target;
+	result.clear.color  = color;
+	return result;
+}
+
+xen::RenderOp xen::RenderOp::Draw(xen::RenderTarget target, xen::Aabb2u viewport,
+                    xen::RenderParameters3d& params, xen::Array<RenderCommand3d>& commands
+                   ){
+	xen::RenderOp result;
+	result.type          = xen::RenderOp::DRAW;
+	result.draw.target   = target;
+	result.draw.viewport = viewport;
+	result.draw.params   = &params;
+	result.draw.commands = &commands;
+	return result;
+}
+
+xen::RenderOp xen::RenderOp::SwapBuffers(xen::Window* window){
+	xen::RenderOp result;
+	result.type                = xen::RenderOp::SWAP_BUFFERS;
+	result.swap_buffers.window = window;
+	return result;
+}
+
 namespace xen {
 	Mesh GraphicsModuleApi::createMesh(const VertexSpec&         vertex_spec,
 	                                   const MeshAttribArrays& mesh_geom
@@ -102,22 +129,39 @@ namespace xen {
 
 		return this->createMesh(&md);
 	}
+}
 
-	void GraphicsModuleApi::clear(Window* window, xen::Color color){
+void xen::GraphicsModuleApi::clear(xen::RenderTarget target, xen::Color color){
+	this->pushOp(xen::RenderOp::Clear(target, color));
+}
+
+void xen::GraphicsModuleApi::clear(xen::Window* window, xen::Color color){
+	if(window->is_open){
+		this->clear(window->render_target, color);
+	}
+}
+
+
+void xen::GraphicsModuleApi::render(xen::RenderTarget target,
+                                    xen::Aabb2u viewport,
+                                    xen::RenderParameters3d& params,
+                                    xen::Array<RenderCommand3d> commands
+                                   ){
+	this->pushOp(xen::RenderOp::Draw(target, viewport, params, commands));
+}
+
+void xen::GraphicsModuleApi::render(xen::Window* window,
+                                    xen::Aabb2u viewport,
+                                    xen::RenderParameters3d& params,
+                                    xen::Array<RenderCommand3d> commands
+                                   ){
 		if(window->is_open){
-			this->_clearTarget(window->render_target, color);
+			this->render(window->render_target, viewport, params, commands);
 		}
 	}
 
-	void GraphicsModuleApi::render(Window* window,
-	                            const xen::Aabb2u& viewport,
-	                            const RenderParameters3d& params,
-	                            const xen::Array<RenderCommand3d> commands
-	                            ){
-		if(window->is_open){
-			this->_renderToTarget(window->render_target, viewport, params, commands);
-		}
-	}
+void xen::GraphicsModuleApi::swapBuffers(xen::Window* window){
+	this->pushOp(xen::RenderOp::SwapBuffers(window));
 }
 
 #endif
