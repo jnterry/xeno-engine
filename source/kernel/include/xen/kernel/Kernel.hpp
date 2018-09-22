@@ -62,7 +62,7 @@ namespace xen {
 	/// \return Id of the loaded module which may be used later to fetch
 	/// the module's exposed api - will return 0 if failed to load the module
 	/////////////////////////////////////////////////////////////////////
-	StringHash loadModule(Kernel& kernel, const char* lib_path, const void* params);
+	StringHash loadModule(Kernel& kernel, const char* lib_path, const void* params = nullptr);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves the API exposed by some module. Note that this
