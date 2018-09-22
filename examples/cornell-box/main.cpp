@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #include "../common.cpp"
-#include "cornell-box.hpp"
+#include "mesh.hpp"
 #include <xen/graphics/Image.hpp>
 
 // Locations for the boxes in the cornell scene
