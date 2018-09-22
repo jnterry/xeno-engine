@@ -421,7 +421,7 @@ namespace xen {
 			case xen::VertexAttribute::Color3f: {
 				xen::Color3f* src_buf = (xen::Color3f*)mesh_data->vertex_data[aspect.color];
 				for(u32 i = 0; i < mesh_data->vertex_count; ++i){
-					mesh_geom->color[i] = xen::Color(src_buf[i]);
+					mesh_geom->color[i] = xen::makeColor(src_buf[i]);
 				}
 				break;
 			}
