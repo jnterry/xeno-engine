@@ -24,7 +24,7 @@ namespace xsr {
 	void resizeRenderTarget(xsr::RenderTarget* target, Vec2u size);
 
 
-	void clear(xen::RenderTarget& target, xen::Color color);
+	void clear(xen::RenderTarget target, xen::Color color);
 	xen::RenderTarget createRenderTarget (Vec2u size, xen::Window* window);
 	void destroyRenderTarget(xen::RenderTarget render_target);
 	xen::Window* createWindow(Vec2u size, const char* title);

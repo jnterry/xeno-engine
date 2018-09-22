@@ -64,7 +64,7 @@ namespace xen {
 
 		void    (*_clearTarget   )(RenderTarget target, xen::Color color);
 
-		void    (*_renderToTarget)(RenderTarget                 window,
+		void    (*_renderToTarget)(RenderTarget                window,
 		                          const Aabb2u&                viewport,
 		                          const RenderParameters3d&    params,
 		                          const Array<RenderCommand3d> commands
@@ -135,10 +135,10 @@ namespace xen {
 		/// some RenderTarget
 		/////////////////////////////////////////////////////////////////////
 		inline void render(RenderTarget target,
-		            const xen::Aabb2u& viewport,
-		            const RenderParameters3d& params,
-		            const xen::Array<RenderCommand3d> commands
-		            ){
+		                   const xen::Aabb2u& viewport,
+		                   const RenderParameters3d& params,
+		                   const xen::Array<RenderCommand3d> commands
+		                  ){
 			this->_renderToTarget(target, viewport, params, commands);
 		}
 		void render(Window* window,

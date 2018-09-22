@@ -17,6 +17,9 @@
 
 #include "Shader.hxx"
 #include "Texture.hxx"
+#include "RenderTarget.hxx"
+#include "Mesh.hxx"
+#include "render.hxx"
 
 #include <new>
 
@@ -62,7 +65,7 @@ void doRasterizerStateInit(void* block, const u64 BLK_SIZE){
 }
 
 namespace {
-	void* init(xen::Kernel& kernel){
+	void* init(xen::Kernel& kernel, const void* params){
 		const u64 BLK_SIZE = xen::megabytes(4);
 
 		void* data = xen::allocate(kernel, BLK_SIZE, alignof(xsr::ModuleRasterize));
@@ -77,6 +80,40 @@ namespace {
 		// :TODO: deallocate everything else, eg, mesh data
 		xen::deallocate(kernel, xsr::state);
 	}
+
+	void* load(xen::Kernel& kernel, void* data, const void* params){
+		xsr::state = (xsr::ModuleRasterize*)data;
+
+		xen::GraphicsModuleApi& api = xsr::state->api;
+
+
+		api.createWindow            = &xsr::createWindow;
+		api.destroyWindow           = &xsr::destroyWindow;
+		api.swapBuffers             = &xsr::swapBuffers;
+		api._createMeshFromMeshData = &xsr::createMesh;
+		api.destroyMesh             = &xsr::destroyMesh;
+		api._updateMeshVertexData   = &xsr::updateMeshVertexData;
+		api.createTexture           = &xsr::createTexture;
+		api.destroyTexture          = &xsr::destroyTexture;
+		api.createShader            = &xsr::createShader;
+		api.destroyShader           = &xsr::destroyShader;
+		api._clearTarget            = &xsr::clear;
+		api._renderToTarget         = &xsr::render;
+
+		return &api;
+	}
+
+	void tick(xen::Kernel& kernel, const xen::TickContext& tick){
+		// no-op
+	}
 }
+
+xen::Module exported_xen_module = {
+	xen::hash("graphics"),
+	&init,
+	&shutdown,
+	&load,
+	&tick
+};
 
 #endif

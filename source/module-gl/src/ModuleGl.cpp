@@ -14,6 +14,7 @@
 #include <xen/kernel/Kernel.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/memory/utilities.hpp>
+#include <xen/core/String.hpp>
 
 #include "ModuleGl.hxx"
 #include "Window.hxx"
@@ -123,6 +124,7 @@ namespace {
 
 
 xen::Module exported_xen_module = {
+	xen::hash("graphics"),
 	&init,
 	&shutdown,
 	&load,

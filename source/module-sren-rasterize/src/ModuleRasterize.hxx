@@ -12,6 +12,7 @@
 #include <xen/core/memory/ArenaPool.hpp>
 #include <xen/sren/rasterizer3d.hxx>
 #include <xen/sren/RenderTarget.hxx>
+#include <xen/graphics/GraphicsModuleApi.hpp>
 
 #include "Texture.hxx"
 
@@ -38,6 +39,8 @@ namespace xsr {
 		xen::Allocator*                     render_target_alloc;
 
 		threadpool thpool;
+
+		xen::GraphicsModuleApi api;
 	};
 
 	extern ModuleRasterize* state;

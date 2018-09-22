@@ -56,7 +56,7 @@ target_link_libraries     (xen-module-gl libglew_shared)
 target_link_libraries     (xen-module-gl xen-graphics)
 target_link_libraries     (xen-module-gl xen-kernel  )
 
-add_library               (xen-module-sren-rasterize STATIC  ${XEN_HEADERS_MODULE_SREN_RASTERIZE} ${XEN_SOURCES_MODULE_SREN_RASTERIZE})
+add_library               (xen-module-sren-rasterize SHARED  ${XEN_HEADERS_MODULE_SREN_RASTERIZE} ${XEN_SOURCES_MODULE_SREN_RASTERIZE})
 target_include_directories(xen-module-sren-rasterize PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/module-sren-rasterize/include/)
 target_include_directories(xen-module-sren-rasterize PRIVATE ${CMAKE_CURRENT_LIST_DIR}/graphics/impl/)
 target_include_directories(xen-module-sren-rasterize PRIVATE ${CMAKE_CURRENT_LIST_DIR}/sren/impl/)

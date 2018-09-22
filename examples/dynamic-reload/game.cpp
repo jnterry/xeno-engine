@@ -3,6 +3,7 @@
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/time.hpp>
+#include <xen/core/String.hpp>
 
 #include "game.hpp"
 
@@ -54,6 +55,7 @@ void shutdown(xen::Kernel& kernel){
 }
 
 xen::Module exported_xen_module = {
+	xen::hash("game"),
 	&init,
 	&shutdown,
 	&load,

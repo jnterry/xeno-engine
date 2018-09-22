@@ -11,6 +11,7 @@
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/time.hpp>
+#include <xen/core/String.hpp>
 
 namespace xen {
 
@@ -42,6 +43,14 @@ namespace xen {
 		typedef void  (*FunctionShutdown  )(Kernel& kernel);
 		typedef void* (*FunctionLoad      )(Kernel& kernel, void* data, const void* params);
 		typedef void  (*FunctionTick)      (Kernel& kernel, const TickContext& tick);
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief xen::hash of the name of type of this module, this is used to
+		/// support fetching module by type name, for example "graphics", "sound",
+		/// etc. Note that type names may be fulfilled by multiple modules, for
+		/// example, "graphics" may have an OpenGL implementation, DirectX, etc
+		/////////////////////////////////////////////////////////////////////
+		const StringHash type_hash;
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Function which should be called exactly once in order to perform

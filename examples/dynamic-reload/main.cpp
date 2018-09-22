@@ -13,7 +13,7 @@ int main(){
 	GameModuleParams game_params;
 	game_params.increment_delay = 100;
 
-	void* module_game = xen::loadModule(kernel, "dynamic-reload-game", &game_params);
+  auto module_game = xen::loadModule(kernel, "dynamic-reload-game", &game_params);
 
 	printf("Loaded game module: %p\n", module_game);
 

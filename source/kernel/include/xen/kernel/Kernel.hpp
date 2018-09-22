@@ -11,6 +11,7 @@
 
 #include <xen/kernel/Module.hpp>
 #include <xen/core/intrinsics.hpp>
+#include <xen/core/String.hpp>
 
 namespace xen {
 
@@ -29,9 +30,6 @@ namespace xen {
 	/// \brief Opaque type representing all kernel state
 	/////////////////////////////////////////////////////////////////////
 	struct Kernel;
-
-	/// \brief Opaque handle to a module loaded by the Kernel
-	typedef void* ModuleHandle;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Creates a new Kernel
@@ -62,16 +60,20 @@ namespace xen {
 	/// is true
 	///
 	/// \return Id of the loaded module which may be used later to fetch
-	/// the module's exposed api
+	/// the module's exposed api - will return 0 if failed to load the module
 	/////////////////////////////////////////////////////////////////////
-	ModuleHandle loadModule(Kernel& kernel, const char* lib_path, const void* params);
+	StringHash loadModule(Kernel& kernel, const char* lib_path, const void* params);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves the API exposed by some module. Note that this
 	/// should not be cached between ticks, as if the kernel setting
 	/// hot_reload_modules is enabled then it can change upon reload
 	/////////////////////////////////////////////////////////////////////
-	void* getModuleApi(Kernel& kernel, ModuleHandle module);
+	void* getModuleApi(Kernel& kernel, u64 module_type_hash);
+
+	inline void* getModuleApi(Kernel& kernel, const char* type_name){
+		return getModuleApi(kernel, xen::hash(type_name));
+	}
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Allows a module to allocate memory through the kernel

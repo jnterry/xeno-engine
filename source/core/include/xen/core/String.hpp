@@ -82,6 +82,13 @@ namespace xen {
 	inline bool startsWith(const char* string, char prefix){
 		return *string == prefix;
 	}
+
+	typedef u64 StringHash;
+
+	inline StringHash constexpr hash(const char* string){
+		return *string == '\0' ? 5381 : (StringHash)(*string) + 33 * hash(&string[1]);
+	}
+
 }
 
 #endif

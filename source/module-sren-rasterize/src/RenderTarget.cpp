@@ -22,7 +22,7 @@ xsr::RenderTarget* xsr::getRenderTargetImpl(xen::RenderTarget target){
 	return &xsr::state->render_target_pool.slots[target._id].item;
 }
 
-void xsr::clear(xen::RenderTarget& target, xen::Color color){
+void xsr::clear(xen::RenderTarget target, xen::Color color){
 	xsr::clear(*xsr::getRenderTargetImpl(target), color);
 }
 
