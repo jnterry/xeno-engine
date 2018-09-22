@@ -9,6 +9,8 @@ const char* loadGraphicsModule(xen::Kernel& kernel, const char* cli_arg){
 		xen::loadModule(kernel, "xen-module-gl");
 	} else if (strcmp(cli_arg, "rasterize") == 0){
 		xen::loadModule(kernel, "xen-module-sren-rasterize");
+	} else if (strcmp(cli_arg, "raytrace") == 0){
+		xen::loadModule(kernel, "xen-module-sren-raytrace");
 	} else {
 		printf("Invalid graphics module name: %s\n", cli_arg);
 		exit(2);

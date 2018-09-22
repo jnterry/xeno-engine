@@ -69,17 +69,17 @@ target_link_libraries     (xen-module-sren-rasterize PRIVATE xen-kernel  )
 
 
 
-#add_library               (xen-module-sren-raytrace STATIC  ${XEN_HEADERS_MODULE_SREN_RAYTRACE} ${XEN_SOURCES_MODULE_SREN_RAYTRACE})
-#target_include_directories(xen-module-sren-raytrace PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/module-sren-raytrace/include/)
-#target_include_directories(xen-module-sren-raytrace PRIVATE ${CMAKE_CURRENT_LIST_DIR}/graphics/impl/)
-#target_include_directories(xen-module-sren-raytrace PRIVATE ${CMAKE_CURRENT_LIST_DIR}/sren/impl/)
-#target_include_directories(xen-module-sren-raytrace PRIVATE ${CMAKE_CURRENT_LIST_DIR}/module-sren-rasterize/src/)
-#target_include_directories(xen-module-sren-raytrace PRIVATE ${XEN_EXTLIBS_DIR}/thpool/)
-#target_link_libraries     (xen-module-sren-raytrace PRIVATE thpool)
-#target_link_libraries     (xen-module-sren-raytrace PRIVATE pthread)
-#target_link_libraries     (xen-module-sren-raytrace PRIVATE xen-sren)
-#target_link_libraries     (xen-module-sren-raytrace PRIVATE xen-graphics)
-#target_link_libraries     (xen-module-sren-raytrace PRIVATE xen-kernel  )
+add_library               (xen-module-sren-raytrace SHARED  ${XEN_HEADERS_MODULE_SREN_RAYTRACE} ${XEN_SOURCES_MODULE_SREN_RAYTRACE})
+target_include_directories(xen-module-sren-raytrace PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/module-sren-raytrace/include/)
+target_include_directories(xen-module-sren-raytrace PRIVATE ${CMAKE_CURRENT_LIST_DIR}/graphics/impl/)
+target_include_directories(xen-module-sren-raytrace PRIVATE ${CMAKE_CURRENT_LIST_DIR}/sren/impl/)
+target_include_directories(xen-module-sren-raytrace PRIVATE ${CMAKE_CURRENT_LIST_DIR}/module-sren-rasterize/src/)
+target_include_directories(xen-module-sren-raytrace PRIVATE ${XEN_EXTLIBS_DIR}/thpool/)
+target_link_libraries     (xen-module-sren-raytrace PRIVATE thpool)
+target_link_libraries     (xen-module-sren-raytrace PRIVATE pthread)
+target_link_libraries     (xen-module-sren-raytrace PRIVATE xen-sren)
+target_link_libraries     (xen-module-sren-raytrace PRIVATE xen-graphics)
+target_link_libraries     (xen-module-sren-raytrace PRIVATE xen-kernel  )
 
 
 #add_library               (xen-module-sren-atom STATIC  ${XEN_HEADERS_MODULE_SREN_ATOM} ${XEN_SOURCES_MODULE_SREN_ATOM})

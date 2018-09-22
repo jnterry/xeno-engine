@@ -54,10 +54,10 @@ void xsr::RaytracerDevice::updateMeshVertexData(xen::Mesh mesh,
 }
 
 void xsr::RaytracerDevice::render(xen::RenderTarget target_handle,
-                                        const xen::Aabb2u& viewport,
-                                        const xen::RenderParameters3d& params,
-                                        const xen::Array<xen::RenderCommand3d> commands
-                                        ) {
+                                  const xen::Aabb2u& viewport,
+                                  const xen::RenderParameters3d& params,
+                                  const xen::Array<xen::RenderCommand3d> commands
+                                 ) {
 	xen::resetArena(render_scratch_arena);
 
 	xsr::RenderTarget& target = *this->getRenderTargetImpl(target_handle);
@@ -119,120 +119,6 @@ void xsr::RaytracerDevice::render(xen::RenderTarget target_handle,
 	                sizeof(xsr::RaytracerModel) * scene.models.size);
 
 	this->doRender(target, viewport, params, commands, non_triangle_cmds, scene);
-}
-
-
-// Data passed to a raytracer thread. This is just the parameters to
-// xsr::renderRaytracer
-struct ThreadRenderData {
-	xsr::RenderTarget*     target;
-	xen::Aabb2u                      viewport;
-	xen::Aabb2u                      rendering_bounds;
-	const xen::RenderParameters3d*   params;
-	const xsr::RaytracerScene* scene;
-
-};
-// Function that should be called by each thread to perform a block of raytracing
-void threadDoRenderWork(void* voiddata){
-	ThreadRenderData* data = (ThreadRenderData*)voiddata;
-	xsr::renderRaytrace(*data->target,
-	                          data->viewport,
-	                          *data->params,
-	                          *data->scene,
-	                          data->rendering_bounds);
-}
-
-void xsr::RaytracerDevice::doRender(xsr::RenderTarget&           target,
-                                          const xen::Aabb2u&                     viewport,
-                                          const xen::RenderParameters3d&         params,
-                                          const xen::Array<xen::RenderCommand3d> commands,
-                                          const xen::Array<u32>                  non_triangle_cmds,
-                                          const xsr::RaytracerScene&       scene){
-
-	////////////////////////////////////////////////////////////////////////////
-	// Render the triangles in the scene
-	ThreadRenderData thread_render_data[8];
-	u32 cur_y   = viewport.min.x;
-	u32 delta_y = (viewport.max.y - viewport.min.y) / XenArrayLength(thread_render_data);
-	for(u32 i = 0; i < XenArrayLength(thread_render_data); ++i){
-		thread_render_data[i].target        = &target;
-		thread_render_data[i].params        = &params;
-		thread_render_data[i].scene         = &scene;
-		thread_render_data[i].viewport = viewport;
-
-		thread_render_data[i].rendering_bounds.min.x = viewport.min.x;
-		thread_render_data[i].rendering_bounds.max.x = viewport.max.x;
-		thread_render_data[i].rendering_bounds.min.y = cur_y;
-		thread_render_data[i].rendering_bounds.max.y = cur_y + delta_y;
-		cur_y += delta_y;
-
-		if(i == XenArrayLength(thread_render_data)-1){
-			// The last block of work may have a few extra rows if the viewport
-			// height is not divisible by the number of work blocks
-			thread_render_data[i].rendering_bounds.max.y = viewport.max.y;
-		}
-
-		thpool_add_work(this->thpool, &threadDoRenderWork, &thread_render_data[i]);
-	}
-	thpool_wait    (this->thpool);
-
-	////////////////////////////////////////////////////////////////////////////
-	// Generate view projection matrix
-	if(!xen::isCameraValid(params.camera)){
-		printf("ERROR: Camera is not valid, skipping rendering\n");
-		return;
-	}
-
-	// Find the actual view_region we wish to draw to. This is the
-	// intersection of the actual target, and the user specified viewport
-	xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
-	xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
-
-	Mat4r vp_matrix = xen::getViewProjectionMatrix(params.camera, view_region.max - view_region.min);
-
-	if(xen::isnan(vp_matrix)){
-		// :TODO: log
-		printf("ERROR: vp_matrix contains NaN elements, skipping rendering\n");
-		return;
-	}
-
-
-	////////////////////////////////////////////////////////////////////////////
-	// Render debug of the triangle meshes bounding boxes
-	#if 0
-	for(u32 i = 0; i < xen::size(scene.models); ++i){
-		xen::sren::renderBoundingBox(target, view_region, vp_matrix,
-		                             scene.models[i].aabb_world, xen::Color::RED4f);
-	}
-	#endif
-	////////////////////////////////////////////////////////////////////////////
-
-	////////////////////////////////////////////////////////////////////////////
-	// Render the non triangles in the scene
-	xsr::RasterizationContext context;
-	context.target      = &target;
-	context.viewport    = &view_region;
-	context.textures[0] = nullptr;
-	context.textures[1] = nullptr;
-	context.textures[2] = nullptr;
-	context.textures[3] = nullptr;
-	for(u32 i = 0; i < xen::size(non_triangle_cmds); ++i){
-		u32 cmd_index = non_triangle_cmds[i];
-		const xen::RenderCommand3d* cmd = &commands[cmd_index];
-		context.fragment_shader = this->getShaderImpl(cmd->shader);
-		setPerCommandFragmentUniforms(context, *cmd,
-		                              cmd->model_matrix, vp_matrix
-		                             );
-		rasterizeMesh(context, cmd->primitive_type, *this->mesh_store.getMesh(cmd->mesh));
-	}
-
-	// :TODO: log trace
-	//{
-	//	u64 used = xen::getBytesUsed(render_scratch_arena);
-	//	u64 size = xen::getSize     (render_scratch_arena);
-	//	printf("Used %li of %li bytes (%f%%) in raytracer scratch space\n",
-	//	       used, size, (float)used / (float)size);
-	//}
 }
 
 namespace xen {
