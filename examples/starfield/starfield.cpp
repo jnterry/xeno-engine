@@ -16,40 +16,7 @@
 
 #define STAR_COUNT 1024
 
-void handleCameraInputCylinder(xen::Window* win, xen::Camera3dCylinder& camera, real dt, real max_radius = 750_r){
-	// compute speed such that can get from full zoom to no zoom in 3 seconds
-	const real       camera_speed        = (max_radius / 3_r);
-	const xen::Angle camera_rotate_speed = 120_deg;
-
-	if(xen::isKeyPressed(xen::Key::ArrowUp, win)){
-		camera.radius -= camera_speed * dt;
-	}
-	if(xen::isKeyPressed(xen::Key::ArrowDown, win)){
-		camera.radius += camera_speed * dt;
-	}
-	camera.radius = xen::clamp(camera.radius, 0.005_r, max_radius);
-
-	if(xen::isKeyPressed(xen::Key::ArrowLeft, win)){
-		camera.angle -= camera_rotate_speed * dt;
-	}
-	if(xen::isKeyPressed(xen::Key::ArrowRight, win)){
-		camera.angle += camera_rotate_speed * dt;
-	}
-
-	if(xen::isKeyPressed(xen::Key::A, win)){
-		camera.height += camera_speed * dt;
-	}
-	if(xen::isKeyPressed(xen::Key::Z, win)){
-		camera.height -= camera_speed * dt;
-	}
-
-	if(xen::isKeyPressed(xen::Key::Q, win)){
-		camera.up_dir = xen::rotated(camera.up_dir,  Vec3r::UnitZ, 90_deg * dt);
-	}
-	if(xen::isKeyPressed(xen::Key::E, win)){
-		camera.up_dir = xen::rotated(camera.up_dir, -Vec3r::UnitZ, 90_deg * dt);
-	}
-}
+#include "../utilities.hpp"
 
 struct StarfieldState {
 	xen::ArenaLinear arena;

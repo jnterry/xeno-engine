@@ -28,6 +28,7 @@ function(xen_add_example TARGET_NAME)
 	)
 endfunction()
 
+set(_THIS_DIR ${CMAKE_CURRENT_LIST_DIR})
 
 # Adds an example application to the build process
 # TARGET_NAME -> name of the executable to add
@@ -35,7 +36,11 @@ endfunction()
 function(xen_add_example_module TARGET_NAME)
 	message("Adding example application module: ${TARGET_NAME}")
 
-	add_library(${TARGET_NAME} SHARED ${ARGN})
+	add_library(${TARGET_NAME} SHARED
+		${ARGN}
+		${_THIS_DIR}/utilities.hpp
+		${_THIS_DIR}/utilities.cpp
+	)
 
 	target_include_directories(${TARGET_NAME} PRIVATE ${XEN_INCLUDE_DIR})
 
