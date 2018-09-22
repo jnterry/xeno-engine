@@ -25,6 +25,11 @@ namespace xen{
 	/// \brief Represents a memory arena which allocates memory in order from start to end,
 	/// cannot free individual allocations, but can rollback to some other point
 	struct ArenaLinear : public NonCopyable{
+		ArenaLinear()
+			: start(nullptr), end(nullptr), next_byte(nullptr){
+			// no-op
+		}
+
 		ArenaLinear(void* block_start, size_t block_size)
 			: start(block_start), end(ptrGetAdvanced(block_start, block_size)), next_byte(block_start) {
 			// no-op

@@ -67,6 +67,9 @@ namespace xen {
 
 		bool stop_requested;
 
+		// Should this be per thread?
+		ArenaLinear tick_scratch_space;
+
 		Kernel(xen::Allocator* root_alloc)
 			: root_allocator(*root_alloc),
 			  modules(xen::createArenaPool<LoadedModule>(root_alloc, 128)) {
@@ -195,6 +198,8 @@ namespace xen {
 
 		xen::copyBytes(&settings, &kernel->settings, sizeof(KernelSettings));
 
+		kernel->tick_scratch_space = xen::createArenaLinear(*allocator, xen::megabytes(1));
+
 		return *kernel;
 	}
 
@@ -254,6 +259,8 @@ namespace xen {
 
 		printf("Kernel init finished, beginning main loop...\n");
 		do {
+			xen::resetArena(kernel.tick_scratch_space);
+
 			cntx.time = timer.getElapsedTime();
 			cntx.dt = cntx.time - last_time;
 
@@ -312,6 +319,10 @@ namespace xen {
 
 	void requestKernelShutdown(Kernel& kernel){
 		kernel.stop_requested = true;
+	}
+
+	ArenaLinear& getTickScratchSpace(Kernel& kernel){
+		return kernel.tick_scratch_space;
 	}
 }
 
