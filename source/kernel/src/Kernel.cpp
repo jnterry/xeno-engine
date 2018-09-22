@@ -136,7 +136,7 @@ namespace {
 		  if(mod_time > lmod->lib_modification_time){
 			  xen::DateTime now = xen::getLocalTime();
 
-			  if(now - mod_time < xen::seconds(1.0f)){
+			  if(now - mod_time < xen::seconds(1.5f)){
 				  // :TODO: this is a nasty hack - issue is that the linker will
 				  // truncate the file, then begin writing to it. Initial truncation
 				  // changes modification time, so we may start trying to load the
@@ -144,7 +144,7 @@ namespace {
 				  // we should only load the module if it changed AND that was at least
 				  // 1 second ago. If linker takes longer than 1 second this will blow
 				  // up
-				  printf("Need to reload %s but too recently modified\n", lmod->lib_path);
+				  //printf("Need to reload %s but too recently modified\n", lmod->lib_path);
 				  continue;
 			  }
 
@@ -237,9 +237,9 @@ namespace xen {
 			cntx.dt = cntx.time - last_time;
 
 			if(kernel.settings.hot_reload_modules){
-				// printf("Checking for module reloads...\n");
+				//printf("Checking for module reloads...\n");
 				reloadModifiedKernelModules(kernel);
-				// printf("Done reloads\n");
+				//printf("Done reloads\n");
 			}
 
 			for(LoadedModule* lmod = kernel.module_head;

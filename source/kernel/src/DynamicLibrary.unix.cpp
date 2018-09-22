@@ -13,6 +13,7 @@
 
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/core/File.hpp>
+#include <xen/core/time.hpp>
 #include <xen/core/StringBuffer.hpp>
 
 #include <dlfcn.h>
@@ -51,7 +52,12 @@ namespace xen {
 	}
 
 	DynamicLibrary* loadDynamicLibrary(xen::Allocator& alloc, const char* path){
-		void* result = dlopen(path, RTLD_NOW);
+
+		XenTempStringBuffer(strbuf, 4096, path);
+		xen::appendStringf(strbuf, "-%lu", xen::asNanoseconds<u64>(xen::getTimestamp()));
+		xen::copyFile(path, strbuf);
+
+		void* result = dlopen(strbuf, RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
 
 		if(result == nullptr){
 			// :TODO: log
@@ -74,6 +80,7 @@ namespace xen {
 		  // :TODO: log
 		  printf("Failed to load symbol from dynamic library: %s\n", dlerror());
 	  }
+
 	  return result;
 	}
 
