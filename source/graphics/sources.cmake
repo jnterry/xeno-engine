@@ -17,7 +17,6 @@ set(XEN_SOURCES_GRAPHICS
   ${CMAKE_CURRENT_LIST_DIR}/src/Image.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Camera3d.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Color.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/RenderCommand3d.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/Mesh.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/TestMeshes.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/GraphicsModuleApi.cpp

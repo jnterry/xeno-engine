@@ -40,7 +40,7 @@ namespace xen {
 			xen::RenderTarget            target;
 			xen::Aabb2u                  viewport;
 			xen::RenderParameters3d*     params;
-			xen::Array<RenderCommand3d>* commands;
+			xen::Array<RenderCommand3d>  commands;
 		};
 
 		struct SwapBufferParams {

@@ -33,7 +33,7 @@ xen::RenderOp xen::RenderOp::Draw(xen::RenderTarget target, xen::Aabb2u viewport
 	result.draw.target   = target;
 	result.draw.viewport = viewport;
 	result.draw.params   = &params;
-	result.draw.commands = &commands;
+	result.draw.commands = commands;
 	return result;
 }
 

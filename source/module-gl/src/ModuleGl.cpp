@@ -101,7 +101,7 @@ namespace {
 			xgl::clearTarget(op.clear.target, op.clear.color);
 			break;
 		case xen::RenderOp::DRAW:
-			xgl::render(op.draw.target, op.draw.viewport, *op.draw.params, *op.draw.commands);
+			xgl::render(op.draw.target, op.draw.viewport, *op.draw.params, op.draw.commands);
 			break;
 		case xen::RenderOp::SWAP_BUFFERS:
 			xgl::swapBuffers(op.swap_buffers.window);

@@ -92,8 +92,6 @@ namespace xen{
 	/// frame rather than per object
 	/////////////////////////////////////////////////////////////////////
 	struct RenderParameters3d {
-		RenderParameters3d();
-
 		/// \brief The camera with which to render to scene
 		Camera3d                  camera;
 

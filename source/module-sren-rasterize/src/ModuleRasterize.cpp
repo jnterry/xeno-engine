@@ -14,6 +14,7 @@
 #include <xen/sren/rasterizer3d.hxx>
 #include <xen/kernel/Kernel.hpp>
 #include <xen/core/memory/utilities.hpp>
+#include <xen/core/intrinsics.hpp>
 
 #include "Shader.hxx"
 #include "Texture.hxx"
@@ -82,17 +83,13 @@ namespace {
 	}
 
 	void pushOp(const xen::RenderOp& op){
-		switch(op.type){
-		case xen::RenderOp::CLEAR:
-			xsr::clear(op.clear.target, op.clear.color);
-			break;
-		case xen::RenderOp::DRAW:
-			xsr::render(op.draw.target, op.draw.viewport, *op.draw.params, *op.draw.commands);
-			break;
-		case xen::RenderOp::SWAP_BUFFERS:
-			xsr::swapBuffers(op.swap_buffers.window);
-			break;
-		}
+		XenAssert(xsr::state->next_free_op < xen::size(xsr::state->op_list),
+		          "Op list is full"
+		         );
+		xen::copyBytes(&op,
+		               &xsr::state->op_list[xsr::state->next_free_op++],
+		               sizeof(xen::RenderOp)
+		              );
 	}
 
 	void* load(xen::Kernel& kernel, void* data, const void* params){
@@ -116,8 +113,24 @@ namespace {
 	}
 
 	void tick(xen::Kernel& kernel, const xen::TickContext& tick){
-		// no-op
+		for(u32 i = 0; i < xsr::state->next_free_op; ++i){
+			xen::RenderOp& op = xsr::state->op_list[i];
+
+			switch(op.type){
+			case xen::RenderOp::CLEAR:
+				xsr::clear(op.clear.target, op.clear.color);
+				break;
+			case xen::RenderOp::DRAW:
+				xsr::render(op.draw.target, op.draw.viewport, *op.draw.params, op.draw.commands);
+				break;
+			case xen::RenderOp::SWAP_BUFFERS:
+				xsr::swapBuffers(op.swap_buffers.window);
+				break;
+			}
+		}
+		xsr::state->next_free_op = 0;
 	}
+
 }
 
 xen::Module exported_xen_module = {

@@ -38,6 +38,11 @@ namespace xsr {
 		xen::ArenaPool<xsr::RenderTarget>   render_target_pool;
 		xen::Allocator*                     render_target_alloc;
 
+		/// \brief List of operations to be performed next tick
+		xen::FixedArray<xen::RenderOp, 128> op_list;
+		/// \brief index of the next operation in op_list which has not yet been used
+		u64 next_free_op;
+
 		threadpool thpool;
 
 		xen::GraphicsModuleApi api;
