@@ -56,7 +56,7 @@ function(xen_add_example_module TARGET_NAME)
 endfunction()
 
 add_subdirectory(starfield)
-#add_subdirectory(quicktest)
+add_subdirectory(quicktest)
 add_subdirectory(cornell-box)
 add_subdirectory(triangle-test)
 add_subdirectory(line-test)
