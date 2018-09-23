@@ -13,8 +13,6 @@ namespace xen {
 	/// \brief Represents data about some light source in 3d
 	/////////////////////////////////////////////////////////////////////
 	struct LightSource3d {
-		LightSource3d(){}
-
 		enum Type {
 			POINT,
 			//DIRECTIONAL,

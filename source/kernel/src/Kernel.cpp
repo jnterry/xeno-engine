@@ -19,6 +19,13 @@
 #include <utility>
 #include <new>
 
+// sigsegv handler includes
+#include <stdio.h>
+#include <execinfo.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 namespace xen {
 
 	/////////////////////////////////////////////////////////////////////
@@ -43,6 +50,9 @@ namespace xen {
 		/// \brief The api returned by module->onLoad
 		void*           api;
 
+		/// \brief Parameters to the module passed to init and load functions
+		const void*     params;
+
 		/// \brief Next pointer in singly linked list of currently loaded modules
 		LoadedModule*   next;
 	};
@@ -57,6 +67,9 @@ namespace xen {
 
 		bool stop_requested;
 
+		// Should this be per thread?
+		ArenaLinear tick_scratch_space;
+
 		Kernel(xen::Allocator* root_alloc)
 			: root_allocator(*root_alloc),
 			  modules(xen::createArenaPool<LoadedModule>(root_alloc, 128)) {
@@ -69,6 +82,7 @@ namespace xen {
 namespace {
 
 	bool doModuleLoad(xen::Kernel& kernel, xen::LoadedModule* lmod){
+		printf("Loading shared library: %s\n", lmod->lib_path);
 		lmod->library = xen::loadDynamicLibrary(kernel.root_allocator, lmod->lib_path);
 
 		if(lmod->library == nullptr){
@@ -76,6 +90,7 @@ namespace {
 			printf("Failed to load module shared library\n");
 			return false;
 		}
+
 
 		lmod->module = (xen::Module*)xen::getDynamicLibrarySymbol(lmod->library, "exported_xen_module");
 
@@ -93,7 +108,7 @@ namespace {
 			if(lmod->module->initialize == nullptr){
 				lmod->data = nullptr;
 			} else {
-				lmod->data = lmod->module->initialize(kernel);
+				lmod->data = lmod->module->initialize(kernel, lmod->params);
 				if(lmod->data == nullptr){
 					printf("Failed to initizalise module '%s'\n", lmod->lib_path);
 					return false;
@@ -101,14 +116,11 @@ namespace {
 			}
 		}
 
-		// :TODO: If a module does not export an API we don't technically need a
-		// load function, however we need to return something from this function
-		// other than nullptr so that caller to loadModule knows that it was
 		printf("Loading module's API: %s\n", lmod->lib_path);
 		if(lmod->module->load == nullptr){
 			lmod->api = (void*)true;
 		} else {
-			lmod->api = lmod->module->load(kernel, lmod->data);
+			lmod->api = lmod->module->load(kernel, lmod->data, lmod->params);
 			if(lmod->api == nullptr){
 				printf("Module's load function returned nullptr, module: '%s'\n", lmod->lib_path);
 				return false;
@@ -126,23 +138,23 @@ namespace {
 
 		  xen::DateTime mod_time = xen::getPathModificationTime(lmod->lib_path);
 
-		  printf("Mod time: %lu, load mod time: %lu\n",
-		         mod_time._data,
-		         lmod->lib_modification_time
-		        );
+		  //printf("Mod time: %lu, load mod time: %lu\n",
+		  //       mod_time._data,
+		  //       lmod->lib_modification_time
+		  //      );
 
 		  if(mod_time > lmod->lib_modification_time){
 			  xen::DateTime now = xen::getLocalTime();
 
-			  if(now - mod_time < xen::seconds(1.0f)){
+			  if(now - mod_time < xen::seconds(1.5f)){
 				  // :TODO: this is a nasty hack - issue is that the linker will
 				  // truncate the file, then begin writing to it. Initial truncation
 				  // changes modification time, so we may start trying to load the
 				  // module before the linker has finished writing it. This says that
 				  // we should only load the module if it changed AND that was at least
 				  // 1 second ago. If linker takes longer than 1 second this will blow
-				  // up and
-				  printf("Need to reload %s but too recently modified\n", lmod->lib_path);
+				  // up
+				  //printf("Need to reload %s but too recently modified\n", lmod->lib_path);
 				  continue;
 			  }
 
@@ -160,11 +172,25 @@ namespace {
 		  }
 		}
 	}
-}
 
+	void sigsegvHandler(int sig) {
+		void* array[256];
+		size_t size;
+
+		// get void*'s for all entries on the stack
+		size = backtrace(array, 256);
+
+		// print out all the frames to stderr
+		fprintf(stderr, "Error: signal SIGSEGV\n", sig);
+		backtrace_symbols_fd(array, size, STDERR_FILENO);
+		exit(1);
+	}
+}
 
 namespace xen {
 	Kernel& createKernel(const KernelSettings& settings){
+		signal(SIGSEGV, sigsegvHandler);
+
 		xen::AllocatorMalloc* allocator = new AllocatorMalloc();
 
 		void* mem = allocator->allocate(sizeof(Kernel));
@@ -172,10 +198,12 @@ namespace xen {
 
 		xen::copyBytes(&settings, &kernel->settings, sizeof(KernelSettings));
 
+		kernel->tick_scratch_space = xen::createArenaLinear(*allocator, xen::megabytes(16));
+
 		return *kernel;
 	}
 
-  void* loadModule(Kernel& kernel, const char* name){
+  StringHash loadModule(Kernel& kernel, const char* name, const void* params){
 		LoadedModule* lmod = xen::reserveType<LoadedModule>(kernel.modules);
 		char* lib_path = nullptr;
 
@@ -192,6 +220,7 @@ namespace xen {
 		}
 		lmod->lib_modification_time = xen::getPathModificationTime(lib_path);
 
+		lmod->params     = params;
 		lmod->lib_path   = lib_path;
 		lmod->next       = kernel.module_head;
 		kernel.module_head = lmod;
@@ -201,11 +230,11 @@ namespace xen {
 		}
 
 		printf("Finished initializing and loading module: %s\n", name);
-		return lmod->api;
+		return lmod->module->type_hash;
 
 	cleanup:
 		printf("Cleaning up from failed module load: %s\n", name);
-		if(lmod == nullptr){ return nullptr; }
+		if(lmod == nullptr){ return 0; }
 
 		if(lib_path != nullptr){
 			kernel.root_allocator.deallocate(lib_path);
@@ -217,7 +246,7 @@ namespace xen {
 
 		xen::freeType<LoadedModule>(kernel.modules, lmod);
 
-		return nullptr;
+		return 0;
 	}
 
 	void startKernel(Kernel& kernel){
@@ -230,13 +259,15 @@ namespace xen {
 
 		printf("Kernel init finished, beginning main loop...\n");
 		do {
+			xen::resetArena(kernel.tick_scratch_space);
+
 			cntx.time = timer.getElapsedTime();
 			cntx.dt = cntx.time - last_time;
 
 			if(kernel.settings.hot_reload_modules){
-				printf("Checking for module reloads...\n");
+				//printf("Checking for module reloads...\n");
 				reloadModifiedKernelModules(kernel);
-				printf("Done reloads\n");
+				//printf("Done reloads\n");
 			}
 
 			for(LoadedModule* lmod = kernel.module_head;
@@ -244,7 +275,6 @@ namespace xen {
 			    lmod = lmod->next
 			    ){
 				if(lmod->module->tick != nullptr){
-					printf("Ticking module %s\n", lmod->lib_path);
 					lmod->module->tick(kernel, cntx);
 				}
 			}
@@ -265,8 +295,16 @@ namespace xen {
 		printf("Kernel terminating\n");
 	}
 
-	void* getModuleApi(Kernel& kernel, ModuleHandle module){
-		return ((LoadedModule*)module)->api;
+	void* getModuleApi(Kernel& kernel, StringHash hash){
+		for(LoadedModule* cur = kernel.module_head;
+		    cur != nullptr;
+		    cur = cur->next
+		   ){
+			if(cur->module->type_hash == hash){
+				return cur->api;
+			}
+		}
+		return nullptr;
 	}
 
 	void* allocate(Kernel& kernel, u32 size, u32 align){
@@ -279,10 +317,13 @@ namespace xen {
 		return kernel.root_allocator.deallocate(data);
 	}
 
-	void stopKernel(Kernel& kernel){
+	void requestKernelShutdown(Kernel& kernel){
 		kernel.stop_requested = true;
 	}
-}
 
+	ArenaLinear& getTickScratchSpace(Kernel& kernel){
+		return kernel.tick_scratch_space;
+	}
+}
 
 #endif

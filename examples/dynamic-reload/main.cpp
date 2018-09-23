@@ -10,9 +10,12 @@ int main(){
 	settings.hot_reload_modules = true;
 	xen::Kernel& kernel = xen::createKernel(settings);
 
-	GameApi* module_game = (GameApi*)xen::loadModule(kernel, "dynamic-reload-game");
+	GameModuleParams game_params;
+	game_params.increment_delay = 100;
 
-	printf("Loaded game module: %p\n", (void*)module_game);
+  auto module_game = xen::loadModule(kernel, "dynamic-reload-game", &game_params);
+
+	printf("Loaded game module: %p\n", module_game);
 
 	xen::startKernel(kernel);
 

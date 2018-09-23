@@ -18,7 +18,7 @@
 #include <xen/graphics/Light3d.hpp>
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/Mesh.hpp>
-#include <xen/graphics/GraphicsDevice_types.hpp>
+#include <xen/graphics/GraphicsHandles.hpp>
 
 namespace xen{
 
@@ -92,8 +92,6 @@ namespace xen{
 	/// frame rather than per object
 	/////////////////////////////////////////////////////////////////////
 	struct RenderParameters3d {
-		RenderParameters3d();
-
 		/// \brief The camera with which to render to scene
 		Camera3d                  camera;
 

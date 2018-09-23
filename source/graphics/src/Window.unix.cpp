@@ -265,7 +265,7 @@ namespace {
 		bool valid_event = true;
 		switch(xe->type){
 		case ClientMessage:{
-			Atom wm_delete_window = XInternAtom(xen::impl::unix_display, "WM_DELETE_WINDOW", False);
+			Atom wm_delete_window = XInternAtom(w->display, "WM_DELETE_WINDOW", False);
                         if((Atom)xe->xclient.data.l[0] == wm_delete_window){
 				e.type = xen::WindowEvent::Closed;
 			}
@@ -334,33 +334,13 @@ namespace {
 	}
 }
 
-bool doOpenXDisplayConnection(){
-	if(xen::impl::unix_display != nullptr){
-		return true;
-	}
-
-	//:TODO: error checking
-	xen::impl::unix_display = XOpenDisplay(NULL); // open local display
-	if(xen::impl::unix_display == nullptr){
-		// :TODO: log error
-		printf("ERROR: Failed to open x display\n");;
-		return false;
-	} else {
-		// :TODO: log
-		printf("INFO: Opened x display successfully\n");
-		return true;
-	}
-}
-
 namespace xen {
 	struct Allocator;
 
 	namespace impl{
-		Display* unix_display = nullptr;
-
 		void dispatchEvents(Window* w){
 			XEvent event;
-			while(XCheckIfEvent(xen::impl::unix_display, &event,
+			while(XCheckIfEvent(w->display, &event,
 			                    &checkEventMatchesWindow,
 			                    reinterpret_cast< XPointer >( w->xwindow)
 			                    )
@@ -380,19 +360,32 @@ namespace xen {
 
 				////////////////////////////////////////////////////////////////////////
 				// Establish connection to x server, setup some parameters
-				if(!doOpenXDisplayConnection()){
+
+				// :TODO: Best practices (I think) are that XOpenDisplay is only called
+				// once and then multiple windows are opened with the same display - but
+				// we can't store it as global state as this code may be compiled into
+				// reloadable modules whose static state is lost upon reload -> maybe we
+				// want to have a module-window that handles managing open windows?
+				// The tick function could do event polling, etc
+			  result->display = XOpenDisplay(NULL);
+				if(result->display == nullptr){
+					// :TODO: log error
+					printf("ERROR: Failed to open x display\n");;
 					return nullptr;
+				} else {
+					// :TODO: log
+					printf("INFO: Opened x display successfully\n");
 				}
 
 				// Get window representing whole screen
-				::Window root   = DefaultRootWindow(xen::impl::unix_display);
+				::Window root   = DefaultRootWindow(result->display);
 
 				// Find an appropriate visual
 				int color_depth  = 32;
 
 				XVisualInfo vinfo;
-				if(!XMatchVisualInfo(xen::impl::unix_display,
-				                     XDefaultScreen(xen::impl::unix_display),
+				if(!XMatchVisualInfo(result->display,
+				                     XDefaultScreen(result->display),
 				                     color_depth,
 				                     TrueColor,
 				                     &vinfo)){
@@ -402,7 +395,7 @@ namespace xen {
 				Visual*  visual = vinfo.visual;
 
 				XSetWindowAttributes    frame_attributes;
-				frame_attributes.colormap = XCreateColormap(xen::impl::unix_display,
+				frame_attributes.colormap = XCreateColormap(result->display,
 				                                            root,
 				                                            visual,
 				                                            AllocNone);
@@ -413,7 +406,7 @@ namespace xen {
 
 				////////////////////////////////////////////////////////////////////////
 				// Create the X Window
-				result->xwindow = XCreateWindow(xen::impl::unix_display, // open locally
+				result->xwindow = XCreateWindow(result->display,         // open locally
 				                                root,                    // parent window
 				                                0, 0,                    // top left coords
 				                                size.x, size.y,
@@ -426,7 +419,7 @@ namespace xen {
 				                                CWBorderPixel,
 				                                &frame_attributes        // Attributes
 				                               );
-				XSync(xen::impl::unix_display, True);
+				XSync(result->display, True);
 
 				if(result->xwindow){
 					// :TODO: log
@@ -508,7 +501,7 @@ namespace xen {
 
 				////////////////////////////////////////////////////////////////////////
 				// Setup what input events we want to capture for the window
-				XSelectInput(xen::impl::unix_display, result->xwindow,
+				XSelectInput(result->display, result->xwindow,
 				             //ExposureMask        | // Window shown
 				             StructureNotifyMask | // Resize request, window moved
 				             ResizeRedirectMask  | // Window resized
@@ -520,15 +513,15 @@ namespace xen {
 
 				// Change the close button behaviour so that we can capture event,
 				// rather than the window manager destroying the window by itself
-				Atom wm_delete_window = XInternAtom(xen::impl::unix_display, "WM_DELETE_WINDOW", False);
-				XSetWMProtocols(xen::impl::unix_display, result->xwindow, &wm_delete_window, 1);
+				Atom wm_delete_window = XInternAtom(result->display, "WM_DELETE_WINDOW", False);
+				XSetWMProtocols(result->display, result->xwindow, &wm_delete_window, 1);
 				////////////////////////////////////////////////////////////////////////
 
 				////////////////////////////////////////////////////////////////////////
 				// Show the window on screen
 				setWindowTitle(result, title); // Set proper window title
-				XMapWindow(xen::impl::unix_display, result->xwindow);
-				XMapRaised(xen::impl::unix_display, result->xwindow);
+				XMapWindow(result->display, result->xwindow);
+				XMapRaised(result->display, result->xwindow);
 				result->is_open = true;
 				////////////////////////////////////////////////////////////////////////
 
@@ -537,7 +530,7 @@ namespace xen {
 				// https://tronche.com/gui/x/xlib-tutorial/
 				while(true){
 					XEvent e;
-					XNextEvent(xen::impl::unix_display, &e);
+					XNextEvent(result->display, &e);
 					if(e.type == MapNotify){ break; }
 				}
 
@@ -546,7 +539,8 @@ namespace xen {
 			}
 
 		void destroyWindow(xen::Window* window){
-			XDestroyWindow(xen::impl::unix_display, window->xwindow);
+			XDestroyWindow(window->display, window->xwindow);
+			XCloseDisplay(window->display);
 			*window = {};
 		}
 	} //end of namespace xen::impl::
@@ -554,26 +548,26 @@ namespace xen {
 	/// \brief Retrieves the size of the client area (ie, part that may be renderered on) of some window
 	Vec2u getClientAreaSize(Window* window){
 		XWindowAttributes attributes;
-		XGetWindowAttributes(xen::impl::unix_display, window->xwindow, &attributes);
+		XGetWindowAttributes(window->display, window->xwindow, &attributes);
 
     return { (u32)attributes.width, (u32)attributes.height };
 	}
 
-	bool isKeyPressed(Key key){
+	bool isKeyPressed(Key key, xen::Window* window){
 		KeySym  keysym  = xenKeysymFromKey(key);
-		KeyCode keycode = XKeysymToKeycode(xen::impl::unix_display, keysym);
+		KeyCode keycode = XKeysymToKeycode(window->display, keysym);
 		if(keycode == 0){ return false; }
 
 		// Get state of all keys - each key corrosponds to a single bit
 		char keys[32];
-		XQueryKeymap(xen::impl::unix_display, keys);
+		XQueryKeymap(window->display, keys);
 
 		// Check the keycode in question
 		return (keys[keycode / 8] & (1 << (keycode % 8))) != 0;
 	}
 
 	void setWindowTitle(Window* window, const char* title){
-		XStoreName(xen::impl::unix_display, window->xwindow, title);
+		XStoreName(window->display, window->xwindow, title);
 	}
 }
 

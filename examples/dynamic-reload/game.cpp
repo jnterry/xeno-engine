@@ -3,17 +3,18 @@
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/time.hpp>
+#include <xen/core/String.hpp>
 
 #include "game.hpp"
 
 struct GameState {
 	u64 value;
-	GameApi* api;
+	int increment_delay;
 };
 
 GameState* global_state = nullptr;
 
-void mainLoop(xen::Kernel& kernel, const xen::TickContext& cntx){
+void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 	printf("Start of game main loop, tick: %5lu, dt: %10f, time: %10f\n",
 	       cntx.tick,
 	       xen::asSeconds<real>(cntx.dt),
@@ -25,7 +26,7 @@ void mainLoop(xen::Kernel& kernel, const xen::TickContext& cntx){
 	printf("Value is: %lu\n", global_state->value);
 	std::this_thread::sleep_for(std::chrono::milliseconds(16));
 
-	if(cntx.tick % 100 == 0){
+	if(cntx.tick % global_state->increment_delay == 0){
 		++global_state->value;
 	}
 
@@ -37,17 +38,16 @@ void mainLoop(xen::Kernel& kernel, const xen::TickContext& cntx){
 	printf("End main loop\n");
 }
 
-void* init(xen::Kernel& kernel){
+void* init(xen::Kernel& kernel, const void* params){
 	global_state = (GameState*)xen::allocate(kernel, sizeof(GameState));
 	global_state->value = 10;
-	global_state->api = (GameApi*)xen::allocate(kernel, sizeof(GameApi));
+	global_state->increment_delay = ((const GameModuleParams*)params)->increment_delay;
 	return global_state;
 }
 
-void* load(xen::Kernel& kernel, void* data){
+void* load(xen::Kernel& kernel, void* data, const void* params){
 	global_state = (GameState*)data;
-
-	return global_state->api;
+	return (void*)true;
 }
 
 void shutdown(xen::Kernel& kernel){
@@ -55,8 +55,9 @@ void shutdown(xen::Kernel& kernel){
 }
 
 xen::Module exported_xen_module = {
+	xen::hash("game"),
 	&init,
 	&shutdown,
 	&load,
-	&mainLoop,
+	&tick,
 };

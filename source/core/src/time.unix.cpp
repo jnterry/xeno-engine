@@ -24,7 +24,7 @@ namespace xen{
 		}
 	}
 
-	Duration getTimeStamp(){
+	Duration getTimestamp(){
 		timespec time;
 		if(clock_gettime(CLOCK_MONOTONIC_RAW, &time) == 0){
 			return xen::seconds(time.tv_sec) + xen::nanoseconds(time.tv_nsec);

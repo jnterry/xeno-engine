@@ -13,44 +13,49 @@
 
 #include "gl_header.hxx"
 #include "Texture.hxx"
+#include "ModuleGl.hxx"
 
-namespace xen{
-	namespace gl {
+xgl::TextureImpl* xgl::getTextureImpl(const xen::Texture texture){
+	return &gl_state->pool_texture.slots[texture._id].item;
+}
 
-		void deleteTexture(TextureImpl* texture){
-			if(texture->id != 0){
-				XEN_CHECK_GL(glDeleteTextures(1, &texture->id));
-				texture->id = 0;
-			}
-		}
+xen::Texture xgl::createTexture(const xen::RawImage* image){
+	// Allocate texture CPU side
+	u32 slot = xen::reserveSlot(gl_state->pool_texture);
+	xen::Texture result = xen::makeGraphicsHandle<xen::Texture::HANDLE_ID>(slot, 0);
+	xgl::TextureImpl* timpl = xgl::getTextureImpl(result);
 
-		TextureImpl* loadTexture(const RawImage* image, TextureImpl* texture){
+	// Allocate texture GPU side
+	XEN_CHECK_GL(glGenTextures(1, &timpl->id));
+	XEN_CHECK_GL(glBindTexture(GL_TEXTURE_2D, timpl->id));
 
-			deleteTexture(texture);
+	// Set texture parameters
+	XEN_CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+	XEN_CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+	XEN_CHECK_GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+	XEN_CHECK_GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
-			//make the texture
-			XEN_CHECK_GL(glGenTextures(1, &texture->id));
-			XEN_CHECK_GL(glBindTexture(GL_TEXTURE_2D, texture->id));
+	//  Upload texture data to GPU
+	XEN_CHECK_GL(glTexImage2D(GL_TEXTURE_2D,
+	                          0,                           // mipmap level 0 as this is highest res version
+	                          GL_RGBA,                     // Internal format for use by GL
+	                          image->width, image->height, // image size
+	                          0,                           // border - "this value must be 0"
+	                          GL_RGBA, GL_UNSIGNED_BYTE,   // format of pixel data
+	                          image->pixels                // pixel data
+	                         ));
 
-			//set texture parameters
-			XEN_CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-			XEN_CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-			XEN_CHECK_GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-			XEN_CHECK_GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	return result;
+}
 
-			//buffer texture data
-			XEN_CHECK_GL(glTexImage2D(GL_TEXTURE_2D,
-			                          0,                           // mipmap level, 0 since this is highest res version
-			                          GL_RGBA,                     // Internal format for use by GL
-			                          image->width, image->height, // image size
-			                          0,                           // border - "this value must be 0"
-			                          GL_RGBA, GL_UNSIGNED_BYTE,   // format of pixel data
-			                          image->pixels                // pixel data
-			                          ));
+void xgl::destroyTexture(const xen::Texture texture){
+  xgl::TextureImpl* timpl = getTextureImpl(texture);
 
-			return texture;
-		}
+	if(timpl->id != 0){
+		XEN_CHECK_GL(glDeleteTextures(1, &timpl->id));
 	}
+
+	xen::freeType(gl_state->pool_texture, timpl);
 }
 
 #endif

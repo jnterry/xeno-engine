@@ -14,8 +14,7 @@ function(xen_add_example TARGET_NAME)
 	target_link_libraries(${TARGET_NAME} xen-math)
 	target_link_libraries(${TARGET_NAME} xen-kernel)
 	target_link_libraries(${TARGET_NAME} xen-graphics)
-	target_link_libraries(${TARGET_NAME} xen-module-gl)
-	target_link_libraries(${TARGET_NAME} xen-module-sren)
+	target_link_libraries(${TARGET_NAME} xen-sren)
 
 	#target_include_directories(${TARGET_NAME} PRIVATE "${XEN_EXTLIBS_DIR}/glew-2.1.0/include/")
 	#target_link_libraries(${TARGET_NAME} libglew_shared)
@@ -30,8 +29,34 @@ function(xen_add_example TARGET_NAME)
 	)
 endfunction()
 
-add_subdirectory(quicktest)
+set(_THIS_DIR ${CMAKE_CURRENT_LIST_DIR})
+
+# Adds an example application to the build process
+# TARGET_NAME -> name of the executable to add
+# All further parameters will be treated as source files for the application
+function(xen_add_example_module TARGET_NAME)
+	message("Adding example application module: ${TARGET_NAME}")
+
+	add_library(${TARGET_NAME} SHARED
+		${ARGN}
+		${_THIS_DIR}/utilities.hpp
+		${_THIS_DIR}/utilities.cpp
+	)
+
+	target_include_directories(${TARGET_NAME} PRIVATE ${XEN_INCLUDE_DIR})
+
+	target_link_libraries(${TARGET_NAME} xen-core)
+	target_link_libraries(${TARGET_NAME} xen-math)
+	target_link_libraries(${TARGET_NAME} xen-kernel)
+	target_link_libraries(${TARGET_NAME} xen-graphics)
+	target_link_libraries(${TARGET_NAME} xen-sren)
+
+	# Group all examples together in IDE projects
+	set_target_properties(${TARGET_NAME} PROPERTIES FOLDER "examples")
+endfunction()
+
 add_subdirectory(starfield)
+add_subdirectory(quicktest)
 add_subdirectory(cornell-box)
 add_subdirectory(triangle-test)
 add_subdirectory(line-test)
@@ -39,3 +64,5 @@ add_subdirectory(post-processing)
 add_subdirectory(torus)
 add_subdirectory(texture-test)
 add_subdirectory(dynamic-reload)
+
+xen_add_example(run-example ${CMAKE_CURRENT_LIST_DIR}/example-main.cpp)

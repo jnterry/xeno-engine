@@ -25,7 +25,7 @@
 #endif
 
 //:TODO: haven't done rigorous testing to check the platform specific time
-//representations are being converted safely - ie, don't wrap, esp for getTimeStamp
+//representations are being converted safely - ie, don't wrap, esp for getTimestamp
 
 namespace xen{
 

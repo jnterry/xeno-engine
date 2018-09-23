@@ -1,216 +1,190 @@
-#include <xen/core/intrinsics.hpp>
-#include <xen/math/vector_types.hpp>
-#include <xen/graphics/RenderCommand3d.hpp>
+#include <stdio.h>
 
-#include "cornell-box.hpp"
+#include "../utilities.hpp"
+#include "mesh.hpp"
+#include <xen/graphics/Image.hpp>
+#include <xen/graphics/TestMeshes.hpp>
+#include <xen/math/quaternion.hpp>
 
-// ---------------------------------------------------------------------------
-// Define room coordinates
-Vec3r A_room = { 1_r,   0_r, 0_r };
-Vec3r B_room = { 0_r,   0_r, 0_r };
-Vec3r C_room = { 1_r,   0_r, 1_r };
-Vec3r D_room = { 0_r,   0_r, 1_r };
+// Locations for the boxes in the cornell scene
+const Vec3r tall_box_center  = {-0.15_r,  0.0_r, -0.10_r};
+const Vec3r short_box_center = { 0.18_r,  0.0_r,  0.18_r};
 
-Vec3r E_room = { 1_r, 1_r, 0_r };
-Vec3r F_room = { 0_r, 1_r, 0_r };
-Vec3r G_room = { 1_r, 1_r, 1_r };
-Vec3r H_room = { 0_r, 1_r, 1_r };
+struct State {
+	xen::Camera3dCylinder                  camera;
+	xen::RenderParameters3d                render_params;
+	xen::FixedArray<xen::LightSource3d, 2> scene_lights;
 
-// ---------------------------------------------------------------------------
-// Define short block coordinates
-Vec3r A_short = {290_r,   0_r, 114_r};
-Vec3r B_short = {130_r,   0_r,  65_r};
-Vec3r C_short = {240_r,   0_r, 272_r};
-Vec3r D_short = { 82_r,   0_r, 225_r};
+	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
+	xen::Mesh                                      mesh_cornell_walls;
+	xen::Mesh                                      mesh_cube;
+	xen::Mesh                                      mesh_axes;
 
-Vec3r E_short = {290_r, 165_r, 114_r};
-Vec3r F_short = {130_r, 165_r,  65_r};
-Vec3r G_short = {240_r, 165_r, 272_r};
-Vec3r H_short = { 82_r, 165_r, 225_r};
+	xen::Window* window;
 
-// ---------------------------------------------------------------------------
-// Define tall block coordinates
-Vec3r A_tall = {423_r,   0_r, 247_r};
-Vec3r B_tall = {265_r,   0_r, 296_r};
-Vec3r C_tall = {472_r,   0_r, 406_r};
-Vec3r D_tall = {314_r,   0_r, 456_r};
-
-Vec3r E_tall = {423_r, 330_r, 247_r};
-Vec3r F_tall = {265_r, 330_r, 296_r};
-Vec3r G_tall = {472_r, 330_r, 406_r};
-Vec3r H_tall = {314_r, 330_r, 456_r};
-
-Vec3r positions_walls[] = {
-	// ---------------------------------------------------------------------------
-	// room coordinates
-	// Floor
-	C_room, A_room, B_room,
-	C_room, B_room, D_room,
-	// Left Wall
-	A_room, C_room, E_room,
-	C_room, G_room, E_room,
-	// Right Wall
-	F_room, D_room, B_room,
-	H_room, D_room, F_room,
-	// Ceiling
-	E_room, G_room, F_room,
-	F_room, G_room, H_room,
-	// Back Wall
-	G_room, C_room, D_room,
-	G_room, D_room, H_room,
+	xen::FixedArray<xen::RenderCommand3d, 5> render_commands;
 };
 
-Vec3r normals_walls[] = {
-	// Floor
-	Vec3r::UnitY, Vec3r::UnitY, Vec3r::UnitY,
-	Vec3r::UnitY, Vec3r::UnitY, Vec3r::UnitY,
+State* state = nullptr;
 
-	// Left Wall
-  Vec3r::UnitX, Vec3r::UnitX, Vec3r::UnitX,
-	Vec3r::UnitX, Vec3r::UnitX, Vec3r::UnitX,
+void initRenderCommands(){
+	xen::clearToZero(state->render_commands);
 
-	// Right Wall
-	-Vec3r::UnitX, -Vec3r::UnitX, -Vec3r::UnitX,
-	-Vec3r::UnitX, -Vec3r::UnitX, -Vec3r::UnitX,
+	state->render_commands[0].primitive_type  = xen::PrimitiveType::TRIANGLES;
+	state->render_commands[0].color           = xen::Color::WHITE4f;
+	state->render_commands[0].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
+	                                             xen::Rotation3dy(180_deg)
+	                                            );
+	state->render_commands[0].mesh            = state->mesh_cornell_walls;
+	// There is nothing outside of the cornell box, don't cast shadows for speed
+	state->render_commands[0].flags           = xen::RenderCommand3d::Flags::DisableShadowCast;
 
-	// Ceiling
-  -Vec3r::UnitY, -Vec3r::UnitY, -Vec3r::UnitY,
-	-Vec3r::UnitY, -Vec3r::UnitY, -Vec3r::UnitY,
+	state->render_commands[1].primitive_type  = xen::PrimitiveType::TRIANGLES;
+	state->render_commands[1].color           = Vec4f{ 0.15f, 0.15f, 0.75f, 1.0f };
+	state->render_commands[1].model_matrix    = (xen::Translation3d(-0.5_r, 0.0001_r, -0.5_r) *
+	                                             xen::Scale3d      (0.3_r, 0.6_r, 0.3_r  ) *
+	                                             xen::Rotation3dy  (15_deg               ) *
+	                                             xen::Translation3d(tall_box_center      )
+	                                            );
+	state->render_commands[1].mesh            = state->mesh_cube;
 
-	// Back Wall
-	Vec3r::UnitZ, Vec3r::UnitZ, Vec3r::UnitZ,
-	Vec3r::UnitZ, Vec3r::UnitZ, Vec3r::UnitZ,
-};
+	state->render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
+  state->render_commands[2].color           = Vec4f{ 0.75f, 0.15f, 0.15f, 1.0_r };
+  state->render_commands[2].model_matrix    = (xen::Translation3d(-0.5_r, 0.0001_r, -0.5_r) *
+                                               xen::Scale3d      (0.3_r, 0.3_r, 0.3_r  ) *
+                                               xen::Rotation3dy  (-18_deg              ) *
+                                               xen::Translation3d(short_box_center     )
+                                              );
+	state->render_commands[2].mesh            = state->mesh_cube;
 
-Vec3r positions_interior[] = {
-	// ---------------------------------------------------------------------------
-	// Short block coordinates
-	// Front
-	E_short, B_short, A_short,
-	E_short, F_short, B_short,
-	// Right
-	F_short, D_short, B_short,
-	F_short, H_short, D_short,
-	// Back
-	H_short, C_short, D_short,
-	H_short, G_short, C_short,
-	// LEFT
-	G_short, E_short, C_short,
-	E_short, A_short, C_short,
-	// TOP
-	G_short, F_short, E_short,
-	G_short, H_short, F_short,
-	// ---------------------------------------------------------------------------
-	// Tall block coordinates
-	// Front
-	E_tall, B_tall, A_tall,
-	E_tall, F_tall, B_tall,
-	// Front
-	F_tall, D_tall, B_tall,
-	F_tall, H_tall, D_tall,
-	// BACK
-	H_tall, C_tall, D_tall,
-	H_tall, G_tall, C_tall,
-	// LEFT
-	G_tall, E_tall, C_tall,
-	E_tall, A_tall, C_tall,
-	// TOP
-	G_tall, F_tall, E_tall,
-	G_tall, H_tall, F_tall,
-};
+	state->render_commands[3].primitive_type  = xen::PrimitiveType::TRIANGLES;
+	state->render_commands[3].color           = xen::Color::YELLOW4f;
+	state->render_commands[3].emissive_color  = xen::Color::YELLOW4f;
+	state->render_commands[3].model_matrix    = (xen::Translation3d(-0.5_r, 0.0001_r, -0.5_r  ) *
+	                                             xen::Scale3d      (0.05_r, 0.05_r, 0.05_r ) *
+	                                             xen::Rotation3dy  (18_deg                 ) *
+	                                             xen::Translation3d(-0.1_r, 0.0_r, 0.2_r    )
+	                                            );
+	state->render_commands[3].mesh            = state->mesh_cube;
 
+	// Light source
+	state->render_commands[4].primitive_type  = xen::PrimitiveType::TRIANGLES;
+	state->render_commands[4].color           = xen::Color::RED4f;
+	state->render_commands[4].model_matrix    = Mat4r::Identity;
+	state->render_commands[4].mesh            = state->mesh_cube;
+  // This is geometry around a light source - don't block the emitted light!
+	state->render_commands[4].flags           = xen::RenderCommand3d::Flags::DisableShadowCast;
+}
 
-// ---------------------------------------------------------------------------
-// Define colors
-xen::Color red    = { 191,  38,  38, 255 };
-xen::Color yellow = { 191, 191,  38, 255 };
-xen::Color green  = {  38, 191,  38, 255 };
-xen::Color cyan   = {  38, 191, 191, 255 };
-xen::Color blue   = {  38,  38, 191, 255 };
-xen::Color purple = { 191,  38, 191, 255 };
-xen::Color white  = { 191, 191, 191, 255 };
+void initCamera(){
+	state->camera.z_near = 0.001;
+	state->camera.z_far  = 1000;
+	state->camera.fov_y  = 70_deg;
+	state->camera.radius = 10;
+	state->camera.height = 0.001;
+	state->camera.up_dir = Vec3r::UnitY;
+	state->camera.axis   = Vec3r::UnitY;
+	state->camera.target = {0.0_r, 0.5_r, 0.0_r};
+	state->camera.angle  = 0.0_deg;
+}
 
-xen::Color colors_walls[] = {
-	// ---------------------------------------------------------------------------
-	// Room colors
-	// Floor
-	green, green, green,
-	green, green, green,
-	// Left Wall
-	purple, purple, purple,
-	purple, purple, purple,
-	// Right Wall
-	yellow, yellow, yellow,
-	yellow, yellow, yellow,
-	// Ceiling
-	cyan, cyan, cyan,
-	cyan, cyan, cyan,
-	// Back wall
-	white, white, white,
-	white, white, white,
-};
+void initSceneLights(){
+	state->scene_lights[0].type           = xen::LightSource3d::POINT;
+	state->scene_lights[0].point.position = Vec3r{0.0_r, 1.0_r, 0.0_r};
+	state->scene_lights[0].color          = xen::Color::WHITE4f;
+	state->scene_lights[0].color.a        = 0.4f;
+	state->scene_lights[0].attenuation    = {0.0f, 0.0f, 2.0f};
 
-xen::Color colors_interior[] = {
-	// ---------------------------------------------------------------------------
-	// Short block colors
-	// Front
-	red, red, red,
-	red, red, red,
-	// Right
-	red, red, red,
-	red, red, red,
-	// Back
-	red, red, red,
-	red, red, red,
-	// Left
-	red, red, red,
-	red, red, red,
-	// Top
-	red, red, red,
-	red, red, red,
-	// ---------------------------------------------------------------------------
-	// Tall block colors
-	// Front
-	blue, blue, blue,
-	blue, blue, blue,
-	// Right
-	blue, blue, blue,
-	blue, blue, blue,
-	// Back
-	blue, blue, blue,
-	blue, blue, blue,
-	// Left
-	blue, blue, blue,
-	blue, blue, blue,
-	// Top
-	blue, blue, blue,
-	blue, blue, blue,
+	state->scene_lights[1].type           = xen::LightSource3d::POINT;
+	state->scene_lights[1].color          = xen::Color::RED4f;
+	state->scene_lights[1].color.a        = 0.1f;
+	state->scene_lights[1].attenuation    = {0.0f, 0.0f, 2.0f};
 
-};
+	state->render_params.ambient_light = xen::Color3f(0.1f, 0.1f, 0.1f);
+	state->render_params.lights        = state->scene_lights;
+}
 
-static_assert(XenArrayLength(positions_walls) == XenArrayLength(colors_walls),
-              "Expected equal number of colors and positions"
-             );
-static_assert(XenArrayLength(positions_walls) == XenArrayLength(normals_walls),
-              "Expected equal number of colors and positions"
-             );
+void initMeshes(xen::GraphicsModuleApi* gmod){
+	state->vertex_spec[0] = xen::VertexAttribute::Position3r;
+	state->vertex_spec[1] = xen::VertexAttribute::Normal3r;
+	state->vertex_spec[2] = xen::VertexAttribute::Color4b;
 
-static_assert(XenArrayLength(positions_interior) == XenArrayLength(colors_interior),
-              "Expected equal number of colors and positions"
-             );
+	state->mesh_cornell_walls = gmod->createMesh(state->vertex_spec,
+	                                             MeshGeometry_CornellBoxWalls
+	                                            );
+	state->mesh_cube = gmod->createMesh(state->vertex_spec,
+	                                    xen::TestMeshGeometry_UnitCube
+	                                   );
+	state->mesh_axes = gmod->createMesh(state->vertex_spec,
+	                                    xen::TestMeshGeometry_Axes
+	                                   );
+}
 
-const xen::MeshGeometrySource MeshGeometry_CornellBoxWalls = {
-	XenArrayLength(positions_walls),
-  positions_walls,
-	normals_walls,
-	colors_walls,
-	nullptr
-};
+void* init(xen::Kernel& kernel, const void* params){
+	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, "graphics");
+	XenAssert(gmod != nullptr, "Graphics module must be loaded before cornell-box");
 
-const xen::MeshGeometrySource MeshGeometry_CornellBoxInterior = {
-	XenArrayLength(positions_interior),
-  positions_interior,
-	nullptr, // normals
-	colors_interior,
-	nullptr
+	state = (State*)xen::allocate(kernel, sizeof(State));
+
+	state->window = gmod->createWindow({600, 600}, "cornell-box");
+
+	initCamera();
+	initSceneLights();
+	initMeshes(gmod);
+	initRenderCommands();
+
+	return state;
+}
+
+void* load(xen::Kernel& kernel, void* data, const void* params){
+	state = (State*)data;
+	return (void*)true;
+}
+
+void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
+	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, "graphics");
+	XenAssert(gmod != nullptr, "Graphics module must be loaded before cornell-box");
+
+	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(state->window) };
+
+	xen::WindowEvent* event;
+	while((event = xen::pollEvent(state->window)) != nullptr){
+		switch(event->type){
+		case xen::WindowEvent::Closed:
+			gmod->destroyWindow(state->window);
+			break;
+		default: break;
+		}
+	}
+	handleCameraInputCylinder(state->window, state->camera, xen::asSeconds<real>(cntx.dt), 20);
+	state->render_params.camera = xen::generateCamera3d(state->camera);
+
+	Vec3r light_1_pos = (tall_box_center +
+	                     xen::rotated(Vec3r{0.3_r, 0.5_r, 0.0_r},
+	                                  Vec3r::UnitY,
+	                                  90_deg * xen::asSeconds<real>(cntx.time)
+	                                 )
+	                    );
+	state->render_commands[4].model_matrix = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
+	                                          xen::Scale3d(0.03_r) *
+	                                          xen::Translation3d(light_1_pos)
+	                                         );
+	state->scene_lights[1].point.position = light_1_pos;
+
+  gmod->clear      (state->window, xen::Color{20, 20, 20, 255});
+  gmod->render     (state->window, viewport, state->render_params, state->render_commands);
+  gmod->swapBuffers(state->window);
+
+}
+
+void shutdown(xen::Kernel& kernel){
+	xen::deallocate(kernel, state);
+}
+
+xen::Module exported_xen_module = {
+	xen::hash("game"),
+	&init,
+	&shutdown,
+	&load,
+	&tick
 };

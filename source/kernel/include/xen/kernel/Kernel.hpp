@@ -11,6 +11,7 @@
 
 #include <xen/kernel/Module.hpp>
 #include <xen/core/intrinsics.hpp>
+#include <xen/core/String.hpp>
 
 namespace xen {
 
@@ -49,22 +50,30 @@ namespace xen {
 	/////////////////////////////////////////////////////////////////////
 	void stopKernel(Kernel& kernel);
 
-	/// \brief Opaque handle to a module loaded by the Kernel
-	typedef void* ModuleHandle;
-
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Loads a kernel module and call's the module's init function
+	///
+	/// \param params Data passed to the module's init and load functions in order
+	/// to configure the modules behaviour. Note that the kernel expects this
+	/// pointer  to be valid for the entire lifetime of the kernel, since the
+	/// params may need to be reused at any point if the hot_reload_modules
+	/// is true
+	///
 	/// \return Id of the loaded module which may be used later to fetch
-	/// the module's exposed api
+	/// the module's exposed api - will return 0 if failed to load the module
 	/////////////////////////////////////////////////////////////////////
-  ModuleHandle loadModule(Kernel& kernel, const char* lib_path);
+	StringHash loadModule(Kernel& kernel, const char* lib_path, const void* params = nullptr);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves the API exposed by some module. Note that this
 	/// should not be cached between ticks, as if the kernel setting
 	/// hot_reload_modules is enabled then it can change upon reload
 	/////////////////////////////////////////////////////////////////////
-	void* getModuleApi(Kernel& kernel, ModuleHandle module);
+	void* getModuleApi(Kernel& kernel, u64 module_type_hash);
+
+	inline void* getModuleApi(Kernel& kernel, const char* type_name){
+		return getModuleApi(kernel, xen::hash(type_name));
+	}
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Allows a module to allocate memory through the kernel
@@ -82,6 +91,12 @@ namespace xen {
 	/// complete
 	/////////////////////////////////////////////////////////////////////
 	void requestKernelShutdown(Kernel& kernel);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Retrieves reference to a scratch space arena whose contents
+	/// is reset at the start of each tick
+	/////////////////////////////////////////////////////////////////////
+	ArenaLinear& getTickScratchSpace(Kernel& kernel);
 }
 
 #endif

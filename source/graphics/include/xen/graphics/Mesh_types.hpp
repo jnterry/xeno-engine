@@ -24,10 +24,6 @@ namespace xen{
 	/// \brief Container for pointers to in memory arrays of attribute data
 	/// for some mesh
 	///
-	/// \note MeshVertexData should ususally be used in place of this type.
-	/// This is used when the number of vertices is implicit, or is stored
-	/// elsewhere
-	///
 	/// This struct is designed to represent a mesh with a fixed format - IE:
 	/// the number and type of vertex attributes cannot be changed. Use the
 	/// other types in this file for more flexibility - but more complexity
@@ -45,29 +41,12 @@ namespace xen{
 		/// \brief The uv coordinates of each vertex
 		Vec2f* uvs;
 
-		inline MeshAttribArrays(Vec3r* p, Vec3r* n, Color* c, Vec2f* uvs)
-			: position(p), normal(n), color(c), uvs(uvs){
-			// no-op
-		}
-	};
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Struct representing the minimum amount of data to represent
-	/// a Mesh stored in CPU memory. IE, a set of vertex arrays
-	///
-	/// This struct is designed to represent a mesh with a fixed format - IE:
-	/// the number and type of vertex attributes cannot be changed. Use the
-	/// other types in this file for more flexibility - but more complexity
-	///
-	/// \todo :TODO: better name?
-	/////////////////////////////////////////////////////////////////////
-	struct MeshGeometrySource : public MeshAttribArrays {
 		/// \brief Number of vertices in this mesh. Length of any non nullptr
-		/// attrib arrays is equal to this count.
+		/// attrib arrays above are equal to this count.
 		u32 vertex_count;
 
-		inline MeshGeometrySource(u32 vertex_count, Vec3r* p, Vec3r* n, Color* c, Vec2f* uvs)
-			: MeshAttribArrays(p, n, c, uvs), vertex_count(vertex_count){
+		inline MeshAttribArrays(u32 vertex_count, Vec3r* p, Vec3r* n, Color* c, Vec2f* uvs)
+			: position(p), normal(n), color(c), uvs(uvs), vertex_count(vertex_count){
 			// no-op
 		}
 	};
@@ -183,10 +162,10 @@ namespace xen{
 		static const constexpr u08 BAD_ATTRIB_INDEX = 255;
 
 		/// \brief The number of and type of attributes in this mesh
-		VertexSpec vertex_spec;
+		VertexSpec  vertex_spec;
 
 		/// \brief The bounding box of this mesh
-		xen::Aabb3r            bounds;
+		xen::Aabb3r bounds;
 
 		// :TODO: support indexed meshes
 	};

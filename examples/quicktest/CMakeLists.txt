@@ -1,3 +1,3 @@
-xen_add_example(quicktest
-  ${CMAKE_CURRENT_LIST_DIR}/main.cpp
+xen_add_example_module(quicktest
+  ${CMAKE_CURRENT_LIST_DIR}/quicktest.cpp
 )

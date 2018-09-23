@@ -51,12 +51,6 @@ namespace xen {
 		static const Color4f MAGENTA4f;
 		static const Color4f YELLOW4f;
 
-		Color();
-		Color(const Color& other);
-		Color(u08 r, u08 g, u08 b, u08 a = 255);
-		Color(Color3f other, float a  = 1);
-		Color(Color4f other);
-
 		/// \brief Assigns this color to some other
 		xen::Color& operator=(const xen::Color&   other);
 
@@ -74,6 +68,9 @@ namespace xen {
 
 	Color4f makeColor4f(Color color);
 	Color4f makeColor4f(Color3f, float a);
+	Color   makeColor  (Color3f);
+	Color   makeColor  (Color4f);
+	Color   makeColor  (Color3f, float a);
 }
 
 bool operator==(const xen::Color& lhs, const xen::Color& rhs);
