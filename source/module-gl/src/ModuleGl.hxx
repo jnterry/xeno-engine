@@ -38,7 +38,7 @@ namespace xgl {
 		xen::ArenaPool<xgl::TextureImpl>       pool_texture;
 		xen::ArenaPool<xen::gl::RenderTargetImpl*> pool_render_target;
 
-		xen::gl::ShaderProgram* default_shader;
+		xgl::ShaderProgram* default_shader;
 	};
 
 	extern GlState* gl_state;
