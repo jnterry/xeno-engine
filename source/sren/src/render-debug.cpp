@@ -139,6 +139,7 @@ void xsr::renderCameraDebug(xsr::RenderTarget& target,
 	Mat4r vp_matrix = xen::getViewProjectionMatrix(view_camera, viewport);
 
 	xsr::RasterizationContext context;
+	xen::clearToZero(&context);
 	context.camera          = view_camera;
 	context.target          = &target;
 	context.fragment_shader = xsr::FragmentShader_Default;
@@ -171,7 +172,8 @@ void xsr::renderDebugBoundingBox(xsr::RenderTarget& target,
 
 	xen::Aabb2r viewport_r = xen::cast<xen::Aabb2r>(viewport);
 
-	xsr::RasterizationContext cntx = {};
+	xsr::RasterizationContext cntx;
+	xen::clearToZero(&cntx);
 	cntx.target          = &target;
 	cntx.viewport        = &viewport_r; // :TODO: why is this a pointer... :(
 	cntx.vp_matrix       = xen::getViewProjectionMatrix(camera, viewport);

@@ -42,7 +42,8 @@ void renderDebug(xen::ArenaLinear&  scratch,
 
 	//////////////////////////////////////////////////////
 	// Render the actual atoms
-	xsr::RasterizationContext cntx = {};
+	xsr::RasterizationContext cntx;
+	xen::clearToZero(&cntx);
 	xen::Aabb2r viewport_r = xen::cast<xen::Aabb2r>(viewport);
 	cntx.m_matrix        = Mat4r::Identity; // points already in world space
 	cntx.vp_matrix       = xen::getViewProjectionMatrix(params.camera, viewport);
@@ -52,11 +53,11 @@ void renderDebug(xen::ArenaLinear&  scratch,
 	cntx.diffuse_color   = xen::Color::WHITE4f;
 
 	#if 0
-	xen::sren::rasterizePointsModel(cntx,
-	                                ascene.positions,
-	                                nullptr,
-	                                ascene.atom_count
-	                               );
+	xsr::rasterizePointsModel(cntx,
+	                          ascene.positions,
+	                          nullptr,
+	                          ascene.atom_count
+	                         );
 	#else
 	for(u32 i = 0; i < ascene.boxes.size; ++i){
 		if(ascene.boxes[i].end <= ascene.boxes[i].start ||
@@ -78,10 +79,8 @@ void renderDebug(xen::ArenaLinear&  scratch,
 		                          &ascene.positions[ascene.boxes[i].start],
 		                          nullptr,
 		                          ascene.boxes[i].end - ascene.boxes[i].start
-		                          );
+		                         );
 	}
-	#endif
-
 
 	//////////////////////////////////////////////////////
 	// Render bounding boxes of occupied nodes of the oct-tree
@@ -91,6 +90,7 @@ void renderDebug(xen::ArenaLinear&  scratch,
 			                            ascene.boxes[i].bounds);
 		}
 	}
+	#endif
 
 	//////////////////////////////////////////////////////
 	// Render where the virtual debug camera is located
@@ -117,7 +117,7 @@ void render(xen::ArenaLinear& scratch,
 	xen::sren::computeLighting(ascene, scratch, params);
 
 	xen::sren::rasterizeAtoms(target, viewport, params, ascene);
-	//raytraceAtoms(target, viewport, params, ascene, atoms_light.elements, viewport);
+	//xen::sren::raytraceAtoms(target, viewport, params, ascene, viewport);
 }
 
 void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
@@ -129,13 +129,16 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 			xsr::clear(op.clear.target, op.clear.color);
 			break;
 		case xen::RenderOp::DRAW:
+			#if 1
 			render(xen::getTickScratchSpace(kernel),
 			       op.draw.target, op.draw.viewport,
 			       *op.draw.params, op.draw.commands);
-			//renderDebug(xen::getTickScratchSpace(kernel),
-			//            xen::asSeconds<real>(cntx.time),
-			//            op.draw.target, op.draw.viewport,
-			//            *op.draw.params, op.draw.commands);
+			#else
+			renderDebug(xen::getTickScratchSpace(kernel),
+			            xen::asSeconds<real>(cntx.time),
+			            op.draw.target, op.draw.viewport,
+			            *op.draw.params, op.draw.commands);
+			#endif
 			break;
 		case xen::RenderOp::SWAP_BUFFERS:
 			xsr::swapBuffers(op.swap_buffers.window);
