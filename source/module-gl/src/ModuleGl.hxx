@@ -35,7 +35,7 @@ namespace xgl {
 		// code from when we didn't have ArenaPool and looped over an
 		// array checking for nullptr
 		xen::ArenaPool<xgl::MeshGlData>        pool_mesh;
-		xen::ArenaPool<xen::gl::TextureImpl>       pool_texture;
+		xen::ArenaPool<xgl::TextureImpl>       pool_texture;
 		xen::ArenaPool<xen::gl::RenderTargetImpl*> pool_render_target;
 
 		xen::gl::ShaderProgram* default_shader;
