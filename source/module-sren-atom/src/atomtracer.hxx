@@ -90,7 +90,6 @@ struct AtomScene {
 AtomScene& atomizeScene(const xen::Aabb2u& viewport,
                         const xen::RenderParameters3d& params,
                         const xen::Array<xen::RenderCommand3d>& commands,
-                        xen::sren::MeshStore<xsr::RasterizerMesh>& mesh_store,
                         xen::ArenaLinear& arena,
                         real  pixels_per_atom = 1.0_r);
 

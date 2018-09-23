@@ -10,6 +10,7 @@
 #define XEN_SREN_ATOMTRACER_CPP
 
 #include "atomtracer.hxx"
+#include "Mesh.hxx"
 #include <xen/sren/render-debug.hxx>
 
 #include <xen/sren/RenderTarget.hxx>
@@ -79,7 +80,6 @@ xen::sren::AtomScene& _breakSceneIntoAtoms
 ( const xen::Aabb2u&                               viewport,
   const xen::RenderParameters3d&                   params,
   const xen::Array<xen::RenderCommand3d>&          commands,
-  xen::sren::MeshStore<xsr::RasterizerMesh>& mesh_store,
   xen::ArenaLinear&                                arena,
   real                                             pixels_per_atom
 )
@@ -94,7 +94,7 @@ xen::sren::AtomScene& _breakSceneIntoAtoms
 
 	for(u32 cmd_index = 0; cmd_index < xen::size(commands); ++cmd_index){
 		const xen::RenderCommand3d&      cmd  = commands[cmd_index];
-		const xsr::RasterizerMesh* mesh = mesh_store.getMesh(cmd.mesh);
+		const xsr::RasterizerMesh* mesh = xsr::getMeshImpl(cmd.mesh);
 
 		xen::Aabb3r mesh_bounds = xen::getTransformed(mesh->bounds, cmd.model_matrix);
 		xen::addPoint(result->bounds, mesh_bounds.min);
@@ -398,13 +398,11 @@ namespace sren {
 AtomScene& atomizeScene(const Aabb2u& viewport,
                         const RenderParameters3d& params,
                         const Array<RenderCommand3d>& commands,
-                        MeshStore<xsr::RasterizerMesh>& mesh_store,
                         ArenaLinear& arena,
                         real pixels_per_atom){
 
 	AtomScene& ascene = _breakSceneIntoAtoms(viewport, params, commands,
-	                                         mesh_store, arena,
-	                                         pixels_per_atom);
+	                                         arena, pixels_per_atom);
 
 	// :TODO: compute based on number of atoms?
 	ascene.split_count = 5;
