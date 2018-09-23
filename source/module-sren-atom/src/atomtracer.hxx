@@ -128,8 +128,7 @@ void rasterizeAtoms(xsr::RenderTarget& target,
 void raytraceAtoms(xsr::RenderTarget& target,
                    const xen::Aabb2u& viewport,
                    const xen::RenderParameters3d& params,
-                   const AtomScene& a_out,
-                   const Vec3r* atoms_light,
+                   const AtomScene& ascene,
                    const xen::Aabb2u& rendering_bounds);
 
 } // end of namespace sren

@@ -573,7 +573,6 @@ void raytraceAtoms(xsr::RenderTarget& target,
                    const xen::Aabb2u& viewport,
                    const xen::RenderParameters3d& params,
                    const AtomScene& ascene,
-                   const Vec3r* atoms_light,
                    const xen::Aabb2u& rendering_bounds){
 
 	xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
@@ -646,7 +645,7 @@ void raytraceAtoms(xsr::RenderTarget& target,
 			}
 
 			xen::Color4f pixel_color;
-			pixel_color.rgb = atoms_light[intersection.index];
+			pixel_color.rgb = ascene.lighting[intersection.index];
 			pixel_color.a   = 1.0f;
 			Vec2u pixel_coord = target_pos + (Vec2u)view_region.min;
 			target.color[pixel_coord.y*target.width + pixel_coord.x] = pixel_color;
