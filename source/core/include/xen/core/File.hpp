@@ -38,6 +38,14 @@ namespace xen{
 	/// \brief Makes a copy of a file
 	/////////////////////////////////////////////////////////////////////
 	bool copyFile(const char* in, const char* out);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Deletes a file or system link
+	/// \return True if the path does not exist now that this function has
+	/// returned, hence if the path did not exist before this function
+	/// returns true and behaves as no-op
+	/////////////////////////////////////////////////////////////////////
+	bool deleteFile(const char* path);
 }
 
 #endif

@@ -14,6 +14,7 @@
 #include <sys/sendfile.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <errno.h>
 
 namespace xen {
 	DateTime getPathModificationTime(const char* path){
@@ -44,6 +45,25 @@ namespace xen {
 
 		close(fout);
 		close(fin);
+	}
+
+	bool deleteFile(const char* path){
+		errno = 0;
+		struct stat tmp;
+		if(stat(path, &tmp) != 0){
+			// then error occurred - if error was that the path
+			// doesn't exist return true
+			return errno == ENOENT || errno == ENOTDIR;
+		} else {
+			// then path exists
+			// It is implementation defined whether unlink works on directories,
+			// hence we only want to call it if the path is a file or symlink
+			if(S_ISREG(tmp.st_mode) || S_ISLNK(tmp.st_mode)){
+				return unlink(path) == 0;
+			} else {
+				return false;
+			}
+		}
 	}
 }
 
