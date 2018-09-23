@@ -257,6 +257,10 @@ namespace xen {
 		xen::Stopwatch timer;
 		xen::Duration last_time = timer.getElapsedTime();
 
+
+		xen::Duration last_tick_rate_print = last_time;
+		u64           last_tick_count      = 0;
+
 		printf("Kernel init finished, beginning main loop...\n");
 		do {
 			xen::resetArena(kernel.tick_scratch_space);
@@ -268,6 +272,16 @@ namespace xen {
 				//printf("Checking for module reloads...\n");
 				reloadModifiedKernelModules(kernel);
 				//printf("Done reloads\n");
+			}
+
+			if(kernel.settings.print_tick_rate &&
+			   cntx.time - last_tick_rate_print > xen::seconds(0.5f)){
+				printf("Tick Rate: %f\n",
+				       (real)(cntx.tick - last_tick_count) /
+				       xen::asSeconds<real>(cntx.time - last_tick_rate_print)
+				       );
+				last_tick_rate_print = cntx.time;
+				last_tick_count      = cntx.tick;
 			}
 
 			for(LoadedModule* lmod = kernel.module_head;

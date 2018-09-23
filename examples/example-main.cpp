@@ -27,9 +27,12 @@ int main(int argc, const char** argv){
 
 	xen::KernelSettings settings;
 	settings.hot_reload_modules = true;
+	settings.print_tick_rate    = true;
 	xen::Kernel& kernel = xen::createKernel(settings);
 
 	loadGraphicsModule(kernel, argv[2]);
 	xen::loadModule(kernel, argv[1]);
 	xen::startKernel(kernel);
+
+	return 0;
 }

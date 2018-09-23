@@ -24,6 +24,10 @@ namespace xen {
 		/// \brief If true then before each tick the library file for any loaded
 		/// modules will be checked for modifications, and be reloaded if necessary
 		bool hot_reload_modules;
+
+		/// \brief If true then the kernel will print the average tick rate once
+		/// a second to stdout
+		bool print_tick_rate;
 	};
 
 	/////////////////////////////////////////////////////////////////////
