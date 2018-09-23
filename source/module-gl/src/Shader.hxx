@@ -15,6 +15,7 @@
 #include <xen/math/vector_types.hpp>
 #include <xen/math/matrix_types.hpp>
 #include "gl_header.hxx"
+#include <xen/graphics/GraphicsModuleApi.hpp>
 
 namespace xen{
 	struct ArenaLinear;
@@ -26,15 +27,6 @@ namespace xgl {
 	  GLuint pixel_shader;  ///< Handle for the pixel stage
 	  GLuint program;       ///< Handle for the program object
   };
-
-	/// \brief Creates a new ShaderProgram
-	ShaderProgram* createShaderProgram(xen::ArenaLinear& arena,
-	                                   const char* vertex_source,
-	                                   const char* pixel_source
-	                                  );
-
-	/// \brief Frees resources associated with specified shader program
-	void destroyShaderProgram(ShaderProgram*);
 
 	/// \brief Determines is specified shader program compiled successfully
 	bool isOkay(ShaderProgram*);
@@ -62,8 +54,10 @@ namespace xgl {
 	void setUniform(int location, Mat4f data);
 	void setUniform(int location, Mat4d data);
 
-	// :TODO: temp test function
-	ShaderProgram* loadDefaultShader(xen::ArenaLinear& arena);
+	// functions for module interface
+	xen::Shader    createShader(const xen::ShaderSource& source);
+	void           destroyShader(xen::Shader shader);
+	ShaderProgram* getShaderImpl(xen::Shader shader);
 }
 
 #endif

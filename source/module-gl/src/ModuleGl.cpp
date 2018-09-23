@@ -78,6 +78,7 @@ void* init(xen::Kernel& kernel, const void* params){
 
 	xgl::gl_state->pool_mesh          = xen::createArenaPool<xgl::MeshGlData>(xgl::gl_state->primary_arena, 128);
 	xgl::gl_state->pool_texture       = xen::createArenaPool<xgl::TextureImpl>(xgl::gl_state->primary_arena, 128);
+	xgl::gl_state->pool_shader        = xen::createArenaPool<xgl::ShaderProgram>(xgl::gl_state->primary_arena, 128);
 	xgl::gl_state->pool_render_target = xen::createArenaPool<xen::gl::RenderTargetImpl*>(xgl::gl_state->primary_arena, 128);
 
 	return xgl::gl_state;
@@ -116,6 +117,9 @@ void* load(xen::Kernel& kernel, void* data, const void* params){
 
 	xgl::gl_state->api.createTexture           = &xgl::createTexture;
 	xgl::gl_state->api.destroyTexture          = &xgl::destroyTexture;
+
+	xgl::gl_state->api.createShader            = &xgl::createShader;
+	xgl::gl_state->api.destroyShader           = &xgl::destroyShader;
 
 	xgl::gl_state->api.pushOp                  = &pushOp;
 

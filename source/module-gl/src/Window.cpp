@@ -76,7 +76,8 @@ namespace xgl {
 		// :TODO: something better with shaders -> ideally expose them to user of xenogin
 		// but how do "programable pipeline" in software / other devices?
 
-		gl_state->default_shader = xgl::loadDefaultShader(gl_state->primary_arena);
+		// ensure shader 0 is the default shader
+		xgl::createShader({ nullptr, "vertex.glsl", "pixel.glsl" });
 
 		// Ensure texture 0 is single pixel white
 		xen::RawImage image;

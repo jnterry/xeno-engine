@@ -123,8 +123,7 @@ namespace xgl {
 		Vec2u viewport_size = viewport.max - viewport.min;
 		glViewport(viewport.min.x, viewport.min.y, viewport_size.x, viewport_size.y);
 
-		auto prog = xgl::gl_state->default_shader;
-
+		xgl::ShaderProgram* prog = &xgl::gl_state->pool_shader.slots[0].item;
 		xgl::useShader(prog);
 
 		int mvp_mat_loc           = xgl::getUniformLocation(prog, "mvp_mat"          );

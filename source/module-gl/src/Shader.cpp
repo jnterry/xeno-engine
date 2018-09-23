@@ -10,10 +10,12 @@
 #define XEN_GL_SHADER_GL_CPP
 
 #include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/core/memory/ArenaPool.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/math/matrix_types.hpp>
 #include <xen/core/File.hpp>
 
+#include "ModuleGl.hxx"
 #include "Shader.hxx"
 #include "gl_header.hxx"
 
@@ -28,72 +30,61 @@ namespace {
 
 		return result;
 	}
-}
 
-xgl::ShaderProgram* xgl::createShaderProgram(xen::ArenaLinear& arena,
-                                        const char* vertex_source,
-                                        const char* pixel_source
-                                       ){
-	xen::MemoryTransaction transaction(arena);
+	xgl::ShaderProgram* initShaderProgram(xgl::ShaderProgram* result,
+	                                      const char* vertex_source,
+	                                      const char* pixel_source
+	                                     ){
+		result->vertex_shader = compileShader(GL_VERTEX_SHADER,   vertex_source);
+		result->pixel_shader  = compileShader(GL_FRAGMENT_SHADER, pixel_source);
 
-	xgl::ShaderProgram* result = xen::reserveType<xgl::ShaderProgram>(arena);
-	result->vertex_shader = compileShader(GL_VERTEX_SHADER,   vertex_source);
-	result->pixel_shader  = compileShader(GL_FRAGMENT_SHADER, pixel_source);
+		result->program = XEN_CHECK_GL_RETURN(glCreateProgram());
 
-	result->program = XEN_CHECK_GL_RETURN(glCreateProgram());
+		XEN_CHECK_GL(glAttachShader(result->program, result->vertex_shader  ));
+		XEN_CHECK_GL(glAttachShader(result->program, result->pixel_shader));
 
-	XEN_CHECK_GL(glAttachShader(result->program, result->vertex_shader  ));
-	XEN_CHECK_GL(glAttachShader(result->program, result->pixel_shader));
+		XEN_CHECK_GL(glLinkProgram(result->program));
 
-	XEN_CHECK_GL(glLinkProgram(result->program));
+		XEN_CHECK_GL(glDetachShader(result->program, result->vertex_shader  ));
+		XEN_CHECK_GL(glDetachShader(result->program, result->pixel_shader));
 
-	XEN_CHECK_GL(glDetachShader(result->program, result->vertex_shader  ));
-	XEN_CHECK_GL(glDetachShader(result->program, result->pixel_shader));
+		////////////////////////////////////////////////////
+		// Query Shader Interface
+		// :TODO: all this is temp debug code, want to actually store this data somehow...
+		GLint attrib_count;
 
-	transaction.commit();
+		char tmp[256];
 
-	////////////////////////////////////////////////////
-	// Query Shader Interface
-	// :TODO: all this is temp debug code, want to actually store this data somehow...
-	GLint attrib_count;
+		XEN_CHECK_GL(glGetProgramiv(result->program, GL_ACTIVE_ATTRIBUTES, &attrib_count));
+		printf("Created program\n");
+		printf("- Vertex Spec has %i attributes\n", attrib_count);
+		for(int i = 0; i < attrib_count; ++i){
 
-	char tmp[256];
+			GLint  attrib_size;
+			GLenum attrib_type;
 
-	XEN_CHECK_GL(glGetProgramiv(result->program, GL_ACTIVE_ATTRIBUTES, &attrib_count));
-	printf("Created program\n");
-	printf("- Vertex Spec has %i attributes\n", attrib_count);
-	for(int i = 0; i < attrib_count; ++i){
+			XEN_CHECK_GL(glGetActiveAttrib(result->program, i,
+			                               XenArrayLength(tmp), NULL,
+			                               &attrib_size, &attrib_type,
+			                               tmp));
 
-		GLint  attrib_size;
-		GLenum attrib_type;
+			GLint attrib_location = XEN_CHECK_GL_RETURN(glGetAttribLocation(result->program, tmp));
 
-		XEN_CHECK_GL(glGetActiveAttrib(result->program, i,
-		                               XenArrayLength(tmp), NULL,
-		                               &attrib_size, &attrib_type,
-		                               tmp));
+			printf("  - %2i: %24s, size: %i, type: %6i, location: %2i\n",
+			       i, tmp, attrib_size, attrib_type, attrib_location);
+		}
 
-		GLint attrib_location = XEN_CHECK_GL_RETURN(glGetAttribLocation(result->program, tmp));
+		GLint uniform_count;
+		XEN_CHECK_GL(glGetProgramiv(result->program, GL_ACTIVE_UNIFORMS, &uniform_count));
+		printf("- Program has %i uniforms\n", uniform_count);
+		for(int i = 0; i < uniform_count; ++i){
+			XEN_CHECK_GL(glGetActiveUniformName(result->program, i, XenArrayLength(tmp), NULL, tmp));
+			printf("  - %2i: %24s\n", i, tmp);
+		}
+		////////////////////////////////////////////////////
 
-		printf("  - %2i: %24s, size: %i, type: %6i, location: %2i\n",
-		       i, tmp, attrib_size, attrib_type, attrib_location);
+		return result;
 	}
-
-	GLint uniform_count;
-	XEN_CHECK_GL(glGetProgramiv(result->program, GL_ACTIVE_UNIFORMS, &uniform_count));
-	printf("- Program has %i uniforms\n", uniform_count);
-	for(int i = 0; i < uniform_count; ++i){
-		XEN_CHECK_GL(glGetActiveUniformName(result->program, i, XenArrayLength(tmp), NULL, tmp));
-		printf("  - %2i: %24s\n", i, tmp);
-	}
-	////////////////////////////////////////////////////
-
-	return result;
-}
-
-void xgl::destroyShaderProgram(xgl::ShaderProgram* shader){
-	XEN_CHECK_GL(glDeleteShader (shader->vertex_shader));
-	XEN_CHECK_GL(glDeleteShader (shader->pixel_shader ));
-	XEN_CHECK_GL(glDeleteProgram(shader->program      ));
 }
 
 bool xgl::isOkay(xgl::ShaderProgram* shader){
@@ -144,31 +135,6 @@ int xgl::getUniformLocation(xgl::ShaderProgram* shader, const char* name){
 	return glGetUniformLocation(shader->program, name);
 }
 
-xgl::ShaderProgram* xgl::loadDefaultShader(xen::ArenaLinear& arena){
-	XenTempArena(scratch, 8196);
-
-	// :TODO: we can't rely on these glsl files just existing in bin dir...
-
-	xen::FileData vertex_src = loadFileAndNullTerminate(scratch, "vertex.glsl");
-	xen::FileData pixel_src  = loadFileAndNullTerminate(scratch, "pixel.glsl");
-
-	auto result = createShaderProgram(arena,
-	                                  (char*)&vertex_src[0],
-	                                  (char*)&pixel_src[0]
-	                                 );
-
-	if(!xgl::isOkay(result)){
-		resetArena(scratch);
-		const char* errors = xgl::getErrors(result, scratch);
-		printf("Shader Errors:\n%s\n", errors);
-		XenBreak();
-	} else {
-		printf("Shader compiled successfully\n");
-	}
-
-	return result;
-}
-
 void xgl::setUniform(int location, Vec3f data){
 	XEN_CHECK_GL(glUniform3f(location, data.x, data.y, data.z));
 }
@@ -204,6 +170,58 @@ void xgl::setUniform(int location, Mat4f data){
 }
 void xgl::setUniform(int location, Mat4d data){
 	XEN_CHECK_GL(glUniformMatrix4dv(location, 1, GL_TRUE, data.elements));
+}
+
+
+xen::Shader xgl::createShader(const xen::ShaderSource& source){
+	if(source.glsl_vertex_path == nullptr ||
+	   source.glsl_fragment_path == nullptr){
+		// return handle to the default shader
+		return xen::makeGraphicsHandle<xen::Shader::HANDLE_ID>(0, 0);
+	}
+
+	u32 slot = xen::reserveSlot(xgl::gl_state->pool_shader);
+	xen::Shader result = xen::makeGraphicsHandle<xen::Shader::HANDLE_ID>(slot, 0);
+
+	XenTempArena(scratch, 8196);
+
+	xen::FileData vertex_src = loadFileAndNullTerminate(scratch, source.glsl_vertex_path);
+	xen::FileData pixel_src  = loadFileAndNullTerminate(scratch, source.glsl_fragment_path);
+
+	auto sprog = initShaderProgram(xgl::getShaderImpl(result),
+	                               (char*)&vertex_src[0],
+	                               (char*)&pixel_src[0]
+	                              );
+
+	if(!xgl::isOkay(sprog)){
+		resetArena(scratch);
+		const char* errors = xgl::getErrors(sprog, scratch);
+		printf("Shader Errors:\n%s\n", errors);
+		XenBreak();
+	} else {
+		printf("Shader compiled successfully\n");
+	}
+
+	return result;
+}
+
+void xgl::destroyShader(xen::Shader shader){
+	if(shader._id == 0){
+		// never kill the default shader
+		return;
+	}
+
+	xgl::ShaderProgram* sprog = xgl::getShaderImpl(shader);
+
+	XEN_CHECK_GL(glDeleteShader (sprog->vertex_shader));
+	XEN_CHECK_GL(glDeleteShader (sprog->pixel_shader ));
+	XEN_CHECK_GL(glDeleteProgram(sprog->program      ));
+
+	xen::freeSlot(xgl::gl_state->pool_shader, shader._id);
+}
+
+xgl::ShaderProgram* xgl::getShaderImpl(xen::Shader shader){
+	return &xgl::gl_state->pool_shader.slots[shader._id].item;
 }
 
 #endif

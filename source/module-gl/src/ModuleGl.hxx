@@ -36,9 +36,8 @@ namespace xgl {
 		// array checking for nullptr
 		xen::ArenaPool<xgl::MeshGlData>        pool_mesh;
 		xen::ArenaPool<xgl::TextureImpl>       pool_texture;
+		xen::ArenaPool<xgl::ShaderProgram>     pool_shader;
 		xen::ArenaPool<xen::gl::RenderTargetImpl*> pool_render_target;
-
-		xgl::ShaderProgram* default_shader;
 	};
 
 	extern GlState* gl_state;
