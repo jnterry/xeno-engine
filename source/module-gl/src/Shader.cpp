@@ -30,7 +30,7 @@ namespace {
 	}
 }
 
-xgl::ShaderProgram* createShaderProgram(xen::ArenaLinear& arena,
+xgl::ShaderProgram* xgl::createShaderProgram(xen::ArenaLinear& arena,
                                         const char* vertex_source,
                                         const char* pixel_source
                                        ){
@@ -106,7 +106,7 @@ bool xgl::isOkay(xgl::ShaderProgram* shader){
 	return status_vert == GL_TRUE && status_pixel == GL_TRUE && status_prog == GL_TRUE;
 }
 
-char* getErrors(xgl::ShaderProgram* shader, xen::ArenaLinear& arena){
+char* xgl::getErrors(xgl::ShaderProgram* shader, xen::ArenaLinear& arena){
 	if(isOkay(shader)){
 		return pushString(arena, "No errors");
 	}
@@ -140,11 +140,11 @@ void xgl::useShader(xgl::ShaderProgram* shader){
 	}
 }
 
-int getUniformLocation(xgl::ShaderProgram* shader, const char* name){
+int xgl::getUniformLocation(xgl::ShaderProgram* shader, const char* name){
 	return glGetUniformLocation(shader->program, name);
 }
 
-xgl::ShaderProgram* loadDefaultShader(xen::ArenaLinear& arena){
+xgl::ShaderProgram* xgl::loadDefaultShader(xen::ArenaLinear& arena){
 	XenTempArena(scratch, 8196);
 
 	// :TODO: we can't rely on these glsl files just existing in bin dir...
