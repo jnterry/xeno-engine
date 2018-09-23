@@ -291,6 +291,8 @@ _splitPointsOnPlane(xen::sren::AtomScene& scene,
                     xen::sren::AtomScene::AtomIndex end,
                     u32 dimension, real threshold
                    ){
+	if(start == end){ return start; }
+
 	xen::sren::AtomScene::AtomIndex cur_front = start;
 	xen::sren::AtomScene::AtomIndex cur_back  = end-1;
 	//printf("Split points on plane between %u and %u\n", cur_front, cur_back);
@@ -298,13 +300,18 @@ _splitPointsOnPlane(xen::sren::AtomScene& scene,
 	Vec3r tmp;
 	while(cur_front < cur_back){
 		while(cur_front <  end   && scene.positions[cur_front][dimension] <  threshold){ ++cur_front; }
-		while(cur_back  >= start && scene.positions[cur_back ][dimension] >= threshold){ --cur_back;  }
+		while(cur_back  >= start && scene.positions[cur_back ][dimension] >= threshold){
+			if(cur_back == 0){ goto done; }
+			--cur_back;
+		}
 
 		xen::swap(scene.positions[cur_front], scene.positions[cur_back]);
 
+		if(cur_back == 0){ break; }
 		++cur_front;
 		--cur_back;
 	}
+	done:
 
 	// This is first element >= to the threshold
 	return cur_front;
