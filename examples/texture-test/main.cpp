@@ -93,8 +93,8 @@ void initMeshes(xen::Kernel& kernel, xen::GraphicsModuleApi* gmod){
 	state->texture_metal_diffuse  = gmod->createTexture(&image_metal_diffuse);
 	state->texture_metal_normal   = gmod->createTexture(&image_metal_normal);
 
-	state->shader_normal_map = gmod->createShader((void*)&FragmentShader_NormalMap);
-	state->shader_phong      = gmod->createShader((void*)&FragmentShader_Phong    );
+	state->shader_normal_map = gmod->createShader({ (void*)&FragmentShader_NormalMap });
+	state->shader_phong      = gmod->createShader({ (void*)&FragmentShader_Phong     });
 }
 
 void* init(xen::Kernel& kernel, const void* params){

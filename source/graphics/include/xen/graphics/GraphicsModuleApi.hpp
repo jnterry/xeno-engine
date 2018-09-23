@@ -60,6 +60,27 @@ namespace xen {
 	};
 
 	/////////////////////////////////////////////////////////////////////
+	/// \brief Bundle of arguments used to create a shader. This includes
+	/// parameters for all rendering backends, and combination of which may
+	/// be supplied. Rendering backends should attempt to construct a shader
+	/// from that which is not nullptr, and if that is not possible (eg, only
+	/// sren shader is specified but we are using opengl) then the backend should
+	/// fall back to using its default shader
+	///
+	/// \todo Something better for creating shaders in a backend agnostic way...
+	/////////////////////////////////////////////////////////////////////
+	struct ShaderSource {
+		/// \brief Pointer to a FragmentShader for sren backends
+		void* sren;
+
+		/// \brief Path of glsl code for vertex shader
+		const char* glsl_vertex_path;
+
+		/// \brief Path of glsl code for fragment shader
+		const char* glsl_fragment_path;
+	};
+
+	/////////////////////////////////////////////////////////////////////
 	/// \brief Type representing the Api that a graphics module is expected
 	/// to expose
 	/////////////////////////////////////////////////////////////////////
@@ -95,9 +116,7 @@ namespace xen {
 		Texture (*createTexture )(const RawImage* image);
 		void    (*destroyTexture)(Texture texture);
 
-		/// \brief Creates a shader from some source type that is dependent on the
-		/// backend graphics api
-		Shader  (*createShader  )(const void* source);
+		Shader  (*createShader  )(const ShaderSource& source);
 		void    (*destroyShader )(Shader shader     );
 
 		/// \brief Pushes some rendering operation

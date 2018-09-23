@@ -163,9 +163,9 @@ void initMeshes(xen::Kernel& kernel, xen::GraphicsModuleApi* gmod){
 	                                       xen::TestMeshGeometry_UnitXzPlaneCentered
 	                                      );
 
-	state->shader_phong     = gmod->createShader((void*)&FragmentShader_Phong    );
-	state->shader_normals   = gmod->createShader((void*)&FragmentShader_Normals  );
-	state->shader_positions = gmod->createShader((void*)&FragmentShader_Positions);
+	state->shader_phong     = gmod->createShader({(void*)&FragmentShader_Phong    , nullptr, nullptr});
+	state->shader_normals   = gmod->createShader({(void*)&FragmentShader_Normals  , nullptr, nullptr});
+	state->shader_positions = gmod->createShader({(void*)&FragmentShader_Positions, nullptr, nullptr});
 }
 
 void* init(xen::Kernel& kernel, const void* params){

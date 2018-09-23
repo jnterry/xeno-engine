@@ -11,15 +11,21 @@
 
 #include "Shader.hxx"
 #include "ModuleRasterize.hxx"
-#include <xen/graphics/GraphicsHandles.hpp>
+#include <xen/graphics/GraphicsModuleApi.hpp>
 
 xsr::FragmentShader xsr::getShaderImpl(const xen::Shader shader){
 	return xsr::state->shader_pool.slots[shader._id].item;
 }
 
-xen::Shader xsr::createShader(const void* source){
+xen::Shader xsr::createShader(const xen::ShaderSource& source){
 	u32 slot = xen::reserveSlot(xsr::state->shader_pool);
-	xsr::state->shader_pool.slots[slot].item = (xsr::FragmentShader)source;
+
+	xsr::FragmentShader shader = (xsr::FragmentShader)source.sren;
+	if(shader == nullptr){
+		shader = xsr::FragmentShader_Default;
+	}
+	xsr::state->shader_pool.slots[slot].item = shader;
+
 	return xen::makeGraphicsHandle<xen::Shader::HANDLE_ID>(slot, 0);
 }
 

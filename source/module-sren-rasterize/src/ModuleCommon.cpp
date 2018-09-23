@@ -51,7 +51,7 @@ void doRasterizerStateInit(void* block, const u64 BLK_SIZE){
 	xsr::createTexture(&image);
 
 	// Ensure shader 0 is the default shader
-	xsr::createShader((void*)xsr::FragmentShader_Default);
+	xsr::createShader({ (void*)xsr::FragmentShader_Default, nullptr, nullptr });
 }
 
 namespace {

@@ -64,9 +64,12 @@
 
 xgl::GlState* xgl::gl_state = nullptr;
 
-// :TODO: this function temporary so we can call from GlDevice... once we
-// remove GraphicsDevice code this can be folded into init
-void doGlStateInit(void* memory_block, const u64 BLK_SIZE){
+void* init(xen::Kernel& kernel, const void* params){
+
+	constexpr u64 BLK_SIZE = xen::megabytes(1);
+
+	void* memory_block = xen::allocate(kernel, BLK_SIZE, alignof(xgl::GlState));
+
 	xgl::gl_state = (xgl::GlState*)(memory_block);
 
 	xgl::gl_state->primary_arena.start     = xen::ptrGetAdvanced(xgl::gl_state, sizeof(xgl::GlState));
@@ -76,62 +79,51 @@ void doGlStateInit(void* memory_block, const u64 BLK_SIZE){
 	xgl::gl_state->pool_mesh          = xen::createArenaPool<xgl::MeshGlData>(xgl::gl_state->primary_arena, 128);
 	xgl::gl_state->pool_texture       = xen::createArenaPool<xgl::TextureImpl>(xgl::gl_state->primary_arena, 128);
 	xgl::gl_state->pool_render_target = xen::createArenaPool<xen::gl::RenderTargetImpl*>(xgl::gl_state->primary_arena, 128);
+
+	return xgl::gl_state;
 }
 
-namespace {
-	void* init(xen::Kernel& kernel, const void* params){
+void shutdown(xen::Kernel& kernel){
+	// :TODO: should also free gl resources
+	xen::deallocate(kernel, xgl::gl_state);
+}
 
-		constexpr u64 BLK_SIZE = xen::megabytes(1);
-
-		void* memory_block = xen::allocate(kernel, BLK_SIZE, alignof(xgl::GlState));
-
-		doGlStateInit(memory_block, BLK_SIZE);
-
-		return xgl::gl_state;
+void pushOp(const xen::RenderOp& op){
+	switch(op.type){
+	case xen::RenderOp::CLEAR:
+		xgl::clearTarget(op.clear.target, op.clear.color);
+		break;
+	case xen::RenderOp::DRAW:
+		xgl::render(op.draw.target, op.draw.viewport, *op.draw.params, op.draw.commands);
+		break;
+	case xen::RenderOp::SWAP_BUFFERS:
+		xgl::swapBuffers(op.swap_buffers.window);
+		break;
 	}
+}
 
-	void shutdown(xen::Kernel& kernel){
-		// :TODO: should also free gl resources
-		xen::deallocate(kernel, xgl::gl_state);
-	}
-
-	void pushOp(const xen::RenderOp& op){
-		switch(op.type){
-		case xen::RenderOp::CLEAR:
-			xgl::clearTarget(op.clear.target, op.clear.color);
-			break;
-		case xen::RenderOp::DRAW:
-			xgl::render(op.draw.target, op.draw.viewport, *op.draw.params, op.draw.commands);
-			break;
-		case xen::RenderOp::SWAP_BUFFERS:
-			xgl::swapBuffers(op.swap_buffers.window);
-			break;
-		}
-	}
-
-	void* load(xen::Kernel& kernel, void* data, const void* params){
-		xgl::gl_state = (xgl::GlState*)data;
+void* load(xen::Kernel& kernel, void* data, const void* params){
+	xgl::gl_state = (xgl::GlState*)data;
 
 
-		xgl::gl_state->api.createWindow            = &xgl::createWindow;
-		xgl::gl_state->api.destroyWindow           = &xgl::destroyWindow;
+	xgl::gl_state->api.createWindow            = &xgl::createWindow;
+	xgl::gl_state->api.destroyWindow           = &xgl::destroyWindow;
 
-		xgl::gl_state->api._createMeshFromMeshData = &xgl::createMesh;
-		xgl::gl_state->api.destroyMesh             = &xgl::destroyMesh;
+	xgl::gl_state->api._createMeshFromMeshData = &xgl::createMesh;
+	xgl::gl_state->api.destroyMesh             = &xgl::destroyMesh;
 
-		xgl::gl_state->api._updateMeshVertexData   = &xgl::updateMeshVertexData;
+	xgl::gl_state->api._updateMeshVertexData   = &xgl::updateMeshVertexData;
 
-		xgl::gl_state->api.createTexture           = &xgl::createTexture;
-		xgl::gl_state->api.destroyTexture          = &xgl::destroyTexture;
+	xgl::gl_state->api.createTexture           = &xgl::createTexture;
+	xgl::gl_state->api.destroyTexture          = &xgl::destroyTexture;
 
-		xgl::gl_state->api.pushOp                  = &pushOp;
+	xgl::gl_state->api.pushOp                  = &pushOp;
 
-		return &xgl::gl_state->api;
-	}
+	return &xgl::gl_state->api;
+}
 
-	void tick(xen::Kernel& kernel, const xen::TickContext& tick){
-		// no-op
-	}
+void tick(xen::Kernel& kernel, const xen::TickContext& tick){
+	// no-op
 }
 
 

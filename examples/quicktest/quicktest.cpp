@@ -79,7 +79,7 @@ void* init(xen::Kernel& kernel, const void* params){
 	state->vertex_spec[2] = xen::VertexAttribute::Color4b;
 	state->vertex_spec[3] = xen::VertexAttribute::TexCoord2f;
 
-	state->shader_phong      = gmod->createShader((void*)&FragmentShader_Phong    );
+	state->shader_phong      = gmod->createShader({ (void*)&FragmentShader_Phong, nullptr, nullptr });
 
 	xen::RawImage test_image = xen::loadImage(arena, "test.bmp");
 	state->texture_debug_img = gmod->createTexture(&test_image);

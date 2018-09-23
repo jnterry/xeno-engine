@@ -12,8 +12,12 @@
 #include <xen/sren/FragmentShader.hpp>
 #include <xen/graphics/GraphicsHandles.hpp>
 
+namespace xen {
+	struct ShaderSource;
+}
+
 namespace xsr {
-	xen::Shader createShader(const void* source);
+	xen::Shader createShader(const xen::ShaderSource& source);
 	void        destroyShader(xen::Shader shader);
 
 	xsr::FragmentShader getShaderImpl(xen::Shader shader);
