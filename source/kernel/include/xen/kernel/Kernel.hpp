@@ -39,16 +39,10 @@ namespace xen {
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Starts running the kernel, which basically amounts to repeatedly
 	/// calling tick for all loaded modules. This function will not return
-	/// until stopKernel is called (hence stopKernel must be called within
-	/// the tick() callback of some loaded module)
+	/// until requestKernelShutdown is called (hence requestKernelShutdown must be
+	/// called within the tick() callback of some loaded module)
 	/////////////////////////////////////////////////////////////////////
 	void startKernel(Kernel& kernel);
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Stops a currently running kernel at the end of this tick
-	/// and calls shutdown on all loaded modules
-	/////////////////////////////////////////////////////////////////////
-	void stopKernel(Kernel& kernel);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Loads a kernel module and call's the module's init function
