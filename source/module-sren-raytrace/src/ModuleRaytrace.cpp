@@ -101,6 +101,8 @@ void doRender(xsr::RenderTarget&           target,
 	////////////////////////////////////////////////////////////////////////////
 	// Render the non triangles in the scene
 	xsr::RasterizationContext context;
+	xen::clearToZero(&context);
+	xen::copyBytes(&params, ((xen::RenderParameters3d*)&context), sizeof(xen::RenderParameters3d));
 	context.target      = &target;
 	context.viewport    = &view_region;
 	context.textures[0] = nullptr;
