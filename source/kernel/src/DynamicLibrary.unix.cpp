@@ -64,6 +64,12 @@ namespace xen {
 			printf("Error loading dynamic library at '%s', error: %s\n", path, dlerror());
 		}
 
+		// we can delete the file even though our process has it open, the number of
+		// references to the inode will be decremented by 1, but since our process
+		// has it open the file will not be deleted, space on disk will be freed
+		// when process exits or unload is called
+		xen::deleteFile(strbuf);
+
 		return (DynamicLibrary*)result;
 	}
 
