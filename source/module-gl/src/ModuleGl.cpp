@@ -112,7 +112,6 @@ void* load(xen::Kernel& kernel, void* data, const void* params){
 
 	xgl::gl_state->api._createMeshFromMeshData = &xgl::createMesh;
 	xgl::gl_state->api.destroyMesh             = &xgl::destroyMesh;
-
 	xgl::gl_state->api._updateMeshVertexData   = &xgl::updateMeshVertexData;
 
 	xgl::gl_state->api.createTexture           = &xgl::createTexture;

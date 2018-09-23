@@ -123,6 +123,9 @@ namespace xgl {
 		Vec2u viewport_size = viewport.max - viewport.min;
 		glViewport(viewport.min.x, viewport.min.y, viewport_size.x, viewport_size.y);
 
+		// :TODO: use shader specified by command, this means repeatedly setting
+		// uniforms, and handling case where uniforms of expected names don't exist
+		// in the shader
 		xgl::ShaderProgram* prog = &xgl::gl_state->pool_shader.slots[0].item;
 		xgl::useShader(prog);
 
