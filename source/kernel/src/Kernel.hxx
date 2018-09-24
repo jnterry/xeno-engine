@@ -40,7 +40,7 @@ namespace xen {
 	struct Kernel {
 		KernelSettings settings;
 
-		xen::Allocator& root_allocator;
+		xen::Allocator* root_allocator;
 
 		xen::ArenaPool<LoadedModule> modules;
 		LoadedModule* module_head; // head of singly linked list of modules
@@ -49,12 +49,6 @@ namespace xen {
 
 		// Should this be per thread?
 		ArenaLinear tick_scratch_space;
-
-		Kernel(xen::Allocator* root_alloc)
-			: root_allocator(*root_alloc),
-			  modules(xen::createArenaPool<LoadedModule>(root_alloc, 128)) {
-
-		}
 	};
 }
 

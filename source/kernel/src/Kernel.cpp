@@ -32,7 +32,7 @@ namespace {
 
 	bool doModuleLoad(xen::Kernel& kernel, xen::LoadedModule* lmod){
 		printf("Loading shared library: %s\n", lmod->lib_path);
-		lmod->library = xen::loadDynamicLibrary(kernel.root_allocator, lmod->lib_path);
+		lmod->library = xen::loadDynamicLibrary(*kernel.root_allocator, lmod->lib_path);
 
 		if(lmod->library == nullptr){
 			// :TODO: log
@@ -114,7 +114,7 @@ namespace {
 			  // library more than once (we could make a copy of the library
 			  // file and load the copy, hence tricking the OS loader to let us
 			  // load a dll multiple times)
-			  xen::unloadDynamicLibrary(kernel.root_allocator, lmod->library);
+			  xen::unloadDynamicLibrary(*kernel.root_allocator, lmod->library);
 
 			  doModuleLoad(kernel, lmod);
 			  lmod->lib_modification_time = mod_time;
@@ -130,7 +130,7 @@ namespace {
 		size = backtrace(array, 256);
 
 		// print out all the frames to stderr
-		fprintf(stderr, "Error: signal SIGSEGV\n", sig);
+		fprintf(stderr, "Error: signal SIGSEGV\n");
 		backtrace_symbols_fd(array, size, STDERR_FILENO);
 		exit(1);
 	}
@@ -142,11 +142,13 @@ namespace xen {
 
 		xen::AllocatorMalloc* allocator = new AllocatorMalloc();
 
-		void* mem = allocator->allocate(sizeof(Kernel));
-		Kernel* kernel = new (mem) (Kernel)(allocator);
+		Kernel* kernel = (Kernel*)allocator->allocate(sizeof(Kernel));
+
+		kernel->root_allocator = allocator;
 
 		xen::copyBytes(&settings, &kernel->settings, sizeof(KernelSettings));
 
+		kernel->modules            = xen::createArenaPool<xen::LoadedModule>(allocator, 128);
 		kernel->tick_scratch_space = xen::createArenaLinear(*allocator, xen::megabytes(16));
 
 		return *kernel;
@@ -162,7 +164,7 @@ namespace xen {
 			goto cleanup;
 		}
 
-	  lib_path = xen::resolveDynamicLibrary(kernel.root_allocator, name);
+	  lib_path = xen::resolveDynamicLibrary(*kernel.root_allocator, name);
 		if(lib_path == nullptr){
 			printf("Failed to find library file for module: %s\n", name);
 			goto cleanup;
@@ -186,11 +188,11 @@ namespace xen {
 		if(lmod == nullptr){ return 0; }
 
 		if(lib_path != nullptr){
-			kernel.root_allocator.deallocate(lib_path);
+			kernel.root_allocator->deallocate(lib_path);
 		}
 
 		if(lmod->library != nullptr){
-			xen::unloadDynamicLibrary(kernel.root_allocator, lmod->library);
+			xen::unloadDynamicLibrary(*kernel.root_allocator, lmod->library);
 		}
 
 		xen::freeType<LoadedModule>(kernel.modules, lmod);
@@ -273,11 +275,11 @@ namespace xen {
 	void* allocate(Kernel& kernel, u32 size, u32 align){
 		// :TODO: we ideally want an allocator per module so we can debug memory
 		// leaks etc
-		return kernel.root_allocator.allocate(size, align);
+		return kernel.root_allocator->allocate(size, align);
 	}
 
 	void deallocate(Kernel& kernel, void* data){
-		return kernel.root_allocator.deallocate(data);
+		return kernel.root_allocator->deallocate(data);
 	}
 
 	void requestKernelShutdown(Kernel& kernel){
