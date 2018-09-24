@@ -7,7 +7,11 @@
 #ifndef XEN_KERNEL_KERNEL_HXX
 #define XEN_KERNEL_KERNEL_HXX
 
-#include "WorkQueue.hxx"
+#include <xen/kernel/Kernel.hpp>
+#include <xen/core/time.hpp>
+#include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/core/memory/ArenaPool.hpp>
+#include "TickWork.hxx"
 
 namespace xen {
 	struct Module;
@@ -15,6 +19,7 @@ namespace xen {
 
 namespace xke {
 	struct DynamicLibrary;
+	struct ThreadData;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents and Module currently resident in memory
@@ -44,7 +49,7 @@ namespace xke {
 		/// \brief Next pointer in singly linked list of currently loaded modules
 		LoadedModule*   next;
 	};
-};
+}
 
 namespace xen {
 
@@ -54,12 +59,16 @@ namespace xen {
 
 		xen::Allocator* root_allocator;
 
+		/// \brief Arena for variable size kernel internal data
+		/// which lasts the lifetime of the kernel
+		xen::ArenaLinear system_arena;
+
 		xen::ArenaPool<xke::LoadedModule> modules;
 		xke::LoadedModule* module_head; // head of singly linked list of modules
 
 		xke::ThreadData thread_data;
 
-		bool stop_requested;
+		volatile bool stop_requested;
 
 		// Should this be per thread?
 		ArenaLinear tick_scratch_space;

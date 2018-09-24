@@ -12,7 +12,7 @@
 #include <ModuleCommon.cpp>
 #include "raytracer3d.hxx"
 #include <xen/math/geometry.hpp>
-#include <xen/kernel/WorkQueue.hpp>
+#include <xen/kernel/TickWork.hpp>
 
 // Data passed to a raytracer thread. This is just the parameters to
 // xsr::renderRaytracer
@@ -25,7 +25,7 @@ struct ThreadRenderData {
 
 };
 // Function that should be called by each thread to perform a block of raytracing
-void threadDoRenderWork(xen::WorkQueue*, void* voiddata){
+void threadDoRenderWork(void* voiddata){
 	ThreadRenderData* data = (ThreadRenderData*)voiddata;
 	xsr::renderRaytrace(*data->target,
 	                          data->viewport,
@@ -44,32 +44,32 @@ void doRender(xen::Kernel&                           kernel,
 
 	////////////////////////////////////////////////////////////////////////////
 	// Render the triangles in the scene
-	xen::WorkQueue* work_queue= xen::createWorkQueue(kernel, &threadDoRenderWork);
-	ThreadRenderData thread_render_data[32];
+	xen::TickWorkHandle work_group = xen::createTickWorkGroup(kernel);
+	ThreadRenderData thread_render_data;
+	constexpr u32 WORK_DIVISIONS = 32;
 	u32 cur_y   = viewport.min.x;
-	u32 delta_y = (viewport.max.y - viewport.min.y) / XenArrayLength(thread_render_data);
-	for(u32 i = 0; i < XenArrayLength(thread_render_data); ++i){
-		thread_render_data[i].target        = &target;
-		thread_render_data[i].params        = &params;
-		thread_render_data[i].scene         = &scene;
-		thread_render_data[i].viewport = viewport;
+	u32 delta_y = (viewport.max.y - viewport.min.y) / WORK_DIVISIONS;
+	for(u32 i = 0; i < WORK_DIVISIONS; ++i){
+		thread_render_data.target        = &target;
+		thread_render_data.params        = &params;
+		thread_render_data.scene         = &scene;
+		thread_render_data.viewport = viewport;
 
-		thread_render_data[i].rendering_bounds.min.x = viewport.min.x;
-		thread_render_data[i].rendering_bounds.max.x = viewport.max.x;
-		thread_render_data[i].rendering_bounds.min.y = cur_y;
-		thread_render_data[i].rendering_bounds.max.y = cur_y + delta_y;
+		thread_render_data.rendering_bounds.min.x = viewport.min.x;
+		thread_render_data.rendering_bounds.max.x = viewport.max.x;
+		thread_render_data.rendering_bounds.min.y = cur_y;
+		thread_render_data.rendering_bounds.max.y = cur_y + delta_y;
 		cur_y += delta_y;
 
-		if(i == XenArrayLength(thread_render_data)-1){
+		if(i == WORK_DIVISIONS - 1){
 			// The last block of work may have a few extra rows if the viewport
 			// height is not divisible by the number of work blocks
-			thread_render_data[i].rendering_bounds.max.y = viewport.max.y;
+			thread_render_data.rendering_bounds.max.y = viewport.max.y;
 		}
 
-		xen::pushWork(work_queue, &thread_render_data[i]);
+		xen::pushTickWork(kernel, &threadDoRenderWork, &thread_render_data);
 	}
-	xen::processUntilEmpty(work_queue);
-	xen::destroyWorkQueue(work_queue);
+	xen::waitForTickWork(work_group);
 
 	////////////////////////////////////////////////////////////////////////////
 	// Generate view projection matrix

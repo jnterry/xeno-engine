@@ -13,6 +13,7 @@
 #include "DynamicLibrary.hxx"
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/core/memory/ArenaPool.hpp>
+#include <xen/core/memory/utilities.hpp>
 #include <xen/core/File.hpp>
 #include <xen/core/time.hpp>
 
@@ -141,16 +142,31 @@ xen::Kernel& xen::createKernel(const xen::KernelSettings& settings){
 
 	xen::AllocatorMalloc* allocator = new xen::AllocatorMalloc();
 
-	xen::Kernel* kernel = (xen::Kernel*)allocator->allocate(sizeof(Kernel));
+	constexpr u32 SYSTEM_ARENA_SIZE = xen::kilobytes(16);
+
+	xen::Kernel* kernel = (xen::Kernel*)allocator->allocate(SYSTEM_ARENA_SIZE);
 
 	kernel->root_allocator = allocator;
 
+	kernel->system_arena.start     = xen::ptrGetAdvanced(kernel, sizeof(Kernel));
+	kernel->system_arena.end       = xen::ptrGetAdvanced(kernel, SYSTEM_ARENA_SIZE);
+	kernel->system_arena.next_byte = kernel->system_arena.start;
+
 	xen::copyBytes(&settings, &kernel->settings, sizeof(xen::KernelSettings));
 
-	kernel->modules            = xen::createArenaPool<xke::LoadedModule>(allocator, 128);
+	kernel->modules            = xen::createArenaPool<xke::LoadedModule>(kernel->system_arena, 128);
 	kernel->tick_scratch_space = xen::createArenaLinear(*allocator, xen::megabytes(16));
 
-	xke::initThreadData(*kernel);
+
+	if(!xke::initThreadSubsystem(kernel)){
+		printf("Error occured while initializing thread subsystem of kernel\n");
+		XenBreak();
+	}
+
+	printf("Finished kernel init, used %lu of %lu system arena bytes\n",
+	       xen::ptrDiff(kernel->system_arena.start, kernel->system_arena.next_byte),
+	       xen::ptrDiff(kernel->system_arena.start, kernel->system_arena.end)
+	      );
 
 	return *kernel;
 }
@@ -208,11 +224,8 @@ xen::StringHash xen::loadModule(xen::Kernel& kernel,
 void xen::startKernel(xen::Kernel& kernel){
 	xen::TickContext cntx = {kernel, 0};
 
-	bool tick_result;
-
 	xen::Stopwatch timer;
 	xen::Duration last_time = timer.getElapsedTime();
-
 
 	xen::Duration last_tick_rate_print = last_time;
 	u64           last_tick_count      = 0;
@@ -263,6 +276,7 @@ void xen::startKernel(xen::Kernel& kernel){
 
 	// free resources, check for memory leaks, etc
 	printf("Kernel terminating\n");
+	xke::stopThreadSubsystem(&kernel);
 }
 
 void* xen::getModuleApi(xen::Kernel& kernel, xen::StringHash hash){

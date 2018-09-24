@@ -1,22 +1,23 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \brief Contains implementation of WorkQueue related functions
+/// \brief Includes platform specific implementation of TickWork related
+/// functions
 ///
 /// \ingroup kernel
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_KERNEL_WORKQUEUE_CPP
-#define XEN_KERNEL_WORKQUEUE_CPP
+#ifndef XEN_KERNEL_TICKWORK_CPP
+#define XEN_KERNEL_TICKWORK_CPP
 
 #include <xen/config.hpp>
 
 #ifdef XEN_OS_WINDOWS
-	#include "WorkQueue.dummy.cpp"
+	#include "TickWork.dummy.cpp"
 #elif defined XEN_OS_UNIX
-	#include "WorkQueue.dummy.cpp"
+	#include "TickWork.dummy.cpp"
 #else
-	#include "WorkQueue.dummy.cpp"
+	#include "TickWork.dummy.cpp"
 #endif
 
 #endif

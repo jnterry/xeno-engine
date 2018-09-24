@@ -16,7 +16,7 @@
 #include <xen/graphics/Image.hpp>
 #include <xen/core/memory/Allocator.hpp>
 
-#include <xen/kernel/WorkQueue.hpp>
+#include <xen/kernel/TickWork.hpp>
 
 #include <cstring>
 
@@ -235,7 +235,7 @@ namespace {
 		xen::RawImage       raw_image;
 		xsr::RenderTarget target;
 	};
-	void doThreadPresentRenderTarget(xen::WorkQueue* wq, void* voiddata){
+	void doThreadPresentRenderTarget(void* voiddata){
 		ThreadGetImageWorkData* data = (ThreadGetImageWorkData*)voiddata;
 	  xsr::getImageFromFramebuffer(&data->target, data->raw_image);
 	}
@@ -253,30 +253,30 @@ void xsr::presentRenderTarget(xen::Kernel& kernel, xen::Window* window, xsr::Ren
 	raw_image.size = target.size;
 	raw_image.pixels = (xen::Color*)target.ximage->data;
 
-	xen::WorkQueue* work_queue = xen::createWorkQueue(kernel, &doThreadPresentRenderTarget);
+	xen::TickWorkHandle present_group = xen::createTickWorkGroup(kernel);
 
-	ThreadGetImageWorkData work_data[32];
+	constexpr u32 WORK_DIVISION_COUNT = 32;
+	ThreadGetImageWorkData work_data;
 	u32 cur_y   = 0;
-	u32 delta_y = target.height / XenArrayLength(work_data);
-	for(u32 i = 0; i < XenArrayLength(work_data); ++i){
-		xen::RawImage& sub_image = work_data[i].raw_image;
+	u32 delta_y = target.height / WORK_DIVISION_COUNT;
+	for(u32 i = 0; i < WORK_DIVISION_COUNT; ++i){
+		xen::RawImage& sub_image = work_data.raw_image;
 
 		sub_image.size.x = raw_image.size.x;
 		sub_image.size.y = delta_y;
 		sub_image.pixels = &raw_image.pixels[raw_image.size.x * cur_y];
 
-		xsr::RenderTarget& sub_target = work_data[i].target;
+		xsr::RenderTarget& sub_target = work_data.target;
 		sub_target.width  = target.width;
 		sub_target.height = target.height;
 		sub_target.depth  = &target.depth[target.width * cur_y];
 		sub_target.color  = &target.color[target.width * cur_y];
 
-		xen::pushWork(work_queue, &work_data[i]);
+		xen::pushTickWork(kernel, doThreadPresentRenderTarget, &work_data, present_group);
 
 		cur_y += delta_y;
 	}
-	xen::processUntilEmpty(work_queue);
-	xen::destroyWorkQueue(work_queue);
+	xen::waitForTickWork(present_group);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Put the image on screen
