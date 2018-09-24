@@ -82,6 +82,10 @@ namespace xen{
 	/// \note returned arena.start must be deallocated at some point
 	ArenaLinear createArenaLinear(Allocator& alloc, uint size);
 
+	/// \brief creates a new ArenaLinear of the specified size, reserving
+	/// storage space from some other ArenaLinear
+	ArenaLinear createArenaLinear(ArenaLinear& parent, uint size);
+
 	/// \brief Destroys an ArenaLinear previously created with createArenaLinear
 	void destroyArenaLinear(Allocator& alloc, ArenaLinear& arena);
 
