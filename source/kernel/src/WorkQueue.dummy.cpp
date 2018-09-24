@@ -30,15 +30,15 @@ xen::WorkQueue* xen::createWorkQueue(Kernel& kernel, xen::WorkQueueFunction func
 	return queue;
 }
 
-void pushWork(xen::WorkQueue* queue, void* work){
+void xen::pushWork(xen::WorkQueue* queue, void* work){
 	queue->function(queue, work);
 }
 
-void processUntilEmpty(xen::WorkQueue* queue){
+void xen::processUntilEmpty(xen::WorkQueue* queue){
 	// no-op -> there is never a backlog of work
 }
 
-void destroyWorkQueue(xen::WorkQueue* queue){
+void xen::destroyWorkQueue(xen::WorkQueue* queue){
 	xen::deallocate(*queue->owner, queue);
 }
 

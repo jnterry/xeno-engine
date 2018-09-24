@@ -14,6 +14,7 @@
 #include <xen/graphics/GraphicsHandles.hpp>
 
 namespace xen {
+	struct Kernel;
 	struct Window;
 }
 
@@ -29,7 +30,7 @@ namespace xsr {
 	void destroyRenderTarget(xen::RenderTarget render_target);
 	xen::Window* createWindow(Vec2u size, const char* title);
 	void destroyWindow(xen::Window* window);
-	void swapBuffers(xen::Window* window);
+	void swapBuffers(xen::Kernel& kernel, xen::Window* window);
 }
 
 #endif

@@ -12,6 +12,7 @@
 #include <ModuleCommon.cpp>
 #include "raytracer3d.hxx"
 #include <xen/math/geometry.hpp>
+#include <xen/kernel/WorkQueue.hpp>
 
 // Data passed to a raytracer thread. This is just the parameters to
 // xsr::renderRaytracer
@@ -24,7 +25,7 @@ struct ThreadRenderData {
 
 };
 // Function that should be called by each thread to perform a block of raytracing
-void threadDoRenderWork(void* voiddata){
+void threadDoRenderWork(xen::WorkQueue*, void* voiddata){
 	ThreadRenderData* data = (ThreadRenderData*)voiddata;
 	xsr::renderRaytrace(*data->target,
 	                          data->viewport,
@@ -33,7 +34,8 @@ void threadDoRenderWork(void* voiddata){
 	                          data->rendering_bounds);
 }
 
-void doRender(xsr::RenderTarget&           target,
+void doRender(xen::Kernel&                           kernel,
+              xsr::RenderTarget&                     target,
               const xen::Aabb2u&                     viewport,
               const xen::RenderParameters3d&         params,
               const xen::Array<xen::RenderCommand3d> commands,
@@ -42,7 +44,8 @@ void doRender(xsr::RenderTarget&           target,
 
 	////////////////////////////////////////////////////////////////////////////
 	// Render the triangles in the scene
-	ThreadRenderData thread_render_data[8];
+	xen::WorkQueue* work_queue= xen::createWorkQueue(kernel, &threadDoRenderWork);
+	ThreadRenderData thread_render_data[32];
 	u32 cur_y   = viewport.min.x;
 	u32 delta_y = (viewport.max.y - viewport.min.y) / XenArrayLength(thread_render_data);
 	for(u32 i = 0; i < XenArrayLength(thread_render_data); ++i){
@@ -63,9 +66,10 @@ void doRender(xsr::RenderTarget&           target,
 			thread_render_data[i].rendering_bounds.max.y = viewport.max.y;
 		}
 
-		thpool_add_work(xsr::state->thpool, &threadDoRenderWork, &thread_render_data[i]);
+		xen::pushWork(work_queue, &thread_render_data[i]);
 	}
-	thpool_wait    (xsr::state->thpool);
+	xen::processUntilEmpty(work_queue);
+	xen::destroyWorkQueue(work_queue);
 
 	////////////////////////////////////////////////////////////////////////////
 	// Generate view projection matrix
@@ -194,7 +198,7 @@ void render(xen::Kernel& kernel,
 	xen::ptrAdvance(&render_scratch_arena.next_byte,
 	                sizeof(xsr::RaytracerModel) * scene.models.size);
 
-  doRender(target, viewport, params, commands, non_triangle_cmds, scene);
+	doRender(kernel, target, viewport, params, commands, non_triangle_cmds, scene);
 }
 
 namespace {
@@ -211,7 +215,7 @@ namespace {
 				       *op.draw.params, op.draw.commands);
 				break;
 			case xen::RenderOp::SWAP_BUFFERS:
-				xsr::swapBuffers(op.swap_buffers.window);
+				xsr::swapBuffers(kernel, op.swap_buffers.window);
 				break;
 			}
 		}

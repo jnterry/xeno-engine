@@ -16,6 +16,8 @@
 #include <xen/graphics/Image.hpp>
 #include <xen/core/memory/Allocator.hpp>
 
+#include <xen/kernel/WorkQueue.hpp>
+
 #include <cstring>
 
 namespace {
@@ -233,12 +235,12 @@ namespace {
 		xen::RawImage       raw_image;
 		xsr::RenderTarget target;
 	};
-	void doThreadPresentRenderTarget(void* voiddata){
+	void doThreadPresentRenderTarget(xen::WorkQueue* wq, void* voiddata){
 		ThreadGetImageWorkData* data = (ThreadGetImageWorkData*)voiddata;
 	  xsr::getImageFromFramebuffer(&data->target, data->raw_image);
 	}
 }
-void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target, threadpool thpool){
+void xsr::presentRenderTarget(xen::Kernel& kernel, xen::Window* window, xsr::RenderTarget& target){
 
 	// Make sure the previous frame has been presented before we go messing
 	// with the pixel values...
@@ -251,7 +253,9 @@ void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target, th
 	raw_image.size = target.size;
 	raw_image.pixels = (xen::Color*)target.ximage->data;
 
-	ThreadGetImageWorkData work_data[8];
+	xen::WorkQueue* work_queue = xen::createWorkQueue(kernel, &doThreadPresentRenderTarget);
+
+	ThreadGetImageWorkData work_data[32];
 	u32 cur_y   = 0;
 	u32 delta_y = target.height / XenArrayLength(work_data);
 	for(u32 i = 0; i < XenArrayLength(work_data); ++i){
@@ -267,11 +271,12 @@ void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target, th
 		sub_target.depth  = &target.depth[target.width * cur_y];
 		sub_target.color  = &target.color[target.width * cur_y];
 
-		thpool_add_work(thpool, &doThreadPresentRenderTarget, &work_data[i]);
+		xen::pushWork(work_queue, &work_data[i]);
 
 		cur_y += delta_y;
 	}
-	thpool_wait(thpool);
+	xen::processUntilEmpty(work_queue);
+	xen::destroyWorkQueue(work_queue);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Put the image on screen

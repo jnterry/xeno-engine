@@ -40,6 +40,7 @@ target_include_directories(xen-sren PRIVATE ${CMAKE_CURRENT_LIST_DIR}/sren/impl/
 target_include_directories(xen-sren PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/core/include/)
 target_include_directories(xen-sren PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/math/include/)
 target_include_directories(xen-sren PRIVATE ${CMAKE_CURRENT_LIST_DIR}/graphics/impl/)
+target_include_directories(xen-sren PRIVATE ${CMAKE_CURRENT_LIST_DIR}/kernel/include)
 target_include_directories(xen-sren PRIVATE ${XEN_EXTLIBS_DIR}/thpool/)
 target_link_libraries     (xen-sren xen-graphics)
 target_link_libraries     (xen-sren PRIVATE thpool)

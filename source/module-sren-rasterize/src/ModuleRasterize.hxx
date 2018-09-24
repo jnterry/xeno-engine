@@ -43,8 +43,6 @@ namespace xsr {
 		/// \brief index of the next operation in op_list which has not yet been used
 		u64 next_free_op;
 
-		threadpool thpool;
-
 		xen::GraphicsModuleApi api;
 	};
 

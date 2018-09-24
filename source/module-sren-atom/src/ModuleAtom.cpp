@@ -141,7 +141,7 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 			#endif
 			break;
 		case xen::RenderOp::SWAP_BUFFERS:
-			xsr::swapBuffers(op.swap_buffers.window);
+			xsr::swapBuffers(kernel, op.swap_buffers.window);
 			break;
 		}
 	}
