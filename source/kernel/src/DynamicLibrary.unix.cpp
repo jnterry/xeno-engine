@@ -21,7 +21,7 @@
 #include <cstring>
 #include <cstdio>
 
-namespace xen {
+namespace xke {
 
   char* resolveDynamicLibrary(xen::Allocator& alloc, const char* name){
 		XenTempStringBuffer(strbuf, 4096, name);

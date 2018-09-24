@@ -8,6 +8,12 @@
 #define XEN_KERNEL_KERNEL_HXX
 
 namespace xen {
+	struct Module;
+}
+
+namespace xke {
+	struct DynamicLibrary;
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents and Module currently resident in memory
 	/////////////////////////////////////////////////////////////////////
@@ -19,10 +25,10 @@ namespace xen {
 		xen::DateTime   lib_modification_time;
 
 		/// \brief DynamicLibrary instance representing loaded code for the module
-		DynamicLibrary* library;
+		xke::DynamicLibrary* library;
 
 		/// \brief The Module instances exported by the library
-		Module*         module;
+		xen::Module*         module;
 
 		/// \brief The data returned by module->initialise
 		void*           data;
@@ -36,14 +42,18 @@ namespace xen {
 		/// \brief Next pointer in singly linked list of currently loaded modules
 		LoadedModule*   next;
 	};
+};
+
+namespace xen {
+
 
 	struct Kernel {
 		KernelSettings settings;
 
 		xen::Allocator* root_allocator;
 
-		xen::ArenaPool<LoadedModule> modules;
-		LoadedModule* module_head; // head of singly linked list of modules
+		xen::ArenaPool<xke::LoadedModule> modules;
+		xke::LoadedModule* module_head; // head of singly linked list of modules
 
 		bool stop_requested;
 

@@ -13,10 +13,11 @@
 #include <xen/config.hpp>
 
 namespace xen {
-
 	struct Allocator;
 	struct ArenaLinear;
+}
 
+namespace xke {
 	/////////////////////////////////////////////////////////////////////
 	/// \brief OS specific opaque type representing a dynamically loaded
 	/// library
