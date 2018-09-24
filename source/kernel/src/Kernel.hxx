@@ -7,6 +7,8 @@
 #ifndef XEN_KERNEL_KERNEL_HXX
 #define XEN_KERNEL_KERNEL_HXX
 
+#include "WorkQueue.hxx"
+
 namespace xen {
 	struct Module;
 }
@@ -54,6 +56,8 @@ namespace xen {
 
 		xen::ArenaPool<xke::LoadedModule> modules;
 		xke::LoadedModule* module_head; // head of singly linked list of modules
+
+		xke::ThreadData thread_data;
 
 		bool stop_requested;
 

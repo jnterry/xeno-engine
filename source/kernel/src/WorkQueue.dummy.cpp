@@ -13,6 +13,7 @@
 #warning "Using kernel work queue dummy implementation"
 
 #include <xen/kernel/WorkQueue.hpp>
+#include "WorkQueue.hxx"
 #include <xen/kernel/Kernel.hpp>
 
 struct xen::WorkQueue {
@@ -40,6 +41,10 @@ void xen::processUntilEmpty(xen::WorkQueue* queue){
 
 void xen::destroyWorkQueue(xen::WorkQueue* queue){
 	xen::deallocate(*queue->owner, queue);
+}
+
+void xke::initThreadData(xen::Kernel& kernel){
+	// no-op
 }
 
 #endif

@@ -150,6 +150,8 @@ xen::Kernel& xen::createKernel(const xen::KernelSettings& settings){
 	kernel->modules            = xen::createArenaPool<xke::LoadedModule>(allocator, 128);
 	kernel->tick_scratch_space = xen::createArenaLinear(*allocator, xen::megabytes(16));
 
+	xke::initThreadData(*kernel);
+
 	return *kernel;
 }
 
