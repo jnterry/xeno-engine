@@ -121,7 +121,7 @@ void initMeshes(xen::GraphicsModuleApi* gmod){
 }
 
 void* init(xen::Kernel& kernel, const void* params){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, "graphics");
+	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
 	XenAssert(gmod != nullptr, "Graphics module must be loaded before cornell-box");
 
 	state = (State*)xen::kernelAlloc(sizeof(State));
@@ -142,7 +142,7 @@ void* load(xen::Kernel& kernel, void* data, const void* params){
 }
 
 void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, "graphics");
+	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
 	XenAssert(gmod != nullptr, "Graphics module must be loaded before cornell-box");
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(state->window) };

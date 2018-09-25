@@ -65,17 +65,17 @@ namespace xen {
 	/// \return Id of the loaded module which may be used later to fetch
 	/// the module's exposed api - will return 0 if failed to load the module
 	/////////////////////////////////////////////////////////////////////
-	StringHash loadModule(Kernel& kernel, const char* lib_path, const void* params = nullptr);
+	StringHash loadModule(const char* lib_path, const void* params = nullptr);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves the API exposed by some module. Note that this
 	/// should not be cached between ticks, as if the kernel setting
 	/// hot_reload_modules is enabled then it can change upon reload
 	/////////////////////////////////////////////////////////////////////
-	void* getModuleApi(Kernel& kernel, u64 module_type_hash);
+	void* getModuleApi(u64 module_type_hash);
 
-	inline void* getModuleApi(Kernel& kernel, const char* type_name){
-		return getModuleApi(kernel, xen::hash(type_name));
+	inline void* getModuleApi(const char* type_name){
+		return getModuleApi(xen::hash(type_name));
 	}
 
 	/////////////////////////////////////////////////////////////////////
@@ -95,7 +95,7 @@ namespace xen {
 	/// \brief Requests that the kernel shutdown once the current tick is
 	/// complete
 	/////////////////////////////////////////////////////////////////////
-	void requestKernelShutdown(Kernel& kernel);
+	void requestKernelShutdown();
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves reference to a scratch space arena whose contents

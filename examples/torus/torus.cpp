@@ -169,7 +169,7 @@ void initMeshes(xen::Kernel& kernel, xen::GraphicsModuleApi* gmod){
 }
 
 void* init(xen::Kernel& kernel, const void* params){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, "graphics");
+	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
 	XenAssert(gmod != nullptr, "Expected graphics module to be loaded before torus");
 
 	state = (State*)xen::kernelAlloc(sizeof(State));
@@ -190,7 +190,7 @@ void* load(xen::Kernel& kernel, void* data, const void* params){
 }
 
 void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, "graphics");
+	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
 	XenAssert(gmod != nullptr, "Expected graphics module to be loaded before torus");
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(state->window) };
@@ -200,7 +200,7 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 		switch(event->type){
 		case xen::WindowEvent::Closed:
 		  gmod->destroyWindow(state->window);
-			xen::requestKernelShutdown(kernel);
+			xen::requestKernelShutdown();
 			break;
 		default: break;
 		}

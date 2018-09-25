@@ -36,7 +36,7 @@ struct StarfieldState {
 StarfieldState* star_state;
 
 void* init(xen::Kernel& kernel, const void* params){
-	xen::GraphicsModuleApi* mod_graphics = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, xen::hash("graphics"));
+	xen::GraphicsModuleApi* mod_graphics = (xen::GraphicsModuleApi*)xen::getModuleApi(xen::hash("graphics"));
 	XenAssert(mod_graphics != nullptr, "Graphics module must be loaded before starfield module");
 
 	StarfieldState* ss = (StarfieldState*)xen::kernelAlloc(sizeof(StarfieldState));
@@ -104,7 +104,7 @@ void shutdown(xen::Kernel& kernel){
 }
 
 void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, "graphics");
+	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(star_state->window) };
 
@@ -113,7 +113,7 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 		switch(event->type){
 		case xen::WindowEvent::Closed:
 			gmod->destroyWindow(star_state->window);
-			xen::requestKernelShutdown(kernel);
+			xen::requestKernelShutdown();
 			break;
 		default: break;
 		}

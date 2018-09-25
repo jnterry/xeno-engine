@@ -45,6 +45,8 @@ namespace xen {
 
 		close(fout);
 		close(fin);
+
+		return true;
 	}
 
 	bool deleteFile(const char* path){

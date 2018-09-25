@@ -33,9 +33,9 @@ xen::Kernel xke::kernel;
 
 namespace {
 
-	bool doModuleLoad(xen::Kernel& kernel, xke::LoadedModule* lmod){
+	bool doModuleLoad(xke::LoadedModule* lmod){
 		printf("Loading shared library: %s\n", lmod->lib_path);
-		lmod->library = xke::loadDynamicLibrary(*kernel.root_allocator, lmod->lib_path);
+		lmod->library = xke::loadDynamicLibrary(*xke::kernel.root_allocator, lmod->lib_path);
 
 		if(lmod->library == nullptr){
 			// :TODO: log
@@ -60,7 +60,7 @@ namespace {
 			if(lmod->module->initialize == nullptr){
 				lmod->data = nullptr;
 			} else {
-				lmod->data = lmod->module->initialize(kernel, lmod->params);
+				lmod->data = lmod->module->initialize(xke::kernel, lmod->params);
 				if(lmod->data == nullptr){
 					printf("Failed to initizalise module '%s'\n", lmod->lib_path);
 					return false;
@@ -72,7 +72,7 @@ namespace {
 		if(lmod->module->load == nullptr){
 			lmod->api = (void*)true;
 		} else {
-			lmod->api = lmod->module->load(kernel, lmod->data, lmod->params);
+			lmod->api = lmod->module->load(xke::kernel, lmod->data, lmod->params);
 			if(lmod->api == nullptr){
 				printf("Module's load function returned nullptr, module: '%s'\n", lmod->lib_path);
 				return false;
@@ -119,7 +119,7 @@ namespace {
 			  // load a dll multiple times)
 			  xke::unloadDynamicLibrary(*kernel.root_allocator, lmod->library);
 
-			  doModuleLoad(kernel, lmod);
+			  doModuleLoad(lmod);
 			  lmod->lib_modification_time = mod_time;
 		  }
 		}
@@ -177,11 +177,10 @@ xen::Kernel& xen::initKernel(const xen::KernelSettings& settings){
 	return *kernel;
 }
 
-xen::StringHash xen::loadModule(xen::Kernel& kernel,
-                                const char* name,
+xen::StringHash xen::loadModule(const char* name,
                                 const void* params
                                ){
-	xke::LoadedModule* lmod = xen::reserveType<xke::LoadedModule>(kernel.modules);
+	xke::LoadedModule* lmod = xen::reserveType<xke::LoadedModule>(xke::kernel.modules);
 	char* lib_path = nullptr;
 
 	if(lmod == nullptr){
@@ -190,7 +189,7 @@ xen::StringHash xen::loadModule(xen::Kernel& kernel,
 		goto cleanup;
 	}
 
-	lib_path = xke::resolveDynamicLibrary(*kernel.root_allocator, name);
+	lib_path = xke::resolveDynamicLibrary(*xke::kernel.root_allocator, name);
 	if(lib_path == nullptr){
 		printf("Failed to find library file for module: %s\n", name);
 		goto cleanup;
@@ -199,10 +198,10 @@ xen::StringHash xen::loadModule(xen::Kernel& kernel,
 
 	lmod->params     = params;
 	lmod->lib_path   = lib_path;
-	lmod->next       = kernel.module_head;
-	kernel.module_head = lmod;
+	lmod->next       = xke::kernel.module_head;
+	xke::kernel.module_head = lmod;
 
-	if(!doModuleLoad(kernel, lmod)){
+	if(!doModuleLoad(lmod)){
 		goto cleanup;
 	}
 
@@ -214,14 +213,14 @@ xen::StringHash xen::loadModule(xen::Kernel& kernel,
 		if(lmod == nullptr){ return 0; }
 
 		if(lib_path != nullptr){
-			kernel.root_allocator->deallocate(lib_path);
+			xke::kernel.root_allocator->deallocate(lib_path);
 		}
 
 		if(lmod->library != nullptr){
-			xke::unloadDynamicLibrary(*kernel.root_allocator, lmod->library);
+			xke::unloadDynamicLibrary(*xke::kernel.root_allocator, lmod->library);
 		}
 
-		xen::freeType<xke::LoadedModule>(kernel.modules, lmod);
+		xen::freeType<xke::LoadedModule>(xke::kernel.modules, lmod);
 
 		return 0;
 	}
@@ -301,8 +300,8 @@ void xen::startKernel(xen::Kernel& kernel){
 	xke::kernel.state = xen::Kernel::SHUTDOWN;
 }
 
-void* xen::getModuleApi(xen::Kernel& kernel, xen::StringHash hash){
-	for(xke::LoadedModule* cur = kernel.module_head;
+void* xen::getModuleApi(xen::StringHash hash){
+	for(xke::LoadedModule* cur = xke::kernel.module_head;
 	    cur != nullptr;
 	    cur = cur->next
 	    ){
@@ -323,8 +322,8 @@ void xen::kernelFree(void* data){
 	return xke::kernel.root_allocator->deallocate(data);
 }
 
-void xen::requestKernelShutdown(xen::Kernel& kernel){
-	kernel.stop_requested = true;
+void xen::requestKernelShutdown(){
+	xke::kernel.stop_requested = true;
 }
 
 xen::ArenaLinear& xen::getTickScratchSpace(xen::Kernel& kernel){

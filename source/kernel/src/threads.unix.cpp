@@ -311,7 +311,7 @@ bool xke::initThreadSubsystem(xen::Kernel* kernel){
 	kernel->thread_data.threads.elements[0] = pthread_self();
 	xke::THIS_THREAD_INDEX = 0;
 	// start at i = 1, thread 0 is the calling thread
-	for(int i = 1; i < num_cores; ++i){
+	for(uint i = 1; i < num_cores; ++i){
 		th_data[i].kernel = kernel;
 		th_data[i].index  = i;
 
