@@ -112,6 +112,10 @@ namespace xen{
 	/// Null terminator is not included
 	char* pushStringNoTerminate(ArenaLinear& arena, const char* str);
 
+	/// \brief Reserves bytes and then memcpy's data into them
+	/// \public \memberof xen::ArenaLinear
+	void* pushBytes(ArenaLinear& arena, void* data, size_t num_bytes, u32 align = alignof(int));
+
 	/// \brief Reserves some number of bytes in an Arena and returns pointer to
 	/// the first. Does not initialise the bytes
 	/// \public \memberof xen::ArenaLinear

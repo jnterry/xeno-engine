@@ -51,6 +51,12 @@ namespace xen{
 		return (u64)ptrDiff(arena.start, arena.end);
 	}
 
+	void* pushBytes(ArenaLinear& arena, void* data, size_t num_bytes, u32 align){
+		void* result = reserveBytes(arena, num_bytes, align);
+		xen::copyBytes(data, result, num_bytes);
+		return result;
+	}
+
 	void* reserveBytes(ArenaLinear& arena, size_t num_bytes, u32 align){
 		void* result = arena.next_byte;
 		ptrAlignForward(&result, align);
