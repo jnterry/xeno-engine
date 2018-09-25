@@ -82,6 +82,20 @@ namespace xen {
 	/// \brief Waits for some tick work, or work group, to be completed
 	/////////////////////////////////////////////////////////////////////
 	void waitForTickWork(Kernel& kernel, TickWorkHandle work);
+
+	constexpr const uint BAD_THREAD_ID = ~0;
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Retrieves the id of the calling thread according to the running
+	/// kernel, id 0 represents the main thread which created the kernel, and
+	/// which all module tick functions will be called under. Remaining id's
+	/// are sequential integers from 1 to kernel_settings.thread_count-1
+	///
+	/// \note BAD_THREAD_ID will be returned if the calling thread is neither
+	/// the main thread which created the kernel, nor a worker thread spawned
+	/// by the kernel
+	/////////////////////////////////////////////////////////////////////
+	uint getThreadId();
 }
 
 #endif

@@ -7,6 +7,7 @@
 #ifndef XEN_KERNEL_WORKQUEUE_HXX
 #define XEN_KERNEL_WORKQUEUE_HXX
 
+#include <xen/core/intrinsics.hpp>
 #include <xen/kernel/TickWork.hpp>
 
 namespace xke {
@@ -20,6 +21,8 @@ namespace xke {
 	/// \brief Processing for thread subsystem to be called just after
 	/// the end of a tick -> this should not return until all TickWork is completed
 	void postTickThreadSubsystem(xen::Kernel* kernel);
+
+	extern thread_local uint THIS_THREAD_INDEX;
 }
 
 #include <xen/config.hpp>

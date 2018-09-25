@@ -237,7 +237,9 @@ void* kernelThreadFunction(void* data){
 	KernelPerThreadData* per_thread_data = (KernelPerThreadData*)data;
 	xke::ThreadData*     k_thread_data   = &per_thread_data->kernel->thread_data;
 
-	//printf("### %2i | Started thread\n", per_thread_data->index);
+	xke::THIS_THREAD_INDEX = per_thread_data->index;
+
+	printf("Started kernel thread %u\n", xen::getThreadId());
 
 	while(!per_thread_data->kernel->stop_requested){
 
@@ -262,7 +264,7 @@ bool xke::initThreadSubsystem(xen::Kernel* kernel){
 	if(num_cores == 0){
 	  num_cores = sysconf(_SC_NPROCESSORS_ONLN);
 	}
-	printf("Initializing kernel with %i threads...\n", num_cores);
+	printf("Initializing kernel with %i threads\n", num_cores);
 
 	errno = 0;
 	if(0 != pthread_cond_init(&kernel->thread_data.work_available_cond, nullptr)){
@@ -309,6 +311,7 @@ bool xke::initThreadSubsystem(xen::Kernel* kernel){
 	pthread_attr_setstacksize (&attribs, xen::megabytes(8));
 
 	kernel->thread_data.threads.elements[0] = pthread_self();
+	xke::THIS_THREAD_INDEX = 0;
 	// start at i = 1, thread 0 is the calling thread
 	for(int i = 1; i < num_cores; ++i){
 		th_data[i].kernel = kernel;

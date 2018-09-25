@@ -10,14 +10,19 @@ function(xen_add_example TARGET_NAME)
 
 	target_include_directories(${TARGET_NAME} PRIVATE ${XEN_INCLUDE_DIR})
 
-	target_link_libraries(${TARGET_NAME} xen-core)
-	target_link_libraries(${TARGET_NAME} xen-math)
-	target_link_libraries(${TARGET_NAME} xen-kernel)
-	target_link_libraries(${TARGET_NAME} xen-graphics)
-	target_link_libraries(${TARGET_NAME} xen-sren)
 
-	#target_include_directories(${TARGET_NAME} PRIVATE "${XEN_EXTLIBS_DIR}/glew-2.1.0/include/")
-	#target_link_libraries(${TARGET_NAME} libglew_shared)
+
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+		target_link_libraries(${TARGET_NAME} PUBLIC -Wl,--whole-archive)
+	endif()
+	target_link_libraries(${TARGET_NAME} PUBLIC xen-core    )
+	target_link_libraries(${TARGET_NAME} PUBLIC xen-math    )
+	target_link_libraries(${TARGET_NAME} PUBLIC xen-kernel  )
+	target_link_libraries(${TARGET_NAME} PUBLIC xen-graphics)
+	target_link_libraries(${TARGET_NAME} PUBLIC xen-sren    )
+	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+		target_link_libraries(${TARGET_NAME} PUBLIC -Wl,--no-whole-archive)
+	endif()
 
 	# Group all examples together in IDE projects
 	set_target_properties(${TARGET_NAME} PROPERTIES FOLDER "examples")
@@ -43,13 +48,7 @@ function(xen_add_example_module TARGET_NAME)
 		${_THIS_DIR}/utilities.cpp
 	)
 
-	target_include_directories(${TARGET_NAME} PRIVATE ${XEN_INCLUDE_DIR})
-
-	target_link_libraries(${TARGET_NAME} xen-core)
-	target_link_libraries(${TARGET_NAME} xen-math)
-	target_link_libraries(${TARGET_NAME} xen-kernel)
-	target_link_libraries(${TARGET_NAME} xen-graphics)
-	target_link_libraries(${TARGET_NAME} xen-sren)
+	target_include_directories(${TARGET_NAME} PRIVATE ${XEN_INCLUDE_DIRS})
 
 	# Group all examples together in IDE projects
 	set_target_properties(${TARGET_NAME} PROPERTIES FOLDER "examples")
