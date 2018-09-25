@@ -1,14 +1,15 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \brief Declares interface for submitting tick bounded work to the kernel
-/// to be performed asynchronously from the main thread
+/// \brief Declares interface to the kernel for various thread related activity,
+/// for example, submitting tick bounded work to the kernel that should be
+/// performed asynchronously from the main thread
 ///
 /// \ingroup kernel
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_KERNEL_TICKWORK_HPP
-#define XEN_KERNEL_TICKWORK_HPP
+#ifndef XEN_KERNEL_THREADS_HPP
+#define XEN_KERNEL_THREADS_HPP
 
 #include <xen/core/intrinsics.hpp>
 
@@ -16,16 +17,28 @@ namespace xen {
 
 	struct Kernel;
 
-	/// \brief Handle to some piece of tick work being performed by the kernel
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Handle to some piece of work which must be completed by the end
+	/// of the tick on which it was submitted. TickWorkHandle's should not be
+	/// persisted across ticks, since they will be reused on each tick
+	/////////////////////////////////////////////////////////////////////
 	typedef unsigned int TickWorkHandle;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Function representing work to be performed asynchronously by the
-	/// end of the tick. Passed the kernel and parent group such that the function
-	/// can enqueue more work into the same group, eg, for a divide and conquer
-	/// algorithm where each division of the problem can be further ran in parallel
+	/// end of the tick.
+	///
+	/// \param kernel The kernel performing the work
+	/// \param id     The TickWorkHandle this work is for - this allows the
+	/// function to submit more work to the kernel as a sub-task of this, hence
+	/// ensuring that any thread waiting on this work to complete will also wait
+	/// for the tasks spawned by this to be completed. This is particularly useful
+	/// for divide and conquer algorithms where some task is split into n pieces
+	/// that can be ran in parallel, each of which can be split again and run in
+	/// parallel. By waiting on the root task a thread can ensure all sub-splits
+	/// are also completed by the time waitForTickWork completes
 	/////////////////////////////////////////////////////////////////////
-	typedef void (*TickWorkFunction)(xen::Kernel& kernel, TickWorkHandle parent, void* data);
+	typedef void (*TickWorkFunction)(xen::Kernel& kernel, TickWorkHandle id, void* data);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Simpler function signature than TickWorkFunction for representing
@@ -79,11 +92,28 @@ namespace xen {
 	}
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Waits for some tick work, or work group, to be completed
+	/// \brief Waits for some tick work to be completed. This is defined as
+	/// the work itself being finished, as well as any sub-tasks spawned by
+	/// pushTickWork where group is equal to the work handle passed to this
+	/// function. Note that the calling thread will help out by processing
+	/// any outstanding tasks
 	/////////////////////////////////////////////////////////////////////
 	void waitForTickWork(Kernel& kernel, TickWorkHandle work);
 
-	constexpr const uint BAD_THREAD_ID = ~0;
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Unsigned type representing the index of some kernel thread
+	///
+	/// Id 0 is reserved for the thread which created the kernel, all other
+	/// kernel threads will have sequential integers starting from 1 up to
+	/// (kernel_settings.thread_count - 1)
+	/////////////////////////////////////////////////////////////////////
+	typedef uint ThreadIndex;
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief ThreadIndex representing a bad thread, this is one that was
+	/// created outside of the kernel
+	/////////////////////////////////////////////////////////////////////
+	constexpr const ThreadIndex BAD_THREAD_ID = ~0;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves the id of the calling thread according to the running

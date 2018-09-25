@@ -263,7 +263,8 @@ void xen::startKernel(xen::Kernel& kernel){
 			}
 		}
 
-		xke::postTickThreadSubsystem(&kernel);
+		// Ensure that all tick work is completed
+		xen::waitForTickWork(kernel, 0);
 
 		++cntx.tick;
 		last_time = cntx.time;

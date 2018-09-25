@@ -1,14 +1,14 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \brief Contains implementation of WorkQueue related functions in a dummy
-/// fashion which simply processes all entries on a single thread
+/// \brief Contains decleration of platform specific types for implementing
+/// thread related functions for systems with pthread library (unix, mac)
 ///
 /// \ingroup kernel
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_KERNEL_WORKQUEUE_DUMMY_HXX
-#define XEN_KERNEL_WORKQUEUE_DUMMY_HXX
+#ifndef XEN_KERNEL_THREADS_UNIX_HXX
+#define XEN_KERNEL_THREADS_UNIX_HXX
 
 #include <pthread.h>
 #include <xen/core/array_types.hpp>

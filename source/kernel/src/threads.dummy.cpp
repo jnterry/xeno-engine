@@ -1,18 +1,18 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \brief Contains implementation of WorkQueue related functions in a dummy
+/// \brief Contains implementation of thread related functions in a dummy
 /// fashion which simply processes all entries on a single thread
 ///
 /// \ingroup kernel
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_KERNEL_TICKWORK_DUMMY_CPP
-#define XEN_KERNEL_TICKWORK_DUMMY_CPP
+#ifndef XEN_KERNEL_THREADS_DUMMY_CPP
+#define XEN_KERNEL_THREADS_DUMMY_CPP
 
 #warning "Using dummy kernel TickWork implementation"
 
-#include "TickWork.hxx"
+#include "threads.hxx"
 #include <xen/kernel/Kernel.hpp>
 
 xen::TickWorkHandle xen::createTickWorkGroup(xen::Kernel& kernel){
@@ -41,6 +41,7 @@ void xen::waitForTickWork(xen::Kernel&, xen::TickWorkHandle){
 }
 
 bool xke::initThreadSubsystem(xen::Kernel* kernel){
+	xke::THIS_THREAD_ID = 0;
 	return true;
 }
 
@@ -49,10 +50,6 @@ bool xke::stopThreadSubsystem(xen::Kernel* kernel){
 }
 
 void xke::preTickThreadSubsystem(xen::Kernel* kernel){
-	// no-op
-}
-
-void xke::postTickThreadSubsystem(xen::Kernel* kernel){
 	// no-op
 }
 

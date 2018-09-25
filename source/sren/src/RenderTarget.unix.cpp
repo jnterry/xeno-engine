@@ -16,7 +16,7 @@
 #include <xen/graphics/Image.hpp>
 #include <xen/core/memory/Allocator.hpp>
 
-#include <xen/kernel/TickWork.hpp>
+#include <xen/kernel/threads.hpp>
 
 #include <cstring>
 

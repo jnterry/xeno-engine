@@ -1,12 +1,12 @@
 set(XEN_HEADERS_KERNEL
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/kernel/Kernel.hpp
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/kernel/Module.hpp
-	${CMAKE_CURRENT_LIST_DIR}/include/xen/kernel/TickWork.hpp
+	${CMAKE_CURRENT_LIST_DIR}/include/xen/kernel/threads.hpp
 )
 set(XEN_SOURCES_KERNEL
 	${CMAKE_CURRENT_LIST_DIR}/src/Kernel.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/DynamicLibrary.hxx
 	${CMAKE_CURRENT_LIST_DIR}/src/DynamicLibrary.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/TickWork.hxx
-	${CMAKE_CURRENT_LIST_DIR}/src/TickWork.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/threads.hxx
+	${CMAKE_CURRENT_LIST_DIR}/src/threads.cpp
 )

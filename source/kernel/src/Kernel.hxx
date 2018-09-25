@@ -11,7 +11,7 @@
 #include <xen/core/time.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/memory/ArenaPool.hpp>
-#include "TickWork.hxx"
+#include "threads.hxx"
 
 namespace xen {
 	struct Module;

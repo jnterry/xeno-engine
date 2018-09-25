@@ -1,16 +1,16 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \brief Contains implementation of WorkQueue related functions in a dummy
-/// fashion which simply processes all entries on a single thread
+/// \brief Contains platform specific implementation of thread related functions
+/// for systems with pthread library
 ///
 /// \ingroup kernel
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_KERNEL_WORKQUEUE_UNIX_CPP
-#define XEN_KERNEL_WORKQUEUE_UNIX_CPP
+#ifndef XEN_KERNEL_THREADS_UNIX_CPP
+#define XEN_KERNEL_THREADS_UNIX_CPP
 
-#include "TickWork.hxx"
+#include "threads.hxx"
 #include "Kernel.hxx"
 
 #include <xen/core/atomic_intrinsics.hpp>
@@ -288,8 +288,6 @@ bool xke::initThreadSubsystem(xen::Kernel* kernel){
 		printf("Failed to init tick_work_complete_mutex, errno: %i\n", errno);
 	}
 
-	pthread_mutex_lock(&kernel->thread_data.work_available_lock);
-
 	kernel->thread_data.threads.size = num_cores;
 	kernel->thread_data.threads.elements = xen::reserveTypeArray<pthread_t>(kernel->system_arena, num_cores);
 
@@ -358,6 +356,9 @@ bool xke::stopThreadSubsystem(xen::Kernel* kernel){
 }
 
 void xke::preTickThreadSubsystem(xen::Kernel* kernel){
+	// Ensure all worker threads are stopped and waiting on the work_avaialble_cond
+	pthread_mutex_lock(&kernel->thread_data.work_available_lock);
+
 	xen::resetArena(kernel->thread_data.tick_work_data);
 
 	// Init the root work group (id 0)
@@ -369,13 +370,6 @@ void xke::preTickThreadSubsystem(xen::Kernel* kernel){
 	kernel->thread_data.tick_work_next_free = 1;
 
 	pthread_mutex_unlock(&kernel->thread_data.work_available_lock);
-}
-
-void xke::postTickThreadSubsystem(xen::Kernel* kernel){
-	// Wait for all work attached to root group to be completed
-	xen::waitForTickWork(*kernel, 0);
-
-	pthread_mutex_lock(&kernel->thread_data.work_available_lock);
 }
 
 #endif

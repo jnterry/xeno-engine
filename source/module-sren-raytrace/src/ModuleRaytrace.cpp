@@ -12,7 +12,7 @@
 #include <ModuleCommon.cpp>
 #include "raytracer3d.hxx"
 #include <xen/math/geometry.hpp>
-#include <xen/kernel/TickWork.hpp>
+#include <xen/kernel/threads.hpp>
 
 // Data passed to a raytracer thread. This is just the parameters to
 // xsr::renderRaytracer
