@@ -80,14 +80,16 @@ namespace xen {
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Allows a module to allocate memory through the kernel
+	/// \note This may be called before startKernel, but not before initKernel
 	/////////////////////////////////////////////////////////////////////
-	void* allocate(Kernel& kernel, u32 size, u32 align = alignof(int));
+	void* kernelAlloc(u32 size, u32 align = alignof(int));
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Allows a module to deallocate memory previously allocated
-	/// through the kernel
+	/// through the kernel with kernelAlloc
+	/// \note This may be called before startKernel, but not before initKernel
 	/////////////////////////////////////////////////////////////////////
-	void deallocate(Kernel& kernel, void* data);
+	void kernelFree(void* data);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Requests that the kernel shutdown once the current tick is

@@ -68,7 +68,7 @@ void* init(xen::Kernel& kernel, const void* params){
 
 	constexpr u64 BLK_SIZE = xen::megabytes(1);
 
-	void* memory_block = xen::allocate(kernel, BLK_SIZE, alignof(xgl::GlState));
+	void* memory_block = xen::kernelAlloc(BLK_SIZE, alignof(xgl::GlState));
 
 	xgl::gl_state = (xgl::GlState*)(memory_block);
 
@@ -86,7 +86,7 @@ void* init(xen::Kernel& kernel, const void* params){
 
 void shutdown(xen::Kernel& kernel){
 	// :TODO: should also free gl resources
-	xen::deallocate(kernel, xgl::gl_state);
+	xen::kernelFree(xgl::gl_state);
 }
 
 void pushOp(const xen::RenderOp& op){

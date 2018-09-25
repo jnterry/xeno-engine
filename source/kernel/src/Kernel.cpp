@@ -313,14 +313,14 @@ void* xen::getModuleApi(xen::Kernel& kernel, xen::StringHash hash){
 	return nullptr;
 }
 
-void* xen::allocate(xen::Kernel& kernel, u32 size, u32 align){
+void* xen::kernelAlloc(u32 size, u32 align){
 	// :TODO: we ideally want an allocator per module so we can debug memory
 	// leaks etc
-	return kernel.root_allocator->allocate(size, align);
+	return xke::kernel.root_allocator->allocate(size, align);
 }
 
-void xen::deallocate(xen::Kernel& kernel, void* data){
-	return kernel.root_allocator->deallocate(data);
+void xen::kernelFree(void* data){
+	return xke::kernel.root_allocator->deallocate(data);
 }
 
 void xen::requestKernelShutdown(xen::Kernel& kernel){

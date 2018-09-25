@@ -39,7 +39,7 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 }
 
 void* init(xen::Kernel& kernel, const void* params){
-	global_state = (GameState*)xen::allocate(kernel, sizeof(GameState));
+	global_state = (GameState*)xen::kernelAlloc(sizeof(GameState));
 	global_state->value = 10;
 	global_state->increment_delay = ((const GameModuleParams*)params)->increment_delay;
 	return global_state;

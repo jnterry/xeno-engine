@@ -56,7 +56,7 @@ namespace {
 	void* init(xen::Kernel& kernel, const void* params){
 		const u64 BLK_SIZE = xen::megabytes(4);
 
-		void* data = xen::allocate(kernel, BLK_SIZE, alignof(xsr::ModuleRasterize));
+		void* data = xen::kernelAlloc(BLK_SIZE, alignof(xsr::ModuleRasterize));
 		if(data == nullptr){ return nullptr; }
 
 		doRasterizerStateInit(data, BLK_SIZE);
@@ -66,7 +66,7 @@ namespace {
 
 	void shutdown(xen::Kernel& kernel){
 		// :TODO: deallocate everything else, eg, mesh data
-		xen::deallocate(kernel, xsr::state);
+		xen::kernelFree(xsr::state);
 	}
 
 	void pushOp(const xen::RenderOp& op){

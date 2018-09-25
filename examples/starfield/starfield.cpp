@@ -39,7 +39,7 @@ void* init(xen::Kernel& kernel, const void* params){
 	xen::GraphicsModuleApi* mod_graphics = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, xen::hash("graphics"));
 	XenAssert(mod_graphics != nullptr, "Graphics module must be loaded before starfield module");
 
-	StarfieldState* ss = (StarfieldState*)xen::allocate(kernel, sizeof(StarfieldState));
+	StarfieldState* ss = (StarfieldState*)xen::kernelAlloc(sizeof(StarfieldState));
 
 	ss->camera.z_near = 0.001;
 	ss->camera.z_far  = 1000;
@@ -99,7 +99,7 @@ void* init(xen::Kernel& kernel, const void* params){
 }
 
 void shutdown(xen::Kernel& kernel){
-	xen::deallocate(kernel, star_state);
+	xen::kernelFree(star_state);
 	star_state = nullptr;
 }
 

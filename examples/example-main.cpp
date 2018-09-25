@@ -4,7 +4,7 @@
 #include <cstdio>
 
 
-const char* loadGraphicsModule(xen::Kernel& kernel, const char* cli_arg){
+void loadGraphicsModule(xen::Kernel& kernel, const char* cli_arg){
 	if(strcmp(cli_arg, "gl") == 0){
 		xen::loadModule(kernel, "xen-module-gl");
 	} else if (strcmp(cli_arg, "rasterize") == 0){

@@ -55,7 +55,7 @@ void* init(xen::Kernel& kernel, const void* params){
 
 	xen::ArenaLinear& arena = xen::getTickScratchSpace(kernel);
 
-	state = (State*)xen::allocate(kernel, sizeof(State));
+	state = (State*)xen::kernelAlloc(sizeof(State));
 	xen::clearToZero(state);
 
 	state->window = gmod->createWindow({800, 600}, "quicktest");
@@ -218,7 +218,7 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 }
 
 void shutdown(xen::Kernel& kernel){
-	xen::deallocate(kernel, state);
+	xen::kernelFree(state);
 }
 
 xen::Module exported_xen_module = {

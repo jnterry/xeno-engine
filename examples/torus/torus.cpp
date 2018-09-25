@@ -172,7 +172,7 @@ void* init(xen::Kernel& kernel, const void* params){
 	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, "graphics");
 	XenAssert(gmod != nullptr, "Expected graphics module to be loaded before torus");
 
-	state = (State*)xen::allocate(kernel, sizeof(State));
+	state = (State*)xen::kernelAlloc(sizeof(State));
 
 	state->window = gmod->createWindow({800, 600}, "torus");
 
@@ -257,7 +257,7 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 }
 
 void shutdown(xen::Kernel& kernel){
-	xen::deallocate(kernel, state);
+	xen::kernelFree(state);
 }
 
 xen::Module exported_xen_module = {
