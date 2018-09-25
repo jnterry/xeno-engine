@@ -94,7 +94,7 @@ void xsr::destroyWindow(xen::Window* window) {
 	window->is_open = false;
 }
 
-void xsr::swapBuffers(xen::Window* window) {
+void xsr::swapBuffers(xen::Kernel& kernel, xen::Window* window) {
 	if(!window->is_open){ return; }
 	xsr::RenderTarget& target = *xsr::getRenderTargetImpl(window->render_target);
 
@@ -104,7 +104,7 @@ void xsr::swapBuffers(xen::Window* window) {
 		xsr::state->post_processors[i]->process(target);
 	}
 
-	xsr::presentRenderTarget(window, target, xsr::state->thpool);
+	xsr::presentRenderTarget(kernel, window, target);
 }
 
 

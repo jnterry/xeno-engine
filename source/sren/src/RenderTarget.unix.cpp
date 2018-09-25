@@ -16,6 +16,8 @@
 #include <xen/graphics/Image.hpp>
 #include <xen/core/memory/Allocator.hpp>
 
+#include <xen/kernel/threads.hpp>
+
 #include <cstring>
 
 namespace {
@@ -238,7 +240,7 @@ namespace {
 	  xsr::getImageFromFramebuffer(&data->target, data->raw_image);
 	}
 }
-void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target, threadpool thpool){
+void xsr::presentRenderTarget(xen::Kernel& kernel, xen::Window* window, xsr::RenderTarget& target){
 
 	// Make sure the previous frame has been presented before we go messing
 	// with the pixel values...
@@ -251,27 +253,36 @@ void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target, th
 	raw_image.size = target.size;
 	raw_image.pixels = (xen::Color*)target.ximage->data;
 
-	ThreadGetImageWorkData work_data[8];
+	xen::TickWorkHandle present_group = xen::createTickWorkGroup(kernel);
+
+	constexpr u32 WORK_DIVISION_COUNT = 32;
+	ThreadGetImageWorkData work_data;
 	u32 cur_y   = 0;
-	u32 delta_y = target.height / XenArrayLength(work_data);
-	for(u32 i = 0; i < XenArrayLength(work_data); ++i){
-		xen::RawImage& sub_image = work_data[i].raw_image;
+	u32 delta_y = target.height / WORK_DIVISION_COUNT;
+	for(u32 i = 0; i < WORK_DIVISION_COUNT; ++i){
+		xen::RawImage& sub_image = work_data.raw_image;
 
 		sub_image.size.x = raw_image.size.x;
 		sub_image.size.y = delta_y;
 		sub_image.pixels = &raw_image.pixels[raw_image.size.x * cur_y];
 
-		xsr::RenderTarget& sub_target = work_data[i].target;
+		xsr::RenderTarget& sub_target = work_data.target;
 		sub_target.width  = target.width;
 		sub_target.height = target.height;
 		sub_target.depth  = &target.depth[target.width * cur_y];
 		sub_target.color  = &target.color[target.width * cur_y];
 
-		thpool_add_work(thpool, &doThreadPresentRenderTarget, &work_data[i]);
+		// then this is the last group, claim all remaining pixels if size
+		// not divisible exactly by WORK_DIVISION_COUNT
+		if(i == WORK_DIVISION_COUNT-1){
+			sub_image.size.y = target.height - cur_y;
+		}
+
+		xen::pushTickWork(kernel, doThreadPresentRenderTarget, &work_data, present_group);
 
 		cur_y += delta_y;
 	}
-	thpool_wait(thpool);
+	xen::waitForTickWork(kernel, present_group);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Put the image on screen

@@ -25,7 +25,7 @@ int main(int argc, const char** argv){
 		return 1;
 	}
 
-	xen::KernelSettings settings;
+	xen::KernelSettings settings = {0};
 	settings.hot_reload_modules = true;
 	settings.print_tick_rate    = true;
 	xen::Kernel& kernel = xen::createKernel(settings);

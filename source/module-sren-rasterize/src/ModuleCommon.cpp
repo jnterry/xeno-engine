@@ -40,8 +40,6 @@ void doRasterizerStateInit(void* block, const u64 BLK_SIZE){
 	xsr::state->render_target_pool   = xen::createArenaPool<xsr::RenderTarget>(xsr::state->root_arena, 128);
 	xsr::state->render_target_alloc  = xen::emplace<xen::AllocatorMalloc>(xsr::state->root_arena);
 
-	xsr::state->thpool = thpool_init(16);
-
 	// Ensure texture 0 is single pixel white
 	xen::RawImage image;
 	image.size.x = 1;

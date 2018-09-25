@@ -1,0 +1,51 @@
+* Overview
+
+	Xeno Engine is split into various smaller libraries, each of which has its own folder within the =/source= folder.
+
+	Folders without a "module-" prefix are "normal" libraries that can be linked into any application that wishes to make use of the corresponding functionality.
+
+	Games/multimedia applications are expected to use the =kernel= llibrary. This library is capable of loading the libraries prefixed with "module-" at runtime in order to provide some extra functionality to the engine.
+
+	This allows the kernel to provide various support functions to the loaded modules:
+	- Concept of a "tick", which usually corresponds to a frame in the application, with context such as delta time since last tick, etc
+	- Submission of asynchronous tasks to be completed by the end of the tick (or some earlier user defined point such that dependencies between tasks can be expressed)
+	- Dynamic reloading of modules when source code changes (yes, this is hot reloadable c++ code!)
+	- Centralised logging
+	- Memory allocations (in a debug-able way)
+
+* Building an Application
+
+	The expected structure of such an applications is as follows:
+	- Executable
+		- Links against kernel, and any other standard libraries (core, graphics, etc)
+		- Calls xen::initKernel(), loads required modules, then calls xen::startKernel()
+	- Game Module
+		- Contains the game logic, dynamic loaded by the executable
+	- Standard modules
+		- The kernel may choose to load any standard modules bundled with xeno engine, for example, =module-gl= to use OpenGL for rendering
+	- 3rd party modules
+		- Any modules created for XenoEngine with additional functionality of some sort
+
+	Note that it is *VERY* important that the individual modules *DO NOT* link against the *xen-kernel* library. This does not work since global kernel state is duplicated in each module. If the modules do not link against the kernel any calls into the kernel will instead use the library linked into the executable, and thus will use the correct global state.
+
+* Ticks
+
+	The kernel runs in a loop where each iteration of the loop is a "tick". In most applications this will correspond to a single frame.
+
+	Each module that has been loaded can perform some processing during the tick, as the kernel will call the modules =.tick()= function.
+
+	This tick function may kick of background work by submitting jobs the kernel that must be completed before the end of the tick.
+
+* Threading Model
+
+	The kernel has a single master thread (this is the thread which calls =xen::initKernel()= and then =xen::startKernel()=), and some configurable number of worker threads, spawned when the kernel is initialised.
+
+	The master thread will ALWAYS be used to call any module init(), load() and tick() functions. This guarantee ensures that any resources that can only be used by a single thread (eg, an OpenGL context) may be safely created within the module's =init()= function and the used in the =tick()= function.
+
+** Tick Work
+
+	 Tick work are small pieces of work which must be completed before the end of the tick. It is expected that the =tick()= function of modules will offload any parallizable work to the kernel's worker threads by calling =xen::pushTickWork()=.
+
+	 Any memory that is accessed by such work entries must therefore remain valid until the end of the tick, unless the work is forced to be completed earlier by the master thread calling ~xen::waitForTickWork()~.
+
+	 Note that it is also possible for work entries to submit more work, or to call ~waitForTickWork~ in order express dependencies between work entries. The thread calling ~waitForTickWork~ will contribute towards completing the task in question.

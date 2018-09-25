@@ -114,7 +114,7 @@ namespace xen{
 
 	/// \public \memberof Duration
 	template<typename T> T
-	asMillseconds(Duration d){
+	asMilliseconds(Duration d){
 		return d.nanoseconds / (T)1000000;
 	}
 

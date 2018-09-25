@@ -6,7 +6,7 @@
 #include <xen/core/File.hpp>
 
 int main(){
-	xen::KernelSettings settings;
+	xen::KernelSettings settings = {0};
 	settings.hot_reload_modules = true;
 	xen::Kernel& kernel = xen::createKernel(settings);
 

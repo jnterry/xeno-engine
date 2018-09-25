@@ -12,6 +12,7 @@
 #include <ModuleCommon.cpp>
 #include "raytracer3d.hxx"
 #include <xen/math/geometry.hpp>
+#include <xen/kernel/threads.hpp>
 
 // Data passed to a raytracer thread. This is just the parameters to
 // xsr::renderRaytracer
@@ -33,39 +34,42 @@ void threadDoRenderWork(void* voiddata){
 	                          data->rendering_bounds);
 }
 
-void doRender(xsr::RenderTarget&           target,
+void doRender(xen::Kernel&                           kernel,
+              xsr::RenderTarget&                     target,
               const xen::Aabb2u&                     viewport,
               const xen::RenderParameters3d&         params,
               const xen::Array<xen::RenderCommand3d> commands,
               const xen::Array<u32>                  non_triangle_cmds,
-              const xsr::RaytracerScene&       scene){
+              const xsr::RaytracerScene&             scene){
 
 	////////////////////////////////////////////////////////////////////////////
 	// Render the triangles in the scene
-	ThreadRenderData thread_render_data[8];
+	xen::TickWorkHandle work_group = xen::createTickWorkGroup(kernel);
+	ThreadRenderData thread_render_data;
+	constexpr u32 WORK_DIVISIONS = 16;
 	u32 cur_y   = viewport.min.x;
-	u32 delta_y = (viewport.max.y - viewport.min.y) / XenArrayLength(thread_render_data);
-	for(u32 i = 0; i < XenArrayLength(thread_render_data); ++i){
-		thread_render_data[i].target        = &target;
-		thread_render_data[i].params        = &params;
-		thread_render_data[i].scene         = &scene;
-		thread_render_data[i].viewport = viewport;
+	u32 delta_y = (viewport.max.y - viewport.min.y) / WORK_DIVISIONS;
+	for(u32 i = 0; i < WORK_DIVISIONS; ++i){
+		thread_render_data.target        = &target;
+		thread_render_data.params        = &params;
+		thread_render_data.scene         = &scene;
+		thread_render_data.viewport = viewport;
 
-		thread_render_data[i].rendering_bounds.min.x = viewport.min.x;
-		thread_render_data[i].rendering_bounds.max.x = viewport.max.x;
-		thread_render_data[i].rendering_bounds.min.y = cur_y;
-		thread_render_data[i].rendering_bounds.max.y = cur_y + delta_y;
+		thread_render_data.rendering_bounds.min.x = viewport.min.x;
+		thread_render_data.rendering_bounds.max.x = viewport.max.x;
+		thread_render_data.rendering_bounds.min.y = cur_y;
+		thread_render_data.rendering_bounds.max.y = cur_y + delta_y;
 		cur_y += delta_y;
 
-		if(i == XenArrayLength(thread_render_data)-1){
+		if(i == WORK_DIVISIONS - 1){
 			// The last block of work may have a few extra rows if the viewport
 			// height is not divisible by the number of work blocks
-			thread_render_data[i].rendering_bounds.max.y = viewport.max.y;
+			thread_render_data.rendering_bounds.max.y = viewport.max.y;
 		}
 
-		thpool_add_work(xsr::state->thpool, &threadDoRenderWork, &thread_render_data[i]);
+		xen::pushTickWork(kernel, &threadDoRenderWork, &thread_render_data, work_group);
 	}
-	thpool_wait    (xsr::state->thpool);
+	xen::waitForTickWork(kernel, work_group);
 
 	////////////////////////////////////////////////////////////////////////////
 	// Generate view projection matrix
@@ -86,7 +90,6 @@ void doRender(xsr::RenderTarget&           target,
 		printf("ERROR: vp_matrix contains NaN elements, skipping rendering\n");
 		return;
 	}
-
 
 	////////////////////////////////////////////////////////////////////////////
 	// Render debug of the triangle meshes bounding boxes
@@ -194,7 +197,7 @@ void render(xen::Kernel& kernel,
 	xen::ptrAdvance(&render_scratch_arena.next_byte,
 	                sizeof(xsr::RaytracerModel) * scene.models.size);
 
-  doRender(target, viewport, params, commands, non_triangle_cmds, scene);
+	doRender(kernel, target, viewport, params, commands, non_triangle_cmds, scene);
 }
 
 namespace {
@@ -211,7 +214,7 @@ namespace {
 				       *op.draw.params, op.draw.commands);
 				break;
 			case xen::RenderOp::SWAP_BUFFERS:
-				xsr::swapBuffers(op.swap_buffers.window);
+				xsr::swapBuffers(kernel, op.swap_buffers.window);
 				break;
 			}
 		}

@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \brief Contains implementation of types defined in Context.hpp
+/// \brief Contains implementation of types defined in Kernel.hpp
 ///
 /// \ingroup kernel
 ////////////////////////////////////////////////////////////////////////////
@@ -13,6 +13,7 @@
 #include "DynamicLibrary.hxx"
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/core/memory/ArenaPool.hpp>
+#include <xen/core/memory/utilities.hpp>
 #include <xen/core/File.hpp>
 #include <xen/core/time.hpp>
 
@@ -26,64 +27,13 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-namespace xen {
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Represents and Module currently resident in memory
-	/////////////////////////////////////////////////////////////////////
-	struct LoadedModule {
-		/// \brief The path to the shared library file containing code for module
-		const char*     lib_path;
-
-		/// \brief The modification time of the lib the last time it was loaded
-		xen::DateTime   lib_modification_time;
-
-		/// \brief DynamicLibrary instance representing loaded code for the module
-		DynamicLibrary* library;
-
-		/// \brief The Module instances exported by the library
-		Module*         module;
-
-		/// \brief The data returned by module->initialise
-		void*           data;
-
-		/// \brief The api returned by module->onLoad
-		void*           api;
-
-		/// \brief Parameters to the module passed to init and load functions
-		const void*     params;
-
-		/// \brief Next pointer in singly linked list of currently loaded modules
-		LoadedModule*   next;
-	};
-
-	struct Kernel {
-		KernelSettings settings;
-
-		xen::Allocator& root_allocator;
-
-		xen::ArenaPool<LoadedModule> modules;
-		LoadedModule* module_head; // head of singly linked list of modules
-
-		bool stop_requested;
-
-		// Should this be per thread?
-		ArenaLinear tick_scratch_space;
-
-		Kernel(xen::Allocator* root_alloc)
-			: root_allocator(*root_alloc),
-			  modules(xen::createArenaPool<LoadedModule>(root_alloc, 128)) {
-
-		}
-	};
-
-}
+#include "Kernel.hxx"
 
 namespace {
 
-	bool doModuleLoad(xen::Kernel& kernel, xen::LoadedModule* lmod){
+	bool doModuleLoad(xen::Kernel& kernel, xke::LoadedModule* lmod){
 		printf("Loading shared library: %s\n", lmod->lib_path);
-		lmod->library = xen::loadDynamicLibrary(kernel.root_allocator, lmod->lib_path);
+		lmod->library = xke::loadDynamicLibrary(*kernel.root_allocator, lmod->lib_path);
 
 		if(lmod->library == nullptr){
 			// :TODO: log
@@ -92,7 +42,7 @@ namespace {
 		}
 
 
-		lmod->module = (xen::Module*)xen::getDynamicLibrarySymbol(lmod->library, "exported_xen_module");
+		lmod->module = (xen::Module*)xke::getDynamicLibrarySymbol(lmod->library, "exported_xen_module");
 
 		if(lmod->module == nullptr){
 			// :TODO: log
@@ -131,7 +81,7 @@ namespace {
 	}
 
 	void reloadModifiedKernelModules(xen::Kernel& kernel){
-		for(xen::LoadedModule* lmod = kernel.module_head;
+		for(xke::LoadedModule* lmod = kernel.module_head;
 		    lmod != nullptr;
 		    lmod = lmod->next
 		   ){
@@ -165,7 +115,7 @@ namespace {
 			  // library more than once (we could make a copy of the library
 			  // file and load the copy, hence tricking the OS loader to let us
 			  // load a dll multiple times)
-			  xen::unloadDynamicLibrary(kernel.root_allocator, lmod->library);
+			  xke::unloadDynamicLibrary(*kernel.root_allocator, lmod->library);
 
 			  doModuleLoad(kernel, lmod);
 			  lmod->lib_modification_time = mod_time;
@@ -181,163 +131,186 @@ namespace {
 		size = backtrace(array, 256);
 
 		// print out all the frames to stderr
-		fprintf(stderr, "Error: signal SIGSEGV\n", sig);
+		fprintf(stderr, "Error: signal SIGSEGV\n");
 		backtrace_symbols_fd(array, size, STDERR_FILENO);
 		exit(1);
 	}
 }
 
-namespace xen {
-	Kernel& createKernel(const KernelSettings& settings){
-		signal(SIGSEGV, sigsegvHandler);
+xen::Kernel& xen::createKernel(const xen::KernelSettings& settings){
+	signal(SIGSEGV, sigsegvHandler);
 
-		xen::AllocatorMalloc* allocator = new AllocatorMalloc();
+	xen::AllocatorMalloc* allocator = new xen::AllocatorMalloc();
 
-		void* mem = allocator->allocate(sizeof(Kernel));
-		Kernel* kernel = new (mem) (Kernel)(allocator);
+	constexpr u32 SYSTEM_ARENA_SIZE = xen::kilobytes(16);
 
-		xen::copyBytes(&settings, &kernel->settings, sizeof(KernelSettings));
+	xen::Kernel* kernel = (xen::Kernel*)allocator->allocate(SYSTEM_ARENA_SIZE);
 
-		kernel->tick_scratch_space = xen::createArenaLinear(*allocator, xen::megabytes(16));
+	kernel->root_allocator = allocator;
 
-		return *kernel;
+	kernel->system_arena.start     = xen::ptrGetAdvanced(kernel, sizeof(Kernel));
+	kernel->system_arena.end       = xen::ptrGetAdvanced(kernel, SYSTEM_ARENA_SIZE);
+	kernel->system_arena.next_byte = kernel->system_arena.start;
+
+	xen::copyBytes(&settings, &kernel->settings, sizeof(xen::KernelSettings));
+
+	kernel->modules            = xen::createArenaPool<xke::LoadedModule>(kernel->system_arena, 128);
+	kernel->tick_scratch_space = xen::createArenaLinear(*allocator, xen::megabytes(16));
+
+
+	if(!xke::initThreadSubsystem(kernel)){
+		printf("Error occured while initializing thread subsystem of kernel\n");
+		XenBreak();
 	}
 
-  StringHash loadModule(Kernel& kernel, const char* name, const void* params){
-		LoadedModule* lmod = xen::reserveType<LoadedModule>(kernel.modules);
-		char* lib_path = nullptr;
+	printf("Finished kernel init, used %lu of %lu system arena bytes\n",
+	       xen::ptrDiff(kernel->system_arena.start, kernel->system_arena.next_byte),
+	       xen::ptrDiff(kernel->system_arena.start, kernel->system_arena.end)
+	      );
 
-		if(lmod == nullptr){
-			// :TODO: log
-			printf("Failed to load module as max number of loaded modules has been reached!\n");
-			goto cleanup;
-		}
+	return *kernel;
+}
 
-	  lib_path = xen::resolveDynamicLibrary(kernel.root_allocator, name);
-		if(lib_path == nullptr){
-			printf("Failed to find library file for module: %s\n", name);
-			goto cleanup;
-		}
-		lmod->lib_modification_time = xen::getPathModificationTime(lib_path);
+xen::StringHash xen::loadModule(xen::Kernel& kernel,
+                                const char* name,
+                                const void* params
+                               ){
+	xke::LoadedModule* lmod = xen::reserveType<xke::LoadedModule>(kernel.modules);
+	char* lib_path = nullptr;
 
-		lmod->params     = params;
-		lmod->lib_path   = lib_path;
-		lmod->next       = kernel.module_head;
-		kernel.module_head = lmod;
+	if(lmod == nullptr){
+		// :TODO: log
+		printf("Failed to load module as max number of loaded modules has been reached!\n");
+		goto cleanup;
+	}
 
-		if(!doModuleLoad(kernel, lmod)){
-			goto cleanup;
-		}
+	lib_path = xke::resolveDynamicLibrary(*kernel.root_allocator, name);
+	if(lib_path == nullptr){
+		printf("Failed to find library file for module: %s\n", name);
+		goto cleanup;
+	}
+	lmod->lib_modification_time = xen::getPathModificationTime(lib_path);
 
-		printf("Finished initializing and loading module: %s\n", name);
-		return lmod->module->type_hash;
+	lmod->params     = params;
+	lmod->lib_path   = lib_path;
+	lmod->next       = kernel.module_head;
+	kernel.module_head = lmod;
 
-	cleanup:
+	if(!doModuleLoad(kernel, lmod)){
+		goto cleanup;
+	}
+
+	printf("Finished initializing and loading module: %s\n", name);
+	return lmod->module->type_hash;
+
+	cleanup: {
 		printf("Cleaning up from failed module load: %s\n", name);
 		if(lmod == nullptr){ return 0; }
 
 		if(lib_path != nullptr){
-			kernel.root_allocator.deallocate(lib_path);
+			kernel.root_allocator->deallocate(lib_path);
 		}
 
 		if(lmod->library != nullptr){
-			xen::unloadDynamicLibrary(kernel.root_allocator, lmod->library);
+			xke::unloadDynamicLibrary(*kernel.root_allocator, lmod->library);
 		}
 
-		xen::freeType<LoadedModule>(kernel.modules, lmod);
+		xen::freeType<xke::LoadedModule>(kernel.modules, lmod);
 
 		return 0;
 	}
+}
 
-	void startKernel(Kernel& kernel){
-		TickContext cntx = {kernel, 0};
+void xen::startKernel(xen::Kernel& kernel){
+	xen::TickContext cntx = {kernel, 0};
 
-		bool tick_result;
+	xen::Stopwatch timer;
+	xen::Duration last_time = timer.getElapsedTime();
 
-		xen::Stopwatch timer;
-		xen::Duration last_time = timer.getElapsedTime();
+	xen::Duration last_tick_rate_print = last_time;
+	u64           last_tick_count      = 0;
 
+	printf("Kernel init finished, beginning main loop...\n");
+	do {
+		xen::resetArena(kernel.tick_scratch_space);
+		xke::preTickThreadSubsystem(&kernel);
 
-		xen::Duration last_tick_rate_print = last_time;
-		u64           last_tick_count      = 0;
+		cntx.time = timer.getElapsedTime();
+		cntx.dt = cntx.time - last_time;
 
-		printf("Kernel init finished, beginning main loop...\n");
-		do {
-			xen::resetArena(kernel.tick_scratch_space);
-
-			cntx.time = timer.getElapsedTime();
-			cntx.dt = cntx.time - last_time;
-
-			if(kernel.settings.hot_reload_modules){
-				//printf("Checking for module reloads...\n");
-				reloadModifiedKernelModules(kernel);
-				//printf("Done reloads\n");
-			}
-
-			if(kernel.settings.print_tick_rate &&
-			   cntx.time - last_tick_rate_print > xen::seconds(0.5f)){
-				printf("Tick Rate: %f\n",
-				       (real)(cntx.tick - last_tick_count) /
-				       xen::asSeconds<real>(cntx.time - last_tick_rate_print)
-				       );
-				last_tick_rate_print = cntx.time;
-				last_tick_count      = cntx.tick;
-			}
-
-			for(LoadedModule* lmod = kernel.module_head;
-			    lmod != nullptr;
-			    lmod = lmod->next
-			    ){
-				if(lmod->module->tick != nullptr){
-					lmod->module->tick(kernel, cntx);
-				}
-			}
-
-			++cntx.tick;
-			last_time = cntx.time;
-		} while (!kernel.stop_requested);
-
-		printf("Main loop requested termination, doing kernel cleanup\n");
-
-		LoadedModule* module = kernel.module_head;
-		while(module != nullptr){
-			module->module->shutdown(kernel);
-			module = module->next;
+		if(kernel.settings.hot_reload_modules){
+			//printf("Checking for module reloads...\n");
+			reloadModifiedKernelModules(kernel);
+			//printf("Done reloads\n");
 		}
 
-		// free resources, check for memory leaks, etc
-		printf("Kernel terminating\n");
-	}
+		if(kernel.settings.print_tick_rate &&
+		   cntx.time - last_tick_rate_print > xen::seconds(0.5f)){
+			printf("Tick Rate: %f\n",
+			       (real)(cntx.tick - last_tick_count) /
+			       xen::asSeconds<real>(cntx.time - last_tick_rate_print)
+			       );
+			last_tick_rate_print = cntx.time;
+			last_tick_count      = cntx.tick;
+		}
 
-	void* getModuleApi(Kernel& kernel, StringHash hash){
-		for(LoadedModule* cur = kernel.module_head;
-		    cur != nullptr;
-		    cur = cur->next
-		   ){
-			if(cur->module->type_hash == hash){
-				return cur->api;
+		for(xke::LoadedModule* lmod = kernel.module_head;
+		    lmod != nullptr;
+		    lmod = lmod->next
+		    ){
+			if(lmod->module->tick != nullptr){
+				lmod->module->tick(kernel, cntx);
 			}
 		}
-		return nullptr;
+
+		// Ensure that all tick work is completed
+		xen::waitForTickWork(kernel, 0);
+
+		++cntx.tick;
+		last_time = cntx.time;
+	} while (!kernel.stop_requested);
+
+	printf("Main loop requested termination, doing kernel cleanup\n");
+
+	xke::LoadedModule* module = kernel.module_head;
+	while(module != nullptr){
+		module->module->shutdown(kernel);
+		module = module->next;
 	}
 
-	void* allocate(Kernel& kernel, u32 size, u32 align){
-		// :TODO: we ideally want an allocator per module so we can debug memory
-		// leaks etc
-		return kernel.root_allocator.allocate(size, align);
-	}
+	// free resources, check for memory leaks, etc
+	printf("Kernel terminating\n");
+	xke::stopThreadSubsystem(&kernel);
+}
 
-	void deallocate(Kernel& kernel, void* data){
-		return kernel.root_allocator.deallocate(data);
+void* xen::getModuleApi(xen::Kernel& kernel, xen::StringHash hash){
+	for(xke::LoadedModule* cur = kernel.module_head;
+	    cur != nullptr;
+	    cur = cur->next
+	    ){
+		if(cur->module->type_hash == hash){
+			return cur->api;
+		}
 	}
+	return nullptr;
+}
 
-	void requestKernelShutdown(Kernel& kernel){
-		kernel.stop_requested = true;
-	}
+void* xen::allocate(xen::Kernel& kernel, u32 size, u32 align){
+	// :TODO: we ideally want an allocator per module so we can debug memory
+	// leaks etc
+	return kernel.root_allocator->allocate(size, align);
+}
 
-	ArenaLinear& getTickScratchSpace(Kernel& kernel){
-		return kernel.tick_scratch_space;
-	}
+void xen::deallocate(xen::Kernel& kernel, void* data){
+	return kernel.root_allocator->deallocate(data);
+}
+
+void xen::requestKernelShutdown(xen::Kernel& kernel){
+	kernel.stop_requested = true;
+}
+
+xen::ArenaLinear& xen::getTickScratchSpace(xen::Kernel& kernel){
+	return kernel.tick_scratch_space;
 }
 
 #endif

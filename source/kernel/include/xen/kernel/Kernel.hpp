@@ -28,6 +28,10 @@ namespace xen {
 		/// \brief If true then the kernel will print the average tick rate once
 		/// a second to stdout
 		bool print_tick_rate;
+
+		/// \brief Number of threads to use, if set to 0 then will use as many
+		/// threads as there are cores in this machine
+		uint thread_count;
 	};
 
 	/////////////////////////////////////////////////////////////////////

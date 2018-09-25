@@ -82,6 +82,10 @@ namespace xen{
 	/// \note returned arena.start must be deallocated at some point
 	ArenaLinear createArenaLinear(Allocator& alloc, uint size);
 
+	/// \brief creates a new ArenaLinear of the specified size, reserving
+	/// storage space from some other ArenaLinear
+	ArenaLinear createArenaLinear(ArenaLinear& parent, uint size);
+
 	/// \brief Destroys an ArenaLinear previously created with createArenaLinear
 	void destroyArenaLinear(Allocator& alloc, ArenaLinear& arena);
 
@@ -107,6 +111,10 @@ namespace xen{
 	/// \brief Pushes as much of the specified string as possible, truncating if nessacery.
 	/// Null terminator is not included
 	char* pushStringNoTerminate(ArenaLinear& arena, const char* str);
+
+	/// \brief Reserves bytes and then memcpy's data into them
+	/// \public \memberof xen::ArenaLinear
+	void* pushBytes(ArenaLinear& arena, void* data, size_t num_bytes, u32 align = alignof(int));
 
 	/// \brief Reserves some number of bytes in an Arena and returns pointer to
 	/// the first. Does not initialise the bytes
@@ -136,7 +144,25 @@ namespace xen{
 		return new (reserveType<T>(arena)) (T)(args...);
 	}
 
+	namespace sync {
+		void* reserveBytes(ArenaLinear& arena, size_t num_bytes, u32 align = alignof(int));
+		void* pushBytes   (ArenaLinear& arena, void* data, size_t num_bytes, u32 align = alignof(int));
 
+		template<typename T>
+		T* reserveTypeArray(ArenaLinear& arena, u32 length){
+			return (T*)sync::reserveBytes(arena, sizeof(T) * length, alignof(T));
+		}
+
+		template<typename T>
+		T* reserveType(ArenaLinear& arena){
+			return (T*)sync::reserveBytes(arena, sizeof(T), alignof(T));
+		}
+
+		template<typename T, typename... T_ARGS>
+		inline T* emplace(ArenaLinear& arena, T_ARGS... args){
+			return new (sync::reserveType<T>(arena)) (T)(args...);
+		}
+	}
 }
 
 #endif

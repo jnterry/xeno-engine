@@ -16,9 +16,8 @@
 #include <xen/math/geometry_types.hpp>
 #include <xen/config.hpp>
 
-#include <thpool.h>
-
 namespace xen {
+	struct Kernel;
 	struct Window;
 	struct Allocator;
 }
@@ -44,7 +43,7 @@ namespace xsr {
 	                                       xsr::RenderTarget& target,
 	                                       xen::Window* window);
 
-	void presentRenderTarget(xen::Window* window, xsr::RenderTarget& target, threadpool thpool);
+	void presentRenderTarget(xen::Kernel& kernel, xen::Window* window, xsr::RenderTarget& target);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Clears the diffuse component of a render target to the

@@ -24,7 +24,7 @@ namespace {
 				xsr::render(op.draw.target, op.draw.viewport, *op.draw.params, op.draw.commands);
 				break;
 			case xen::RenderOp::SWAP_BUFFERS:
-				xsr::swapBuffers(op.swap_buffers.window);
+				xsr::swapBuffers(kernel, op.swap_buffers.window);
 				break;
 			}
 		}
