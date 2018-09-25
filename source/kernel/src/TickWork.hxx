@@ -28,7 +28,7 @@ namespace xke {
 #ifdef XEN_OS_WINDOWS
 	#include "TickWork.dummy.hxx"
 #elif defined XEN_OS_UNIX
-	#include "TickWork.dummy.hxx"
+	#include "TickWork.unix.hxx"
 #else
 	#include "TickWork.dummy.hxx"
 #endif

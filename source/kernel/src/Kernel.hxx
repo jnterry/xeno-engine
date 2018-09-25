@@ -52,8 +52,6 @@ namespace xke {
 }
 
 namespace xen {
-
-
 	struct Kernel {
 		KernelSettings settings;
 

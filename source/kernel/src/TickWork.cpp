@@ -15,7 +15,7 @@
 #ifdef XEN_OS_WINDOWS
 	#include "TickWork.dummy.cpp"
 #elif defined XEN_OS_UNIX
-	#include "TickWork.dummy.cpp"
+	#include "TickWork.unix.cpp"
 #else
 	#include "TickWork.dummy.cpp"
 #endif
