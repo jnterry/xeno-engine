@@ -82,8 +82,8 @@ namespace {
 		return true;
 	}
 
-	void reloadModifiedKernelModules(xen::Kernel& kernel){
-		for(xke::LoadedModule* lmod = kernel.module_head;
+	void reloadModifiedKernelModules(){
+		for(xke::LoadedModule* lmod = xke::kernel.module_head;
 		    lmod != nullptr;
 		    lmod = lmod->next
 		   ){
@@ -117,7 +117,7 @@ namespace {
 			  // library more than once (we could make a copy of the library
 			  // file and load the copy, hence tricking the OS loader to let us
 			  // load a dll multiple times)
-			  xke::unloadDynamicLibrary(*kernel.root_allocator, lmod->library);
+			  xke::unloadDynamicLibrary(*xke::kernel.root_allocator, lmod->library);
 
 			  doModuleLoad(lmod);
 			  lmod->lib_modification_time = mod_time;
@@ -139,7 +139,7 @@ namespace {
 	}
 }
 
-xen::Kernel& xen::initKernel(const xen::KernelSettings& settings){
+bool xen::initKernel(const xen::KernelSettings& settings){
 	XenAssert(xke::kernel.state == xen::Kernel::UNINITIALIZED,
 	          "Expected kernel to be initialised only once"
 	         );
@@ -148,33 +148,34 @@ xen::Kernel& xen::initKernel(const xen::KernelSettings& settings){
 
 	constexpr u32 SYSTEM_ARENA_SIZE = xen::kilobytes(16);
 
-	xen::Kernel* kernel = &xke::kernel;
+	xke::kernel.root_allocator = new xen::AllocatorMalloc();
 
-	kernel->root_allocator = new xen::AllocatorMalloc();
-
-	kernel->system_arena = xen::ArenaLinear(kernel->root_allocator->allocate(SYSTEM_ARENA_SIZE),
+	xke::kernel.system_arena = xen::ArenaLinear(xke::kernel.root_allocator->allocate(SYSTEM_ARENA_SIZE),
 	                                        SYSTEM_ARENA_SIZE
 	                                       );
 
-	xen::copyBytes(&settings, &kernel->settings, sizeof(xen::KernelSettings));
+	xen::copyBytes(&settings, &xke::kernel.settings, sizeof(xen::KernelSettings));
 
-	kernel->modules            = xen::createArenaPool<xke::LoadedModule>(kernel->system_arena, 128);
-	kernel->tick_scratch_space = xen::createArenaLinear(*kernel->root_allocator, xen::megabytes(16));
+	xke::kernel.modules            = xen::createArenaPool<xke::LoadedModule>(xke::kernel.system_arena, 128);
+	xke::kernel.tick_scratch_space = xen::createArenaLinear(*xke::kernel.root_allocator, xen::megabytes(16));
 
 
 	if(!xke::initThreadSubsystem()){
 		printf("Error occured while initializing thread subsystem of kernel\n");
-		XenBreak();
+		xen::destroyArenaLinear(*xke::kernel.root_allocator, xke::kernel.tick_scratch_space);
+		xen::destroyArenaLinear(*xke::kernel.root_allocator, xke::kernel.system_arena);
+		delete xke::kernel.root_allocator;
+		return false;
 	}
 
 	printf("Finished kernel init, used %lu of %lu system arena bytes\n",
-	       xen::ptrDiff(kernel->system_arena.start, kernel->system_arena.next_byte),
-	       xen::ptrDiff(kernel->system_arena.start, kernel->system_arena.end)
+	       xen::ptrDiff(xke::kernel.system_arena.start, xke::kernel.system_arena.next_byte),
+	       xen::ptrDiff(xke::kernel.system_arena.start, xke::kernel.system_arena.end)
 	      );
 
 	xke::kernel.state = xen::Kernel::INITIALIZED;
 
-	return *kernel;
+	return true;
 }
 
 xen::StringHash xen::loadModule(const char* name,
@@ -226,7 +227,7 @@ xen::StringHash xen::loadModule(const char* name,
 	}
 }
 
-void xen::startKernel(xen::Kernel& kernel){
+void xen::startKernel(){
 	XenAssert(xke::kernel.state == xen::Kernel::INITIALIZED,
 	          "Expected kernel to be initialised but not started");
 
@@ -244,20 +245,20 @@ void xen::startKernel(xen::Kernel& kernel){
 	xke::kernel.state = xen::Kernel::RUNNING;
 
 	printf("Kernel init finished, beginning main loop...\n");
-	do {
-		xen::resetArena(kernel.tick_scratch_space);
+	while (!xke::kernel.stop_requested) {
+		xen::resetArena(xke::kernel.tick_scratch_space);
 		xke::preTickThreadSubsystem();
 
 		cntx.time = timer.getElapsedTime();
 		cntx.dt = cntx.time - last_time;
 
-		if(kernel.settings.hot_reload_modules){
+		if(xke::kernel.settings.hot_reload_modules){
 			//printf("Checking for module reloads...\n");
-			reloadModifiedKernelModules(kernel);
+			reloadModifiedKernelModules();
 			//printf("Done reloads\n");
 		}
 
-		if(kernel.settings.print_tick_rate &&
+		if(xke::kernel.settings.print_tick_rate &&
 		   cntx.time - last_tick_rate_print > xen::seconds(0.5f)){
 			printf("Tick Rate: %f\n",
 			       (real)(cntx.tick - last_tick_count) /
@@ -267,7 +268,7 @@ void xen::startKernel(xen::Kernel& kernel){
 			last_tick_count      = cntx.tick;
 		}
 
-		for(xke::LoadedModule* lmod = kernel.module_head;
+		for(xke::LoadedModule* lmod = xke::kernel.module_head;
 		    lmod != nullptr;
 		    lmod = lmod->next
 		    ){
@@ -285,13 +286,13 @@ void xen::startKernel(xen::Kernel& kernel){
 
 		++cntx.tick;
 		last_time = cntx.time;
-	} while (!kernel.stop_requested);
+	}
 
 	xke::kernel.state = xen::Kernel::STOPPED;
 
 	printf("Main loop requested termination, doing kernel cleanup\n");
 
-	xke::LoadedModule* module = kernel.module_head;
+	xke::LoadedModule* module = xke::kernel.module_head;
 	while(module != nullptr){
 		module->module->shutdown(module->data, module->params);
 		module = module->next;

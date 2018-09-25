@@ -4,7 +4,7 @@
 #include <cstdio>
 
 
-void loadGraphicsModule(xen::Kernel& kernel, const char* cli_arg){
+void loadGraphicsModule(const char* cli_arg){
 	if(strcmp(cli_arg, "gl") == 0){
 		xen::loadModule("xen-module-gl");
 	} else if (strcmp(cli_arg, "rasterize") == 0){
@@ -28,11 +28,15 @@ int main(int argc, const char** argv){
 	xen::KernelSettings settings = {0};
 	settings.hot_reload_modules = true;
 	settings.print_tick_rate    = true;
-	xen::Kernel& kernel = xen::initKernel(settings);
 
-	loadGraphicsModule(kernel, argv[2]);
+	if(!xen::initKernel(settings)){
+		printf("Failed to initialize kernel\n");
+		return 2;
+	}
+
+	loadGraphicsModule(argv[2]);
 	xen::loadModule(argv[1]);
-	xen::startKernel(kernel);
+	xen::startKernel();
 
 	return 0;
 }

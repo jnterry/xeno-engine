@@ -35,15 +35,10 @@ namespace xen {
 	};
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Opaque type representing all kernel state
-	/////////////////////////////////////////////////////////////////////
-	struct Kernel;
-
-	/////////////////////////////////////////////////////////////////////
 	/// \brief Performs initialisation of the global kernel instance, this
 	/// must be called before any other kernel functions may be called
 	/////////////////////////////////////////////////////////////////////
-	Kernel& initKernel(const KernelSettings& settings);
+  bool initKernel(const KernelSettings& settings);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Starts running the kernel, which basically amounts to repeatedly
@@ -51,7 +46,7 @@ namespace xen {
 	/// until requestKernelShutdown is called (hence requestKernelShutdown must be
 	/// called within the tick() callback of some loaded module)
 	/////////////////////////////////////////////////////////////////////
-	void startKernel(Kernel& kernel);
+	void startKernel();
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Loads a kernel module and call's the module's init function
