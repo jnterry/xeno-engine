@@ -36,7 +36,7 @@ xen::TickWorkHandle xen::pushTickWork(xen::Kernel& kernel,
 	return 1;
 }
 
-void xen::waitForTickWork(xen::TickWorkHandle work){
+void xen::waitForTickWork(xen::Kernel&, xen::TickWorkHandle){
 	// no-op -> all work completed synchronously
 }
 
@@ -46,6 +46,14 @@ bool xke::initThreadSubsystem(xen::Kernel* kernel){
 
 bool xke::stopThreadSubsystem(xen::Kernel* kernel){
 	return true;
+}
+
+void xke::preTickThreadSubsystem(xen::Kernel* kernel){
+	// no-op
+}
+
+void xke::postTickThreadSubsystem(xen::Kernel* kernel){
+	// no-op
 }
 
 #endif

@@ -233,6 +233,7 @@ void xen::startKernel(xen::Kernel& kernel){
 	printf("Kernel init finished, beginning main loop...\n");
 	do {
 		xen::resetArena(kernel.tick_scratch_space);
+		xke::preTickThreadSubsystem(&kernel);
 
 		cntx.time = timer.getElapsedTime();
 		cntx.dt = cntx.time - last_time;
@@ -261,6 +262,8 @@ void xen::startKernel(xen::Kernel& kernel){
 				lmod->module->tick(kernel, cntx);
 			}
 		}
+
+		xke::postTickThreadSubsystem(&kernel);
 
 		++cntx.tick;
 		last_time = cntx.time;

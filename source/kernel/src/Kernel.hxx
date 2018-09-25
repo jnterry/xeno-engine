@@ -35,7 +35,7 @@ namespace xke {
 		xke::DynamicLibrary* library;
 
 		/// \brief The Module instances exported by the library
-		xen::Module*         module;
+		xen::Module*    module;
 
 		/// \brief The data returned by module->initialise
 		void*           data;

@@ -276,7 +276,7 @@ void xsr::presentRenderTarget(xen::Kernel& kernel, xen::Window* window, xsr::Ren
 
 		cur_y += delta_y;
 	}
-	xen::waitForTickWork(present_group);
+	xen::waitForTickWork(kernel, present_group);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Put the image on screen

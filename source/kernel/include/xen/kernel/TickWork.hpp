@@ -81,7 +81,7 @@ namespace xen {
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Waits for some tick work, or work group, to be completed
 	/////////////////////////////////////////////////////////////////////
-	void waitForTickWork(TickWorkHandle work);
+	void waitForTickWork(Kernel& kernel, TickWorkHandle work);
 }
 
 #endif

@@ -69,7 +69,7 @@ void doRender(xen::Kernel&                           kernel,
 
 		xen::pushTickWork(kernel, &threadDoRenderWork, &thread_render_data);
 	}
-	xen::waitForTickWork(work_group);
+	xen::waitForTickWork(kernel, work_group);
 
 	////////////////////////////////////////////////////////////////////////////
 	// Generate view projection matrix
