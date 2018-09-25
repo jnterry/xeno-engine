@@ -40,7 +40,7 @@ void doRender(xen::Kernel&                           kernel,
               const xen::RenderParameters3d&         params,
               const xen::Array<xen::RenderCommand3d> commands,
               const xen::Array<u32>                  non_triangle_cmds,
-              const xsr::RaytracerScene&       scene){
+              const xsr::RaytracerScene&             scene){
 
 	////////////////////////////////////////////////////////////////////////////
 	// Render the triangles in the scene
@@ -67,7 +67,7 @@ void doRender(xen::Kernel&                           kernel,
 			thread_render_data.rendering_bounds.max.y = viewport.max.y;
 		}
 
-		xen::pushTickWork(kernel, &threadDoRenderWork, &thread_render_data);
+		xen::pushTickWork(kernel, &threadDoRenderWork, &thread_render_data, work_group);
 	}
 	xen::waitForTickWork(kernel, work_group);
 
