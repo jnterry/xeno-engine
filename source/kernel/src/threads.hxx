@@ -30,7 +30,7 @@ namespace xke {
 	/////////////////////////////////////////////////////////////////////
 	void preTickThreadSubsystem();
 
-	extern thread_local uint THIS_THREAD_INDEX;
+	extern thread_local xen::ThreadIndex THIS_THREAD_INDEX;
 }
 
 #include <xen/config.hpp>

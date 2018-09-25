@@ -14,6 +14,7 @@
 #include <xen/math/quaternion.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/sren/render-debug.hxx>
+#include <xen/kernel/threads.hpp>
 
 void renderDebug(xen::ArenaLinear&  scratch,
                  real               time,
@@ -120,7 +121,7 @@ void render(xen::ArenaLinear& scratch,
 	//xen::sren::raytraceAtoms(target, viewport, params, ascene, viewport);
 }
 
-void tick( const xen::TickContext& cntx){
+void tick(const xen::TickContext& cntx){
 	for(u32 i = 0; i < xsr::state->next_free_op; ++i){
 		xen::RenderOp& op = xsr::state->op_list[i];
 
@@ -130,11 +131,11 @@ void tick( const xen::TickContext& cntx){
 			break;
 		case xen::RenderOp::DRAW:
 			#if 1
-			render(xen::getTickScratchSpace(),
+			render(xen::getThreadScratchSpace(),
 			       op.draw.target, op.draw.viewport,
 			       *op.draw.params, op.draw.commands);
 			#else
-			renderDebug(xen::getTickScratchSpace(),
+			renderDebug(xen::getThreadScratchSpace(),
 			            xen::asSeconds<real>(cntx.time),
 			            op.draw.target, op.draw.viewport,
 			            *op.draw.params, op.draw.commands);

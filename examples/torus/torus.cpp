@@ -135,7 +135,7 @@ void initSceneLights(){
 }
 
 void initMeshes(xen::GraphicsModuleApi* gmod){
-	xen::ArenaLinear& arena = xen::getTickScratchSpace();
+	xen::ArenaLinear& arena = xen::getThreadScratchSpace();
 
 	state->vertex_spec[0] = xen::VertexAttribute::Position3r;
 	state->vertex_spec[1] = xen::VertexAttribute::Normal3r;

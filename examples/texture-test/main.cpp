@@ -70,7 +70,7 @@ void initSceneLights(){
 }
 
 void initMeshes(xen::GraphicsModuleApi* gmod){
-	xen::ArenaLinear& arena = xen::getTickScratchSpace();
+	xen::ArenaLinear& arena = xen::getThreadScratchSpace();
 
 	xen::MemoryTransaction transaction(arena);
 

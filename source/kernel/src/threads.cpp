@@ -17,9 +17,9 @@
 // overwrite this value. This ensures that any thread that the kernel
 // knows about has a well defined THIS_THREAD_INDEX, but all other
 // threads have the BAD_THREAD_ID value
-thread_local uint xke::THIS_THREAD_INDEX = xen::BAD_THREAD_ID;
+thread_local xen::ThreadIndex xke::THIS_THREAD_INDEX = xen::BAD_THREAD_ID;
 
-uint xen::getThreadId() {
+xen::ThreadIndex xen::getThreadIndex() {
 	return xke::THIS_THREAD_INDEX;
 }
 

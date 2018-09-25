@@ -53,7 +53,7 @@ void* init(const void* params){
 	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
 	XenAssert(gmod != nullptr, "Expected graphics module to be loaded before quicktest");
 
-	xen::ArenaLinear& arena = xen::getTickScratchSpace();
+	xen::ArenaLinear& arena = xen::getThreadScratchSpace();
 
 	state = (State*)xen::kernelAlloc(sizeof(State));
 	xen::clearToZero(state);

@@ -66,13 +66,23 @@ namespace xke {
 		pthread_cond_t  tick_work_complete_cond;
 		pthread_mutex_t tick_work_complete_lock;
 
-		xen::Array<pthread_t> threads;
+		/// \brief Number of threads controlled by the kernel, including the
+		// master thread
+		xen::ThreadIndex thread_count;
+
+		/// \brief array of pthread_t instances, length = thread_count
+		pthread_t* threads;
+
+		/// \brief array of thread scratch spaces, length = thread_count
+		xen::ArenaLinear* scratch_arenas;
 
 		xen::Array<TickWorkEntry> tick_work_list;
 	  u64                       tick_work_next_free;
 
 		/// \brief Storage for data to be passed to tick_work callbacks
 		xen::ArenaLinear          tick_work_data;
+
+
 	};
 }
 

@@ -84,9 +84,6 @@ namespace xke {
 		xke::ThreadData thread_data;
 
 		volatile bool stop_requested;
-
-		// Should this be per thread?
-		xen::ArenaLinear tick_scratch_space;
 	};
 
 	/// \brief Global kernel instance

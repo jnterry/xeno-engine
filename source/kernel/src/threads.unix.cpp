@@ -227,14 +227,16 @@ void* kernelThreadFunction(void* thread_index){
 
 	xke::THIS_THREAD_INDEX = (xen::ThreadIndex)thread_index;
 
-	printf("Started kernel thread %u\n", xen::getThreadId());
+	printf("Started kernel thread %u, scratch at: %p\n", xen::getThreadIndex(), xen::getThreadScratchSpace().start);
 
 	while(!xke::kernel.stop_requested){
 
 		//printf("### %2i | Waiting for work\n", per_thread_data->index);
 
 		pthread_mutex_lock  (&k_thread_data->work_available_lock);
-		pthread_cond_wait   (&k_thread_data->work_available_cond, &k_thread_data->work_available_lock);
+		pthread_cond_wait   (&k_thread_data->work_available_cond,
+		                     &k_thread_data->work_available_lock
+		                    );
 		pthread_mutex_unlock(&k_thread_data->work_available_lock);
 
 		//printf("### %2i | Checking for outstanding work...\n", per_thread_data->index);
@@ -248,11 +250,16 @@ void* kernelThreadFunction(void* thread_index){
 }
 
 bool xke::initThreadSubsystem(){
-	uint num_cores = xke::kernel.settings.thread_count;
-	if(num_cores == 0){
-	  num_cores = sysconf(_SC_NPROCESSORS_ONLN);
+	uint num_threads = xke::kernel.settings.thread_count;
+	if(num_threads == 0){
+	  num_threads = sysconf(_SC_NPROCESSORS_ONLN);
 	}
-	printf("Initializing kernel with %i threads\n", num_cores);
+
+	if(xke::kernel.settings.thread_scratch_size == 0){
+		xke::kernel.settings.thread_scratch_size = xen::megabytes(16);
+	}
+
+	printf("Initializing kernel with %i threads\n", num_threads);
 
 	errno = 0;
 	if(0 != pthread_cond_init(&xke::kernel.thread_data.work_available_cond, nullptr)){
@@ -276,8 +283,9 @@ bool xke::initThreadSubsystem(){
 		printf("Failed to init tick_work_complete_mutex, errno: %i\n", errno);
 	}
 
-	xke::kernel.thread_data.threads.size = num_cores;
-	xke::kernel.thread_data.threads.elements = xen::reserveTypeArray<pthread_t>(xke::kernel.system_arena, num_cores);
+	xke::kernel.thread_data.thread_count = num_threads;
+	xke::kernel.thread_data.threads = xen::reserveTypeArray<pthread_t>(xke::kernel.system_arena, num_threads);
+	xke::kernel.thread_data.scratch_arenas = xen::reserveTypeArray<xen::ArenaLinear>(xke::kernel.system_arena, num_threads);
 
 	xke::kernel.thread_data.tick_work_list.size = 16384;
 	xke::kernel.thread_data.tick_work_list.elements = (xke::TickWorkEntry*)xke::kernel.root_allocator->allocate(
@@ -293,20 +301,34 @@ bool xke::initThreadSubsystem(){
 	scheduling.sched_priority = -20; // max priority
 
 	pthread_attr_setschedparam(&attribs, &scheduling);
-	pthread_attr_setstacksize (&attribs, xen::megabytes(8));
+	pthread_attr_setstacksize (&attribs, xen::megabytes(2));
 
-	xke::kernel.thread_data.threads.elements[0] = pthread_self();
+	void* scratch_space = xke::kernel.root_allocator->allocate(xke::kernel.settings.thread_scratch_size * num_threads);
+	if(scratch_space == nullptr){
+		printf("Failed to allocate space for thread scratch stores\n");
+		return false;
+	}
+
+	xke::kernel.thread_data.threads[0] = pthread_self();
 	xke::THIS_THREAD_INDEX = 0;
 	// start at i = 1, thread 0 is the calling thread
-	for(uint i = 1; i < num_cores; ++i){
+	for(uint i = 1; i < num_threads; ++i){
 
-		if(0 != pthread_create(&xke::kernel.thread_data.threads.elements[i],
+		if(0 != pthread_create(&xke::kernel.thread_data.threads[i],
 		                       &attribs,
 		                       &kernelThreadFunction,
 		                       (void*)i
 		                       )){
 			XenInvalidCodePath("Cannot recover from thread creation failure");
 		}
+
+		xke::kernel.thread_data.scratch_arenas[i].start = xen::ptrGetAdvanced(
+			scratch_space, i * xke::kernel.settings.thread_scratch_size);
+		xke::kernel.thread_data.scratch_arenas[i].end   = xen::ptrGetAdvanced(
+			scratch_space, (i+1) * xke::kernel.settings.thread_scratch_size - 1 );
+		xke::kernel.thread_data.scratch_arenas[i].next_byte = xke::kernel.thread_data.scratch_arenas[i].start;
+
+
 	}
 
 	pthread_attr_destroy(&attribs);
@@ -322,7 +344,7 @@ bool xke::stopThreadSubsystem(){
 	pthread_mutex_unlock  (&xke::kernel.thread_data.work_available_lock);
 
 
-	for(u64 i = 0; i < xke::kernel.thread_data.threads.size; ++i){
+	for(u64 i = 0; i < xke::kernel.thread_data.thread_count; ++i){
 		printf("Waiting for termination of thread: %lu\n", i);
 
 		errno = 0;
@@ -330,6 +352,8 @@ bool xke::stopThreadSubsystem(){
 			printf("Error waiting for termination of thread: %lu\n", i);
 			return false;
 		}
+
+		xen::destroyArenaLinear(*xke::kernel.root_allocator, xke::kernel.thread_data.scratch_arenas[i]);
 	}
 
 	pthread_mutex_destroy(&xke::kernel.thread_data.work_available_lock);
@@ -346,6 +370,10 @@ void xke::preTickThreadSubsystem(){
 
 	xen::resetArena(xke::kernel.thread_data.tick_work_data);
 
+	for(xen::ThreadIndex i = 0; i < xke::kernel.thread_data.thread_count; ++i){
+		xen::resetArena(xke::kernel.thread_data.scratch_arenas[i]);
+	}
+
 	// Init the root work group (id 0)
 	xke::kernel.thread_data.tick_work_list[0].parent       = 0;
 	xke::kernel.thread_data.tick_work_list[0].next_child   = 0;
@@ -355,6 +383,15 @@ void xke::preTickThreadSubsystem(){
 	xke::kernel.thread_data.tick_work_next_free = 1;
 
 	pthread_mutex_unlock(&xke::kernel.thread_data.work_available_lock);
+}
+
+xen::ArenaLinear& xen::getThreadScratchSpace(){
+	xen::ThreadIndex i = xen::getThreadIndex();
+	XenAssert(i < xke::kernel.thread_data.thread_count,
+	          "getTickScratchSpace called from invalid thread"
+	          );
+
+	return xke::kernel.thread_data.scratch_arenas[i];
 }
 
 #endif
