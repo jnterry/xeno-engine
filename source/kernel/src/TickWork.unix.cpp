@@ -299,6 +299,12 @@ bool xke::initThreadSubsystem(xen::Kernel* kernel){
 	pthread_attr_t attribs;
 	pthread_attr_init(&attribs);
 
+	struct sched_param scheduling;
+	scheduling.sched_priority = -20; // max priority
+
+	pthread_attr_setschedparam(&attribs, &scheduling);
+	pthread_attr_setstacksize (&attribs, xen::megabytes(8));
+
 	for(int i = 0; i < num_cores; ++i){
 		th_data[i].kernel = kernel;
 		th_data[i].index  = i;
