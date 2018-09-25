@@ -16,8 +16,6 @@
 #include <xen/math/geometry_types.hpp>
 #include <xen/config.hpp>
 
-#include <thpool.h>
-
 namespace xen {
 	struct Kernel;
 	struct Window;

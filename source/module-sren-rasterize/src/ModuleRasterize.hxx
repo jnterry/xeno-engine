@@ -16,8 +16,6 @@
 
 #include "Texture.hxx"
 
-#include <thpool.h>
-
 namespace xsr {
 
 	struct PostProcessor;
