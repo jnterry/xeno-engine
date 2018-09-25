@@ -14,9 +14,6 @@
 #include <xen/core/intrinsics.hpp>
 
 namespace xen {
-
-	struct Kernel;
-
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Handle to some piece of work which must be completed by the end
 	/// of the tick on which it was submitted. TickWorkHandle's should not be
@@ -28,17 +25,21 @@ namespace xen {
 	/// \brief Function representing work to be performed asynchronously by the
 	/// end of the tick.
 	///
-	/// \param kernel The kernel performing the work
-	/// \param id     The TickWorkHandle this work is for - this allows the
-	/// function to submit more work to the kernel as a sub-task of this, hence
-	/// ensuring that any thread waiting on this work to complete will also wait
-	/// for the tasks spawned by this to be completed. This is particularly useful
-	/// for divide and conquer algorithms where some task is split into n pieces
-	/// that can be ran in parallel, each of which can be split again and run in
-	/// parallel. By waiting on the root task a thread can ensure all sub-splits
-	/// are also completed by the time waitForTickWork completes
+	/// \param parent The TickWorkHandle of the parent group of the work being
+	/// performed
+	/// \param id     The TickWorkHandle this work is for
+	///
+	/// \note Together the parent and id parameters allow this function to submit
+	/// more work to the kernel as a sub-task of this (or within the same group as
+	/// this) hence ensuring that any thread waiting on this work to complete will
+	/// also wait for the tasks spawned by this to be completed. This is
+	/// particularly useful for divide and conquer algorithms where some task is
+	/// split into n pieces that can be ran in parallel, each of which can be
+	/// split again and run in parallel. By waiting on the root task a thread can
+	/// ensure all sub-splits are also completed by the time waitForTickWork
+	/// completes
 	/////////////////////////////////////////////////////////////////////
-	typedef void (*TickWorkFunction)(xen::Kernel& kernel, TickWorkHandle id, void* data);
+	typedef void (*TickWorkFunction)(TickWorkHandle parent, TickWorkHandle id, void* data);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Simpler function signature than TickWorkFunction for representing
@@ -51,7 +52,7 @@ namespace xen {
 	/// thus allowing waitForWork to wait until multiple pieces of tick work
 	/// are completed
 	/////////////////////////////////////////////////////////////////////
-	TickWorkHandle createTickWorkGroup(Kernel& kernel);
+	TickWorkHandle createTickWorkGroup();
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Pushes work which must be completed before the end of the
@@ -73,22 +74,19 @@ namespace xen {
 	/// valid until the end of the tick (or until waitForTickWork has returned
 	/// for this particular piece of work)
 	/////////////////////////////////////////////////////////////////////
-	TickWorkHandle pushTickWork(Kernel& kernel,
-	                            TickWorkFunction work_func,
+	TickWorkHandle pushTickWork(TickWorkFunction work_func,
 	                            void* data, u64 data_size,
 	                            TickWorkHandle group = 0
 	                           );
-	TickWorkHandle pushTickWork(Kernel& kernel,
-	                            SimpleTickWorkFunction work_func,
+	TickWorkHandle pushTickWork(SimpleTickWorkFunction work_func,
 	                            void* data, u64 data_size,
 	                            TickWorkHandle group = 0
 	                           );
 	template<typename T_FUNC, typename T_DATA>
-	inline TickWorkHandle pushTickWork(Kernel& kernel,
-	                                   T_FUNC work_func,
+	inline TickWorkHandle pushTickWork(T_FUNC work_func,
 	                                   T_DATA* data,
 	                                   TickWorkHandle group = 0){
-		return pushTickWork(kernel, work_func, data, sizeof(T_DATA), group);
+		return pushTickWork(work_func, data, sizeof(T_DATA), group);
 	}
 
 	/////////////////////////////////////////////////////////////////////
@@ -98,7 +96,7 @@ namespace xen {
 	/// function. Note that the calling thread will help out by processing
 	/// any outstanding tasks
 	/////////////////////////////////////////////////////////////////////
-	void waitForTickWork(Kernel& kernel, TickWorkHandle work);
+	void waitForTickWork(TickWorkHandle work);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Unsigned type representing the index of some kernel thread
@@ -107,7 +105,7 @@ namespace xen {
 	/// kernel threads will have sequential integers starting from 1 up to
 	/// (kernel_settings.thread_count - 1)
 	/////////////////////////////////////////////////////////////////////
-	typedef uint ThreadIndex;
+	typedef u64 ThreadIndex;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief ThreadIndex representing a bad thread, this is one that was

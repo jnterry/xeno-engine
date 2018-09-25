@@ -20,12 +20,11 @@
 #include <errno.h>
 
 // Inserts a new tick work entry into the queue in a thread safe manner
-void attachTickWorkEntry(xen::Kernel& kernel,
-                         xen::TickWorkHandle index,
+void attachTickWorkEntry(xen::TickWorkHandle index,
                          xen::TickWorkHandle parent_index
                         ){
 	//printf("About to insert work entry %i, parent: %i\n", index, parent_index);
-	xke::TickWorkEntry* parent_entry = &kernel.thread_data.tick_work_list[parent_index];
+	xke::TickWorkEntry* parent_entry = &xke::kernel.thread_data.tick_work_list[parent_index];
 
 	xen::TickWorkHandle cur_last_child;
 
@@ -38,7 +37,7 @@ void attachTickWorkEntry(xen::Kernel& kernel,
 	                                    ));
 
 	if(cur_last_child != 0){
-		kernel.thread_data.tick_work_list[cur_last_child].next_sibling = index;
+		xke::kernel.thread_data.tick_work_list[cur_last_child].next_sibling = index;
 	}
 
 	// If parent currently has no pending children then set next_child to the new entry
@@ -48,11 +47,9 @@ void attachTickWorkEntry(xen::Kernel& kernel,
 	                          );
 }
 
-void markThreadActive(xen::Kernel& kernel,
-                      xen::TickWorkHandle index
-                     ){
+void markThreadActive(xen::TickWorkHandle index){
 
-	xke::TickWorkEntry* work_list = kernel.thread_data.tick_work_list.elements;
+	xke::TickWorkEntry* work_list = xke::kernel.thread_data.tick_work_list.elements;
 
 	xen::TickWorkHandle cur  = index;
 
@@ -63,10 +60,8 @@ void markThreadActive(xen::Kernel& kernel,
 	}
 }
 
-void markThreadDone(xen::Kernel& kernel,
-                    xen::TickWorkHandle index
-                    ){
-	xke::TickWorkEntry* work_list = kernel.thread_data.tick_work_list.elements;
+void markThreadDone(xen::TickWorkHandle index){
+	xke::TickWorkEntry* work_list = xke::kernel.thread_data.tick_work_list.elements;
 
 	xen::TickWorkHandle cur  = index;
 
@@ -76,16 +71,16 @@ void markThreadDone(xen::Kernel& kernel,
 		cur = work_list[cur].parent;
 	}
 
-	pthread_mutex_lock    (&kernel.thread_data.tick_work_complete_lock);
-	pthread_cond_broadcast(&kernel.thread_data.tick_work_complete_cond);
-	pthread_mutex_unlock  (&kernel.thread_data.tick_work_complete_lock);
+	pthread_mutex_lock    (&xke::kernel.thread_data.tick_work_complete_lock);
+	pthread_cond_broadcast(&xke::kernel.thread_data.tick_work_complete_cond);
+	pthread_mutex_unlock  (&xke::kernel.thread_data.tick_work_complete_lock);
 }
 
 
-xen::TickWorkHandle xen::createTickWorkGroup(xen::Kernel& kernel){
-	u64 index = xen::sync::fetchAndAdd(&kernel.thread_data.tick_work_next_free, (u64)1);
-	XenAssert(index < kernel.thread_data.tick_work_list.size, "Tick work queue full");
-	xke::TickWorkEntry* entry = &kernel.thread_data.tick_work_list[index];
+xen::TickWorkHandle xen::createTickWorkGroup(){
+	u64 index = xen::sync::fetchAndAdd(&xke::kernel.thread_data.tick_work_next_free, (u64)1);
+	XenAssert(index < xke::kernel.thread_data.tick_work_list.size, "Tick work queue full");
+	xke::TickWorkEntry* entry = &xke::kernel.thread_data.tick_work_list[index];
 
 	// :TODO: nested groups? -> pass this value in
 	// should just work as TickWork callback can push further TickWork which
@@ -99,22 +94,21 @@ xen::TickWorkHandle xen::createTickWorkGroup(xen::Kernel& kernel){
 	entry->next_sibling   = 0;
 	entry->active_threads = 0;
 
-	attachTickWorkEntry(kernel, index, parent_index);
+	attachTickWorkEntry(index, parent_index);
 
 	return index;
 }
 
-xen::TickWorkHandle xen::pushTickWork(xen::Kernel& kernel,
-                                      xen::TickWorkFunction work_func,
+xen::TickWorkHandle xen::pushTickWork(xen::TickWorkFunction work_func,
                                       void* data, u64 data_size,
                                       xen::TickWorkHandle group
                                      ){
 
-	void* persist_data = xen::sync::pushBytes(kernel.thread_data.tick_work_data, data, data_size);
+	void* persist_data = xen::sync::pushBytes(xke::kernel.thread_data.tick_work_data, data, data_size);
 
-	u64 index = xen::sync::fetchAndAdd(&kernel.thread_data.tick_work_next_free, (u64)1);
-	XenAssert(index < kernel.thread_data.tick_work_list.size, "Tick work queue full");
-	xke::TickWorkEntry* entry = &kernel.thread_data.tick_work_list[index];
+	u64 index = xen::sync::fetchAndAdd(&xke::kernel.thread_data.tick_work_next_free, (u64)1);
+	XenAssert(index < xke::kernel.thread_data.tick_work_list.size, "Tick work queue full");
+	xke::TickWorkEntry* entry = &xke::kernel.thread_data.tick_work_list[index];
 
 	entry->type           = xke::TickWorkEntry::CALLBACK;
 	entry->work_data      = persist_data;
@@ -126,25 +120,24 @@ xen::TickWorkHandle xen::pushTickWork(xen::Kernel& kernel,
 	entry->next_sibling   = 0;
 	entry->active_threads = 0;
 
-	attachTickWorkEntry(kernel, index, group);
+	attachTickWorkEntry(index, group);
 
 	// Wake up a thread to process the work
-	pthread_mutex_lock  (&kernel.thread_data.work_available_lock);
-	pthread_cond_signal (&kernel.thread_data.work_available_cond);
-	pthread_mutex_unlock(&kernel.thread_data.work_available_lock);
+	pthread_mutex_lock  (&xke::kernel.thread_data.work_available_lock);
+	pthread_cond_signal (&xke::kernel.thread_data.work_available_cond);
+	pthread_mutex_unlock(&xke::kernel.thread_data.work_available_lock);
 
 	return index;
 }
-xen::TickWorkHandle xen::pushTickWork(xen::Kernel& kernel,
-                                      xen::SimpleTickWorkFunction work_func,
+xen::TickWorkHandle xen::pushTickWork(xen::SimpleTickWorkFunction work_func,
                                       void* data, u64 data_size,
                                       xen::TickWorkHandle group
                                      ){
-	void* persist_data = xen::sync::pushBytes(kernel.thread_data.tick_work_data, data, data_size);
+	void* persist_data = xen::sync::pushBytes(xke::kernel.thread_data.tick_work_data, data, data_size);
 
-	u64 index = xen::sync::fetchAndAdd(&kernel.thread_data.tick_work_next_free, (u64)1);
-	XenAssert(index < kernel.thread_data.tick_work_list.size, "Tick work queue full");
-	xke::TickWorkEntry* entry = &kernel.thread_data.tick_work_list[index];
+	u64 index = xen::sync::fetchAndAdd(&xke::kernel.thread_data.tick_work_next_free, (u64)1);
+	XenAssert(index < xke::kernel.thread_data.tick_work_list.size, "Tick work queue full");
+	xke::TickWorkEntry* entry = &xke::kernel.thread_data.tick_work_list[index];
 
 	entry->type             = xke::TickWorkEntry::SIMPLE_CALLBACK;
 	entry->work_data        = persist_data;
@@ -156,22 +149,22 @@ xen::TickWorkHandle xen::pushTickWork(xen::Kernel& kernel,
 	entry->next_sibling     = 0;
 	entry->active_threads   = 0;
 
-	attachTickWorkEntry(kernel, index, group);
+	attachTickWorkEntry(index, group);
 
 	// Wake up a thread to process the work
-	pthread_mutex_lock  (&kernel.thread_data.work_available_lock);
-	pthread_cond_signal (&kernel.thread_data.work_available_cond);
-	pthread_mutex_unlock(&kernel.thread_data.work_available_lock);
+	pthread_mutex_lock  (&xke::kernel.thread_data.work_available_lock);
+	pthread_cond_signal (&xke::kernel.thread_data.work_available_cond);
+	pthread_mutex_unlock(&xke::kernel.thread_data.work_available_lock);
 
 	return index;
 }
 
-void processTickWork(xen::Kernel& kernel, xen::TickWorkHandle index){
+void processTickWork(xen::TickWorkHandle index){
 
 	//pthread_t this_thread = pthread_self();
 
 	//printf("!!! %p | Waiting for work entry: %i\n", this_thread, index);
-	xke::TickWorkEntry* entry = &kernel.thread_data.tick_work_list[index];
+	xke::TickWorkEntry* entry = &xke::kernel.thread_data.tick_work_list[index];
 
 	if(entry->type != xke::TickWorkEntry::GROUP &&
 	   xen::sync::compareExchange(&entry->state,
@@ -180,14 +173,14 @@ void processTickWork(xen::Kernel& kernel, xen::TickWorkHandle index){
 	                             )
 	   ){
 
-		markThreadActive(kernel, index);
+		markThreadActive(index);
 
 		// Then we've locked this work for this thread, do it
 		//printf("!!! %p | -- Performing work entry: %i\n", this_thread, index);
 
 		switch(entry->type){
 		case xke::TickWorkEntry::CALLBACK:
-			entry->work_func(kernel, index, entry->work_data);
+			entry->work_func(entry->parent, index, entry->work_data);
 			break;
 		case xke::TickWorkEntry::SIMPLE_CALLBACK:
 			entry->simple_work_func(entry->work_data);
@@ -201,47 +194,42 @@ void processTickWork(xen::Kernel& kernel, xen::TickWorkHandle index){
 
 		//printf("!!! %p | -- Completed work entry: %i\n", this_thread, index);
 
-		markThreadDone(kernel, index);
+		markThreadDone(index);
 	}
 
 	// wait for all sub-tasks to also be completed
 	while(entry->next_child != 0){
 		xen::TickWorkHandle child = entry->next_child;
-		processTickWork(kernel, child);
+		processTickWork(child);
 		xen::sync::compareExchange(&entry->next_child,
 		                           child,
-		                           kernel.thread_data.tick_work_list[child].next_sibling
+		                           xke::kernel.thread_data.tick_work_list[child].next_sibling
 		                          );
 	}
 
 	//printf("!!! %p | Returning from wait for work entry: %i\n", this_thread, index);
 }
 
-void xen::waitForTickWork(xen::Kernel& kernel, xen::TickWorkHandle index){
-	processTickWork(kernel, index);
+void xen::waitForTickWork(xen::TickWorkHandle index){
+	processTickWork(index);
 
-	pthread_mutex_lock(&kernel.thread_data.tick_work_complete_lock);
-	while(kernel.thread_data.tick_work_list[index].active_threads > 0){
-		pthread_cond_wait(&kernel.thread_data.tick_work_complete_cond, &kernel.thread_data.tick_work_complete_lock);
+	pthread_mutex_lock(&xke::kernel.thread_data.tick_work_complete_lock);
+	while(xke::kernel.thread_data.tick_work_list[index].active_threads > 0){
+		pthread_cond_wait(&xke::kernel.thread_data.tick_work_complete_cond,
+		                  &xke::kernel.thread_data.tick_work_complete_lock
+		                 );
 	}
-	pthread_mutex_unlock(&kernel.thread_data.tick_work_complete_lock);
+	pthread_mutex_unlock(&xke::kernel.thread_data.tick_work_complete_lock);
 }
 
+void* kernelThreadFunction(void* thread_index){
+	xke::ThreadData*     k_thread_data   = &xke::kernel.thread_data;
 
-struct KernelPerThreadData {
-	xen::Kernel* kernel;
-	u32 index;
-};
-
-void* kernelThreadFunction(void* data){
-	KernelPerThreadData* per_thread_data = (KernelPerThreadData*)data;
-	xke::ThreadData*     k_thread_data   = &per_thread_data->kernel->thread_data;
-
-	xke::THIS_THREAD_INDEX = per_thread_data->index;
+	xke::THIS_THREAD_INDEX = (xen::ThreadIndex)thread_index;
 
 	printf("Started kernel thread %u\n", xen::getThreadId());
 
-	while(!per_thread_data->kernel->stop_requested){
+	while(!xke::kernel.stop_requested){
 
 		//printf("### %2i | Waiting for work\n", per_thread_data->index);
 
@@ -251,7 +239,7 @@ void* kernelThreadFunction(void* data){
 
 		//printf("### %2i | Checking for outstanding work...\n", per_thread_data->index);
 
-		xen::waitForTickWork(*per_thread_data->kernel, 0); // wait for work attached to root group
+		xen::waitForTickWork(0); // wait for work attached to root group
 
 		//printf("### %2i | Completed outstanding work, going to sleep...\n", per_thread_data->index);
 	}
@@ -259,46 +247,45 @@ void* kernelThreadFunction(void* data){
 	return nullptr;
 }
 
-bool xke::initThreadSubsystem(xen::Kernel* kernel){
-	uint num_cores = kernel->settings.thread_count;
+bool xke::initThreadSubsystem(){
+	uint num_cores = xke::kernel.settings.thread_count;
 	if(num_cores == 0){
 	  num_cores = sysconf(_SC_NPROCESSORS_ONLN);
 	}
 	printf("Initializing kernel with %i threads\n", num_cores);
 
 	errno = 0;
-	if(0 != pthread_cond_init(&kernel->thread_data.work_available_cond, nullptr)){
+	if(0 != pthread_cond_init(&xke::kernel.thread_data.work_available_cond, nullptr)){
 		printf("Failed to work_available cond, errno: %i\n", errno);
 		return false;
 	}
 
 	errno = 0;
-	if(0 != pthread_mutex_init(&kernel->thread_data.work_available_lock,  nullptr)){
+	if(0 != pthread_mutex_init(&xke::kernel.thread_data.work_available_lock,  nullptr)){
 		printf("Failed to init work_available mutex, errno: %i\n", errno);
 	}
 
 	errno = 0;
-	if(0 != pthread_cond_init(&kernel->thread_data.tick_work_complete_cond, nullptr)){
+	if(0 != pthread_cond_init(&xke::kernel.thread_data.tick_work_complete_cond, nullptr)){
 		printf("Failed to tick_work_complete_cond, errno: %i\n", errno);
 		return false;
 	}
 
 	errno = 0;
-	if(0 != pthread_mutex_init(&kernel->thread_data.tick_work_complete_lock,  nullptr)){
+	if(0 != pthread_mutex_init(&xke::kernel.thread_data.tick_work_complete_lock,  nullptr)){
 		printf("Failed to init tick_work_complete_mutex, errno: %i\n", errno);
 	}
 
-	kernel->thread_data.threads.size = num_cores;
-	kernel->thread_data.threads.elements = xen::reserveTypeArray<pthread_t>(kernel->system_arena, num_cores);
+	xke::kernel.thread_data.threads.size = num_cores;
+	xke::kernel.thread_data.threads.elements = xen::reserveTypeArray<pthread_t>(xke::kernel.system_arena, num_cores);
 
-	kernel->thread_data.tick_work_list.size = 16384;
-	kernel->thread_data.tick_work_list.elements = (xke::TickWorkEntry*)kernel->root_allocator->allocate(
-		         sizeof(xke::TickWorkEntry) * kernel->thread_data.tick_work_list.size);
+	xke::kernel.thread_data.tick_work_list.size = 16384;
+	xke::kernel.thread_data.tick_work_list.elements = (xke::TickWorkEntry*)xke::kernel.root_allocator->allocate(
+		                                sizeof(xke::TickWorkEntry) * xke::kernel.thread_data.tick_work_list.size);
 
-	kernel->thread_data.tick_work_data = xen::createArenaLinear
-		(*kernel->root_allocator, kernel->thread_data.tick_work_list.size * 128);
+	xke::kernel.thread_data.tick_work_data = xen::createArenaLinear
+		(*xke::kernel.root_allocator, xke::kernel.thread_data.tick_work_list.size * 128);
 
-  KernelPerThreadData* th_data = xen::reserveTypeArray<KernelPerThreadData>(kernel->system_arena, num_cores);
 	pthread_attr_t attribs;
 	pthread_attr_init(&attribs);
 
@@ -308,17 +295,15 @@ bool xke::initThreadSubsystem(xen::Kernel* kernel){
 	pthread_attr_setschedparam(&attribs, &scheduling);
 	pthread_attr_setstacksize (&attribs, xen::megabytes(8));
 
-	kernel->thread_data.threads.elements[0] = pthread_self();
+	xke::kernel.thread_data.threads.elements[0] = pthread_self();
 	xke::THIS_THREAD_INDEX = 0;
 	// start at i = 1, thread 0 is the calling thread
 	for(uint i = 1; i < num_cores; ++i){
-		th_data[i].kernel = kernel;
-		th_data[i].index  = i;
 
-		if(0 != pthread_create(&kernel->thread_data.threads.elements[i],
+		if(0 != pthread_create(&xke::kernel.thread_data.threads.elements[i],
 		                       &attribs,
 		                       &kernelThreadFunction,
-		                       &th_data[i]
+		                       (void*)i
 		                       )){
 			XenInvalidCodePath("Cannot recover from thread creation failure");
 		}
@@ -329,47 +314,47 @@ bool xke::initThreadSubsystem(xen::Kernel* kernel){
 	return true;
 }
 
-bool xke::stopThreadSubsystem(xen::Kernel* kernel){
+bool xke::stopThreadSubsystem(){
 
 	// Wake up all worker threads (ensuring they can notice that we are done)
-	pthread_mutex_lock    (&kernel->thread_data.work_available_lock);
-	pthread_cond_broadcast(&kernel->thread_data.work_available_cond);
-	pthread_mutex_unlock  (&kernel->thread_data.work_available_lock);
+	pthread_mutex_lock    (&xke::kernel.thread_data.work_available_lock);
+	pthread_cond_broadcast(&xke::kernel.thread_data.work_available_cond);
+	pthread_mutex_unlock  (&xke::kernel.thread_data.work_available_lock);
 
 
-	for(u64 i = 0; i < kernel->thread_data.threads.size; ++i){
+	for(u64 i = 0; i < xke::kernel.thread_data.threads.size; ++i){
 		printf("Waiting for termination of thread: %lu\n", i);
 
 		errno = 0;
-		if(0 != pthread_join(kernel->thread_data.threads[i], nullptr)){
+		if(0 != pthread_join(xke::kernel.thread_data.threads[i], nullptr)){
 			printf("Error waiting for termination of thread: %lu\n", i);
 			return false;
 		}
 	}
 
-	pthread_mutex_destroy(&kernel->thread_data.work_available_lock);
-	pthread_cond_destroy (&kernel->thread_data.work_available_cond);
-	pthread_mutex_destroy(&kernel->thread_data.tick_work_complete_lock);
-	pthread_cond_destroy (&kernel->thread_data.tick_work_complete_cond);
+	pthread_mutex_destroy(&xke::kernel.thread_data.work_available_lock);
+	pthread_cond_destroy (&xke::kernel.thread_data.work_available_cond);
+	pthread_mutex_destroy(&xke::kernel.thread_data.tick_work_complete_lock);
+	pthread_cond_destroy (&xke::kernel.thread_data.tick_work_complete_cond);
 
 	return true;
 }
 
-void xke::preTickThreadSubsystem(xen::Kernel* kernel){
+void xke::preTickThreadSubsystem(){
 	// Ensure all worker threads are stopped and waiting on the work_avaialble_cond
-	pthread_mutex_lock(&kernel->thread_data.work_available_lock);
+	pthread_mutex_lock(&xke::kernel.thread_data.work_available_lock);
 
-	xen::resetArena(kernel->thread_data.tick_work_data);
+	xen::resetArena(xke::kernel.thread_data.tick_work_data);
 
 	// Init the root work group (id 0)
-	kernel->thread_data.tick_work_list[0].parent       = 0;
-	kernel->thread_data.tick_work_list[0].next_child   = 0;
-	kernel->thread_data.tick_work_list[0].last_child   = 0;
-	kernel->thread_data.tick_work_list[0].next_sibling = 0;
+	xke::kernel.thread_data.tick_work_list[0].parent       = 0;
+	xke::kernel.thread_data.tick_work_list[0].next_child   = 0;
+	xke::kernel.thread_data.tick_work_list[0].last_child   = 0;
+	xke::kernel.thread_data.tick_work_list[0].next_sibling = 0;
 
-	kernel->thread_data.tick_work_next_free = 1;
+	xke::kernel.thread_data.tick_work_next_free = 1;
 
-	pthread_mutex_unlock(&kernel->thread_data.work_available_lock);
+	pthread_mutex_unlock(&xke::kernel.thread_data.work_available_lock);
 }
 
 #endif

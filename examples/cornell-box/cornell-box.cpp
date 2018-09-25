@@ -120,7 +120,7 @@ void initMeshes(xen::GraphicsModuleApi* gmod){
 	                                   );
 }
 
-void* init(xen::Kernel& kernel, const void* params){
+void* init( const void* params){
 	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
 	XenAssert(gmod != nullptr, "Graphics module must be loaded before cornell-box");
 
@@ -136,12 +136,12 @@ void* init(xen::Kernel& kernel, const void* params){
 	return state;
 }
 
-void* load(xen::Kernel& kernel, void* data, const void* params){
+void* load( void* data, const void* params){
 	state = (State*)data;
 	return (void*)true;
 }
 
-void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
+void tick( const xen::TickContext& cntx){
 	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
 	XenAssert(gmod != nullptr, "Graphics module must be loaded before cornell-box");
 
@@ -177,7 +177,7 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 
 }
 
-void shutdown(xen::Kernel& kernel){
+void shutdown(void* data, const void* params){
 	xen::kernelFree(state);
 }
 

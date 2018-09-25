@@ -120,7 +120,7 @@ void render(xen::ArenaLinear& scratch,
 	//xen::sren::raytraceAtoms(target, viewport, params, ascene, viewport);
 }
 
-void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
+void tick( const xen::TickContext& cntx){
 	for(u32 i = 0; i < xsr::state->next_free_op; ++i){
 		xen::RenderOp& op = xsr::state->op_list[i];
 
@@ -130,18 +130,18 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 			break;
 		case xen::RenderOp::DRAW:
 			#if 1
-			render(xen::getTickScratchSpace(kernel),
+			render(xen::getTickScratchSpace(),
 			       op.draw.target, op.draw.viewport,
 			       *op.draw.params, op.draw.commands);
 			#else
-			renderDebug(xen::getTickScratchSpace(kernel),
+			renderDebug(xen::getTickScratchSpace(),
 			            xen::asSeconds<real>(cntx.time),
 			            op.draw.target, op.draw.viewport,
 			            *op.draw.params, op.draw.commands);
 			#endif
 			break;
 		case xen::RenderOp::SWAP_BUFFERS:
-			xsr::swapBuffers(kernel, op.swap_buffers.window);
+			xsr::swapBuffers(op.swap_buffers.window);
 			break;
 		}
 	}

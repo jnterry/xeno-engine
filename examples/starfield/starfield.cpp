@@ -35,7 +35,7 @@ struct StarfieldState {
 
 StarfieldState* star_state;
 
-void* init(xen::Kernel& kernel, const void* params){
+void* init( const void* params){
 	xen::GraphicsModuleApi* mod_graphics = (xen::GraphicsModuleApi*)xen::getModuleApi(xen::hash("graphics"));
 	XenAssert(mod_graphics != nullptr, "Graphics module must be loaded before starfield module");
 
@@ -98,12 +98,12 @@ void* init(xen::Kernel& kernel, const void* params){
 	return ss;
 }
 
-void shutdown(xen::Kernel& kernel){
+void shutdown(void* data, const void* params){
 	xen::kernelFree(star_state);
 	star_state = nullptr;
 }
 
-void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
+void tick( const xen::TickContext& cntx){
 	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(star_state->window) };
@@ -136,7 +136,7 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 	gmod->swapBuffers(star_state->window);
 }
 
-void* load(xen::Kernel& kernel, void* data, const void* params){
+void* load( void* data, const void* params){
 	star_state = (StarfieldState*)data;
 
 	return (void*)true;

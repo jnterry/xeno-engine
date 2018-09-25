@@ -60,7 +60,7 @@ namespace {
 			if(lmod->module->initialize == nullptr){
 				lmod->data = nullptr;
 			} else {
-				lmod->data = lmod->module->initialize(xke::kernel, lmod->params);
+				lmod->data = lmod->module->initialize(lmod->params);
 				if(lmod->data == nullptr){
 					printf("Failed to initizalise module '%s'\n", lmod->lib_path);
 					return false;
@@ -72,7 +72,7 @@ namespace {
 		if(lmod->module->load == nullptr){
 			lmod->api = (void*)true;
 		} else {
-			lmod->api = lmod->module->load(xke::kernel, lmod->data, lmod->params);
+			lmod->api = lmod->module->load(lmod->data, lmod->params);
 			if(lmod->api == nullptr){
 				printf("Module's load function returned nullptr, module: '%s'\n", lmod->lib_path);
 				return false;
@@ -162,7 +162,7 @@ xen::Kernel& xen::initKernel(const xen::KernelSettings& settings){
 	kernel->tick_scratch_space = xen::createArenaLinear(*kernel->root_allocator, xen::megabytes(16));
 
 
-	if(!xke::initThreadSubsystem(kernel)){
+	if(!xke::initThreadSubsystem()){
 		printf("Error occured while initializing thread subsystem of kernel\n");
 		XenBreak();
 	}
@@ -233,7 +233,7 @@ void xen::startKernel(xen::Kernel& kernel){
 	XenAssert(0 == xen::getThreadId(),
 	          "Expected master thread to call startKernel");
 
-	xen::TickContext cntx = {kernel, 0};
+	xen::TickContext cntx = {0};
 
 	xen::Stopwatch timer;
 	xen::Duration last_time = timer.getElapsedTime();
@@ -246,7 +246,7 @@ void xen::startKernel(xen::Kernel& kernel){
 	printf("Kernel init finished, beginning main loop...\n");
 	do {
 		xen::resetArena(kernel.tick_scratch_space);
-		xke::preTickThreadSubsystem(&kernel);
+		xke::preTickThreadSubsystem();
 
 		cntx.time = timer.getElapsedTime();
 		cntx.dt = cntx.time - last_time;
@@ -271,13 +271,17 @@ void xen::startKernel(xen::Kernel& kernel){
 		    lmod != nullptr;
 		    lmod = lmod->next
 		    ){
+
+
 			if(lmod->module->tick != nullptr){
-				lmod->module->tick(kernel, cntx);
+				cntx.data   = lmod->data;
+				cntx.params = lmod->params;
+				lmod->module->tick(cntx);
 			}
 		}
 
 		// Ensure that all tick work is completed
-		xen::waitForTickWork(kernel, 0);
+		xen::waitForTickWork(0);
 
 		++cntx.tick;
 		last_time = cntx.time;
@@ -289,13 +293,13 @@ void xen::startKernel(xen::Kernel& kernel){
 
 	xke::LoadedModule* module = kernel.module_head;
 	while(module != nullptr){
-		module->module->shutdown(kernel);
+		module->module->shutdown(module->data, module->params);
 		module = module->next;
 	}
 
 	// free resources, check for memory leaks, etc
 	printf("Kernel terminating\n");
-	xke::stopThreadSubsystem(&kernel);
+	xke::stopThreadSubsystem();
 
 	xke::kernel.state = xen::Kernel::SHUTDOWN;
 }
@@ -326,8 +330,8 @@ void xen::requestKernelShutdown(){
 	xke::kernel.stop_requested = true;
 }
 
-xen::ArenaLinear& xen::getTickScratchSpace(xen::Kernel& kernel){
-	return kernel.tick_scratch_space;
+xen::ArenaLinear& xen::getTickScratchSpace(){
+	return xke::kernel.tick_scratch_space;
 }
 
 #endif

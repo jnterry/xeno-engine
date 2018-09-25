@@ -101,7 +101,7 @@ namespace xen {
 	/// \brief Retrieves reference to a scratch space arena whose contents
 	/// is reset at the start of each tick
 	/////////////////////////////////////////////////////////////////////
-	ArenaLinear& getTickScratchSpace(Kernel& kernel);
+	ArenaLinear& getTickScratchSpace();
 }
 
 #endif

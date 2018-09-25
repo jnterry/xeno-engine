@@ -43,7 +43,7 @@ namespace xsr {
 	                                       xsr::RenderTarget& target,
 	                                       xen::Window* window);
 
-	void presentRenderTarget(xen::Kernel& kernel, xen::Window* window, xsr::RenderTarget& target);
+	void presentRenderTarget(xen::Window* window, xsr::RenderTarget& target);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Clears the diffuse component of a render target to the

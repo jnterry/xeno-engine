@@ -12,7 +12,7 @@
 #include "ModuleCommon.cpp"
 
 namespace {
-	void tick(xen::Kernel& kernel, const xen::TickContext& tick){
+	void tick(const xen::TickContext& tick){
 		for(u32 i = 0; i < xsr::state->next_free_op; ++i){
 			xen::RenderOp& op = xsr::state->op_list[i];
 
@@ -24,7 +24,7 @@ namespace {
 				xsr::render(op.draw.target, op.draw.viewport, *op.draw.params, op.draw.commands);
 				break;
 			case xen::RenderOp::SWAP_BUFFERS:
-				xsr::swapBuffers(kernel, op.swap_buffers.window);
+				xsr::swapBuffers(op.swap_buffers.window);
 				break;
 			}
 		}

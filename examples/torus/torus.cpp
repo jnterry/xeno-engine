@@ -134,8 +134,8 @@ void initSceneLights(){
 	state->render_params.lights = state->scene_lights;
 }
 
-void initMeshes(xen::Kernel& kernel, xen::GraphicsModuleApi* gmod){
-	xen::ArenaLinear& arena = xen::getTickScratchSpace(kernel);
+void initMeshes(xen::GraphicsModuleApi* gmod){
+	xen::ArenaLinear& arena = xen::getTickScratchSpace();
 
 	state->vertex_spec[0] = xen::VertexAttribute::Position3r;
 	state->vertex_spec[1] = xen::VertexAttribute::Normal3r;
@@ -168,7 +168,7 @@ void initMeshes(xen::Kernel& kernel, xen::GraphicsModuleApi* gmod){
 	state->shader_positions = gmod->createShader({(void*)&FragmentShader_Positions, nullptr, nullptr});
 }
 
-void* init(xen::Kernel& kernel, const void* params){
+void* init( const void* params){
 	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
 	XenAssert(gmod != nullptr, "Expected graphics module to be loaded before torus");
 
@@ -178,18 +178,18 @@ void* init(xen::Kernel& kernel, const void* params){
 
 	initCamera();
 	initSceneLights();
-	initMeshes(kernel, gmod);
+	initMeshes(gmod);
 	initRenderCommands();
 
 	return state;
 }
 
-void* load(xen::Kernel& kernel, void* data, const void* params){
+void* load( void* data, const void* params){
 	state = (State*)data;
 	return (void*)true;
 }
 
-void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
+void tick( const xen::TickContext& cntx){
 	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
 	XenAssert(gmod != nullptr, "Expected graphics module to be loaded before torus");
 
@@ -256,7 +256,7 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
   gmod->swapBuffers(state->window);
 }
 
-void shutdown(xen::Kernel& kernel){
+void shutdown(void* data, const void* params){
 	xen::kernelFree(state);
 }
 
