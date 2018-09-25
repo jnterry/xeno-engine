@@ -258,9 +258,11 @@ void* kernelThreadFunction(void* data){
 }
 
 bool xke::initThreadSubsystem(xen::Kernel* kernel){
-	// -1 since the main thread is going to also be doing work
-	int num_cores = sysconf(_SC_NPROCESSORS_ONLN)-1;
-	printf("Initializing kernel with %i workers...\n", num_cores);
+	uint num_cores = kernel->settings.thread_count;
+	if(num_cores == 0){
+	  num_cores = sysconf(_SC_NPROCESSORS_ONLN);
+	}
+	printf("Initializing kernel with %i threads...\n", num_cores);
 
 	errno = 0;
 	if(0 != pthread_cond_init(&kernel->thread_data.work_available_cond, nullptr)){
@@ -283,6 +285,7 @@ bool xke::initThreadSubsystem(xen::Kernel* kernel){
 	if(0 != pthread_mutex_init(&kernel->thread_data.tick_work_complete_lock,  nullptr)){
 		printf("Failed to init tick_work_complete_mutex, errno: %i\n", errno);
 	}
+
 	pthread_mutex_lock(&kernel->thread_data.work_available_lock);
 
 	kernel->thread_data.threads.size = num_cores;
@@ -305,7 +308,9 @@ bool xke::initThreadSubsystem(xen::Kernel* kernel){
 	pthread_attr_setschedparam(&attribs, &scheduling);
 	pthread_attr_setstacksize (&attribs, xen::megabytes(8));
 
-	for(int i = 0; i < num_cores; ++i){
+	kernel->thread_data.threads.elements[0] = pthread_self();
+	// start at i = 1, thread 0 is the calling thread
+	for(int i = 1; i < num_cores; ++i){
 		th_data[i].kernel = kernel;
 		th_data[i].index  = i;
 
