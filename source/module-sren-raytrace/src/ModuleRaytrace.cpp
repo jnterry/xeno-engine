@@ -34,8 +34,7 @@ void threadDoRenderWork(void* voiddata){
 	                          data->rendering_bounds);
 }
 
-void doRender(xen::Kernel&                           kernel,
-              xsr::RenderTarget&                     target,
+void doRender(xsr::RenderTarget&                     target,
               const xen::Aabb2u&                     viewport,
               const xen::RenderParameters3d&         params,
               const xen::Array<xen::RenderCommand3d> commands,
@@ -44,7 +43,7 @@ void doRender(xen::Kernel&                           kernel,
 
 	////////////////////////////////////////////////////////////////////////////
 	// Render the triangles in the scene
-	xen::TickWorkHandle work_group = xen::createTickWorkGroup(kernel);
+	xen::TickWorkHandle work_group = xen::createTickWorkGroup();
 	ThreadRenderData thread_render_data;
 	constexpr u32 WORK_DIVISIONS = 16;
 	u32 cur_y   = viewport.min.x;
@@ -67,9 +66,9 @@ void doRender(xen::Kernel&                           kernel,
 			thread_render_data.rendering_bounds.max.y = viewport.max.y;
 		}
 
-		xen::pushTickWork(kernel, &threadDoRenderWork, &thread_render_data, work_group);
+		xen::pushTickWork(&threadDoRenderWork, &thread_render_data, work_group);
 	}
-	xen::waitForTickWork(kernel, work_group);
+	xen::waitForTickWork(work_group);
 
 	////////////////////////////////////////////////////////////////////////////
 	// Generate view projection matrix
@@ -131,13 +130,12 @@ void doRender(xen::Kernel&                           kernel,
 	//}
 }
 
-void render(xen::Kernel& kernel,
-            xen::RenderTarget target_handle,
+void render(xen::RenderTarget target_handle,
             const xen::Aabb2u& viewport,
             const xen::RenderParameters3d& params,
             const xen::Array<xen::RenderCommand3d> commands
            ) {
-	xen::ArenaLinear& render_scratch_arena = xen::getTickScratchSpace(kernel);
+	xen::ArenaLinear& render_scratch_arena = xen::getTickScratchSpace();
 
 	xsr::RenderTarget& target = *xsr::getRenderTargetImpl(target_handle);
 
@@ -197,11 +195,11 @@ void render(xen::Kernel& kernel,
 	xen::ptrAdvance(&render_scratch_arena.next_byte,
 	                sizeof(xsr::RaytracerModel) * scene.models.size);
 
-	doRender(kernel, target, viewport, params, commands, non_triangle_cmds, scene);
+	doRender(target, viewport, params, commands, non_triangle_cmds, scene);
 }
 
 namespace {
-	void tick(xen::Kernel& kernel, const xen::TickContext& tick){
+	void tick(const xen::TickContext& tick){
 		for(u32 i = 0; i < xsr::state->next_free_op; ++i){
 			xen::RenderOp& op = xsr::state->op_list[i];
 
@@ -210,11 +208,11 @@ namespace {
 				xsr::clear(op.clear.target, op.clear.color);
 				break;
 			case xen::RenderOp::DRAW:
-				render(kernel, op.draw.target, op.draw.viewport,
+				render(op.draw.target, op.draw.viewport,
 				       *op.draw.params, op.draw.commands);
 				break;
 			case xen::RenderOp::SWAP_BUFFERS:
-				xsr::swapBuffers(kernel, op.swap_buffers.window);
+				xsr::swapBuffers(op.swap_buffers.window);
 				break;
 			}
 		}

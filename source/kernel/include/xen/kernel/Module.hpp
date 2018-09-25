@@ -15,15 +15,10 @@
 
 namespace xen {
 
-	struct Kernel;
-
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Struct containing all state passed to the tick callback
 	/////////////////////////////////////////////////////////////////////
 	struct TickContext {
-		/// \brief The kernel causing this tick to occur
-		Kernel& kernel;
-
 		/// \brief Time since the kernel started
 		xen::Duration time;
 
@@ -32,6 +27,11 @@ namespace xen {
 
 		/// \brief Integer which is incremented after each call to the tick function
 		u64 tick;
+
+		/// \brief Data returned from module's initialize function
+		void* data;
+
+		const void* params;
 	};
 
   /////////////////////////////////////////////////////////////////////
@@ -39,10 +39,26 @@ namespace xen {
 	/// expose to the Kernel
 	/////////////////////////////////////////////////////////////////////
 	struct Module {
-		typedef void* (*FunctionInitialize)(Kernel& kernel, const void* params);
-		typedef void  (*FunctionShutdown  )(Kernel& kernel);
-		typedef void* (*FunctionLoad      )(Kernel& kernel, void* data, const void* params);
-		typedef void  (*FunctionTick)      (Kernel& kernel, const TickContext& tick);
+		/// \brief Callback where the module should initialize itself
+		/// \param params The params passed to loadModule
+		typedef void* (*FunctionInitialize)(const void* params);
+
+		/// \brief Callback where the module should free resources
+		/// \param data The data returned by module initialize function
+		/// \param params The params passed to loadModule
+		typedef void  (*FunctionShutdown  )(void* data, const void* params);
+
+		/// \brief Callback in which the module should load its code, this is any
+		/// setup to be performed when the dll is (re)loaded, the returned data
+		/// is considered to be the module's API (and hence should be a type with
+		/// function pointers to the loaded code)
+		/// \param data The data returned by the modules initialize function
+		/// \param params The params passed to loadModule
+		typedef void* (*FunctionLoad      )(void* data, const void* params);
+
+		/// \brief Callback in which the module should perform any per tick
+		/// processing
+		typedef void  (*FunctionTick)      (const TickContext& tick);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief xen::hash of the name of type of this module, this is used to

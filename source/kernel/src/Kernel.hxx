@@ -49,11 +49,28 @@ namespace xke {
 		/// \brief Next pointer in singly linked list of currently loaded modules
 		LoadedModule*   next;
 	};
-}
 
-namespace xen {
 	struct Kernel {
-		KernelSettings settings;
+		enum State {
+			/// \brief initKernel has not yet been called
+			UNINITIALIZED,
+
+			/// \brief initKernel has been called, but startKernel has not
+			INITIALIZED,
+
+			/// \brief startKernel has been called, kernel has entered main loop
+		  RUNNING,
+
+			/// \brief Kernel main loop has terminated
+			STOPPED,
+
+			/// \brief Cleanup following main loop termination has been completed
+			SHUTDOWN,
+		};
+
+		State state;
+
+		xen::KernelSettings settings;
 
 		xen::Allocator* root_allocator;
 
@@ -69,8 +86,11 @@ namespace xen {
 		volatile bool stop_requested;
 
 		// Should this be per thread?
-		ArenaLinear tick_scratch_space;
+		xen::ArenaLinear tick_scratch_space;
 	};
+
+	/// \brief Global kernel instance
+	extern Kernel kernel;
 }
 
 #endif

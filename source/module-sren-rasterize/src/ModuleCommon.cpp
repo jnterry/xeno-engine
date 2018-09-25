@@ -53,10 +53,10 @@ void doRasterizerStateInit(void* block, const u64 BLK_SIZE){
 }
 
 namespace {
-	void* init(xen::Kernel& kernel, const void* params){
+	void* init( const void* params){
 		const u64 BLK_SIZE = xen::megabytes(4);
 
-		void* data = xen::allocate(kernel, BLK_SIZE, alignof(xsr::ModuleRasterize));
+		void* data = xen::kernelAlloc(BLK_SIZE, alignof(xsr::ModuleRasterize));
 		if(data == nullptr){ return nullptr; }
 
 		doRasterizerStateInit(data, BLK_SIZE);
@@ -64,9 +64,9 @@ namespace {
 		return data;
 	}
 
-	void shutdown(xen::Kernel& kernel){
+	void shutdown(void* data, const void* params){
 		// :TODO: deallocate everything else, eg, mesh data
-		xen::deallocate(kernel, xsr::state);
+		xen::kernelFree(xsr::state);
 	}
 
 	void pushOp(const xen::RenderOp& op){
@@ -79,7 +79,7 @@ namespace {
 		              );
 	}
 
-	void* load(xen::Kernel& kernel, void* data, const void* params){
+	void* load( void* data, const void* params){
 		xsr::state = (xsr::ModuleRasterize*)data;
 
 		xen::GraphicsModuleApi& api = xsr::state->api;

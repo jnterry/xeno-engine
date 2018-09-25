@@ -32,11 +32,11 @@ struct State {
 
 State* state = nullptr;
 
-void* init(xen::Kernel& kernel, const void* params){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, xen::hash("graphics"));
+void* init(const void* params){
+	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(xen::hash("graphics"));
 	XenAssert(gmod != nullptr, "A graphics module must be loaded before triangle-test");
 
-	state = (State*)xen::allocate(kernel, sizeof(State));
+	state = (State*)xen::kernelAlloc(sizeof(State));
 	xen::clearToZero(state);
 
 	state->render_params.lights.size = 0;
@@ -79,13 +79,13 @@ void* init(xen::Kernel& kernel, const void* params){
 	return state;
 }
 
-void* load(xen::Kernel& kernel, void* data, const void* params){
+void* load(void* data, const void* params){
   state = (State*)data;
 	return (void*)true;
 }
 
-void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, xen::hash("graphics"));
+void tick(const xen::TickContext& cntx){
+	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(xen::hash("graphics"));
 	XenAssert(gmod != nullptr, "A graphics module must be loaded before triangle-test");
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(state->window) };
@@ -95,7 +95,7 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 		switch(event->type){
 		case xen::WindowEvent::Closed:
 			gmod->destroyWindow(state->window);
-			xen::requestKernelShutdown(kernel);
+			xen::requestKernelShutdown();
 				break;
 		default: break;
 		}
@@ -113,8 +113,8 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 	gmod->swapBuffers(state->window);
 }
 
-void shutdown(xen::Kernel& kernel){
-	xen::deallocate(kernel, state);
+void shutdown(void* data, const void* params){
+	xen::kernelFree(state);
 }
 
 xen::Module exported_xen_module = {

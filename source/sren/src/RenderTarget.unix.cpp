@@ -240,7 +240,7 @@ namespace {
 	  xsr::getImageFromFramebuffer(&data->target, data->raw_image);
 	}
 }
-void xsr::presentRenderTarget(xen::Kernel& kernel, xen::Window* window, xsr::RenderTarget& target){
+void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target){
 
 	// Make sure the previous frame has been presented before we go messing
 	// with the pixel values...
@@ -253,7 +253,7 @@ void xsr::presentRenderTarget(xen::Kernel& kernel, xen::Window* window, xsr::Ren
 	raw_image.size = target.size;
 	raw_image.pixels = (xen::Color*)target.ximage->data;
 
-	xen::TickWorkHandle present_group = xen::createTickWorkGroup(kernel);
+	xen::TickWorkHandle present_group = xen::createTickWorkGroup();
 
 	constexpr u32 WORK_DIVISION_COUNT = 32;
 	ThreadGetImageWorkData work_data;
@@ -278,11 +278,11 @@ void xsr::presentRenderTarget(xen::Kernel& kernel, xen::Window* window, xsr::Ren
 			sub_image.size.y = target.height - cur_y;
 		}
 
-		xen::pushTickWork(kernel, doThreadPresentRenderTarget, &work_data, present_group);
+		xen::pushTickWork(doThreadPresentRenderTarget, &work_data, present_group);
 
 		cur_y += delta_y;
 	}
-	xen::waitForTickWork(kernel, present_group);
+	xen::waitForTickWork(present_group);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Put the image on screen

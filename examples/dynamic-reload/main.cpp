@@ -8,16 +8,20 @@
 int main(){
 	xen::KernelSettings settings = {0};
 	settings.hot_reload_modules = true;
-	xen::Kernel& kernel = xen::createKernel(settings);
+
+	if(!xen::initKernel(settings)){
+		printf("Failed to init kernel\n");
+		return 1;
+	}
 
 	GameModuleParams game_params;
 	game_params.increment_delay = 100;
 
-  auto module_game = xen::loadModule(kernel, "dynamic-reload-game", &game_params);
+  auto module_game = xen::loadModule("dynamic-reload-game", &game_params);
 
 	printf("Loaded game module: %p\n", module_game);
 
-	xen::startKernel(kernel);
+	xen::startKernel();
 
 	printf("End of main\n");
 }

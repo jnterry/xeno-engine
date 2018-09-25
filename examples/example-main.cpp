@@ -4,15 +4,15 @@
 #include <cstdio>
 
 
-const char* loadGraphicsModule(xen::Kernel& kernel, const char* cli_arg){
+void loadGraphicsModule(const char* cli_arg){
 	if(strcmp(cli_arg, "gl") == 0){
-		xen::loadModule(kernel, "xen-module-gl");
+		xen::loadModule("xen-module-gl");
 	} else if (strcmp(cli_arg, "rasterize") == 0){
-		xen::loadModule(kernel, "xen-module-sren-rasterize");
+		xen::loadModule("xen-module-sren-rasterize");
 	} else if (strcmp(cli_arg, "raytrace") == 0){
-		xen::loadModule(kernel, "xen-module-sren-raytrace");
+		xen::loadModule("xen-module-sren-raytrace");
 	} else if (strcmp(cli_arg, "atom") == 0){
-		xen::loadModule(kernel, "xen-module-sren-atom");
+		xen::loadModule("xen-module-sren-atom");
 	} else {
 		printf("Invalid graphics module name: %s\n", cli_arg);
 		exit(2);
@@ -28,11 +28,15 @@ int main(int argc, const char** argv){
 	xen::KernelSettings settings = {0};
 	settings.hot_reload_modules = true;
 	settings.print_tick_rate    = true;
-	xen::Kernel& kernel = xen::createKernel(settings);
 
-	loadGraphicsModule(kernel, argv[2]);
-	xen::loadModule(kernel, argv[1]);
-	xen::startKernel(kernel);
+	if(!xen::initKernel(settings)){
+		printf("Failed to initialize kernel\n");
+		return 2;
+	}
+
+	loadGraphicsModule(argv[2]);
+	xen::loadModule(argv[1]);
+	xen::startKernel();
 
 	return 0;
 }

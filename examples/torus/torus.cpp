@@ -134,8 +134,8 @@ void initSceneLights(){
 	state->render_params.lights = state->scene_lights;
 }
 
-void initMeshes(xen::Kernel& kernel, xen::GraphicsModuleApi* gmod){
-	xen::ArenaLinear& arena = xen::getTickScratchSpace(kernel);
+void initMeshes(xen::GraphicsModuleApi* gmod){
+	xen::ArenaLinear& arena = xen::getTickScratchSpace();
 
 	state->vertex_spec[0] = xen::VertexAttribute::Position3r;
 	state->vertex_spec[1] = xen::VertexAttribute::Normal3r;
@@ -168,29 +168,29 @@ void initMeshes(xen::Kernel& kernel, xen::GraphicsModuleApi* gmod){
 	state->shader_positions = gmod->createShader({(void*)&FragmentShader_Positions, nullptr, nullptr});
 }
 
-void* init(xen::Kernel& kernel, const void* params){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, "graphics");
+void* init( const void* params){
+	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
 	XenAssert(gmod != nullptr, "Expected graphics module to be loaded before torus");
 
-	state = (State*)xen::allocate(kernel, sizeof(State));
+	state = (State*)xen::kernelAlloc(sizeof(State));
 
 	state->window = gmod->createWindow({800, 600}, "torus");
 
 	initCamera();
 	initSceneLights();
-	initMeshes(kernel, gmod);
+	initMeshes(gmod);
 	initRenderCommands();
 
 	return state;
 }
 
-void* load(xen::Kernel& kernel, void* data, const void* params){
+void* load( void* data, const void* params){
 	state = (State*)data;
 	return (void*)true;
 }
 
-void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, "graphics");
+void tick( const xen::TickContext& cntx){
+	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
 	XenAssert(gmod != nullptr, "Expected graphics module to be loaded before torus");
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(state->window) };
@@ -200,7 +200,7 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 		switch(event->type){
 		case xen::WindowEvent::Closed:
 		  gmod->destroyWindow(state->window);
-			xen::requestKernelShutdown(kernel);
+			xen::requestKernelShutdown();
 			break;
 		default: break;
 		}
@@ -256,8 +256,8 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
   gmod->swapBuffers(state->window);
 }
 
-void shutdown(xen::Kernel& kernel){
-	xen::deallocate(kernel, state);
+void shutdown(void* data, const void* params){
+	xen::kernelFree(state);
 }
 
 xen::Module exported_xen_module = {

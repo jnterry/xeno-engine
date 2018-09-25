@@ -35,14 +35,10 @@ namespace xen {
 	};
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Opaque type representing all kernel state
+	/// \brief Performs initialisation of the global kernel instance, this
+	/// must be called before any other kernel functions may be called
 	/////////////////////////////////////////////////////////////////////
-	struct Kernel;
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Creates a new Kernel
-	/////////////////////////////////////////////////////////////////////
-	Kernel& createKernel(const KernelSettings& settings);
+  bool initKernel(const KernelSettings& settings);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Starts running the kernel, which basically amounts to repeatedly
@@ -50,7 +46,7 @@ namespace xen {
 	/// until requestKernelShutdown is called (hence requestKernelShutdown must be
 	/// called within the tick() callback of some loaded module)
 	/////////////////////////////////////////////////////////////////////
-	void startKernel(Kernel& kernel);
+	void startKernel();
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Loads a kernel module and call's the module's init function
@@ -64,41 +60,43 @@ namespace xen {
 	/// \return Id of the loaded module which may be used later to fetch
 	/// the module's exposed api - will return 0 if failed to load the module
 	/////////////////////////////////////////////////////////////////////
-	StringHash loadModule(Kernel& kernel, const char* lib_path, const void* params = nullptr);
+	StringHash loadModule(const char* lib_path, const void* params = nullptr);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves the API exposed by some module. Note that this
 	/// should not be cached between ticks, as if the kernel setting
 	/// hot_reload_modules is enabled then it can change upon reload
 	/////////////////////////////////////////////////////////////////////
-	void* getModuleApi(Kernel& kernel, u64 module_type_hash);
+	void* getModuleApi(u64 module_type_hash);
 
-	inline void* getModuleApi(Kernel& kernel, const char* type_name){
-		return getModuleApi(kernel, xen::hash(type_name));
+	inline void* getModuleApi(const char* type_name){
+		return getModuleApi(xen::hash(type_name));
 	}
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Allows a module to allocate memory through the kernel
+	/// \note This may be called before startKernel, but not before initKernel
 	/////////////////////////////////////////////////////////////////////
-	void* allocate(Kernel& kernel, u32 size, u32 align = alignof(int));
+	void* kernelAlloc(u32 size, u32 align = alignof(int));
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Allows a module to deallocate memory previously allocated
-	/// through the kernel
+	/// through the kernel with kernelAlloc
+	/// \note This may be called before startKernel, but not before initKernel
 	/////////////////////////////////////////////////////////////////////
-	void deallocate(Kernel& kernel, void* data);
+	void kernelFree(void* data);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Requests that the kernel shutdown once the current tick is
 	/// complete
 	/////////////////////////////////////////////////////////////////////
-	void requestKernelShutdown(Kernel& kernel);
+	void requestKernelShutdown();
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves reference to a scratch space arena whose contents
 	/// is reset at the start of each tick
 	/////////////////////////////////////////////////////////////////////
-	ArenaLinear& getTickScratchSpace(Kernel& kernel);
+	ArenaLinear& getTickScratchSpace();
 }
 
 #endif

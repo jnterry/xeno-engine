@@ -64,11 +64,11 @@
 
 xgl::GlState* xgl::gl_state = nullptr;
 
-void* init(xen::Kernel& kernel, const void* params){
+void* init( const void* params){
 
 	constexpr u64 BLK_SIZE = xen::megabytes(1);
 
-	void* memory_block = xen::allocate(kernel, BLK_SIZE, alignof(xgl::GlState));
+	void* memory_block = xen::kernelAlloc(BLK_SIZE, alignof(xgl::GlState));
 
 	xgl::gl_state = (xgl::GlState*)(memory_block);
 
@@ -84,9 +84,9 @@ void* init(xen::Kernel& kernel, const void* params){
 	return xgl::gl_state;
 }
 
-void shutdown(xen::Kernel& kernel){
+void shutdown(void* data, const void* params){
 	// :TODO: should also free gl resources
-	xen::deallocate(kernel, xgl::gl_state);
+	xen::kernelFree(xgl::gl_state);
 }
 
 void pushOp(const xen::RenderOp& op){
@@ -103,7 +103,7 @@ void pushOp(const xen::RenderOp& op){
 	}
 }
 
-void* load(xen::Kernel& kernel, void* data, const void* params){
+void* load( void* data, const void* params){
 	xgl::gl_state = (xgl::GlState*)data;
 
 
@@ -125,7 +125,7 @@ void* load(xen::Kernel& kernel, void* data, const void* params){
 	return &xgl::gl_state->api;
 }
 
-void tick(xen::Kernel& kernel, const xen::TickContext& tick){
+void tick(const xen::TickContext& tick){
 	// no-op
 }
 

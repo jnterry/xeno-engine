@@ -17,18 +17,18 @@ namespace xke {
 	/// \brief Performs platform specific initialization of the kernel
 	/// thread subsystem, will be called as part of initKernel
 	/////////////////////////////////////////////////////////////////////
-	bool initThreadSubsystem(xen::Kernel* kernel);
+	bool initThreadSubsystem();
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Performs platform specific shutdown of the kernel thread system,
 	/// will be called as part of kernel shutdown procedure
 	/////////////////////////////////////////////////////////////////////
-	bool stopThreadSubsystem(xen::Kernel* kernel);
+	bool stopThreadSubsystem();
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Performs platform specific behaviour just before a tick begins
 	/////////////////////////////////////////////////////////////////////
-	void preTickThreadSubsystem(xen::Kernel* kernel);
+	void preTickThreadSubsystem();
 
 	extern thread_local uint THIS_THREAD_INDEX;
 }

@@ -438,7 +438,7 @@ namespace xen {
 		          "Other flags not yet implemented"
 		         );
 
-		if(flags & MeshLoadFlags::GENERATE_FLAT_NORMALS != 0 &&
+		if((flags & MeshLoadFlags::GENERATE_FLAT_NORMALS) != 0 &&
 		   mesh_geom->normal == nullptr &&
 		   mesh_geom->vertex_count % 3 == 0){
 			mesh_geom->normal = (Vec3r*)allocator->allocate

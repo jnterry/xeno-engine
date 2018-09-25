@@ -49,13 +49,13 @@ struct State {
 
 State* state = nullptr;
 
-void* init(xen::Kernel& kernel, const void* params){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, "graphics");
+void* init(const void* params){
+	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
 	XenAssert(gmod != nullptr, "Expected graphics module to be loaded before quicktest");
 
-	xen::ArenaLinear& arena = xen::getTickScratchSpace(kernel);
+	xen::ArenaLinear& arena = xen::getTickScratchSpace();
 
-	state = (State*)xen::allocate(kernel, sizeof(State));
+	state = (State*)xen::kernelAlloc(sizeof(State));
 	xen::clearToZero(state);
 
 	state->window = gmod->createWindow({800, 600}, "quicktest");
@@ -133,13 +133,13 @@ void* init(xen::Kernel& kernel, const void* params){
 	return state;
 }
 
-void* load(xen::Kernel& kernel, void* data, const void* params){
+void* load( void* data, const void* params){
 	state = (State*)data;
 	return (void*)true;
 }
 
-void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(kernel, "graphics");
+void tick( const xen::TickContext& cntx){
+	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
 	XenAssert(gmod != nullptr, "Expected graphics module to be loaded before quicktest");
 
 	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(state->window) };
@@ -217,8 +217,8 @@ void tick(xen::Kernel& kernel, const xen::TickContext& cntx){
 	gmod->swapBuffers(state->window);
 }
 
-void shutdown(xen::Kernel& kernel){
-	xen::deallocate(kernel, state);
+void shutdown(void* data, const void* params){
+	xen::kernelFree(state);
 }
 
 xen::Module exported_xen_module = {
