@@ -29,7 +29,7 @@
 
 #include "Kernel.hxx"
 
-xen::Kernel xke::kernel;
+xke::Kernel xke::kernel;
 
 namespace {
 
@@ -140,7 +140,7 @@ namespace {
 }
 
 bool xen::initKernel(const xen::KernelSettings& settings){
-	XenAssert(xke::kernel.state == xen::Kernel::UNINITIALIZED,
+	XenAssert(xke::kernel.state == xke::Kernel::UNINITIALIZED,
 	          "Expected kernel to be initialised only once"
 	         );
 
@@ -173,7 +173,7 @@ bool xen::initKernel(const xen::KernelSettings& settings){
 	       xen::ptrDiff(xke::kernel.system_arena.start, xke::kernel.system_arena.end)
 	      );
 
-	xke::kernel.state = xen::Kernel::INITIALIZED;
+	xke::kernel.state = xke::Kernel::INITIALIZED;
 
 	return true;
 }
@@ -228,7 +228,7 @@ xen::StringHash xen::loadModule(const char* name,
 }
 
 void xen::startKernel(){
-	XenAssert(xke::kernel.state == xen::Kernel::INITIALIZED,
+	XenAssert(xke::kernel.state == xke::Kernel::INITIALIZED,
 	          "Expected kernel to be initialised but not started");
 
 	XenAssert(0 == xen::getThreadId(),
@@ -242,7 +242,7 @@ void xen::startKernel(){
 	xen::Duration last_tick_rate_print = last_time;
 	u64           last_tick_count      = 0;
 
-	xke::kernel.state = xen::Kernel::RUNNING;
+	xke::kernel.state = xke::Kernel::RUNNING;
 
 	printf("Kernel init finished, beginning main loop...\n");
 	while (!xke::kernel.stop_requested) {
@@ -288,7 +288,7 @@ void xen::startKernel(){
 		last_time = cntx.time;
 	}
 
-	xke::kernel.state = xen::Kernel::STOPPED;
+	xke::kernel.state = xke::Kernel::STOPPED;
 
 	printf("Main loop requested termination, doing kernel cleanup\n");
 
@@ -302,7 +302,7 @@ void xen::startKernel(){
 	printf("Kernel terminating\n");
 	xke::stopThreadSubsystem();
 
-	xke::kernel.state = xen::Kernel::SHUTDOWN;
+	xke::kernel.state = xke::Kernel::SHUTDOWN;
 }
 
 void* xen::getModuleApi(xen::StringHash hash){

@@ -49,9 +49,7 @@ namespace xke {
 		/// \brief Next pointer in singly linked list of currently loaded modules
 		LoadedModule*   next;
 	};
-}
 
-namespace xen {
 	struct Kernel {
 		enum State {
 			/// \brief initKernel has not yet been called
@@ -72,7 +70,7 @@ namespace xen {
 
 		State state;
 
-		KernelSettings settings;
+		xen::KernelSettings settings;
 
 		xen::Allocator* root_allocator;
 
@@ -88,13 +86,11 @@ namespace xen {
 		volatile bool stop_requested;
 
 		// Should this be per thread?
-		ArenaLinear tick_scratch_space;
+		xen::ArenaLinear tick_scratch_space;
 	};
-}
 
-namespace xke {
 	/// \brief Global kernel instance
-	extern xen::Kernel kernel;
+	extern Kernel kernel;
 }
 
 #endif
