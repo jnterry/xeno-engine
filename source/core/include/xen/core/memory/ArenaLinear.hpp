@@ -144,7 +144,25 @@ namespace xen{
 		return new (reserveType<T>(arena)) (T)(args...);
 	}
 
+	namespace sync {
+		void* reserveBytes(ArenaLinear& arena, size_t num_bytes, u32 align = alignof(int));
+		void* pushBytes   (ArenaLinear& arena, void* data, size_t num_bytes, u32 align = alignof(int));
 
+		template<typename T>
+		T* reserveTypeArray(ArenaLinear& arena, u32 length){
+			return (T*)sync::reserveBytes(arena, sizeof(T) * length, alignof(T));
+		}
+
+		template<typename T>
+		T* reserveType(ArenaLinear& arena){
+			return (T*)sync::reserveBytes(arena, sizeof(T), alignof(T));
+		}
+
+		template<typename T, typename... T_ARGS>
+		inline T* emplace(ArenaLinear& arena, T_ARGS... args){
+			return new (sync::reserveType<T>(arena)) (T)(args...);
+		}
+	}
 }
 
 #endif

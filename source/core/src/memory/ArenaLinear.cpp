@@ -10,6 +10,7 @@
 #define XEN_CORE_MEMORY_ARENALINEAR_CPP
 
 #include <xen/core/intrinsics.hpp>
+#include <xen/core/atomic_intrinsics.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/memory/Allocator.hpp>
 
@@ -57,10 +58,43 @@ namespace xen{
 		return result;
 	}
 
+	void* sync::pushBytes(ArenaLinear& arena, void* data, size_t num_bytes, u32 align){
+		void* result = sync::reserveBytes(arena, num_bytes, align);
+		xen::copyBytes(data, result, num_bytes);
+		return result;
+	}
+
 	void* reserveBytes(ArenaLinear& arena, size_t num_bytes, u32 align){
 		void* result = arena.next_byte;
 		ptrAlignForward(&result, align);
 		arena.next_byte = ptrGetAdvanced(result, num_bytes);
+		XenAssert(arena.next_byte <= arena.end, "ArenaLinear too full to reserve bytes");
+		return result;
+	}
+
+	void* sync::reserveBytes(ArenaLinear& arena, size_t num_bytes, u32 align){
+		#if 1
+		// minimal memory usage, SLOWEST -> 100000 allocs in 4.08ms
+		void *cur_next_byte, *new_next_byte, *result;
+
+		do {
+			cur_next_byte = arena.next_byte;
+			result        = xen::ptrGetAlignedForward(arena.next_byte, align);
+			new_next_byte = xen::ptrGetAdvanced (result, num_bytes);
+		} while (!xen::sync::compareExchange(&arena.next_byte, cur_next_byte, new_next_byte));
+
+
+		#elif 0
+		// some wasted memory as assume worst case for alignment
+		// FASTEST -> 100000 allocs in 3.16ms
+		void* result = xen::sync::fetchAndAdd(&arena.next_byte, (void*)(num_bytes + align - 1));
+		ptrAlignForward(&result, align);
+		#endif
+
+		// for reference:
+		// standard xen::pushBytes -> 3.81ms, minimal memory usage
+		// malloc                  -> 5.23ms, ??? memory usage
+
 		XenAssert(arena.next_byte <= arena.end, "ArenaLinear too full to reserve bytes");
 		return result;
 	}
@@ -85,6 +119,8 @@ namespace xen{
 		arena.next_byte = dest;
 		return result;
 	}
+
+
 }
 
 #endif
