@@ -12,6 +12,7 @@
 
 #include <pthread.h>
 #include <xen/core/array_types.hpp>
+#include <xen/core/atomic_intrinsics.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 
 namespace xke {
@@ -45,7 +46,7 @@ namespace xke {
 		/// entry or its decedents
 		u32 active_threads;
 
-		/// \brief The parent  of this entry
+		/// \brief The parent of this entry
 		xen::TickWorkHandle parent;
 
 		/// \brief Next child needing to be processed
@@ -59,9 +60,11 @@ namespace xke {
 	};
 
 	struct ThreadData {
-
 		pthread_cond_t  work_available_cond;
 		pthread_mutex_t work_available_lock;
+
+		pthread_cond_t  tick_work_complete_cond;
+		pthread_mutex_t tick_work_complete_lock;
 
 		xen::Array<pthread_t> threads;
 

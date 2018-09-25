@@ -10,6 +10,8 @@
 #ifndef XEN_CORE_ATOMICINTRINSICS_HPP
 #define XEN_CORE_ATOMICINTRINSICS_HPP
 
+#include <xen/core/intrinsics.hpp>
+
 // GCC intrinsics can be found at:
 // https://gcc.gnu.org/onlinedocs/gcc-4.4.5/gcc/Atomic-Builtins.html
 
@@ -26,11 +28,21 @@ namespace xen {
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Atomically fetches the value of some variable, and then adds
 		/// some amount to the variable's value. Note that the returned value is
-		/// that of the variable BEFORE the addition occured
+		/// that of the variable BEFORE the addition occurred
 		/////////////////////////////////////////////////////////////////////
 		template <typename T>
 		inline T fetchAndAdd(T* variable, T val){
 			return __sync_fetch_and_add(variable, val);
+		}
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Atomically fetches the value of some variable, and then subtracts
+		/// some amount from the variable's value. Note that the returned value is
+		/// that of the variable BEFORE the subtraction occurred
+		/////////////////////////////////////////////////////////////////////
+		template <typename T>
+		inline T fetchAndSub(T* variable, T val){
+			return __sync_fetch_and_sub(variable, val);
 		}
 
 		/////////////////////////////////////////////////////////////////////

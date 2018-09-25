@@ -272,6 +272,12 @@ void xsr::presentRenderTarget(xen::Kernel& kernel, xen::Window* window, xsr::Ren
 		sub_target.depth  = &target.depth[target.width * cur_y];
 		sub_target.color  = &target.color[target.width * cur_y];
 
+		// then this is the last group, claim all remaining pixels if size
+		// not divisible exactly by WORK_DIVISION_COUNT
+		if(i == WORK_DIVISION_COUNT-1){
+			sub_image.size.y = target.height - cur_y;
+		}
+
 		xen::pushTickWork(kernel, doThreadPresentRenderTarget, &work_data, present_group);
 
 		cur_y += delta_y;

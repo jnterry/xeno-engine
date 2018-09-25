@@ -46,7 +46,7 @@ void doRender(xen::Kernel&                           kernel,
 	// Render the triangles in the scene
 	xen::TickWorkHandle work_group = xen::createTickWorkGroup(kernel);
 	ThreadRenderData thread_render_data;
-	constexpr u32 WORK_DIVISIONS = 32;
+	constexpr u32 WORK_DIVISIONS = 16;
 	u32 cur_y   = viewport.min.x;
 	u32 delta_y = (viewport.max.y - viewport.min.y) / WORK_DIVISIONS;
 	for(u32 i = 0; i < WORK_DIVISIONS; ++i){
@@ -90,7 +90,6 @@ void doRender(xen::Kernel&                           kernel,
 		printf("ERROR: vp_matrix contains NaN elements, skipping rendering\n");
 		return;
 	}
-
 
 	////////////////////////////////////////////////////////////////////////////
 	// Render debug of the triangle meshes bounding boxes
