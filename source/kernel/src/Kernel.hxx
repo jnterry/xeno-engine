@@ -73,4 +73,9 @@ namespace xen {
 	};
 }
 
+namespace xke {
+	/// \brief Global kernel instance
+	extern xen::Kernel kernel;
+}
+
 #endif

@@ -29,6 +29,8 @@
 
 #include "Kernel.hxx"
 
+xen::Kernel xke::kernel;
+
 namespace {
 
 	bool doModuleLoad(xen::Kernel& kernel, xke::LoadedModule* lmod){
@@ -140,22 +142,20 @@ namespace {
 xen::Kernel& xen::createKernel(const xen::KernelSettings& settings){
 	signal(SIGSEGV, sigsegvHandler);
 
-	xen::AllocatorMalloc* allocator = new xen::AllocatorMalloc();
-
 	constexpr u32 SYSTEM_ARENA_SIZE = xen::kilobytes(16);
 
-	xen::Kernel* kernel = (xen::Kernel*)allocator->allocate(SYSTEM_ARENA_SIZE);
+	xen::Kernel* kernel = &xke::kernel;
 
-	kernel->root_allocator = allocator;
+	kernel->root_allocator = new xen::AllocatorMalloc();
 
-	kernel->system_arena.start     = xen::ptrGetAdvanced(kernel, sizeof(Kernel));
-	kernel->system_arena.end       = xen::ptrGetAdvanced(kernel, SYSTEM_ARENA_SIZE);
-	kernel->system_arena.next_byte = kernel->system_arena.start;
+	kernel->system_arena = xen::ArenaLinear(kernel->root_allocator->allocate(SYSTEM_ARENA_SIZE),
+	                                        SYSTEM_ARENA_SIZE
+	                                       );
 
 	xen::copyBytes(&settings, &kernel->settings, sizeof(xen::KernelSettings));
 
 	kernel->modules            = xen::createArenaPool<xke::LoadedModule>(kernel->system_arena, 128);
-	kernel->tick_scratch_space = xen::createArenaLinear(*allocator, xen::megabytes(16));
+	kernel->tick_scratch_space = xen::createArenaLinear(*kernel->root_allocator, xen::megabytes(16));
 
 
 	if(!xke::initThreadSubsystem(kernel)){
