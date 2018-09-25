@@ -53,6 +53,25 @@ namespace xke {
 
 namespace xen {
 	struct Kernel {
+		enum State {
+			/// \brief initKernel has not yet been called
+			UNINITIALIZED,
+
+			/// \brief initKernel has been called, but startKernel has not
+			INITIALIZED,
+
+			/// \brief startKernel has been called, kernel has entered main loop
+		  RUNNING,
+
+			/// \brief Kernel main loop has terminated
+			STOPPED,
+
+			/// \brief Cleanup following main loop termination has been completed
+			SHUTDOWN,
+		};
+
+		State state;
+
 		KernelSettings settings;
 
 		xen::Allocator* root_allocator;

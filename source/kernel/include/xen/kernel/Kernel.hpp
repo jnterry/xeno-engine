@@ -40,9 +40,10 @@ namespace xen {
 	struct Kernel;
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Creates a new Kernel
+	/// \brief Performs initialisation of the global kernel instance, this
+	/// must be called before any other kernel functions may be called
 	/////////////////////////////////////////////////////////////////////
-	Kernel& createKernel(const KernelSettings& settings);
+	Kernel& initKernel(const KernelSettings& settings);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Starts running the kernel, which basically amounts to repeatedly

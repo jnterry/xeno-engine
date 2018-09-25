@@ -139,7 +139,11 @@ namespace {
 	}
 }
 
-xen::Kernel& xen::createKernel(const xen::KernelSettings& settings){
+xen::Kernel& xen::initKernel(const xen::KernelSettings& settings){
+	XenAssert(xke::kernel.state == xen::Kernel::UNINITIALIZED,
+	          "Expected kernel to be initialised only once"
+	         );
+
 	signal(SIGSEGV, sigsegvHandler);
 
 	constexpr u32 SYSTEM_ARENA_SIZE = xen::kilobytes(16);
@@ -167,6 +171,8 @@ xen::Kernel& xen::createKernel(const xen::KernelSettings& settings){
 	       xen::ptrDiff(kernel->system_arena.start, kernel->system_arena.next_byte),
 	       xen::ptrDiff(kernel->system_arena.start, kernel->system_arena.end)
 	      );
+
+	xke::kernel.state = xen::Kernel::INITIALIZED;
 
 	return *kernel;
 }
@@ -222,6 +228,12 @@ xen::StringHash xen::loadModule(xen::Kernel& kernel,
 }
 
 void xen::startKernel(xen::Kernel& kernel){
+	XenAssert(xke::kernel.state == xen::Kernel::INITIALIZED,
+	          "Expected kernel to be initialised but not started");
+
+	XenAssert(0 == xen::getThreadId(),
+	          "Expected master thread to call startKernel");
+
 	xen::TickContext cntx = {kernel, 0};
 
 	xen::Stopwatch timer;
@@ -229,6 +241,8 @@ void xen::startKernel(xen::Kernel& kernel){
 
 	xen::Duration last_tick_rate_print = last_time;
 	u64           last_tick_count      = 0;
+
+	xke::kernel.state = xen::Kernel::RUNNING;
 
 	printf("Kernel init finished, beginning main loop...\n");
 	do {
@@ -270,6 +284,8 @@ void xen::startKernel(xen::Kernel& kernel){
 		last_time = cntx.time;
 	} while (!kernel.stop_requested);
 
+	xke::kernel.state = xen::Kernel::STOPPED;
+
 	printf("Main loop requested termination, doing kernel cleanup\n");
 
 	xke::LoadedModule* module = kernel.module_head;
@@ -281,6 +297,8 @@ void xen::startKernel(xen::Kernel& kernel){
 	// free resources, check for memory leaks, etc
 	printf("Kernel terminating\n");
 	xke::stopThreadSubsystem(&kernel);
+
+	xke::kernel.state = xen::Kernel::SHUTDOWN;
 }
 
 void* xen::getModuleApi(xen::Kernel& kernel, xen::StringHash hash){

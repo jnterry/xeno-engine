@@ -8,7 +8,7 @@
 int main(){
 	xen::KernelSettings settings = {0};
 	settings.hot_reload_modules = true;
-	xen::Kernel& kernel = xen::createKernel(settings);
+	xen::Kernel& kernel = xen::initKernel(settings);
 
 	GameModuleParams game_params;
 	game_params.increment_delay = 100;
