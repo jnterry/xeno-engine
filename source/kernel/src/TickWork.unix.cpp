@@ -258,9 +258,9 @@ void* kernelThreadFunction(void* data){
 }
 
 bool xke::initThreadSubsystem(xen::Kernel* kernel){
-	int num_cores = sysconf(_SC_NPROCESSORS_ONLN);
-
-	printf("Initializing kernel with %i threads...\n", num_cores);
+	// -1 since the main thread is going to also be doing work
+	int num_cores = sysconf(_SC_NPROCESSORS_ONLN)-1;
+	printf("Initializing kernel with %i workers...\n", num_cores);
 
 	errno = 0;
 	if(0 != pthread_cond_init(&kernel->thread_data.work_available_cond, nullptr)){
