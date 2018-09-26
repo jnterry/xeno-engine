@@ -6,7 +6,7 @@ pushd $(dirname "${0}") > /dev/null
 SCRIPTDIR=$(pwd -L)
 popd > /dev/null
 
-SOURCE_DIR=$(readlink -f "$SCRIPTDIR/../source/xen")
+SOURCE_DIR=$(readlink -f "$SCRIPTDIR/../source")
 
 cd $SOURCE_DIR
 
