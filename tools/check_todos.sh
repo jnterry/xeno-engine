@@ -10,6 +10,8 @@ SOURCE_DIR=$(readlink -f "$SCRIPTDIR/../source")
 
 cd $SOURCE_DIR
 
-grep --color -R ":TODO:"
+EXCLUDE_STRING="*~"
 
-printf "Found %i todos\n" $(grep -R ":TODO:" | wc -l)
+grep --color -R ":TODO:"  --exclude ${EXCLUDE_STRING}
+
+printf "Found %i todos\n" $(grep -R ":TODO:" --exclude ${EXCLUDE_STRING} | wc -l)

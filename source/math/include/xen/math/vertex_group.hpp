@@ -73,7 +73,6 @@ namespace xen {
 	/////////////////////////////////////////////////////////////////////
 	template<u32 T_DIM, typename T>
 	Vec3<T> getProjectedBarycentricCoordinates(const Triangle<T_DIM,T>& tri, const Vec<T_DIM,T>& p){
-		//:TODO: Translate this into Jamie friendly code
 		Vec<T_DIM,T> q = tri.p1;
 		Vec<T_DIM,T> u = tri.p2-tri.p1;
 		Vec<T_DIM,T> v = tri.p3-tri.p1;
