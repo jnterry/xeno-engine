@@ -84,7 +84,9 @@ void renderDebug(xen::ArenaLinear&  scratch,
 		                          ascene.boxes[i].end - ascene.boxes[i].start
 		                         );
 	}
+	#endif
 
+	#if 0
 	//////////////////////////////////////////////////////
 	// Render bounding boxes of occupied nodes of the oct-tree
 	for(u32 i = 0; i < ascene.boxes.size; ++i){
@@ -120,7 +122,6 @@ void render(xen::ArenaLinear& scratch,
 	xen::sren::computeLighting(ascene, scratch, params);
 
 	xen::sren::rasterizeAtoms(target, viewport, params, ascene);
-	//xen::sren::raytraceAtoms(target, viewport, params, ascene, viewport);
 }
 
 void tick(const xen::TickContext& cntx){
