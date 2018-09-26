@@ -29,7 +29,7 @@ namespace xgl {
 
 	xen::Window* createWindow(Vec2u size, const char* title){
 		xen::MemoryTransaction transaction(gl_state->primary_arena);
-		printf("About to create window\n");
+		XenLogDebug("About to create window");
 
 		xen::Window* window = xen::impl::createWindow(gl_state->primary_arena, size, title);
 
@@ -44,13 +44,13 @@ namespace xgl {
 		xen::RenderTarget result = xen::makeGraphicsHandle<xen::RenderTarget::HANDLE_ID>(slot, 0);
 		window->render_target = result;
 
-		printf("Making render target current\n");
+		XenLogDebug("Making render target current");
 		xen::gl::makeCurrent(render_target);
 
 		// Initialize glew to get GL extensions
 		if(glewInit() != GLEW_OK){
 			// :TODO: log
-			printf("ERROR: GLEW Init failed\n");
+			XenLogError("GLEW Init failed");
 			return nullptr;
 		}
 
@@ -59,12 +59,13 @@ namespace xgl {
 		int minor = 0;
 		glGetIntegerv(GL_MAJOR_VERSION, &major);
 		glGetIntegerv(GL_MINOR_VERSION, &minor);
-		printf("OpenGL context created:\n - Version %d.%d\n - Vendor %s\n - Renderer %s\n",
-		       major, minor,
-		       glGetString(GL_VENDOR),
-		       glGetString(GL_RENDERER));
+		XenLogDone("OpenGL context created:\n - Version %d.%d\n - Vendor %s\n - Renderer %s",
+		           major, minor,
+		           glGetString(GL_VENDOR),
+		           glGetString(GL_RENDERER)
+		          );
 
-		printf("Doing GL setup\n");
+		XenLogInfo("Performing initial OpenGL setup");
 		///////////////////////////////////////////////////
 		// Do GL setup
 
@@ -108,7 +109,7 @@ namespace xgl {
 		//glEnable(GL_DEBUG_OUTPUT);
 		//glDebugMessageCallback(&impl::xenGlDebugCallback, nullptr);
 
-		printf("Done GL setup\n");
+		XenLogDone("Completed initial OpenGL setup");
 
 		transaction.commit();
 

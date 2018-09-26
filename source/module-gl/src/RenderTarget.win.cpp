@@ -11,6 +11,7 @@
 
 #include <xen/graphics/Window.hxx>
 #include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/kernel/log.hpp>
 
 namespace xen {
 	namespace gl {
@@ -33,15 +34,14 @@ namespace xen {
 			result->window     = window;
 
 			if (result->gl_context == nullptr){
-				// :TODO: log
-				printf("ERROR: Failed to create opengl render target for window since "
-				       "failed to create a GL context");
+				XenLogError("Failed to create opengl render target for window as failed to create a GL context");
 				return nullptr;
 			}
 
 			makeCurrent(result);
-			printf("Created opengl render target for window, opengl version: '%s'\n",
-			       glGetString(GL_VERSION));
+			XenLogDone("Created OpenGL render target for window, opengl version: '%s'",
+			           glGetString(GL_VERSION)
+			          );
 			return result;
 		}
 

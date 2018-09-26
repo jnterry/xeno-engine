@@ -14,6 +14,7 @@
 #include <xen/math/vector_types.hpp>
 #include <xen/math/matrix_types.hpp>
 #include <xen/core/File.hpp>
+#include <xen/kernel/log.hpp>
 
 #include "ModuleGl.hxx"
 #include "Shader.hxx"
@@ -56,8 +57,8 @@ namespace {
 		char tmp[256];
 
 		XEN_CHECK_GL(glGetProgramiv(result->program, GL_ACTIVE_ATTRIBUTES, &attrib_count));
-		printf("Created program\n");
-		printf("- Vertex Spec has %i attributes\n", attrib_count);
+		XenLogDone("Created shader program");
+		XenLogInfo("- Vertex spec has %i attributes", attrib_count);
 		for(int i = 0; i < attrib_count; ++i){
 
 			GLint  attrib_size;
@@ -70,16 +71,16 @@ namespace {
 
 			GLint attrib_location = XEN_CHECK_GL_RETURN(glGetAttribLocation(result->program, tmp));
 
-			printf("  - %2i: %24s, size: %i, type: %6i, location: %2i\n",
-			       i, tmp, attrib_size, attrib_type, attrib_location);
+			XenLogInfo("  - %2i: %24s, size: %i, type: %6i, location: %2i",
+			           i, tmp, attrib_size, attrib_type, attrib_location);
 		}
 
 		GLint uniform_count;
 		XEN_CHECK_GL(glGetProgramiv(result->program, GL_ACTIVE_UNIFORMS, &uniform_count));
-		printf("- Program has %i uniforms\n", uniform_count);
+		XenLogInfo("- Program has %i uniforms", uniform_count);
 		for(int i = 0; i < uniform_count; ++i){
 			XEN_CHECK_GL(glGetActiveUniformName(result->program, i, XenArrayLength(tmp), NULL, tmp));
-			printf("  - %2i: %24s\n", i, tmp);
+		  XenLogInfo("  - %2i: %24s", i, tmp);
 		}
 		////////////////////////////////////////////////////
 
@@ -196,10 +197,10 @@ xen::Shader xgl::createShader(const xen::ShaderSource& source){
 	if(!xgl::isOkay(sprog)){
 		resetArena(scratch);
 		const char* errors = xgl::getErrors(sprog, scratch);
-		printf("Shader Errors:\n%s\n", errors);
+		XenLogError("Shader Errors:\n%s", errors);
 		XenBreak();
 	} else {
-		printf("Shader compiled successfully\n");
+		XenLogDone("Shader compiled successfully");
 	}
 
 	return result;

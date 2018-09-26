@@ -15,6 +15,7 @@
 #include <xen/math/vector.hpp>
 #include <xen/graphics/Mesh.hpp>
 #include <xen/graphics/GraphicsHandles.hpp>
+#include <xen/kernel/log.hpp>
 
 #include "Mesh.hxx"
 #include "gl_header.hxx"
@@ -123,12 +124,12 @@ xen::Mesh xgl::createMesh(const xen::MeshData* md){
 	// reserve space
 	XEN_CHECK_GL(glBufferData(GL_ARRAY_BUFFER, gpu_buffer_size, nullptr, GL_STATIC_DRAW));
 
-	printf("Created mesh, gpu_buf: %i, num verts: %i, bounds:(%f, %f, %f) -> (%f, %f, %f)\n",
-	       gpu_buffer,
-	       result->vertex_count,
-	       result->bounds.min.x, result->bounds.min.y, result->bounds.min.z,
-	       result->bounds.max.x, result->bounds.max.y, result->bounds.max.z
-	      );
+	XenLogInfo("Reserved mesh space, gpu_buf: %i, num verts: %i, bounds:(%f, %f, %f) -> (%f, %f, %f)",
+	           gpu_buffer,
+	           result->vertex_count,
+	           result->bounds.min.x, result->bounds.min.y, result->bounds.min.z,
+	           result->bounds.max.x, result->bounds.max.y, result->bounds.max.z
+	          );
 
 	///////////////////////////////////////////////
 	// Upload vertex attrib data to GPU buffer
@@ -176,9 +177,9 @@ void xgl::updateMeshVertexData(xen::Mesh mesh_handle,
 		// Then no existing data for this attribute, so create a new one
 
 		if(start_vertex != 0 || end_vertex != mesh->vertex_count){
-			// :TODO: log
-			printf("WARN: Updating mesh attrib %i but there is no existing data and "
-			       "the new data set is not complete\n", attrib_index);
+			XenLogWarn("Updating mesh attrib %i but there is no existing data and the new data set is not complete",
+			           attrib_index
+			          );
 		}
 
 		XEN_CHECK_GL(glGenBuffers(1, &attrib_source->buffer));
