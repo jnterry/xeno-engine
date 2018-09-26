@@ -45,6 +45,7 @@ add_library               (xen-sren STATIC  ${XEN_HEADERS_SREN} ${XEN_SOURCES_SR
 target_include_directories(xen-sren PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/sren/include/)
 target_include_directories(xen-sren PRIVATE ${CMAKE_CURRENT_LIST_DIR}/sren/impl/)
 target_include_directories(xen-sren PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/core/include/)
+target_include_directories(xen-sren PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/core/impl/)
 target_include_directories(xen-sren PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/math/include/)
 target_include_directories(xen-sren PRIVATE ${CMAKE_CURRENT_LIST_DIR}/graphics/impl/)
 target_include_directories(xen-sren PRIVATE ${CMAKE_CURRENT_LIST_DIR}/kernel/include)
