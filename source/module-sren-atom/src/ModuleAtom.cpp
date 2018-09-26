@@ -120,7 +120,6 @@ void render(xen::ArenaLinear& scratch,
 	xen::sren::computeLighting(ascene, scratch, params);
 
 	xen::sren::rasterizeAtoms(target, viewport, params, ascene);
-	//xen::sren::raytraceAtoms(target, viewport, params, ascene, viewport);
 }
 
 void tick(const xen::TickContext& cntx){

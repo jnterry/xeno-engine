@@ -347,7 +347,7 @@ void _zorderSortPoints(xen::sren::AtomScene& ascene,
 	  // This computes the offset between the min of the main bounds
 	  // and the min of the sub_bounds
 	  // We use the bottom 3 bits of i to work out whether to shift
-	  // in x, y and z directions respectivly
+	  // in x, y and z directions respectively
 	  Vec3r delta = Vec3r::Origin;
 	  delta[0] = ((i >> 0) & 1) * (bounds.max[0] - bounds.min[0]);
 	  delta[1] = ((i >> 1) & 1) * (bounds.max[1] - bounds.min[1]);
@@ -504,7 +504,6 @@ void computeLighting(xen::sren::AtomScene&          ascene,
 		}*/
 }
 
-
 /////////////////////////////////////////////////////////////////////
 /// \brief Rasterizes some set of atoms onto the screen
 /////////////////////////////////////////////////////////////////////
@@ -558,90 +557,6 @@ void rasterizeAtoms(xsr::RenderTarget& target,
 				target.depth[pixel_index]     = point_clip.z;
 				target.color[pixel_index].rgb = ascene.lighting[atom_index];
 			}
-		}
-	}
-}
-
-void raytraceAtoms(xsr::RenderTarget& target,
-                   const xen::Aabb2u& viewport,
-                   const xen::RenderParameters3d& params,
-                   const AtomScene& ascene,
-                   const xen::Aabb2u& rendering_bounds){
-
-	xen::Aabb2u screen_rect = { 0, 0, (u32)target.width - 1, (u32)target.height - 1 };
-	xen::Aabb2r view_region = (xen::Aabb2r)xen::getIntersection(viewport, screen_rect);
-	Vec2s       target_size = (Vec2s)xen::getSize(view_region);
-
-	xen::Angle fov_y = params.camera.fov_y;
-	xen::Angle fov_x = params.camera.fov_y * ((real)target_size.y / (real)target_size.x);
-
-	// Compute the local axes of the camera
-	Vec3r cam_zaxis = params.camera.look_dir;
-	Vec3r cam_xaxis = xen::cross(params.camera.look_dir, params.camera.up_dir);
-	Vec3r cam_yaxis = xen::cross(cam_xaxis, cam_zaxis);
-
-	// Compute distance between pixels on the image plane in world space using
-	// a bit of trig
-	//            xm
-	//         _______
-	//         |     /
-	//         |    /
-	//  z_near |   /
-	//         |  /
-	//         | /
-	//         |/ angle = fov_x / target_width
-	//
-	// In a typical scene the camera is usually at a +ve z position looking in
-	// the -ve z direction. In camera space however we assume that the camera is
-	// looking down its own local z axis, IE, in a +ve z direction. Flipping 1
-	// axis without flipping others is a change from right-handed world space
-	// top left-handed camera space, hence the - in front of x but not y
-	//
-	// see: notes.terry.cloud/cs/graphics/handedness-cameras-and-mirrors
-	// for details
-	Vec3r image_plane_center = (params.camera.position +
-	                            cam_zaxis * params.camera.z_near
-	                           );
-
-	Vec3r image_plane_pixel_offset_x = -(xen::normalized(cam_xaxis) *
-	                                     xen::tan(fov_x / (real)target_size.x) * params.camera.z_near
-	                                     );
-	Vec3r image_plane_pixel_offset_y = (xen::normalized(cam_yaxis) *
-	                                    xen::tan(fov_y / (real)target_size.y) * params.camera.z_near
-	                                    );
-
-	//////////////////////////////////////////////////////////////////////////
-	// Loop over all pixels
-	Vec2u target_pos;
-	RayPointIntersection intersection = {};
-	for(target_pos.x = rendering_bounds.min.x; target_pos.x < rendering_bounds.max.x; ++target_pos.x) {
-		for(target_pos.y = rendering_bounds.min.y; target_pos.y < rendering_bounds.max.y; ++target_pos.y) {
-			/////////////////////////////////////////////////////////////////////
-			// Compute where the ray would intersect the image plane
-			Vec2r center_offset = ((Vec2r)target_size / 2.0_r) - (Vec2r)target_pos;
-			Vec3r image_plane_position =
-				image_plane_center +
-				center_offset.x * image_plane_pixel_offset_x +
-				center_offset.y * image_plane_pixel_offset_y;
-
-			/////////////////////////////////////////////////////////////////////
-			// Construct the primary ray
-			xen::Ray3r primary_ray;
-			primary_ray.origin    = image_plane_position;;
-			primary_ray.direction = xen::normalized(image_plane_position - params.camera.position);
-
-			if(!intersectRayPoints(primary_ray,
-			                       ascene.positions, ascene.atom_count,
-			                       intersection
-			                      )){
-				continue;
-			}
-
-			xen::Color4f pixel_color;
-			pixel_color.rgb = ascene.lighting[intersection.index];
-			pixel_color.a   = 1.0f;
-			Vec2u pixel_coord = target_pos + (Vec2u)view_region.min;
-			target.color[pixel_coord.y*target.width + pixel_coord.x] = pixel_color;
 		}
 	}
 }
