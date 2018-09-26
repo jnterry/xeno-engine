@@ -32,6 +32,7 @@ add_library               (xen-graphics STATIC ${XEN_HEADERS_GRAPHICS} ${XEN_SOU
 target_include_directories(xen-graphics PRIVATE ${XEN_EXTLIBS_DIR}/stb/)
 target_include_directories(xen-graphics PRIVATE ${XEN_EXTLIBS_DIR}/assimp-3.3.1/include/)
 target_include_directories(xen-graphics PRIVATE ${CMAKE_CURRENT_LIST_DIR}/graphics/impl/)
+target_include_directories(xen-graphics PRIVATE ${CMAKE_CURRENT_LIST_DIR}/core/impl/)
 target_include_directories(xen-graphics PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/graphics/include/)
 target_link_libraries     (xen-graphics PUBLIC  xen-core)
 target_link_libraries     (xen-graphics PUBLIC  xen-math)
