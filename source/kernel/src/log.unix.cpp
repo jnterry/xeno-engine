@@ -168,7 +168,7 @@ void xke::printLogMsgToStdio(const xen::LogMessage& lm){
 		const char* msg = lm.message;
 
 		while(*msg != '\0'){
-			printf("%c", *msg);
+			putchar(*msg);
 			++chars_written;
 			char char_written = *msg;
 			++msg;
@@ -190,7 +190,7 @@ void xke::printLogMsgToStdio(const xen::LogMessage& lm){
 		}
 	}
 
-	printf("\n");
+	putchar('\n');
 
 	pthread_mutex_unlock(&log_data.print_mutex);
 }
