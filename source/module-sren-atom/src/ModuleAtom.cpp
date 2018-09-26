@@ -84,7 +84,9 @@ void renderDebug(xen::ArenaLinear&  scratch,
 		                          ascene.boxes[i].end - ascene.boxes[i].start
 		                         );
 	}
+	#endif
 
+	#if 0
 	//////////////////////////////////////////////////////
 	// Render bounding boxes of occupied nodes of the oct-tree
 	for(u32 i = 0; i < ascene.boxes.size; ++i){

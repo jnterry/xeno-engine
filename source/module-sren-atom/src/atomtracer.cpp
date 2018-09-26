@@ -20,6 +20,7 @@
 #include <xen/math/quaternion.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/kernel/log.hpp>
+#include <xen/kernel/threads.hpp>
 
 #define XEN_USE_QUAKE_SQROOT 0
 
@@ -248,7 +249,7 @@ xen::sren::AtomScene& _breakSceneIntoAtoms
 	result->atom_count = xen::ptrDiff(arena.next_byte, cur_pos) / sizeof(Vec3r);
   arena.next_byte = cur_pos;
 
-  XenLogDebug("Atomised scene into %li atoms", result->atom_count);
+  //XenLogDebug("Atomised scene into %li atoms", result->atom_count);
 
 	return *result;
 }
@@ -303,11 +304,20 @@ _splitPointsOnPlane(xen::sren::AtomScene& scene,
 	return cur_front;
 }
 
-void _zorderSortPoints(xen::sren::AtomScene& ascene,
-                       u32 start, u32 end,
-                       u32 depth, u32 root_index,
-                       xen::Aabb3r bounds
-                       ){
+struct ZOrderSortParams {
+	xen::sren::AtomScene* ascene;
+	u32 start;
+	u32 end;
+	u32 depth;
+	u32 root_index;
+	xen::Aabb3r bounds;
+};
+
+void _zorderSortPoints(xen::TickWorkHandle tw_parent,
+                       xen::TickWorkHandle tw_id,
+                       void* voidparams){
+
+	ZOrderSortParams* p = (ZOrderSortParams*)voidparams;
 
 	///////////////////////////////////////////////////////////
 	// Re-order the points into z-order
@@ -321,23 +331,23 @@ void _zorderSortPoints(xen::sren::AtomScene& ascene,
 	// The semantic meaning of each split is given by the ZOrder enum
 	u32 splits[9];
 
-  splits[0] = start;
-  splits[8] = end;
+  splits[0] = p->start;
+  splits[8] = p->end;
 
-	Vec3r bound_half = bounds.min + ((bounds.max - bounds.min) / 2.0_r);
+	Vec3r bound_half = p->bounds.min + ((p->bounds.max - p->bounds.min) / 2.0_r);
 
 	// Split the points into two halves based on their z index
-  splits[4] = _splitPointsOnPlane(ascene, splits[0], splits[8], 2, bound_half.z);
+  splits[4] = _splitPointsOnPlane(*p->ascene, splits[0], splits[8], 2, bound_half.z);
 
 	// Split each of the z_split groups along y
-  splits[2] = _splitPointsOnPlane(ascene, splits[0], splits[4], 1, bound_half.y);
-  splits[6] = _splitPointsOnPlane(ascene, splits[4], splits[8], 1, bound_half.y);
+  splits[2] = _splitPointsOnPlane(*p->ascene, splits[0], splits[4], 1, bound_half.y);
+  splits[6] = _splitPointsOnPlane(*p->ascene, splits[4], splits[8], 1, bound_half.y);
 
 	// Split each of those groups along x
-  splits[1] = _splitPointsOnPlane(ascene, splits[0], splits[2], 0, bound_half.x);
-  splits[3] = _splitPointsOnPlane(ascene, splits[2], splits[4], 0, bound_half.x);
-  splits[5] = _splitPointsOnPlane(ascene, splits[4], splits[6], 0, bound_half.x);
-  splits[7] = _splitPointsOnPlane(ascene, splits[6], splits[8], 0, bound_half.x);
+  splits[1] = _splitPointsOnPlane(*p->ascene, splits[0], splits[2], 0, bound_half.x);
+  splits[3] = _splitPointsOnPlane(*p->ascene, splits[2], splits[4], 0, bound_half.x);
+  splits[5] = _splitPointsOnPlane(*p->ascene, splits[4], splits[6], 0, bound_half.x);
+  splits[7] = _splitPointsOnPlane(*p->ascene, splits[6], splits[8], 0, bound_half.x);
 
 
   ///////////////////////////////////////////////////////////
@@ -349,37 +359,47 @@ void _zorderSortPoints(xen::sren::AtomScene& ascene,
 	  // We use the bottom 3 bits of i to work out whether to shift
 	  // in x, y and z directions respectively
 	  Vec3r delta = Vec3r::Origin;
-	  delta[0] = ((i >> 0) & 1) * (bounds.max[0] - bounds.min[0]);
-	  delta[1] = ((i >> 1) & 1) * (bounds.max[1] - bounds.min[1]);
-	  delta[2] = ((i >> 2) & 1) * (bounds.max[2] - bounds.min[2]);
+	  delta[0] = ((i >> 0) & 1) * (p->bounds.max[0] - p->bounds.min[0]);
+	  delta[1] = ((i >> 1) & 1) * (p->bounds.max[1] - p->bounds.min[1]);
+	  delta[2] = ((i >> 2) & 1) * (p->bounds.max[2] - p->bounds.min[2]);
 	  delta /= 2.0_r; // :TODO: why is this needed... ??!!
 
-	  sub_bounds[i].min = bounds.min + delta;
+	  sub_bounds[i].min = p->bounds.min + delta;
 	  sub_bounds[i].max = bound_half + delta;
   }
 
 
   ///////////////////////////////////////////////////////////
   // Check if we've reached the end of the recursive splitting
-  if(depth == 1){
+  if(p->depth == 1){
 	  // Then we have done all the spliting we need do
 	  for(u32 i = 0; i < 8; ++i){
-		  ascene.boxes[root_index + i].start  = splits[i + 0];
-		  ascene.boxes[root_index + i].end    = splits[i + 1];
-		  ascene.boxes[root_index + i].bounds = sub_bounds[i];
+		  p->ascene->boxes[p->root_index + i].start  = splits[i + 0];
+		  p->ascene->boxes[p->root_index + i].end    = splits[i + 1];
+		  p->ascene->boxes[p->root_index + i].bounds = sub_bounds[i];
 	  }
 	  return;
   }
 
   ///////////////////////////////////////////////////////////
   // Otherwise recursively split more...
-  u32 root_index_delta = pow(8, depth-1);
+  u32 root_index_delta = pow(8, p->depth-1);
+
+  ZOrderSortParams params;
+  params.ascene = p->ascene;
+  params.depth  = p->depth - 1;
+
   for(u32 i = 0; i < 8; ++i){
-	  _zorderSortPoints(ascene,
-	                    splits[i+0], splits[i+1],
-	                    depth-1,
-	                    root_index + root_index_delta * i,
-	                    sub_bounds[i]);
+	  params.start      = splits[i+0];
+	  params.end        = splits[i+1];
+	  params.root_index = p->root_index + root_index_delta * i;
+	  params.bounds     = sub_bounds[i];
+
+	  if(params.end - params.start < 30){
+		  _zorderSortPoints(tw_parent, tw_id, &params);
+	  } else {
+		  xen::pushTickWork(&_zorderSortPoints, &params, tw_parent);
+	  }
   }
 }
 
@@ -407,11 +427,17 @@ AtomScene& atomizeScene(const Aabb2u& viewport,
 	ascene.boxes.elements = xen::reserveTypeArray<xen::sren::AtomScene::Box>
 		(arena, ascene.boxes.size);
 
-	_zorderSortPoints(ascene,
-	                  0, ascene.atom_count,
-	                  ascene.split_count, 0,
-	                  ascene.bounds
-	                 );
+	ZOrderSortParams zsort_params;
+	zsort_params.ascene      = &ascene;
+	zsort_params.start       = 0;
+	zsort_params.end         = ascene.atom_count;
+	zsort_params.depth       = ascene.split_count;
+	zsort_params.root_index  = 0;
+	zsort_params.bounds      = ascene.bounds;
+
+	TickWorkHandle tw_group = xen::createTickWorkGroup();
+	_zorderSortPoints(tw_group, tw_group, &zsort_params);
+	xen::waitForTickWork(tw_group);
 
 	return ascene;
 }
