@@ -11,7 +11,7 @@
 
 #include "DynamicLibrary.hxx"
 
-#include <xen/core/memory/Allocator.hpp>
+#include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/File.hpp>
 #include <xen/core/time.hpp>
 #include <xen/core/StringBuffer.hpp>
@@ -24,7 +24,7 @@
 
 namespace xke {
 
-  char* resolveDynamicLibrary(xen::Allocator& alloc, const char* name){
+  char* resolveDynamicLibrary(const char* name){
 		XenTempStringBuffer(strbuf, 4096, name);
 		xen::String original = strbuf;
 
@@ -40,16 +40,12 @@ namespace xke {
 		if(!xen::startsWith(strbuf, "lib")){
 			xen::resetStringBuffer(strbuf, original);
 			xen::prependString(strbuf, "lib");
-			return resolveDynamicLibrary(alloc, strbuf);
+			return resolveDynamicLibrary(strbuf);
 		}
 		return nullptr;
 
-	  alloc_string: {
-			u64 strlen = xen::stringLength(strbuf);
-			char* result = (char*)alloc.allocate(strlen);
-			memcpy(result, (const char*)strbuf, strlen);
-			return result;
-		}
+	  alloc_string:
+		return xen::pushString(xen::getThreadScratchSpace(), strbuf.start);
 	}
 
 	DynamicLibrary* loadDynamicLibrary(xen::Allocator& alloc, const char* path){

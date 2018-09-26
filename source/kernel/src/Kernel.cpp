@@ -190,7 +190,7 @@ xen::StringHash xen::loadModule(const char* name,
 		goto cleanup;
 	}
 
-	lib_path = xke::resolveDynamicLibrary(*xke::kernel.root_allocator, name);
+	lib_path = xke::resolveDynamicLibrary(name);
 	if(lib_path == nullptr){
 		XenLogError("Failed to find library file for module: %s", name);
 		goto cleanup;
@@ -212,10 +212,6 @@ xen::StringHash xen::loadModule(const char* name,
 	cleanup: {
 		XenLogWarn("Cleaning up from failed module load: %s", name);
 		if(lmod == nullptr){ return 0; }
-
-		if(lib_path != nullptr){
-			xke::kernel.root_allocator->deallocate(lib_path);
-		}
 
 		if(lmod->library != nullptr){
 			xke::unloadDynamicLibrary(*xke::kernel.root_allocator, lmod->library);

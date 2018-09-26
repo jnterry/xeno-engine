@@ -31,9 +31,10 @@ namespace xke {
 	/// searching in cwd, etc
 	///
 	/// \return Path to the dynamic library, or nullptr if the name could not
-	/// be resolved
+	/// be resolved. Note that this pointer is into the thread scratch space,
+	/// and hence is only valid until the end of the current tick
 	/////////////////////////////////////////////////////////////////////
-  char* resolveDynamicLibrary(xen::Allocator& alloc, const char* name);
+  char* resolveDynamicLibrary(const char* name);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Loads a dynamic link library at some specified path
