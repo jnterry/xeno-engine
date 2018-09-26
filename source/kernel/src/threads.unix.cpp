@@ -227,7 +227,7 @@ void* kernelThreadFunction(void* thread_index){
 
 	xke::THIS_THREAD_INDEX = (xen::ThreadIndex)thread_index;
 
-	printf("Started kernel thread %u, scratch at: %p\n", xen::getThreadIndex(), xen::getThreadScratchSpace().start);
+	printf("Started kernel thread %2u\n", xen::getThreadIndex());
 
 	while(!xke::kernel.stop_requested){
 

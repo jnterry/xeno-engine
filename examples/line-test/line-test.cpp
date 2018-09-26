@@ -131,8 +131,7 @@ void shutdown(void* data, const void* params){
 
 xen::Module exported_xen_module = {
 	xen::hash("game"),
-	&init,
-	&shutdown,
-	&load,
+	&init, &shutdown,
+	&load, nullptr,
 	&tick
 };

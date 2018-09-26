@@ -117,6 +117,9 @@ namespace {
 			  // library more than once (we could make a copy of the library
 			  // file and load the copy, hence tricking the OS loader to let us
 			  // load a dll multiple times)
+			  if(lmod->module->unload != nullptr){
+				  lmod->module->unload(lmod->data, lmod->params);
+			  }
 			  xke::unloadDynamicLibrary(*xke::kernel.root_allocator, lmod->library);
 
 			  doModuleLoad(lmod);
@@ -288,10 +291,13 @@ void xen::startKernel(){
 
 	printf("Main loop requested termination, doing kernel cleanup\n");
 
-	xke::LoadedModule* module = xke::kernel.module_head;
-	while(module != nullptr){
-		module->module->shutdown(module->data, module->params);
-		module = module->next;
+	xke::LoadedModule* lmod = xke::kernel.module_head;
+	while(lmod != nullptr){
+		if(lmod->module->unload != nullptr){
+			lmod->module->unload(lmod->data, lmod->params);
+		}
+		lmod->module->shutdown(lmod->data, lmod->params);
+		lmod = lmod->next;
 	}
 
 	// free resources, check for memory leaks, etc

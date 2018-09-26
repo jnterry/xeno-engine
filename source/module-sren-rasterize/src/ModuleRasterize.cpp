@@ -35,9 +35,8 @@ namespace {
 
 xen::Module exported_xen_module = {
 	xen::hash("graphics"),
-	&init,
-	&shutdown,
-	&load,
+	&init, &shutdown,
+	&load, nullptr,
 	&tick
 };
 

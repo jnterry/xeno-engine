@@ -16,6 +16,8 @@
 #include <xen/sren/render-debug.hxx>
 #include <xen/kernel/threads.hpp>
 
+xen::ArenaLinear frame_scratch;
+
 void renderDebug(xen::ArenaLinear&  scratch,
                  real               time,
                  xen::RenderTarget  target_handle,
@@ -131,11 +133,11 @@ void tick(const xen::TickContext& cntx){
 			break;
 		case xen::RenderOp::DRAW:
 			#if 1
-			render(xen::getThreadScratchSpace(),
+			render(frame_scratch,
 			       op.draw.target, op.draw.viewport,
 			       *op.draw.params, op.draw.commands);
 			#else
-			renderDebug(xen::getThreadScratchSpace(),
+			renderDebug(frame_scratch,
 			            xen::asSeconds<real>(cntx.time),
 			            op.draw.target, op.draw.viewport,
 			            *op.draw.params, op.draw.commands);
@@ -149,11 +151,24 @@ void tick(const xen::TickContext& cntx){
 	xsr::state->next_free_op = 0;
 }
 
+void* atomLoad(void* data, const void* params){
+	const u64 FRAME_SCRATCH_SIZE = xen::megabytes(512);
+
+	frame_scratch.start = xen::kernelAlloc(FRAME_SCRATCH_SIZE);
+	frame_scratch.end   = xen::ptrGetAdvanced(frame_scratch.start, FRAME_SCRATCH_SIZE);
+	frame_scratch.next_byte = frame_scratch.start;
+
+	return load(data, params);
+}
+
+void unload(void* data, const void* params){
+	xen::kernelFree(frame_scratch.start);
+}
+
 xen::Module exported_xen_module = {
 	xen::hash("graphics"),
-	&init,
-	&shutdown,
-	&load,
+	&init, &shutdown,
+	&atomLoad, &unload,
 	&tick
 };
 
