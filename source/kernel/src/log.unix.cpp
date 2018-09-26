@@ -24,6 +24,13 @@
 #include <sys/ioctl.h>
 #include <sys/types.h>
 
+#include <pthread.h>
+
+struct LogData {
+	pthread_mutex_t print_mutex;
+};
+LogData log_data;
+
 /// \brief Converts an rgb color to the closest ansi color between 0 and 256
 uint ansiColor(xen::Color c){
 	uint r = ((uint)c.r) * 6 / 256;
@@ -33,11 +40,24 @@ uint ansiColor(xen::Color c){
   return 16 + 36 * r + 6 * g + b;
 }
 
-void xke::printLogMsgToStdio(const xen::LogMessage& lm){
+
+bool xke::initLogSubsystem(){
+	pthread_mutex_init(&log_data.print_mutex, nullptr);
 
 	int ret;
 	if(setupterm("xterm-256color", STDOUT_FILENO, &ret) != OK){
 		printf("Failed to setup terminal\n");
+		return false;
+	}
+
+
+	return true;
+}
+
+void xke::printLogMsgToStdio(const xen::LogMessage& lm){
+
+	if(lm.level < xen::LogLevel::DEBUG){
+		return;
 	}
 
 	// :TODO: we should really determine if the terminal supports 256 colors
@@ -65,6 +85,11 @@ void xke::printLogMsgToStdio(const xen::LogMessage& lm){
 		level_name = "INFO ";
 	  level_foreground = xen::Color{  0,   0,   0};
 		level_background = xen::Color{  0, 255, 255};
+		break;
+	case xen::LogLevel::DONE:
+		level_name = "DONE ";
+	  level_foreground = xen::Color{  0,   0,   0};
+		level_background = xen::Color{130, 255,  40};
 		break;
 	case xen::LogLevel::WARN:
 		level_name = "WARN ";
@@ -116,12 +141,19 @@ void xke::printLogMsgToStdio(const xen::LogMessage& lm){
 
 	constexpr u32 LEVEL_WIDTH = 5 + 3 + 2 + 3 + 8 + 3 + FILE_NAME_LENGTH + 4 + 1;
 
+	pthread_mutex_lock(&log_data.print_mutex);
+
 	putp(tiparm(str_setab, ansiColor(level_background)));
 	putp(tiparm(str_setaf, ansiColor(level_foreground)));
 
-	printf("%5s | %2u | %8s | %*s%4u ",
-	       level_name,
-	       lm.thread,
+	printf("%5s |", level_name);
+
+	if(lm.thread == xen::BAD_THREAD_INDEX){
+		printf(" ?? |");
+	} else {
+		printf(" %2u |", lm.thread);
+	}
+	printf(" %8s | %*s%4u ",
 	       date_buffer,
 	       FILE_NAME_LENGTH, file_name, lm.line_number);
 
@@ -159,6 +191,8 @@ void xke::printLogMsgToStdio(const xen::LogMessage& lm){
 	}
 
 	printf("\n");
+
+	pthread_mutex_unlock(&log_data.print_mutex);
 }
 
 #endif

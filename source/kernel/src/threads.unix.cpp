@@ -12,6 +12,7 @@
 
 #include "threads.hxx"
 #include "Kernel.hxx"
+#include <xen/kernel/log.hpp>
 
 #include <xen/core/atomic_intrinsics.hpp>
 
@@ -25,7 +26,6 @@ xke::ThreadData xke::thread_data;
 void attachTickWorkEntry(xen::TickWorkHandle index,
                          xen::TickWorkHandle parent_index
                         ){
-	//printf("About to insert work entry %i, parent: %i\n", index, parent_index);
 	xke::TickWorkEntry* parent_entry = &xke::thread_data.tick_work_list[parent_index];
 
 	xen::TickWorkHandle cur_last_child;
@@ -165,7 +165,6 @@ void processTickWork(xen::TickWorkHandle index){
 
 	//pthread_t this_thread = pthread_self();
 
-	//printf("!!! %p | Waiting for work entry: %i\n", this_thread, index);
 	xke::TickWorkEntry* entry = &xke::thread_data.tick_work_list[index];
 
 	if(entry->type != xke::TickWorkEntry::GROUP &&
@@ -178,8 +177,6 @@ void processTickWork(xen::TickWorkHandle index){
 		markThreadActive(index);
 
 		// Then we've locked this work for this thread, do it
-		//printf("!!! %p | -- Performing work entry: %i\n", this_thread, index);
-
 		switch(entry->type){
 		case xke::TickWorkEntry::CALLBACK:
 			entry->work_func(entry->parent, index, entry->work_data);
@@ -194,8 +191,6 @@ void processTickWork(xen::TickWorkHandle index){
 
 		entry->state = xke::TickWorkEntry::COMPLETE;
 
-		//printf("!!! %p | -- Completed work entry: %i\n", this_thread, index);
-
 		markThreadDone(index);
 	}
 
@@ -208,8 +203,6 @@ void processTickWork(xen::TickWorkHandle index){
 		                           xke::thread_data.tick_work_list[child].next_sibling
 		                          );
 	}
-
-	//printf("!!! %p | Returning from wait for work entry: %i\n", this_thread, index);
 }
 
 void xen::waitForTickWork(xen::TickWorkHandle index){
@@ -229,24 +222,22 @@ void* kernelThreadFunction(void* thread_index){
 
 	xke::THIS_THREAD_INDEX = (xen::ThreadIndex)thread_index;
 
-	printf("Started kernel thread %2u\n", xen::getThreadIndex());
+	XenLogDone("Worker thread ready");
 
 	while(!xke::kernel.stop_requested){
 
-		//printf("### %2i | Waiting for work\n", per_thread_data->index);
-
+		XenLogTrace("Waiting for work to become available");
 		pthread_mutex_lock  (&k_thread_data->work_available_lock);
 		pthread_cond_wait   (&k_thread_data->work_available_cond,
 		                     &k_thread_data->work_available_lock
 		                    );
 		pthread_mutex_unlock(&k_thread_data->work_available_lock);
-
-		//printf("### %2i | Checking for outstanding work...\n", per_thread_data->index);
+		XenLogTrace("Worker awoken");
 
 		xen::waitForTickWork(0); // wait for work attached to root group
-
-		//printf("### %2i | Completed outstanding work, going to sleep...\n", per_thread_data->index);
 	}
+
+	XenLogInfo("Worker thread terminating...");
 
 	return nullptr;
 }
@@ -261,28 +252,30 @@ bool xke::initThreadSubsystem(){
 		xke::kernel.settings.thread_scratch_size = xen::megabytes(16);
 	}
 
-	printf("Initializing kernel with %i threads\n", num_threads);
+	XenLogInfo("Initializing kernel with %i threads", num_threads);
 
 	errno = 0;
 	if(0 != pthread_cond_init(&xke::thread_data.work_available_cond, nullptr)){
-		printf("Failed to work_available cond, errno: %i\n", errno);
+		XenLogError("Failed to init work_available_cond, errno: %i", errno);
 		return false;
 	}
 
 	errno = 0;
 	if(0 != pthread_mutex_init(&xke::thread_data.work_available_lock,  nullptr)){
-		printf("Failed to init work_available mutex, errno: %i\n", errno);
+		XenLogError("Failed to init work_available_lock, errno: %i", errno);
+		return false;
 	}
 
 	errno = 0;
 	if(0 != pthread_cond_init(&xke::thread_data.tick_work_complete_cond, nullptr)){
-		printf("Failed to tick_work_complete_cond, errno: %i\n", errno);
+		XenLogError("Failed to init tick_work_complete_cond, errno: %i", errno);
 		return false;
 	}
 
 	errno = 0;
 	if(0 != pthread_mutex_init(&xke::thread_data.tick_work_complete_lock,  nullptr)){
-		printf("Failed to init tick_work_complete_mutex, errno: %i\n", errno);
+	  XenLogError("Failed to init tick_work_complete_lock, errno: %i", errno);
+	  return false;
 	}
 
 	xke::thread_data.thread_count = num_threads;
@@ -307,7 +300,7 @@ bool xke::initThreadSubsystem(){
 
 	void* scratch_space = xke::kernel.root_allocator->allocate(xke::kernel.settings.thread_scratch_size * num_threads);
 	if(scratch_space == nullptr){
-		printf("Failed to allocate space for thread scratch stores\n");
+		XenLogError("Failed to allocate space for thread scratch stores");
 		return false;
 	}
 
@@ -347,12 +340,11 @@ bool xke::stopThreadSubsystem(){
 
 
 	for(u64 i = 0; i < xke::thread_data.thread_count; ++i){
-		printf("Waiting for termination of thread: %lu\n", i);
+		XenLogInfo("Waiting for termination of worker thread: %u", i);
 
 		errno = 0;
 		if(0 != pthread_join(xke::thread_data.threads[i], nullptr)){
-			printf("Error waiting for termination of thread: %lu\n", i);
-			return false;
+			XenLogWarn("Error occured joining with worker %i, errno: %i", i, errno);
 		}
 
 		xen::destroyArenaLinear(*xke::kernel.root_allocator, xke::thread_data.scratch_arenas[i]);

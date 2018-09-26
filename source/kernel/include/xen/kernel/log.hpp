@@ -55,15 +55,18 @@ namespace xen {
 		DEBUG = 50,
 
 		/////////////////////////////////////////////////////////////////////
-		/// \brief A significant but desirable event occurred, for example the
-		/// rendering API was initialised.
-		///
-		/// Generally info is reserved for events which occur significantly less
-		/// frequently than once per frame, eg, once at startup, or occasionally
-		/// during the normal operation of the program (eg, some dynamic object
-		/// pool has to reallocate its storage once or twice a minute)
+		/// \brief We are in the process of performing a fairly significant event
+		/// that occurs significantly less frequently than once a frame, and we
+		/// want to log some additional information about the setup process
 		/////////////////////////////////////////////////////////////////////
 		INFO = 100,
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Similar to info but indicates that some significant setup has
+		/// just been completed, and we want to log some data about what we did,
+		/// for example, just initialised opengl, log the version string
+		/////////////////////////////////////////////////////////////////////
+		DONE = 125,
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Something unusual occurred which may occasionally be part of
@@ -127,6 +130,7 @@ namespace xen {
 #define XenLogTrace(...)    ::xen::log(::xen::LogLevel::TRACE,     __FILE__, __LINE__, __VA_ARGS__)
 #define XenLogDebug(...)    ::xen::log(::xen::LogLevel::DEBUG,     __FILE__, __LINE__, __VA_ARGS__)
 #define XenLogInfo(...)     ::xen::log(::xen::LogLevel::INFO,      __FILE__, __LINE__, __VA_ARGS__)
+#define XenLogDone(...)     ::xen::log(::xen::LogLevel::DONE,      __FILE__, __LINE__, __VA_ARGS__)
 #define XenLogWarn(...)     ::xen::log(::xen::LogLevel::WARN,      __FILE__, __LINE__, __VA_ARGS__)
 #define XenLogError(...)    ::xen::log(::xen::LogLevel::ERROR,     __FILE__, __LINE__, __VA_ARGS__)
 #define XenLogFatalDev(...) ::xen::log(::xen::LogLevel::FATAL_DEV, __FILE__, __LINE__, __VA_ARGS__)

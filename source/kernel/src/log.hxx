@@ -16,6 +16,8 @@ namespace xke {
 	extern thread_local const char* THREAD_CURRENT_MODULE;
 
 	void printLogMsgToStdio(const xen::LogMessage&);
+
+	bool initLogSubsystem();
 }
 
 #endif

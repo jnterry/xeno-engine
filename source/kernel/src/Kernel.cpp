@@ -30,6 +30,7 @@
 
 #include "Kernel.hxx"
 #include "threads.hxx"
+#include "log.hxx"
 
 xke::Kernel xke::kernel;
 
@@ -40,8 +41,7 @@ namespace {
 		lmod->library = xke::loadDynamicLibrary(*xke::kernel.root_allocator, lmod->lib_path);
 
 		if(lmod->library == nullptr){
-			// :TODO: log
-			printf("Failed to load module shared library\n");
+			XenLogError("Failed to load module shared library: %s", lmod->lib_path);
 			return false;
 		}
 
@@ -49,34 +49,33 @@ namespace {
 		lmod->module = (xen::Module*)xke::getDynamicLibrarySymbol(lmod->library, "exported_xen_module");
 
 		if(lmod->module == nullptr){
-			// :TODO: log
-			printf("Cannot load the shared library '%s' as a kernel module "
-			       "- expected a symbol 'exported_xen_module' to be present\n",
-			       lmod->lib_path
-			      );
+			XenLogError("Cannot load the shared library '%s' as a kernel module "
+			            "- expected a symbol 'exported_xen_module' to be present",
+			            lmod->lib_path
+			           );
 			return false;
 		}
 
 		if(lmod->data == nullptr){
-			printf("Initializing module: %s\n", lmod->lib_path);
+			XenLogInfo("Initializing module: %s", lmod->lib_path);
 			if(lmod->module->initialize == nullptr){
 				lmod->data = nullptr;
 			} else {
 				lmod->data = lmod->module->initialize(lmod->params);
 				if(lmod->data == nullptr){
-					printf("Failed to initizalise module '%s'\n", lmod->lib_path);
+					XenLogError("Failed to initizalise module '%s'", lmod->lib_path);
 					return false;
 				}
 			}
 		}
 
-		printf("Loading module's API: %s\n", lmod->lib_path);
+		XenLogInfo("Loading module's API: %s", lmod->lib_path);
 		if(lmod->module->load == nullptr){
 			lmod->api = (void*)true;
 		} else {
 			lmod->api = lmod->module->load(lmod->data, lmod->params);
 			if(lmod->api == nullptr){
-				printf("Module's load function returned nullptr, module: '%s'\n", lmod->lib_path);
+				XenLogError("Module's load function returned nullptr, module: '%s'", lmod->lib_path);
 				return false;
 			}
 		}
@@ -92,11 +91,6 @@ namespace {
 
 		  xen::DateTime mod_time = xen::getPathModificationTime(lmod->lib_path);
 
-		  //printf("Mod time: %lu, load mod time: %lu\n",
-		  //       mod_time._data,
-		  //       lmod->lib_modification_time
-		  //      );
-
 		  if(mod_time > lmod->lib_modification_time){
 			  xen::DateTime now = xen::getLocalTime();
 
@@ -108,11 +102,10 @@ namespace {
 				  // we should only load the module if it changed AND that was at least
 				  // 1 second ago. If linker takes longer than 1 second this will blow
 				  // up
-				  //printf("Need to reload %s but too recently modified\n", lmod->lib_path);
 				  continue;
 			  }
 
-			  printf("Reloading: %s\n", lmod->lib_path);
+			  XenLogInfo("Reloading modified module: %s", lmod->lib_path);
 			  // :TODO: would be better to attempt to load new version
 			  // before we let go of the old version
 			  // But windows/unix etc doesn't let us load the same dynamic
@@ -163,17 +156,24 @@ bool xen::initKernel(const xen::KernelSettings& settings){
 
 	xke::kernel.modules            = xen::createArenaPool<xke::LoadedModule>(xke::kernel.system_arena, 128);
 
-	if(!xke::initThreadSubsystem()){
-		printf("Error occured while initializing thread subsystem of kernel\n");
+	if(!xke::initLogSubsystem()){
+		printf("Error occured while initializing log subsystem\n");
 		xen::destroyArenaLinear(*xke::kernel.root_allocator, xke::kernel.system_arena);
 		delete xke::kernel.root_allocator;
 		return false;
 	}
 
-	printf("Finished kernel init, used %lu of %lu system arena bytes\n",
-	       xen::ptrDiff(xke::kernel.system_arena.start, xke::kernel.system_arena.next_byte),
-	       xen::ptrDiff(xke::kernel.system_arena.start, xke::kernel.system_arena.end)
-	      );
+	if(!xke::initThreadSubsystem()){
+	  XenLogError("Error occured while initializing thread subsystem of kernel");
+		xen::destroyArenaLinear(*xke::kernel.root_allocator, xke::kernel.system_arena);
+		delete xke::kernel.root_allocator;
+		return false;
+	}
+
+	XenLogDone("Finished kernel init, used %lu of %lu system arena bytes",
+	           xen::ptrDiff(xke::kernel.system_arena.start, xke::kernel.system_arena.next_byte),
+	           xen::ptrDiff(xke::kernel.system_arena.start, xke::kernel.system_arena.end)
+	          );
 
 	xke::kernel.state = xke::Kernel::INITIALIZED;
 
@@ -208,11 +208,11 @@ xen::StringHash xen::loadModule(const char* name,
 		goto cleanup;
 	}
 
-	printf("Finished initializing and loading module: %s\n", name);
+	XenLogDone("Finished initializing and loading module: %s", name);
 	return lmod->module->type_hash;
 
 	cleanup: {
-		printf("Cleaning up from failed module load: %s\n", name);
+		XenLogWarn("Cleaning up from failed module load: %s", name);
 		if(lmod == nullptr){ return 0; }
 
 		if(lib_path != nullptr){
@@ -246,7 +246,7 @@ void xen::startKernel(){
 
 	xke::kernel.state = xke::Kernel::RUNNING;
 
-	printf("Kernel init finished, beginning main loop...\n");
+	XenLogInfo("Kernel is beginning main loop");
 	while (!xke::kernel.stop_requested) {
 		xke::preTickThreadSubsystem();
 
@@ -288,6 +288,7 @@ void xen::startKernel(){
 		++cntx.tick;
 		last_time = cntx.time;
 	}
+	XenLogInfo("Kernel has left main loop");
 
 	xke::kernel.state = xke::Kernel::STOPPED;
 
