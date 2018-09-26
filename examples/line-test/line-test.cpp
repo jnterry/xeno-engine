@@ -47,12 +47,12 @@ void initMeshes(xen::GraphicsModuleApi* gmod){
 	state->vertex_spec[0] = xen::VertexAttribute::Position3r;
 	state->vertex_spec[1] = xen::VertexAttribute::Color4b;
 
-	printf("create axes mesh\n");
+	XenLogDebug("Creating axes mesh...");
 	state->mesh_axes = gmod->createMesh(state->vertex_spec, xen::TestMeshGeometry_Axes);
 
 	Vec3r parallel_lines_pbuf[LINE_COUNT * 2];
 
-	printf("About to set line verts...\n");
+  XenLogDebug("About to set line verts...");
 	for(int xi = 0; xi < LINE_COUNT_SQRT; ++xi){
 		real x = (real)xi / (real)LINE_COUNT_SQRT;
 		for(int yi = 0; yi < LINE_COUNT_SQRT; ++yi){
@@ -62,7 +62,7 @@ void initMeshes(xen::GraphicsModuleApi* gmod){
 			parallel_lines_pbuf[(xi*LINE_COUNT_SQRT + yi) * 2 + 1] = {x, y, 1};
 		}
 	}
-	printf("Uploading verts...\n");
+	XenLogDebug("Uploading verts...");
 	state->mesh_parallel_lines = gmod->createMesh(state->vertex_spec,
 	                                              XenArrayLength(parallel_lines_pbuf),
 	                                              parallel_lines_pbuf,

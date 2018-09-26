@@ -19,6 +19,7 @@
 #include <xen/math/angle.hpp>
 #include <xen/math/quaternion.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/kernel/log.hpp>
 
 #define XEN_USE_QUAKE_SQROOT 0
 
@@ -247,21 +248,7 @@ xen::sren::AtomScene& _breakSceneIntoAtoms
 	result->atom_count = xen::ptrDiff(arena.next_byte, cur_pos) / sizeof(Vec3r);
   arena.next_byte = cur_pos;
 
-	#if 0
-  printf("Atomised scene into %li atoms\n", ascene.atoms.size);
-  for(u32 i = 0; i < xen::size(ascene.boxes); ++i){
-	  printf("  Box %i, bounds: (%8f, %8f, %8f) -> (%8f, %8f, %8f)\n",
-	         i,
-	         ascene.boxes[i].bounds.min.x,
-	         ascene.boxes[i].bounds.min.y,
-	         ascene.boxes[i].bounds.min.z,
-	         ascene.boxes[i].bounds.max.x,
-	         ascene.boxes[i].bounds.max.y,
-	         ascene.boxes[i].bounds.max.z
-	         );
-	  printf("    start: %8lu, end: %8lu\n", ascene.boxes[i].start, ascene.boxes[i].end);
-  }
-	#endif
+  XenLogDebug("Atomised scene into %li atoms", result->atom_count);
 
 	return *result;
 }
@@ -295,7 +282,6 @@ _splitPointsOnPlane(xen::sren::AtomScene& scene,
 
 	xen::sren::AtomScene::AtomIndex cur_front = start;
 	xen::sren::AtomScene::AtomIndex cur_back  = end-1;
-	//printf("Split points on plane between %u and %u\n", cur_front, cur_back);
 
 	Vec3r tmp;
 	while(cur_front < cur_back){

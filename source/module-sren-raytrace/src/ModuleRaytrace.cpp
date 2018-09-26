@@ -13,6 +13,7 @@
 #include "raytracer3d.hxx"
 #include <xen/math/geometry.hpp>
 #include <xen/kernel/threads.hpp>
+#include <xen/kernel/log.hpp>
 
 // Data passed to a raytracer thread. This is just the parameters to
 // xsr::renderRaytracer
@@ -73,7 +74,7 @@ void doRender(xsr::RenderTarget&                     target,
 	////////////////////////////////////////////////////////////////////////////
 	// Generate view projection matrix
 	if(!xen::isCameraValid(params.camera)){
-		printf("ERROR: Camera is not valid, skipping rendering\n");
+		XenLogWarn("Camera is not valid, skipping rendering");
 		return;
 	}
 
@@ -85,8 +86,7 @@ void doRender(xsr::RenderTarget&                     target,
 	Mat4r vp_matrix = xen::getViewProjectionMatrix(params.camera, view_region.max - view_region.min);
 
 	if(xen::isnan(vp_matrix)){
-		// :TODO: log
-		printf("ERROR: vp_matrix contains NaN elements, skipping rendering\n");
+	  XenLogWarn("vp_matrix contains NaN elements, skipping rendering");
 		return;
 	}
 
@@ -120,14 +120,6 @@ void doRender(xsr::RenderTarget&                     target,
 		                             );
 		rasterizeMesh(context, cmd->primitive_type, *xsr::getMeshImpl(cmd->mesh));
 	}
-
-	// :TODO: log trace
-	//{
-	//	u64 used = xen::getBytesUsed(render_scratch_arena);
-	//	u64 size = xen::getSize     (render_scratch_arena);
-	//	printf("Used %li of %li bytes (%f%%) in raytracer scratch space\n",
-	//	       used, size, (float)used / (float)size);
-	//}
 }
 
 void render(xen::RenderTarget target_handle,
@@ -196,6 +188,13 @@ void render(xen::RenderTarget target_handle,
 	                sizeof(xsr::RaytracerModel) * scene.models.size);
 
 	doRender(target, viewport, params, commands, non_triangle_cmds, scene);
+
+	{
+		u64 used = xen::getBytesUsed(render_scratch_arena);
+		u64 size = xen::getSize     (render_scratch_arena);
+		XenLogDebug("Used %li of %li bytes (%f%%) in raytracer scratch space",
+		            used, size, (float)used / (float)size);
+	}
 }
 
 namespace {

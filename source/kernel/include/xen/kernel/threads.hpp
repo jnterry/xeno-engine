@@ -113,7 +113,7 @@ namespace xen {
 	/// \brief ThreadIndex representing a bad thread, this is one that was
 	/// created outside of the kernel
 	/////////////////////////////////////////////////////////////////////
-	constexpr const ThreadIndex BAD_THREAD_ID = ~0;
+	constexpr const ThreadIndex BAD_THREAD_INDEX = ~0;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves the id of the calling thread according to the running

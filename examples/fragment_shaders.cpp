@@ -9,6 +9,7 @@
 
 #include <xen/sren/FragmentShader.hpp>
 #include <xen/math/quaternion.hpp>
+#include <xen/kernel/log.hpp>
 
 xen::Color4f FragmentShader_Normals(const xsr::FragmentUniforms& uniforms,
                                     Vec3r                          pos_world,
@@ -36,7 +37,7 @@ xen::Color4f FragmentShader_Phong(const xsr::FragmentUniforms& uniforms,
 
   for(u32 i = 0; i < xen::size(uniforms.lights); ++i){
 	  if(uniforms.lights[i].type != xen::LightSource3d::POINT){
-		  printf("WARN: Unsupported light type in rasterizer\n");
+		  XenLogWarn("Unsupported light type in rasterizer");
 		  continue;
 	  }
 
@@ -90,7 +91,7 @@ xen::Color4f FragmentShader_NormalMap(const xsr::FragmentUniforms& uniforms,
 
   for(u32 i = 0; i < xen::size(uniforms.lights); ++i){
 	  if(uniforms.lights[i].type != xen::LightSource3d::POINT){
-		  printf("WARN: Unsupported light type in rasterizer\n");
+		  XenLogWarn("Unsupported light type in rasterizer");
 		  continue;
 	  }
 

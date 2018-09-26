@@ -10,6 +10,7 @@
 #define XEN_GL_RENDERTARGETIMPL_UNIX_CPP
 
 #include <xen/graphics/Window.unix.hxx>
+#include <xen/kernel/log.hpp>
 
 #include <GL/glx.h>
 #include <X11/Xlib.h>
@@ -68,12 +69,10 @@ namespace xen {
 			                                            &fb_config_count
 			                                           );
 			if (!fb_config_count) {
-				// :TODO: log
-				printf("ERROR: Failed to get framebuffer config list\n");
+				XenLogError("Failed to get framebuffer config list");
 				XenBreak();
 			} else {
-				// :TODO: log
-				printf("INFO: Found %i valid framebuffer configurations\n", fb_config_count);
+				XenLogInfo("Found %i valid framebuffer configurations", fb_config_count);
 			}
 
 
@@ -98,7 +97,7 @@ namespace xen {
 			glXMakeCurrent(window->display, 0, 0);
 			glXDestroyContext(window->display, ctx_old);
 			if (!glXCreateContextAttribsARB) {
-				printf("ERROR: glXCreateContextAttribsARB() not found\n");
+				XenLogError("glXCreateContextAttribsARB() not found");
 				XenBreak();
 			}
 

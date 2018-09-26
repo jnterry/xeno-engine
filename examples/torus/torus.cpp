@@ -147,7 +147,7 @@ void initMeshes(xen::GraphicsModuleApi* gmod){
 	                  xen::MeshLoadFlags::CENTER_ORIGIN   |
 	                  xen::MeshLoadFlags::SCALE_UNIT_SIZE
 	                 );
-	printf("Loaded torus mesh, %i faces\n", mesh_data_torus->vertex_count / 3);
+	XenLogDone("Loaded torus mesh, %i faces", mesh_data_torus->vertex_count / 3);
 	state->mesh_torus_smooth = gmod->createMesh(mesh_data_torus);
 	computeFlatNormals(mesh_data_torus);
 	state->mesh_torus_flat = gmod->createMesh(mesh_data_torus);

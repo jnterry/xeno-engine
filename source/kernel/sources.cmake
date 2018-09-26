@@ -2,6 +2,7 @@ set(XEN_HEADERS_KERNEL
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/kernel/Kernel.hpp
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/kernel/Module.hpp
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/kernel/threads.hpp
+	${CMAKE_CURRENT_LIST_DIR}/include/xen/kernel/log.hpp
 )
 set(XEN_SOURCES_KERNEL
 	${CMAKE_CURRENT_LIST_DIR}/src/Kernel.cpp
@@ -9,4 +10,6 @@ set(XEN_SOURCES_KERNEL
 	${CMAKE_CURRENT_LIST_DIR}/src/DynamicLibrary.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/threads.hxx
 	${CMAKE_CURRENT_LIST_DIR}/src/threads.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/log.hxx
+	${CMAKE_CURRENT_LIST_DIR}/src/log.cpp
 )

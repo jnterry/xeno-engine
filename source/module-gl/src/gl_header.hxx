@@ -15,6 +15,7 @@
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/config.hpp>
+#include <xen/kernel/log.hpp>
 
 #ifdef XEN_OS_WINDOWS
 	#include <xen/windows_header.hxx>
@@ -60,8 +61,7 @@ namespace xen{
 			case GL_OUT_OF_MEMORY:     err_str = "GL_OUT_OF_MEMORY";     break;
 			}
 
-			//:TODO: log system
-			printf("%s|%i: OpenGL Error %i occured: '%s'\n", file, line, err, err_str);
+			xen::log(xen::LogLevel::ERROR, file, line, "OpenGl Error %i occured: %s", err, err_str);
 		}
 
 		template<typename T>

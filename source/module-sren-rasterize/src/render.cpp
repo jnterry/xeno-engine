@@ -18,6 +18,7 @@
 #include <xen/sren/RenderTarget.hxx>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/math/geometry.hpp>
+#include <xen/kernel/log.hpp>
 
 void xsr::render(xen::RenderTarget target_handle,
                  const xen::Aabb2u& viewport,
@@ -30,7 +31,7 @@ void xsr::render(xen::RenderTarget target_handle,
 	////////////////////////////////////////////////////////////////////////////
 	// Generate view projection matrix
 	if(!xen::isCameraValid(params.camera)){
-		printf("ERROR: Camera is not valid, skipping rendering\n");
+		XenLogWarn("Camera is not valid, skipping rendering");
 		return;
 	}
 
@@ -42,8 +43,7 @@ void xsr::render(xen::RenderTarget target_handle,
 	Mat4r vp_matrix = xen::getViewProjectionMatrix(params.camera, view_region.max - view_region.min);
 
 	if(xen::isnan(vp_matrix)){
-		// :TODO: log
-		printf("ERROR: vp_matrix contains NaN elements, skipping rendering\n");
+		XenLogWarn("vp_matrix contains NaN elements, skipping rendering");
 		return;
 	}
 	////////////////////////////////////////////////////////////////////////////

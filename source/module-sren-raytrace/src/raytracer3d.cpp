@@ -16,6 +16,7 @@
 #include <xen/graphics/Color.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/core/array.hpp>
+#include <xen/kernel/log.hpp>
 
 #include <xen/sren/FragmentShader.hpp>
 #include <xen/sren/RenderTarget.hxx>
@@ -236,8 +237,8 @@ void renderRaytrace (xsr::RenderTarget&       target,
 				// would get occasional false positive if any component is equal
 				// to -0
 				if(bary.x < -0.00001 || bary.y < -0.0001 || bary.z < -0.00001){
-					printf("WARN: Expected barycentric components to be positive, got:  "
-					       "(%f, %f, %f)\n", bary.x, bary.y, bary.z);
+					XenLogFatal("Expected barycentric components to be positive, got:  "
+					            "(%f, %f, %f)\n", bary.x, bary.y, bary.z);
 					XenBreak();
 				}
 				#endif
@@ -269,8 +270,6 @@ void renderRaytrace (xsr::RenderTarget&       target,
 				/////////////////////////////////////////////////////////////////////
 				// Cast shadow ray
 				for(u64 i = 0; i < params.lights.size; ++i){
-					//printf("%i, %i :::::: Casting shadow ray for light %i\n",
-					//       target_pos.x, target_pos.y, i);
 					xen::Ray3r shadow_ray;
 
 					switch(params.lights[i].type){
@@ -318,8 +317,8 @@ void renderRaytrace (xsr::RenderTarget&       target,
 						break;
 					}
 					default:
-						printf("WARN: Unhandled light type in raytracer, type: %i\n",
-						       params.lights[i].type);
+						XenLogWarn("Skipping unhandled light type in raytracer, type: %i",
+						           params.lights[i].type);
 						break;
 					}
 				}
