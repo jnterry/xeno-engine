@@ -151,7 +151,7 @@ void xke::printLogMsgToStdio(const xen::LogMessage& lm){
 	if(lm.thread == xen::BAD_THREAD_INDEX){
 		printf(" ?? |");
 	} else {
-		printf(" %2u |", lm.thread);
+		printf(" %2lu |", lm.thread);
 	}
 	printf(" %8s | %*s%4u ",
 	       date_buffer,

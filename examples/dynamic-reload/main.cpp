@@ -19,7 +19,7 @@ int main(){
 
   auto module_game = xen::loadModule("dynamic-reload-game", &game_params);
 
-	printf("Loaded game module: %p\n", module_game);
+	printf("Loaded game module: %lu\n", module_game);
 
 	xen::startKernel();
 
