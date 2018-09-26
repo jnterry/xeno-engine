@@ -125,6 +125,33 @@ namespace xen {
 		}
 		return true;
 	}
+
+	const char* findFirst(const char* haystack, const char* needle){
+		// :TODO: This is naive string search O(n^2)
+		//
+		// look into Knuth-Morris-Pratt or similar
+		// (although naive might actually be faster for very small strings as
+		//  don't need to pre-compute any tables...)
+
+		for(const char* hcur = haystack; *hcur != '\0'; ++hcur){
+			for(int i = 0; true; ++i){
+				if(needle[i] == '\0'){
+					// then we've found the string
+					return hcur;
+				}
+
+				if(hcur[i] == '\0'){
+					// then needle is longer than remaining haystack
+					return nullptr;
+				}
+
+				if(hcur[i] != needle[i]){
+					break;
+				}
+			}
+		}
+		return nullptr;
+	}
 }
 
 #endif

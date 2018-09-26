@@ -3,7 +3,7 @@
 set -e
 
 if [[ -e /usr/bin/apt-get ]] ; then
-		sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev
+		sudo apt-get install libgl1-mesa-dev libglu1-mesa-dev libncurses5-dev
 fi
 
 rm -rf ../build/

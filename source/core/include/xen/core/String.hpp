@@ -89,6 +89,14 @@ namespace xen {
 		return *string == '\0' ? 5381 : (StringHash)(*string) + 33 * hash(&string[1]);
 	}
 
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Finds first instance of some small string inside some larger
+	/// string
+	/// \return Pointer to within haystack string that is equal to the needle
+	/// string, or nullptr if end of haystack was found before such an occurrence
+	/////////////////////////////////////////////////////////////////////
+	const char* findFirst(const char* haystack, const char* needle);
+
 }
 
 #endif

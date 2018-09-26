@@ -16,6 +16,7 @@
 #include <xen/core/memory/utilities.hpp>
 #include <xen/core/File.hpp>
 #include <xen/core/time.hpp>
+#include <xen/kernel/log.hpp>
 
 #include <utility>
 #include <new>
@@ -35,7 +36,7 @@ xke::Kernel xke::kernel;
 namespace {
 
 	bool doModuleLoad(xke::LoadedModule* lmod){
-		printf("Loading shared library: %s\n", lmod->lib_path);
+		XenLogInfo("Loading shared library %s", lmod->lib_path);
 		lmod->library = xke::loadDynamicLibrary(*xke::kernel.root_allocator, lmod->lib_path);
 
 		if(lmod->library == nullptr){
