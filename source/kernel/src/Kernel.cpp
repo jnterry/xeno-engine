@@ -187,14 +187,13 @@ xen::StringHash xen::loadModule(const char* name,
 	char* lib_path = nullptr;
 
 	if(lmod == nullptr){
-		// :TODO: log
-		printf("Failed to load module as max number of loaded modules has been reached!\n");
+		XenLogError("Failed to load module as max number of loaded modules has been reached");
 		goto cleanup;
 	}
 
 	lib_path = xke::resolveDynamicLibrary(*xke::kernel.root_allocator, name);
 	if(lib_path == nullptr){
-		printf("Failed to find library file for module: %s\n", name);
+		XenLogError("Failed to find library file for module: %s", name);
 		goto cleanup;
 	}
 	lmod->lib_modification_time = xen::getPathModificationTime(lib_path);
@@ -254,17 +253,15 @@ void xen::startKernel(){
 		cntx.dt = cntx.time - last_time;
 
 		if(xke::kernel.settings.hot_reload_modules){
-			//printf("Checking for module reloads...\n");
 			reloadModifiedKernelModules();
-			//printf("Done reloads\n");
 		}
 
 		if(xke::kernel.settings.print_tick_rate &&
 		   cntx.time - last_tick_rate_print > xen::seconds(0.5f)){
-			printf("Tick Rate: %f\n",
-			       (real)(cntx.tick - last_tick_count) /
-			       xen::asSeconds<real>(cntx.time - last_tick_rate_print)
-			       );
+		  XenLogDebug("Tick Rate: %f",
+		              (real)(cntx.tick - last_tick_count) /
+		              xen::asSeconds<real>(cntx.time - last_tick_rate_print)
+		             );
 			last_tick_rate_print = cntx.time;
 			last_tick_count      = cntx.tick;
 		}
@@ -288,11 +285,9 @@ void xen::startKernel(){
 		++cntx.tick;
 		last_time = cntx.time;
 	}
-	XenLogInfo("Kernel has left main loop");
+	XenLogInfo("Kernel has left main loop, doing cleanup...");
 
 	xke::kernel.state = xke::Kernel::STOPPED;
-
-	printf("Main loop requested termination, doing kernel cleanup\n");
 
 	xke::LoadedModule* lmod = xke::kernel.module_head;
 	while(lmod != nullptr){
@@ -304,10 +299,10 @@ void xen::startKernel(){
 	}
 
 	// free resources, check for memory leaks, etc
-	printf("Kernel terminating\n");
 	xke::stopThreadSubsystem();
 
 	xke::kernel.state = xke::Kernel::SHUTDOWN;
+	XenLogDone("Kernel has finished cleanup");
 }
 
 void* xen::getModuleApi(xen::StringHash hash){
