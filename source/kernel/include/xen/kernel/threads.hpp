@@ -14,6 +14,8 @@
 #include <xen/core/intrinsics.hpp>
 
 namespace xen {
+	struct ArenaLinear;
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Handle to some piece of work which must be completed by the end
 	/// of the tick on which it was submitted. TickWorkHandle's should not be
@@ -123,7 +125,24 @@ namespace xen {
 	/// the main thread which created the kernel, nor a worker thread spawned
 	/// by the kernel
 	/////////////////////////////////////////////////////////////////////
-	uint getThreadId();
+	ThreadIndex getThreadIndex();
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Retrieves the total number of threads (including the master
+	/// thread) that the kernel controls
+	/////////////////////////////////////////////////////////////////////
+	ThreadIndex getThreadCount();
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Retrieves reference to a scratch space arena whose contents
+	/// is reset at the start of each tick. Each thread will be provided
+	/// with a different scratch space arena
+	///
+	/// \note Each thread will be provided with a different scratch space
+	/////////////////////////////////////////////////////////////////////
+	ArenaLinear& getThreadScratchSpace();
+
+
 }
 
 #endif

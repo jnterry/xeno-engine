@@ -43,7 +43,7 @@ namespace xen {
 		/// \param params The params passed to loadModule
 		typedef void* (*FunctionInitialize)(const void* params);
 
-		/// \brief Callback where the module should free resources
+		/// \brief Callback where the module should free all resources
 		/// \param data The data returned by module initialize function
 		/// \param params The params passed to loadModule
 		typedef void  (*FunctionShutdown  )(void* data, const void* params);
@@ -55,6 +55,11 @@ namespace xen {
 		/// \param data The data returned by the modules initialize function
 		/// \param params The params passed to loadModule
 		typedef void* (*FunctionLoad      )(void* data, const void* params);
+
+
+		/// \brief Callback in which the module should clean up any resources
+		/// allocated by load
+		typedef void  (*FunctionUnload      )(void* data, const void* params);
 
 		/// \brief Callback in which the module should perform any per tick
 		/// processing
@@ -93,6 +98,12 @@ namespace xen {
 		/// change state will be persisted across reloads
 		/////////////////////////////////////////////////////////////////////
 	  FunctionLoad load;
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Function called by the kernel just before the modules' dynamic
+		/// link library is unloaded
+		/////////////////////////////////////////////////////////////////////
+		FunctionUnload unload;
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Callback which is called once per kernel tick during which

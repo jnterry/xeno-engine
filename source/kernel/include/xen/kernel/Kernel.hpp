@@ -31,7 +31,10 @@ namespace xen {
 
 		/// \brief Number of threads to use, if set to 0 then will use as many
 		/// threads as there are cores in this machine
-		uint thread_count;
+		u64 thread_count;
+
+		/// \brief Size in bytes of the arena returned by getThreadScratchSpace
+		u64 thread_scratch_size;
 	};
 
 	/////////////////////////////////////////////////////////////////////
@@ -91,12 +94,6 @@ namespace xen {
 	/// complete
 	/////////////////////////////////////////////////////////////////////
 	void requestKernelShutdown();
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Retrieves reference to a scratch space arena whose contents
-	/// is reset at the start of each tick
-	/////////////////////////////////////////////////////////////////////
-	ArenaLinear& getTickScratchSpace();
 }
 
 #endif

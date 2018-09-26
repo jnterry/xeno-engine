@@ -135,7 +135,7 @@ void render(xen::RenderTarget target_handle,
             const xen::RenderParameters3d& params,
             const xen::Array<xen::RenderCommand3d> commands
            ) {
-	xen::ArenaLinear& render_scratch_arena = xen::getTickScratchSpace();
+	xen::ArenaLinear& render_scratch_arena = xen::getThreadScratchSpace();
 
 	xsr::RenderTarget& target = *xsr::getRenderTargetImpl(target_handle);
 
@@ -222,9 +222,8 @@ namespace {
 
 xen::Module exported_xen_module = {
 	xen::hash("graphics"),
-	&init,
-	&shutdown,
-	&load,
+	&init, &shutdown,
+	&load, nullptr,
 	&tick
 };
 

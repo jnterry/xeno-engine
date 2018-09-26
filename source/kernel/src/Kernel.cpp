@@ -28,6 +28,7 @@
 #include <unistd.h>
 
 #include "Kernel.hxx"
+#include "threads.hxx"
 
 xke::Kernel xke::kernel;
 
@@ -117,6 +118,9 @@ namespace {
 			  // library more than once (we could make a copy of the library
 			  // file and load the copy, hence tricking the OS loader to let us
 			  // load a dll multiple times)
+			  if(lmod->module->unload != nullptr){
+				  lmod->module->unload(lmod->data, lmod->params);
+			  }
 			  xke::unloadDynamicLibrary(*xke::kernel.root_allocator, lmod->library);
 
 			  doModuleLoad(lmod);
@@ -157,12 +161,9 @@ bool xen::initKernel(const xen::KernelSettings& settings){
 	xen::copyBytes(&settings, &xke::kernel.settings, sizeof(xen::KernelSettings));
 
 	xke::kernel.modules            = xen::createArenaPool<xke::LoadedModule>(xke::kernel.system_arena, 128);
-	xke::kernel.tick_scratch_space = xen::createArenaLinear(*xke::kernel.root_allocator, xen::megabytes(16));
-
 
 	if(!xke::initThreadSubsystem()){
 		printf("Error occured while initializing thread subsystem of kernel\n");
-		xen::destroyArenaLinear(*xke::kernel.root_allocator, xke::kernel.tick_scratch_space);
 		xen::destroyArenaLinear(*xke::kernel.root_allocator, xke::kernel.system_arena);
 		delete xke::kernel.root_allocator;
 		return false;
@@ -231,7 +232,7 @@ void xen::startKernel(){
 	XenAssert(xke::kernel.state == xke::Kernel::INITIALIZED,
 	          "Expected kernel to be initialised but not started");
 
-	XenAssert(0 == xen::getThreadId(),
+	XenAssert(0 == xen::getThreadIndex(),
 	          "Expected master thread to call startKernel");
 
 	xen::TickContext cntx = {0};
@@ -246,7 +247,6 @@ void xen::startKernel(){
 
 	printf("Kernel init finished, beginning main loop...\n");
 	while (!xke::kernel.stop_requested) {
-		xen::resetArena(xke::kernel.tick_scratch_space);
 		xke::preTickThreadSubsystem();
 
 		cntx.time = timer.getElapsedTime();
@@ -292,10 +292,13 @@ void xen::startKernel(){
 
 	printf("Main loop requested termination, doing kernel cleanup\n");
 
-	xke::LoadedModule* module = xke::kernel.module_head;
-	while(module != nullptr){
-		module->module->shutdown(module->data, module->params);
-		module = module->next;
+	xke::LoadedModule* lmod = xke::kernel.module_head;
+	while(lmod != nullptr){
+		if(lmod->module->unload != nullptr){
+			lmod->module->unload(lmod->data, lmod->params);
+		}
+		lmod->module->shutdown(lmod->data, lmod->params);
+		lmod = lmod->next;
 	}
 
 	// free resources, check for memory leaks, etc
@@ -329,10 +332,6 @@ void xen::kernelFree(void* data){
 
 void xen::requestKernelShutdown(){
 	xke::kernel.stop_requested = true;
-}
-
-xen::ArenaLinear& xen::getTickScratchSpace(){
-	return xke::kernel.tick_scratch_space;
 }
 
 #endif

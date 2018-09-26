@@ -70,7 +70,7 @@ void initSceneLights(){
 }
 
 void initMeshes(xen::GraphicsModuleApi* gmod){
-	xen::ArenaLinear& arena = xen::getTickScratchSpace();
+	xen::ArenaLinear& arena = xen::getThreadScratchSpace();
 
 	xen::MemoryTransaction transaction(arena);
 
@@ -174,8 +174,7 @@ void shutdown(void* data, const void* params){
 
 xen::Module exported_xen_module = {
 	xen::hash("game"),
-	&init,
-	&shutdown,
-	&load,
+	&init, &shutdown,
+	&load, nullptr,
 	&tick,
 };

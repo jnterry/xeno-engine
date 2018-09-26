@@ -13,6 +13,7 @@
 #include <xen/graphics/Window.hpp>
 #include <xen/graphics/GraphicsModuleApi.hpp>
 #include <xen/kernel/Kernel.hpp>
+#include <xen/kernel/threads.hpp>
 
 namespace xen {
 	struct Window;
