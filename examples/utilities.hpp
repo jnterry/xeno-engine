@@ -14,6 +14,7 @@
 #include <xen/graphics/GraphicsModuleApi.hpp>
 #include <xen/kernel/Kernel.hpp>
 #include <xen/kernel/threads.hpp>
+#include <xen/kernel/log.hpp>
 
 namespace xen {
 	struct Window;

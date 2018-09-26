@@ -1,27 +1,28 @@
 #include <xen/kernel/Kernel.hpp>
+#include <xen/kernel/log.hpp>
 
 #include <cstring>
 #include <cstdio>
 
 
-void loadGraphicsModule(const char* cli_arg){
+xen::StringHash loadGraphicsModule(const char* cli_arg){
 	if(strcmp(cli_arg, "gl") == 0){
-		xen::loadModule("xen-module-gl");
+		return xen::loadModule("xen-module-gl");
 	} else if (strcmp(cli_arg, "rasterize") == 0){
-		xen::loadModule("xen-module-sren-rasterize");
+		return xen::loadModule("xen-module-sren-rasterize");
 	} else if (strcmp(cli_arg, "raytrace") == 0){
-		xen::loadModule("xen-module-sren-raytrace");
+		return xen::loadModule("xen-module-sren-raytrace");
 	} else if (strcmp(cli_arg, "atom") == 0){
-		xen::loadModule("xen-module-sren-atom");
+		return  xen::loadModule("xen-module-sren-atom");
 	} else {
-		printf("Invalid graphics module name: %s\n", cli_arg);
+		XenLogFatal("Invalid graphics module name: %s", cli_arg);
 		exit(2);
 	}
 }
 
 int main(int argc, const char** argv){
 	if(argc < 3){
-		printf("Error: usage: %s <GAME-MODULE> <GRAPHICS-MODULE>\n", argv[0]);
+		fprintf(stderr, "Error: usage: %s <GAME-MODULE> <GRAPHICS-MODULE>\n", argv[0]);
 		return 1;
 	}
 
@@ -30,12 +31,21 @@ int main(int argc, const char** argv){
 	settings.print_tick_rate    = true;
 
 	if(!xen::initKernel(settings)){
-		printf("Failed to initialize kernel\n");
+		fprintf(stderr, "Failed to initialize kernel\n");
 		return 2;
 	}
 
-	loadGraphicsModule(argv[2]);
-	xen::loadModule(argv[1]);
+	if(!loadGraphicsModule(argv[2])){
+		XenLogFatal("Failed to load graphics module");
+		return 3;
+	}
+
+
+	if(!xen::loadModule(argv[1])){
+		XenLogFatal("Failed to load game module: %s", argv[1]);
+		return 4;
+	}
+
 	xen::startKernel();
 
 	return 0;

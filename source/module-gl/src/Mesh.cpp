@@ -124,7 +124,7 @@ xen::Mesh xgl::createMesh(const xen::MeshData* md){
 	// reserve space
 	XEN_CHECK_GL(glBufferData(GL_ARRAY_BUFFER, gpu_buffer_size, nullptr, GL_STATIC_DRAW));
 
-	XenLogInfo("Reserved mesh space, gpu_buf: %i, num verts: %i, bounds:(%f, %f, %f) -> (%f, %f, %f)",
+	XenLogInfo("Reserved mesh space, gpu_buf: %i, num verts: %i\n Bounds: (%f, %f, %f) -> (%f, %f, %f)",
 	           gpu_buffer,
 	           result->vertex_count,
 	           result->bounds.min.x, result->bounds.min.y, result->bounds.min.z,

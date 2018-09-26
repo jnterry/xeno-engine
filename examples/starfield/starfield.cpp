@@ -93,8 +93,6 @@ void* init( const void* params){
 	                                                 );
 	ss->render_commands[2].mesh                   = ss->mesh_cube_lines;
 
-	printf("Finished starfield init\n");
-
 	return ss;
 }
 
