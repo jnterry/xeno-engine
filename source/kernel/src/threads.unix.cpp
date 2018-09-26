@@ -309,6 +309,14 @@ bool xke::initThreadSubsystem(){
 		return false;
 	}
 
+	for(uint i = 0; i < num_threads; ++i){
+		xke::kernel.thread_data.scratch_arenas[i].start = xen::ptrGetAdvanced(
+			scratch_space, i * xke::kernel.settings.thread_scratch_size);
+		xke::kernel.thread_data.scratch_arenas[i].end   = xen::ptrGetAdvanced(
+			scratch_space, (i+1) * xke::kernel.settings.thread_scratch_size - 1 );
+		xke::kernel.thread_data.scratch_arenas[i].next_byte = xke::kernel.thread_data.scratch_arenas[i].start;
+	}
+
 	xke::kernel.thread_data.threads[0] = pthread_self();
 	xke::THIS_THREAD_INDEX = 0;
 	// start at i = 1, thread 0 is the calling thread
@@ -321,14 +329,6 @@ bool xke::initThreadSubsystem(){
 		                       )){
 			XenInvalidCodePath("Cannot recover from thread creation failure");
 		}
-
-		xke::kernel.thread_data.scratch_arenas[i].start = xen::ptrGetAdvanced(
-			scratch_space, i * xke::kernel.settings.thread_scratch_size);
-		xke::kernel.thread_data.scratch_arenas[i].end   = xen::ptrGetAdvanced(
-			scratch_space, (i+1) * xke::kernel.settings.thread_scratch_size - 1 );
-		xke::kernel.thread_data.scratch_arenas[i].next_byte = xke::kernel.thread_data.scratch_arenas[i].start;
-
-
 	}
 
 	pthread_attr_destroy(&attribs);
