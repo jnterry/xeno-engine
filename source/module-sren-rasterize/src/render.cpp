@@ -18,6 +18,7 @@
 #include <xen/sren/RenderTarget.hxx>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/math/geometry.hpp>
+#include <xen/kernel/log.hpp>
 
 void xsr::render(xen::RenderTarget target_handle,
                  const xen::Aabb2u& viewport,
