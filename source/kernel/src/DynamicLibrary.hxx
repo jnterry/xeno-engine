@@ -57,7 +57,7 @@ namespace xke {
 }
 
 #ifdef XEN_OS_WINDOWS
-	#error "Dynamic libraries not implemented on windows"
+	#include "DynamicLibrary.win.hxx"
 #elif defined XEN_OS_UNIX
 	#include "DynamicLibrary.unix.hxx"
 #else

@@ -14,11 +14,12 @@ target_include_directories(xen-math PUBLIC ${CMAKE_CURRENT_LIST_DIR}/core/includ
 target_include_directories(xen-math PUBLIC ${CMAKE_CURRENT_LIST_DIR}/math/include/)
 
 
-add_library               (xen-kernel STATIC ${XEN_HEADERS_KERNEL} ${XEN_SOURCES_KERNEL})
-target_include_directories(xen-kernel PUBLIC ${CMAKE_CURRENT_LIST_DIR}/core/include/  )
-target_include_directories(xen-kernel PUBLIC ${CMAKE_CURRENT_LIST_DIR}/kernel/include/)
-target_include_directories(xen-kernel PUBLIC ${CMAKE_CURRENT_LIST_DIR}/graphics/include/)
-target_include_directories(xen-kernel PUBLIC ${CMAKE_CURRENT_LIST_DIR}/math/include/)
+add_library               (xen-kernel STATIC  ${XEN_HEADERS_KERNEL} ${XEN_SOURCES_KERNEL})
+target_include_directories(xen-kernel PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/core/include/  )
+target_include_directories(xen-kernel PRIVATE ${CMAKE_CURRENT_LIST_DIR}/core/impl/  )
+target_include_directories(xen-kernel PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/kernel/include/)
+target_include_directories(xen-kernel PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/graphics/include/)
+target_include_directories(xen-kernel PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/math/include/)
 if(UNIX)
 	target_link_libraries(xen-kernel PRIVATE pthread)
 	target_link_libraries(xen-kernel PRIVATE dl)
