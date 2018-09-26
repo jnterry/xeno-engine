@@ -317,7 +317,7 @@ void renderRaytrace (xsr::RenderTarget&       target,
 						break;
 					}
 					default:
-						XenLogWarn("Skipping unhandled light type in raytracer, type: %i\n",
+						XenLogWarn("Skipping unhandled light type in raytracer, type: %i",
 						           params.lights[i].type);
 						break;
 					}

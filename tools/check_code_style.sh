@@ -39,10 +39,10 @@ check_section "Relative includes containing .. is messy" \
 
 
 check_section "The following spelling mistakes were found" \
-							"egrep --color -R -i 'verticies|indicies|matricies|primative'"
+							"egrep --color -n -R -i 'verticies|indicies|matricies|primative'"
 
 check_section "Log calls should not have trailing new line" \
-							"egrep --color -R -i 'XenLog[A-Za-z]+\(\".*\\\\n\"'"
+							"egrep --color -n -R -i 'XenLog[A-Za-z]+\(\".*\\\\n\"'"
 
 if [[ $section_has_been_printed == 0 ]] ; then
 		printf "\033[1;32m--- No issues found ---\033[0m\n"
