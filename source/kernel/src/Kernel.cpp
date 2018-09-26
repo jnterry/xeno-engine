@@ -28,6 +28,7 @@
 #include <unistd.h>
 
 #include "Kernel.hxx"
+#include "threads.hxx"
 
 xke::Kernel xke::kernel;
 

@@ -81,9 +81,10 @@ namespace xke {
 
 		/// \brief Storage for data to be passed to tick_work callbacks
 		xen::ArenaLinear          tick_work_data;
-
-
 	};
+
+	/// \brief Global thread data
+	extern ThreadData thread_data;
 }
 
 #endif

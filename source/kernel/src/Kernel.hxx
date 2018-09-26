@@ -11,7 +11,6 @@
 #include <xen/core/time.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/memory/ArenaPool.hpp>
-#include "threads.hxx"
 
 namespace xen {
 	struct Module;
@@ -80,8 +79,6 @@ namespace xke {
 
 		xen::ArenaPool<xke::LoadedModule> modules;
 		xke::LoadedModule* module_head; // head of singly linked list of modules
-
-		xke::ThreadData thread_data;
 
 		volatile bool stop_requested;
 	};
