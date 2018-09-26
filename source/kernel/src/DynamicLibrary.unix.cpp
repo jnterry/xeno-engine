@@ -15,6 +15,7 @@
 #include <xen/core/File.hpp>
 #include <xen/core/time.hpp>
 #include <xen/core/StringBuffer.hpp>
+#include <xen/kernel/log.hpp>
 
 #include <dlfcn.h>
 
@@ -60,8 +61,7 @@ namespace xke {
 		void* result = dlopen(strbuf, RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
 
 		if(result == nullptr){
-			// :TODO: log
-			printf("Error loading dynamic library at '%s', error: %s\n", path, dlerror());
+			XenLogError("Error loading dynamic library '%s', error: %s", path, dlerror());
 		}
 
 		// we can delete the file even though our process has it open, the number of
@@ -75,16 +75,14 @@ namespace xke {
 
 	void unloadDynamicLibrary(xen::Allocator& alloc, DynamicLibrary* lib){
 		if(dlclose(lib) != 0){
-			// :TODO: log
-			printf("Failed to close dynamic library: %s\n", dlerror());
+		  XenLogError("Failed to close dynamic library: %s", dlerror());
 		}
 	}
 
 	void* getDynamicLibrarySymbol(DynamicLibrary* lib, const char* name){
 	  void* result = dlsym(lib, name);
 	  if(result == nullptr){
-		  // :TODO: log
-		  printf("Failed to load symbol from dynamic library: %s\n", dlerror());
+		  XenLogError("Failed to load symbol from dynamic library: %s", dlerror());
 	  }
 
 	  return result;

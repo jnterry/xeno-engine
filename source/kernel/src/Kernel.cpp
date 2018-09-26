@@ -41,7 +41,6 @@ namespace {
 		lmod->library = xke::loadDynamicLibrary(*xke::kernel.root_allocator, lmod->lib_path);
 
 		if(lmod->library == nullptr){
-			XenLogError("Failed to load module shared library: %s", lmod->lib_path);
 			return false;
 		}
 
