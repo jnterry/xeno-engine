@@ -258,10 +258,10 @@ void xen::startKernel(){
 
 		if(xke::kernel.settings.print_tick_rate &&
 		   cntx.time - last_tick_rate_print > xen::seconds(0.5f)){
-		  XenLogDebug("Tick Rate: %f",
-		              (real)(cntx.tick - last_tick_count) /
-		              xen::asSeconds<real>(cntx.time - last_tick_rate_print)
-		             );
+		  XenLogInfo("Tick Rate: %f",
+		             (real)(cntx.tick - last_tick_count) /
+		             xen::asSeconds<real>(cntx.time - last_tick_rate_print)
+		            );
 			last_tick_rate_print = cntx.time;
 			last_tick_count      = cntx.tick;
 		}
