@@ -22,7 +22,7 @@ void xke::printLogMsgToStdio(const xen::LogMessage& lm){
 		return;
 	}
 
-	printf(lm.message);
+	printf("%s\n", lm.message);
 }
 
 #endif
