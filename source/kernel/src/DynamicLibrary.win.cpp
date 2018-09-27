@@ -12,6 +12,7 @@
 #include "DynamicLibrary.hxx"
 
 #include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/core/memory/Allocator.hpp>
 #include <xen/core/File.hpp>
 #include <xen/core/time.hpp>
 #include <xen/core/StringBuffer.hpp>
@@ -28,20 +29,11 @@ namespace xke {
 		XenTempStringBuffer(strbuf, 4096, name);
 		xen::String original = strbuf;
 
-	 if(xen::pathExists(strbuf)){ goto alloc_string; }
-
-		xen::appendString(strbuf, ".so");
 		if(xen::pathExists(strbuf)){ goto alloc_string; }
 
-		xen::resetStringBuffer(strbuf, original);
-		xen::appendString(strbuf, "d.so");
+		xen::appendString(strbuf, ".dll");
 		if(xen::pathExists(strbuf)){ goto alloc_string; }
 
-		if(!xen::startsWith(strbuf, "lib")){
-			xen::resetStringBuffer(strbuf, original);
-			xen::prependString(strbuf, "lib");
-			return resolveDynamicLibrary(strbuf);
-		}
 		return nullptr;
 
 	  alloc_string:
@@ -54,25 +46,28 @@ namespace xke {
 		xen::appendStringf(strbuf, "-%lu", xen::asNanoseconds<u64>(xen::getTimestamp()));
 		xen::copyFile(path, strbuf);
 
-		HMODULE result = LoadLibrary(strbuf);
+		HMODULE hmodule = LoadLibrary(strbuf);
 
-		if(result == NULL){
+		if(hmodule == NULL){
 			XenLogError("Error loading dynamic library '%s', error code: %u", path, GetLastError());
 		}
 
 		xen::deleteFile(strbuf);
 
-		return (DynamicLibrary*)result;
+		DynamicLibrary* result = (DynamicLibrary*)alloc.allocate(sizeof(DynamicLibrary), alignof(DynamicLibrary));
+		result->hmodule = hmodule;
+		return result;
 	}
 
 	void unloadDynamicLibrary(xen::Allocator& alloc, DynamicLibrary* lib){
-		if(!FreeLibrary((HMODULE)lib)){
+		if(!FreeLibrary(lib->hmodule)){
 		  XenLogError("Failed to close dynamic library, error code: %u", GetLastError());
 		}
+		alloc.deallocate(lib);
 	}
 
 	void* getDynamicLibrarySymbol(DynamicLibrary* lib, const char* name){
-	  FARPROC result = GetProcAddress((HMODULE)lib, name);
+	  FARPROC result = GetProcAddress(lib->hmodule, name);
 	  if(result == NULL){
 		  XenLogError("Failed to load symbol from dynamic library, error code: %s", GetLastError());
 	  }
