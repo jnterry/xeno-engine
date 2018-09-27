@@ -36,12 +36,8 @@ namespace xke {
 #include <xen/config.hpp>
 #include <xen/kernel/threads.hpp>
 
-#ifdef XEN_OS_WINDOWS
-	#include "threads.dummy.hxx"
-#elif defined XEN_OS_UNIX
+#ifdef XEN_OS_UNIX
 	#include "threads.unix.hxx"
-#else
-	#include "threads.dummy.hxx"
 #endif
 
 #endif

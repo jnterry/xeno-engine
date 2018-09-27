@@ -248,6 +248,9 @@ bool xke::initThreadSubsystem(){
 	  num_threads = sysconf(_SC_NPROCESSORS_ONLN);
 	}
 
+	// :TODO: generare default values in kernel init?
+	// Otherwise the setting of defaults is duplicated (eg, this
+	// in dummy impl)
 	if(xke::kernel.settings.thread_scratch_size == 0){
 		xke::kernel.settings.thread_scratch_size = xen::megabytes(16);
 	}
