@@ -34,6 +34,10 @@ namespace xke {
 		xen::appendString(strbuf, ".dll");
 		if(xen::pathExists(strbuf)){ goto alloc_string; }
 
+		xen::resetStringBuffer(strbuf, original);
+		xen::appendString(strbuf, "d.dll");
+		if(xen::pathExists(strbuf)){ goto alloc_string; }
+
 		return nullptr;
 
 	  alloc_string:
@@ -60,16 +64,20 @@ namespace xke {
 	}
 
 	void unloadDynamicLibrary(xen::Allocator& alloc, DynamicLibrary* lib){
-		if(!FreeLibrary(lib->hmodule)){
-		  XenLogError("Failed to close dynamic library, error code: %u", GetLastError());
+		if(lib != nullptr){
+			if(lib->hmodule != NULL){
+				if(!FreeLibrary(lib->hmodule)){
+					XenLogError("Failed to close dynamic library, error code: %u", GetLastError());
+				}
+			}
+			alloc.deallocate(lib);
 		}
-		alloc.deallocate(lib);
 	}
 
 	void* getDynamicLibrarySymbol(DynamicLibrary* lib, const char* name){
 	  FARPROC result = GetProcAddress(lib->hmodule, name);
 	  if(result == NULL){
-		  XenLogError("Failed to load symbol from dynamic library, error code: %s", GetLastError());
+		  XenLogError("Failed to load symbol from dynamic library, error code: %u", GetLastError());
 	  }
 	  return result;
 	}
