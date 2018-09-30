@@ -7,6 +7,9 @@ include(sources.cmake)
 add_library               (xen-core STATIC  ${XEN_HEADERS_CORE} ${XEN_SOURCES_CORE})
 target_include_directories(xen-core PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/core/include/)
 target_include_directories(xen-core PRIVATE ${CMAKE_CURRENT_LIST_DIR}/core/impl/)
+if(MSVC)
+	target_link_libraries(xen-core PUBLIC shlwapi)
+endif()
 
 
 add_library               (xen-math STATIC ${XEN_HEADERS_MATH} ${XEN_SOURCES_MATH} )
@@ -26,6 +29,8 @@ if(UNIX)
 	find_package(Curses REQUIRED)
 	target_include_directories(xen-kernel PRIVATE ${CURSES_INCLUDE_DIR})
 	target_link_libraries     (xen-kernel PRIVATE ${CURSES_LIBRARIES})
+elseif(MSVC)
+	target_link_libraries(xen-kernel PRIVATE Kernel32)
 endif()
 
 
