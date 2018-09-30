@@ -48,6 +48,13 @@ function(xen_add_example_module TARGET_NAME)
 		${_THIS_DIR}/utilities.cpp
 	)
 
+	if(MSVC)
+		target_link_libraries(${TARGET_NAME} PUBLIC xen-core)
+		target_link_libraries(${TARGET_NAME} PUBLIC xen-math)
+		target_link_libraries(${TARGET_NAME} PUBLIC xen-graphics)
+		target_link_libraries(${TARGET_NAME} PUBLIC xen-sren)
+	endif()
+
 	target_include_directories(${TARGET_NAME} PRIVATE ${XEN_INCLUDE_DIRS})
 
 	# Group all examples together in IDE projects
