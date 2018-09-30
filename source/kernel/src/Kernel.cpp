@@ -26,18 +26,6 @@
 #include "threads.hxx"
 #include "log.hxx"
 
-#include <xen/config.hpp>
-
-#ifdef XEN_OS_UNIX
-#include "signal_handler.unix.cpp"
-#else
-namespace xke {
-	void registerSignalHandlers() {
-		printf("Kernel signal handlers not supported on this platform");
-	}
-}
-#endif
-
 xke::Kernel xke::kernel;
 
 namespace {
@@ -91,7 +79,7 @@ bool xen::initKernel(const xen::KernelSettings& settings){
 	          "Expected kernel to be initialised only once"
 	         );
 
-	xke::registerSignalHandlers();
+	xke::platformRegisterSignalHandlers();
 
 	constexpr u32 SYSTEM_ARENA_SIZE = xen::kilobytes(16);
 

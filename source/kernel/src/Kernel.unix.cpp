@@ -20,6 +20,13 @@
 #include <cstring>
 #include <cstdio>
 
+// sigsegv handler includes
+#include <stdio.h>
+#include <execinfo.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 namespace {
 	char* resolveDynamicLibrary(xen::ArenaLinear& arena, const char* name){
 		XenTempStringBuffer(strbuf, 4096, name);
@@ -132,5 +139,28 @@ bool xke::platformUnloadModule(ModuleSource* msrc){
 	}
 	return true;
 }
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+namespace {
+	void sigsegvHandler(int sig) {
+		void* array[256];
+		size_t size;
+
+		// get void*'s for all entries on the stack
+		size = backtrace(array, 256);
+
+		// print out all the frames to stderr
+		fprintf(stderr, "Error: signal SIGSEGV\n");
+		backtrace_symbols_fd(array, size, STDERR_FILENO);
+		exit(1);
+	}
+}
+
+void xke::platformRegisterSignalHandlers(){
+	signal(SIGSEGV, sigsegvHandler);
+}
+
 
 #endif

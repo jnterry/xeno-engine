@@ -88,6 +88,8 @@ namespace xke {
 		volatile bool stop_requested;
 	};
 
+	void platformRegisterSignalHandlers();
+
 	/// \brief Global kernel instance
 	extern Kernel kernel;
 }
