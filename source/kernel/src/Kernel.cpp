@@ -10,7 +10,6 @@
 #define XEN_KERNEL_CONTEXT_CPP
 
 #include <xen/kernel/Kernel.hpp>
-#include "DynamicLibrary.hxx"
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/core/memory/ArenaPool.hpp>
 #include <xen/core/memory/utilities.hpp>
@@ -36,25 +35,7 @@ xke::Kernel xke::kernel;
 
 namespace {
 
-	bool doModuleLoad(xke::LoadedModule* lmod){
-		XenLogInfo("Loading shared library %s", lmod->lib_path);
-		lmod->library = xke::loadDynamicLibrary(*xke::kernel.root_allocator, lmod->lib_path);
-
-		if(lmod->library == nullptr){
-			return false;
-		}
-
-
-		lmod->module = (xen::Module*)xke::getDynamicLibrarySymbol(lmod->library, "exported_xen_module");
-
-		if(lmod->module == nullptr){
-			XenLogError("Cannot load the shared library '%s' as a kernel module "
-			            "- expected a symbol 'exported_xen_module' to be present",
-			            lmod->lib_path
-			           );
-			return false;
-		}
-
+	bool doModuleInit(xke::LoadedModule* lmod){
 		if(lmod->data == nullptr){
 			XenLogInfo("Initializing module: %s", lmod->lib_path);
 			if(lmod->module->initialize == nullptr){
@@ -88,37 +69,12 @@ namespace {
 		    lmod = lmod->next
 		   ){
 
-		  xen::DateTime mod_time = xen::getPathModificationTime(lmod->lib_path);
+			xen::Module* module = xke::platformReloadModuleIfChanged(lmod);
 
-		  if(mod_time > lmod->lib_modification_time){
-			  xen::DateTime now = xen::getLocalTime();
-
-			  if(now - mod_time < xen::seconds(1.5f)){
-				  // :TODO: this is a nasty hack - issue is that the linker will
-				  // truncate the file, then begin writing to it. Initial truncation
-				  // changes modification time, so we may start trying to load the
-				  // module before the linker has finished writing it. This says that
-				  // we should only load the module if it changed AND that was at least
-				  // 1 second ago. If linker takes longer than 1 second this will blow
-				  // up
-				  continue;
-			  }
-
-			  XenLogInfo("Reloading modified module: %s", lmod->lib_path);
-			  // :TODO: would be better to attempt to load new version
-			  // before we let go of the old version
-			  // But windows/unix etc doesn't let us load the same dynamic
-			  // library more than once (we could make a copy of the library
-			  // file and load the copy, hence tricking the OS loader to let us
-			  // load a dll multiple times)
-			  if(lmod->module->unload != nullptr){
-				  lmod->module->unload(lmod->data, lmod->params);
-			  }
-			  xke::unloadDynamicLibrary(*xke::kernel.root_allocator, lmod->library);
-
-			  doModuleLoad(lmod);
-			  lmod->lib_modification_time = mod_time;
-		  }
+			if(module != nullptr){
+				lmod->module = module;
+				doModuleInit(lmod);
+			}
 		}
 	}
 
@@ -183,26 +139,22 @@ xen::StringHash xen::loadModule(const char* name,
                                 const void* params
                                ){
 	xke::LoadedModule* lmod = xen::reserveType<xke::LoadedModule>(xke::kernel.modules);
-	char* lib_path = nullptr;
 
 	if(lmod == nullptr){
 		XenLogError("Failed to load module as max number of loaded modules has been reached");
 		goto cleanup;
 	}
 
-	lib_path = xke::resolveDynamicLibrary(name);
-	if(lib_path == nullptr){
-		XenLogError("Failed to find library file for module: %s", name);
+	lmod->module = xke::platformLoadModule(name, lmod);
+	if(lmod->module == nullptr){
 		goto cleanup;
 	}
-	lmod->lib_modification_time = xen::getPathModificationTime(lib_path);
 
 	lmod->params     = params;
-	lmod->lib_path   = lib_path;
 	lmod->next       = xke::kernel.module_head;
 	xke::kernel.module_head = lmod;
 
-	if(!doModuleLoad(lmod)){
+	if(!doModuleInit(lmod)){
 		goto cleanup;
 	}
 
@@ -213,10 +165,7 @@ xen::StringHash xen::loadModule(const char* name,
 		XenLogWarn("Cleaning up from failed module load: %s", name);
 		if(lmod == nullptr){ return 0; }
 
-		if(lmod->library != nullptr){
-			xke::unloadDynamicLibrary(*xke::kernel.root_allocator, lmod->library);
-		}
-
+		xke::platformUnloadModule(lmod);
 		xen::freeType<xke::LoadedModule>(xke::kernel.modules, lmod);
 
 		return 0;
@@ -325,5 +274,14 @@ void xen::kernelFree(void* data){
 void xen::requestKernelShutdown(){
 	xke::kernel.stop_requested = true;
 }
+
+#include <xen/config.hpp>
+#ifdef XEN_OS_WINDOWS
+	#include "Kernel.win.cpp"
+#elif defined XEN_OS_UNIX
+	#include "Kernel.unix.cpp"
+#else
+  #error "Kernel is not implemented on this platform"
+#endif
 
 #endif

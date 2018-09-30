@@ -6,8 +6,6 @@ set(XEN_HEADERS_KERNEL
 )
 set(XEN_SOURCES_KERNEL
 	${CMAKE_CURRENT_LIST_DIR}/src/Kernel.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/DynamicLibrary.hxx
-	${CMAKE_CURRENT_LIST_DIR}/src/DynamicLibrary.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/threads.hxx
 	${CMAKE_CURRENT_LIST_DIR}/src/threads.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/log.hxx
