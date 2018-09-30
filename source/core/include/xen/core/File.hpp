@@ -30,7 +30,8 @@ namespace xen{
 	DateTime getPathModificationTime(const char* path);
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Checks if some path exists
+	/// \brief Checks if some path exists, does not say anything about the
+	/// type of entity (file/directory/symlink/etc) at the path
 	/////////////////////////////////////////////////////////////////////
 	bool pathExists(const char* path);
 

@@ -24,10 +24,7 @@ namespace xen {
 	}
 
 	bool pathExists(const char* path){
-		if(!PathFileExistsA(path)){
-			return false;
-		}
-		return GetFileAttributesA(path) & FILE_ATTRIBUTE_DIRECTORY == 0;
+		return PathFileExistsA(path);
 	}
 
 	bool copyFile(const char* in, const char* out){
