@@ -102,9 +102,12 @@ namespace xen{
 	char* pushString(ArenaLinear& arena, const char* str){
 		char* result = pushStringNoTerminate(arena, str);
 		if(arena.next_byte < arena.end){
+			*((char*)arena.next_byte) = '\0';
 			ptrAdvance(&arena.next_byte, 1);
+		} else {
+			// always null terminate, truncating string if not space
+			*((char*)arena.end) = '\0';
 		}
-		*((char*)arena.next_byte) = '\0';
 		return result;
 	}
 

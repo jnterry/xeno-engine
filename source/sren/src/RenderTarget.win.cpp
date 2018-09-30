@@ -12,10 +12,10 @@
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/graphics/Image.hpp>
 #include <xen/graphics/Window.hxx>
-#include "RenderTargetImpl.hxx"
+#include <xen/sren/RenderTarget.hxx>
 
 void xsr::doPlatformRenderTargetInit(xen::Allocator* alloc,
-                                       xsr::RenderTargetImpl& target,
+                                       xsr::RenderTarget& target,
                                        xen::Window* window){
 	if(window == nullptr || window->handle == nullptr){
 		// offscreen render targets don't need windows bitmapinfo, etc
@@ -28,7 +28,7 @@ void xsr::doPlatformRenderTargetInit(xen::Allocator* alloc,
 	//wide simd instructions with no special cases
 	num_pixels += num_pixels % 4;
 
-	target.pixels = (Color*)alloc->allocate(sizeof(Color) * num_pixels);
+	target.pixels = (xen::Color*)alloc->allocate(sizeof(xen::Color) * num_pixels);
 
 	// :TODO: some aspects of this should depend on the window's pixel format (eg, bit count)
 	target.bitmap_info = {0};
@@ -56,14 +56,14 @@ void xsr::doPlatformRenderTargetResize(xen::Allocator* alloc,
 	doPlatformRenderTargetInit(alloc, target, window);
 }
 
-void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target, threadpool thpool){
+void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target){
 	//////////////////////////////////////////////////////////////////////////
 	// Update the byte array we show on screen from the float array we do
 	// our rendering into
 	xen::RawImage raw_image;
 	raw_image.size   = target.size;
-	raw_image.pixels = (Color*)target.pixels;
-	xen::sren::getImageFromFramebuffer(&target, raw_image);
+	raw_image.pixels = (xen::Color*)target.pixels;
+	xsr::getImageFromFramebuffer(&target, raw_image);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Put the image on screen

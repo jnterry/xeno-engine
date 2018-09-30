@@ -38,7 +38,7 @@ void xen::log(u08 level, const char* file, u32 line, const char* message, ...){
 
 #include <xen/config.hpp>
 #ifdef XEN_OS_WINDOWS
-	#include "log.win.cpp"
+	#include "log.dummy.cpp"
 #elif defined XEN_OS_UNIX
 	#include "log.unix.cpp"
 #else

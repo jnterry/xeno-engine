@@ -35,6 +35,19 @@ namespace xen{
 		}
 	}
 
+	DateTime fromCTime(time_t t){
+		// adapted from: https://docs.microsoft.com/en-us/windows/desktop/sysinfo/converting-a-time-t-value-to-a-file-time
+		DateTime dt;
+
+		FILETIME* ftime = (FILETIME*)&dt._data;
+
+	  LONGLONG t_val = Int32x32To64(t, 10000000) + 116444736000000000;
+    ftime->dwLowDateTime = (DWORD) t_val;
+    ftime->dwHighDateTime = t_val >>32;
+
+    return dt;
+	}
+
 	Duration getTimestamp(){
 		LARGE_INTEGER time, frequency;
 		QueryPerformanceFrequency(&frequency);
