@@ -1,12 +1,15 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \ingroup kernel
+/// \brief Contains declaration of unix specific Kernel types/functions
+///
+/// \ingroup kerenl
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_KERNEL_KERNEL_UNIX_HXX
-#define XEN_KERNEL_KERNEL_UNIX_HXX
+#ifndef XEN_KERNEL_KERNEL_WIN_HXX
+#define XEN_KERNEL_KERNEL_WIN_HXX
 
+#include <xen/windows_header.hxx>
 
 namespace xke {
 	/////////////////////////////////////////////////////////////////////
@@ -19,8 +22,13 @@ namespace xke {
 		/// \brief The modification time of the lib the last time it was loaded
 		xen::DateTime   lib_modification_time;
 
-		/// \brief Handle returned by dlopen
-	  void* lib_handle;
+		/// \brief The int value appended to lib_path for the actually loaded dll
+		/// This is because MSVC cannot write to an open dll, so we must copy it
+		/// before loading
+		u64 lib_loaded_suffix;
+
+		/// \brief Handle returned by LoadLibrary
+	  HMODULE lib_handle;
 	};
 }
 

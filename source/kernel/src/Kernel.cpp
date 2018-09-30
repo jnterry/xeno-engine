@@ -91,7 +91,7 @@ bool xen::initKernel(const xen::KernelSettings& settings){
 
 	xen::copyBytes(&settings, &xke::kernel.settings, sizeof(xen::KernelSettings));
 
-	xke::kernel.modules            = xen::createArenaPool<xke::LoadedModule>(xke::kernel.system_arena, 128);
+	xke::kernel.modules = xen::createArenaPool<xke::LoadedModule>(xke::kernel.system_arena, 128);
 
 	if(!xke::initLogSubsystem()){
 		printf("Error occured while initializing log subsystem\n");
@@ -120,7 +120,11 @@ bool xen::initKernel(const xen::KernelSettings& settings){
 xen::StringHash xen::loadModule(const char* name,
                                 const void* params
                                ){
+	XenAssert(xke::kernel.state >= xke::Kernel::INITIALIZED,
+		      "Expected initKernel to be called before loadModule");
+
 	xke::LoadedModule* lmod = xen::reserveType<xke::LoadedModule>(xke::kernel.modules);
+	xen::clearToZero(lmod);
 
 	if(lmod == nullptr){
 		XenLogError("Failed to load module as max number of loaded modules has been reached");
