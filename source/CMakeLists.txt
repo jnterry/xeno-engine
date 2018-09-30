@@ -71,6 +71,10 @@ target_include_directories(xen-module-gl PRIVATE ${CMAKE_CURRENT_LIST_DIR}/core/
 target_include_directories(xen-module-gl PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/kernel/include/)
 target_include_directories(xen-module-gl PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/sren/include/)
 target_link_libraries     (xen-module-gl libglew_shared)
+if(MSVC)
+	target_link_libraries(xen-module-gl PRIVATE xen-core)
+	target_link_libraries(xen-module-gl PRIVATE xen-graphics)
+endif()
 
 add_library               (xen-module-sren-rasterize SHARED  ${XEN_HEADERS_MODULE_SREN_RASTERIZE} ${XEN_SOURCES_MODULE_SREN_RASTERIZE})
 target_include_directories(xen-module-sren-rasterize PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/module-sren-rasterize/include/)
@@ -82,6 +86,11 @@ target_include_directories(xen-module-sren-rasterize PRIVATE ${CMAKE_CURRENT_LIS
 target_include_directories(xen-module-sren-rasterize PUBLIC ${CMAKE_CURRENT_LIST_DIR}/kernel/include/)
 target_include_directories(xen-module-sren-rasterize PUBLIC ${CMAKE_CURRENT_LIST_DIR}/sren/include/)
 target_include_directories(xen-module-sren-rasterize PRIVATE ${CMAKE_CURRENT_LIST_DIR}/sren/impl/)
+if(MSVC)
+	target_link_libraries(xen-module-sren-rasterize PRIVATE xen-core)
+	target_link_libraries(xen-module-sren-rasterize PRIVATE xen-graphics)
+	target_link_libraries(xen-module-sren-rasterize PRIVATE xen-sren)
+endif()
 
 
 add_library               (xen-module-sren-raytrace SHARED  ${XEN_HEADERS_MODULE_SREN_RAYTRACE} ${XEN_SOURCES_MODULE_SREN_RAYTRACE})
@@ -95,6 +104,11 @@ target_include_directories(xen-module-sren-raytrace PUBLIC  ${CMAKE_CURRENT_LIST
 target_include_directories(xen-module-sren-raytrace PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/sren/include/)
 target_include_directories(xen-module-sren-raytrace PRIVATE ${CMAKE_CURRENT_LIST_DIR}/sren/impl/)
 target_include_directories(xen-module-sren-raytrace PRIVATE ${CMAKE_CURRENT_LIST_DIR}/module-sren-rasterize/src/)
+if(MSVC)
+	target_link_libraries(xen-module-sren-raytrace PRIVATE xen-core)
+	target_link_libraries(xen-module-sren-raytrace PRIVATE xen-graphics)
+	target_link_libraries(xen-module-sren-raytrace PRIVATE xen-sren)
+endif()
 
 add_library               (xen-module-sren-atom SHARED  ${XEN_HEADERS_MODULE_SREN_ATOM} ${XEN_SOURCES_MODULE_SREN_ATOM})
 target_include_directories(xen-module-sren-atom PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/module-sren-atom/include/)
@@ -107,6 +121,11 @@ target_include_directories(xen-module-sren-atom PUBLIC  ${CMAKE_CURRENT_LIST_DIR
 target_include_directories(xen-module-sren-atom PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/sren/include/)
 target_include_directories(xen-module-sren-atom PRIVATE ${CMAKE_CURRENT_LIST_DIR}/sren/impl/)
 target_include_directories(xen-module-sren-atom PRIVATE ${CMAKE_CURRENT_LIST_DIR}/module-sren-rasterize/src/)
+if(MSVC)
+	target_link_libraries(xen-module-sren-atom PRIVATE xen-core)
+	target_link_libraries(xen-module-sren-atom PRIVATE xen-graphics)
+	target_link_libraries(xen-module-sren-atom PRIVATE xen-sren)
+endif()
 
 set_target_properties(xen-core                  PROPERTIES FOLDER "xeno_engine")
 set_target_properties(xen-math                  PROPERTIES FOLDER "xeno_engine")

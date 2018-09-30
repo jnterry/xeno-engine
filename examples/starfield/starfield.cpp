@@ -140,9 +140,4 @@ void* load( void* data, const void* params){
 	return (void*)true;
 }
 
-xen::Module exported_xen_module = {
-	xen::hash("game"),
-	&init, &shutdown,
-	&load, nullptr,
-	&tick,
-};
+XenDeclareModule("game", &init, &shutdown, &load, nullptr, &tick);
