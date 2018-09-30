@@ -55,7 +55,7 @@ namespace xen {
 
 		ArenaPool (ArenaPool&& other) :
 			slots(other.slots), capacity(other.capacity),
-			slots_used(other.slots_used) {
+			slots_used(other.slots_used), first_free_slot(other.first_free_slot) {
 			// no-op
 		}
 
