@@ -28,6 +28,8 @@
 #include <xen/core/time.hpp>
 #include <xen/kernel/threads.hpp>
 
+#include <cstdarg>
+
 namespace xen {
 
 	/////////////////////////////////////////////////////////////////////
@@ -123,8 +125,29 @@ namespace xen {
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Writes a log message
+	/// \param level The level of the message
+	/// \param file The name of the path from which the message was generated
+	/// \param line The line number at which the message was written
+	/// \param msg_format Printf style format string, should not include trailing new
+	/// line as output system will take care of breaking up seperate messages in a sensible
+	/// mannor, but may include newline characters in the middle of the string to break up
+	/// a log message
+	/// \param args Arguments to printf string
+	/// \see log
+	///
+	/// \note This function should rarely be called, use one of the XenLogXXX macros which automatically
+	/// fill in the level, line and file arguments
 	/////////////////////////////////////////////////////////////////////
-	void log(u08 level, const char* file, u32 line, const char* message, ...);
+	void logv(u08 level, const char* file, u32 line, const char* msg_format, va_list args);
+
+	inline void log(u08 level, const char* file, u32 line, const char* msg_format, ...) {
+		va_list args;
+		va_start(args, msg_format);
+		logv(level, file, line, msg_format, args);
+		va_end(args);
+	}
+
+	
 }
 
 #define XenLogTrace(...)    ::xen::log(::xen::LogLevel::TRACE,     __FILE__, __LINE__, __VA_ARGS__)

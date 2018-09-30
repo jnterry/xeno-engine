@@ -15,23 +15,19 @@
 #include <cstdio>
 #include <cstdarg>
 
-void xen::log(u08 level, const char* file, u32 line, const char* message, ...){
+void xen::logv(u08 level, const char* file, u32 line, const char* message, va_list args){
 	LogMessage msg;
 	msg.time     = xen::getLocalTime();
 
 	char buffer[8196];
 
-	va_list args;
-	va_start(args, message);
 	vsnprintf(buffer, XenArrayLength(buffer), message, args);
-	va_end(args);
 
 	msg.level        = level;
 	msg.thread       = xen::getThreadIndex();
 	msg.file         = file;
 	msg.line_number  = line;
 	msg.message      = buffer;
-
 
 	xke::printLogMsgToStdio(msg);
 }
