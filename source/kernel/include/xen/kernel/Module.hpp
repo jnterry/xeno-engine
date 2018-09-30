@@ -114,4 +114,28 @@ namespace xen {
 	};
 }
 
+// Unfortuately modules cannot be declared in the same way across platforms.
+// On windows we use GetProcAddress to fetch functions from a loaded dll,
+// and on unix we us dlsym to get a symbol from the loaded so. Note that
+// function pointers cannot be casted to data pointers and vice versa, hence
+// these systems are incompatible. Hence under windows we must export a
+// function which returns the xen::Module where as under unix we export the
+// xen::Module instance itself. To ensure code is not duplicated in each
+// module we use the macro XenDeclareModule, which is defined for each platform
+// in the files listed below.
+//
+// (this also gives us the opertunity to fix up various other issues on
+// windows... see the comment in the windows file)
+#include <xen/config.hpp>
+#ifdef XEN_OS_WINDOWS
+#include "Module.win.hpp"
+#elif defined XEN_OS_UNIX
+#include "Module.unix.hpp"
+#else
+  #error "Kernel is not implemented on this platform"
+#endif
+
+
+
+
 #endif

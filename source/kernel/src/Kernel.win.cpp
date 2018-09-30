@@ -19,9 +19,25 @@
 
 #include <xen/windows_header.hxx>
 
-typedef void*(*ProcGetExportedModule)();
-
 namespace {
+	typedef void*(*ProcGetExportedModule)(XenKernelSyscalls*);
+
+	XenKernelSyscalls syscalls = {
+		&xen::loadModule,
+		&xen::getModuleApi,
+		&xen::kernelAlloc,
+		&xen::kernelFree,
+		&xen::requestKernelShutdown,
+		&xen::logv,
+		&xen::createTickWorkGroup,
+		&xen::pushTickWork,
+		&xen::pushTickWork,
+		&xen::waitForTickWork,
+		&xen::getThreadIndex,
+		&xen::getThreadCount,
+		&xen::getThreadScratchSpace
+	};
+
 	char* resolveDynamicLibrary(xen::ArenaLinear& arena, const char* name){
 		XenTempStringBuffer(strbuf, 4096, name);
 		xen::String original = strbuf;
@@ -77,7 +93,7 @@ namespace {
 			            msrc->lib_path, GetLastError());
 		}
 
-		xen::Module* result = (xen::Module*)proc();
+		xen::Module* result = (xen::Module*)proc(&syscalls);
 		if(result == nullptr){
 			XenLogError("Procedure 'getExportedXenModule' in module '%s' returned nullptr",
 			            msrc->lib_path
