@@ -77,4 +77,8 @@ xen::ArenaLinear& xen::getThreadScratchSpace(){
 	return thread_scratch;
 }
 
+xen::ThreadIndex xen::getThreadCount(){
+	return 1;
+}
+
 #endif
