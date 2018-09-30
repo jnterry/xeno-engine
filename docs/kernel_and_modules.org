@@ -15,18 +15,20 @@
 
 * Building an Application
 
-	The expected structure of such an applications is as follows:
-	- Executable
-		- Links against kernel, and any other standard libraries (core, graphics, etc)
-		- Calls xen::initKernel(), loads required modules, then calls xen::startKernel()
-	- Game Module
-		- Contains the game logic, dynamic loaded by the executable
-	- Standard modules
-		- The kernel may choose to load any standard modules bundled with xeno engine, for example, =module-gl= to use OpenGL for rendering
-	- 3rd party modules
-		- Any modules created for XenoEngine with additional functionality of some sort
+	Unfortuantelly the way in which in application is built varies slightly depending on the platform.
 
-	Note that it is *VERY* important that the individual modules *DO NOT* link against the *xen-kernel* library. This does not work since global kernel state is duplicated in each module. If the modules do not link against the kernel any calls into the kernel will instead use the library linked into the executable, and thus will use the correct global state.
+	The general idea is we have some central executable which is light, doing pretty much nothing but:
+	- Call =xen::initKernel()=
+	- Load required modules (maybe reading a config file to determine which to load, eg, OpenGL or DirectX module for graphics)
+	- Call =xen::startKernel()=
+	The intended design is that game logic is put in one of the loaded modules.
+
+	Under unix code in shared libraries may call functions linked into the executable, however this is not the case on windows.
+	Hence under unix it is preferable for the central executable to link against common code such as =xen-math= and =xen-core= - this approach ensures code is not duplicated into each shared module. It is possible for each module to link individually, bit probally not desired.
+	Under windows we do not have this option, and instead each module must link its dependencies itself.
+
+	The exception to this rule is that it is the individual modules *DO NOT* link against the =xen-kernel= library on, *THIS APPLIED TO ALL SYSTEMS* - instead only the central executable should link against =xen-kernel=. Failure to adhear to this will cause global kernel state to be duplicated in each module, causing strange errors (usually segfaults during module init).
+	Instead modules should use the macro =XenDelcareModule= to ensure they export the correct symbols on each platform, this will also magically ensure any syscalls made from the modules to the kernel use the function linked into the executable. This "magic" is not done for any other modules since it is a pain to maintain (see =Module.win.hpp=).
 
 * Ticks
 
