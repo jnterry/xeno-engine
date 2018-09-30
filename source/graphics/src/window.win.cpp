@@ -402,7 +402,7 @@ namespace xen{
 		return result;
 	}
 
-	bool isKeyPressed(Key key){
+	bool isKeyPressed(Key key, Window*){
 		UINT vk = impl::virtualKeyFromXenKey(key);
 		if(vk == 0){ return false; }
 		return (GetAsyncKeyState((int)vk) & ~1) != 0; //well done microsoft, store virtual key as UINT usually, but then take ints sometimes...
