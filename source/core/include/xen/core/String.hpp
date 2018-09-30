@@ -70,16 +70,7 @@ namespace xen {
 	/// \brief Determines if some string starts with some other
 	/////////////////////////////////////////////////////////////////////
 	bool startsWith(const char* string, const char* prefix);
-	inline bool startsWith(const xen::String string, const char* prefix){
-		return startsWith((const char*)string, prefix);
-	}
-	inline bool startsWith(const char* string, const xen::String prefix){
-		return startsWith(string, (const char*)prefix);
-	}
-	inline bool startsWith(const xen::String string, const xen::String prefix){
-		return startsWith((const char*)string, (const char*)prefix);
-	}
-	inline bool startsWith(const char* string, char prefix){
+	inline bool startsWith(const char* string, const char prefix){
 		return *string == prefix;
 	}
 
