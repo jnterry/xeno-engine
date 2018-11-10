@@ -57,7 +57,7 @@ TEST_CASE("Initializing and accessing fixed 2d array", "[core][array_types]"){
 }
 */
 
-TEST_CASE("Stretchy Array - push and remove ordered", "[core][array_types]"){
+TEST_CASE("Stretchy Array", "[core][array_types]"){
 	int buffer[5] = {10,11,12,0,0};
 
 	xen::StretchyArray<int> test;
@@ -70,73 +70,82 @@ TEST_CASE("Stretchy Array - push and remove ordered", "[core][array_types]"){
 	CHECK  (test[1] == 11);
 	CHECK  (test[2] == 12);
 
-	xen::pushBack(test, 50);
-	REQUIRE(xen::size(test) == 4);
-	CHECK(test[0] == 10);
-	CHECK(test[1] == 11);
-	CHECK(test[2] == 12);
-	CHECK(test[3] == 50);
+	SECTION("Push and remove ordered"){
+		xen::pushBack(test, 50);
+		REQUIRE(xen::size(test) == 4);
+		CHECK(test[0] == 10);
+		CHECK(test[1] == 11);
+		CHECK(test[2] == 12);
+		CHECK(test[3] == 50);
 
-	xen::pushBack(test, 70);
-	REQUIRE(xen::size(test) == 5);
-	CHECK(test[0] == 10);
-	CHECK(test[1] == 11);
-	CHECK(test[2] == 12);
-	CHECK(test[3] == 50);
-	CHECK(test[4] == 70);
+		xen::pushBack(test, 70);
+		REQUIRE(xen::size(test) == 5);
+		CHECK(test[0] == 10);
+		CHECK(test[1] == 11);
+		CHECK(test[2] == 12);
+		CHECK(test[3] == 50);
+		CHECK(test[4] == 70);
 
-	xen::remove(test, 4);
-	REQUIRE(xen::size(test) == 4);
-	CHECK(test[0] == 10);
-	CHECK(test[1] == 11);
-	CHECK(test[2] == 12);
-	CHECK(test[3] == 50);
+		xen::remove(test, 4);
+		REQUIRE(xen::size(test) == 4);
+		CHECK(test[0] == 10);
+		CHECK(test[1] == 11);
+		CHECK(test[2] == 12);
+		CHECK(test[3] == 50);
 
-	xen::remove(test, 1);
-	REQUIRE(xen::size(test) == 3);
-	CHECK(test[0] == 10);
-	CHECK(test[1] == 12);
-	CHECK(test[2] == 50);
-}
+		xen::remove(test, 1);
+		REQUIRE(xen::size(test) == 3);
+		CHECK(test[0] == 10);
+		CHECK(test[1] == 12);
+		CHECK(test[2] == 50);
+	}
 
-TEST_CASE("Stretchy Array - push and remove unordered", "[core][array_types]"){
-	int buffer[5] = {10,11,12,0,0};
+	SECTION("Push and remove unordered", "[core][array_types]"){
+		xen::pushBack(test, 50);
+		REQUIRE(xen::size(test) == 4);
+		CHECK(test[0] == 10);
+		CHECK(test[1] == 11);
+		CHECK(test[2] == 12);
+		CHECK(test[3] == 50);
 
-	xen::StretchyArray<int> test;
-	test.elements = buffer;
-	test.size     = 3;
-	test.capacity = 5;
+		xen::pushBack(test, 70);
+		REQUIRE(xen::size(test) == 5);
+		CHECK(test[0] == 10);
+		CHECK(test[1] == 11);
+		CHECK(test[2] == 12);
+		CHECK(test[3] == 50);
+		CHECK(test[4] == 70);
 
-	REQUIRE(xen::size(test) == 3);
-	CHECK  (test[0] == 10);
-	CHECK  (test[1] == 11);
-	CHECK  (test[2] == 12);
+		xen::removeUnordered(test, 4);
+		REQUIRE(xen::size(test) == 4);
+		CHECK(test[0] == 10);
+		CHECK(test[1] == 11);
+		CHECK(test[2] == 12);
+		CHECK(test[3] == 50);
 
-	xen::pushBack(test, 50);
-	REQUIRE(xen::size(test) == 4);
-	CHECK(test[0] == 10);
-	CHECK(test[1] == 11);
-	CHECK(test[2] == 12);
-	CHECK(test[3] == 50);
+		xen::removeUnordered(test, 1);
+		REQUIRE(xen::size(test) == 3);
+		CHECK(test[0] == 10);
+		CHECK(test[1] == 50);
+		CHECK(test[2] == 12);
+	}
 
-	xen::pushBack(test, 70);
-	REQUIRE(xen::size(test) == 5);
-	CHECK(test[0] == 10);
-	CHECK(test[1] == 11);
-	CHECK(test[2] == 12);
-	CHECK(test[3] == 50);
-	CHECK(test[4] == 70);
+  SECTION("Clear, push, remove", "[core][array_types]"){
+		xen::clear(test);
+		REQUIRE(xen::size(test) == 0);
 
-	xen::removeUnordered(test, 4);
-	REQUIRE(xen::size(test) == 4);
-	CHECK(test[0] == 10);
-	CHECK(test[1] == 11);
-	CHECK(test[2] == 12);
-	CHECK(test[3] == 50);
+		xen::pushBack(test, 5);
+		xen::pushBack(test, 6);
+		REQUIRE(xen::size(test) == 2);
+		CHECK(test[0] == 5);
+		CHECK(test[1] == 6);
 
-	xen::removeUnordered(test, 1);
-	REQUIRE(xen::size(test) == 3);
-	CHECK(test[0] == 10);
-	CHECK(test[1] == 50);
-	CHECK(test[2] == 12);
+		xen::removeUnordered(test, 0);
+		REQUIRE(xen::size(test) == 1);
+		CHECK(test[0] == 6);
+
+		xen::remove(test, 0);
+		REQUIRE(xen::size(test) == 0);
+	}
+
 }

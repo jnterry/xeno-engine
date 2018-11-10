@@ -104,11 +104,20 @@ namespace xen{
 	/////////////////////////////////////////////////////////////////////
 	template<typename T>
 	void remove(StretchyArray<T>& array, u64 index){
-		for(int i = index + 1; i < array.size; ++i){
+		for(u64 i = index + 1; i < array.size; ++i){
 			xen::copyBytes(&array.elements[i], &array.elements[i-1], sizeof(T));
 		}
 		--array.size;
 	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Clears a stretchy array so that it becomes empty
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	void clear(StretchyArray<T>& array){
+		array.size = 0;
+	}
+
 }
 
 #endif
