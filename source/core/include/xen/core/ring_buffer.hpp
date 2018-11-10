@@ -49,7 +49,7 @@ u64 capacity(RingBuffer<T>& buffer){ return buffer.capacity; }
 /// is full
 /////////////////////////////////////////////////////////////////////
 template<typename T>
-T* push_back(RingBuffer<T>& buffer, T element) {
+T* pushBack(RingBuffer<T>& buffer, T element) {
 	if(buffer.size >= buffer.capacity){ return nullptr; }
 
 	T* result = &buffer.elements[buffer.first_free];
@@ -69,7 +69,7 @@ T* push_back(RingBuffer<T>& buffer, T element) {
 /// modifing the ring buffer
 /////////////////////////////////////////////////////////////////////
 template<typename T>
-T& peak_front(const RingBuffer<T>& buffer) {
+T& peakFront(const RingBuffer<T>& buffer) {
 	XenAssert(buffer.size > 0, "Expected at least 1 element in ring buffer");
 
 	return buffer.elements[buffer.front];
@@ -80,7 +80,7 @@ T& peak_front(const RingBuffer<T>& buffer) {
 /// that which was most recently pushed) without modifing the ring buffer
 /////////////////////////////////////////////////////////////////////
 template<typename T>
-T& peak_back(const RingBuffer<T>& buffer){
+T& peakBack(const RingBuffer<T>& buffer){
 	XenAssert(buffer.size > 0, "Expected at least 1 element in ring buffer");
 
 	if(buffer.first_free == 0){
@@ -95,7 +95,7 @@ T& peak_back(const RingBuffer<T>& buffer){
 /// by value
 /////////////////////////////////////////////////////////////////////
 template<typename T>
-T pop_front(RingBuffer<T>& buffer){
+T popFront(RingBuffer<T>& buffer){
 	XenAssert(buffer.size > 0, "Expected at least 1 element in ring buffer");
 
 	T result = buffer.elements[buffer.front];

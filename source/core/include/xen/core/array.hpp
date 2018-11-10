@@ -21,10 +21,12 @@ namespace xen{
 	/////////////////////////////////////////////////////////////////////
   template<typename T, size_t T_SIZE>
   inline constexpr size_t size(const FixedArray<T, T_SIZE>&){ return T_SIZE; }
-
 	template<typename T>
 	inline size_t size(const Array<T>& array){ return array.size; }
-
+	template<typename T>
+	inline u64 capacity(Array<T>& buffer){ return buffer.size; }
+	template<typename T>
+	inline u64 capacity(StretchyArray<T>& buffer){ return buffer.capacity; }
 
 	template<typename T, size_t T_SIZE>
   inline constexpr void* clearToZero(FixedArray<T, T_SIZE>& array){
