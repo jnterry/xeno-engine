@@ -66,7 +66,6 @@ namespace xen{
 
 #include <xen/config.hpp>
 #if XEN_OS_WINDOWS
-		#error No windows specific file implementation
     #include "File.win.cpp"
 #elif XEN_OS_UNIX
     #include "File.unix.cpp"

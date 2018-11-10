@@ -10,9 +10,11 @@ function(xen_add_example TARGET_NAME)
 
 	target_include_directories(${TARGET_NAME} PRIVATE ${XEN_INCLUDE_DIR})
 
-
-
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+		 # The modules we load expect to find the symbols decarled in these
+		 # libraries in the global symbol table of the executable, but symbols
+		 # wont be included in the executable if they are not used by the executable...
+		 # unless we specify this flag
 		target_link_libraries(${TARGET_NAME} PUBLIC -Wl,--whole-archive)
 	endif()
 	target_link_libraries(${TARGET_NAME} PUBLIC xen-core    )
@@ -47,6 +49,17 @@ function(xen_add_example_module TARGET_NAME)
 		${_THIS_DIR}/utilities.hpp
 		${_THIS_DIR}/utilities.cpp
 	)
+
+	if(MSVC)
+		# Under windows module shared libraries cannot call functions linked
+		# into the executable, so modules must link against core xen code
+		# (except for the kernel, which is handled in a special way to avoid
+		# duplicate copies of kernel global state)
+		target_link_libraries(${TARGET_NAME} PUBLIC xen-core)
+		target_link_libraries(${TARGET_NAME} PUBLIC xen-math)
+		target_link_libraries(${TARGET_NAME} PUBLIC xen-graphics)
+		target_link_libraries(${TARGET_NAME} PUBLIC xen-sren)
+	endif()
 
 	target_include_directories(${TARGET_NAME} PRIVATE ${XEN_INCLUDE_DIRS})
 

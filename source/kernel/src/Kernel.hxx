@@ -12,6 +12,15 @@
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/memory/ArenaPool.hpp>
 
+#include <xen/config.hpp>
+#ifdef XEN_OS_WINDOWS
+	#include "Kernel.win.hxx"
+#elif defined XEN_OS_UNIX
+	#include "Kernel.unix.hxx"
+#else
+  #error "Kernel is not implemented on this platform"
+#endif
+
 namespace xen {
 	struct Module;
 }
@@ -22,17 +31,9 @@ namespace xke {
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents and Module currently resident in memory
+	/// \note Extends
 	/////////////////////////////////////////////////////////////////////
-	struct LoadedModule {
-		/// \brief The path to the shared library file containing code for module
-		const char*     lib_path;
-
-		/// \brief The modification time of the lib the last time it was loaded
-		xen::DateTime   lib_modification_time;
-
-		/// \brief DynamicLibrary instance representing loaded code for the module
-		xke::DynamicLibrary* library;
-
+	struct LoadedModule : public ModuleSource {
 		/// \brief The Module instances exported by the library
 		xen::Module*    module;
 
@@ -48,6 +49,10 @@ namespace xke {
 		/// \brief Next pointer in singly linked list of currently loaded modules
 		LoadedModule*   next;
 	};
+
+	xen::Module* platformLoadModule           (const char* name, ModuleSource* msrc);
+	xen::Module* platformReloadModuleIfChanged(ModuleSource* msrc);
+	bool         platformUnloadModule         (ModuleSource* msrc);
 
 	struct Kernel {
 		enum State {
@@ -82,6 +87,8 @@ namespace xke {
 
 		volatile bool stop_requested;
 	};
+
+	void platformRegisterSignalHandlers();
 
 	/// \brief Global kernel instance
 	extern Kernel kernel;

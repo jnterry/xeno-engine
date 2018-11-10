@@ -4,6 +4,7 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/time.hpp>
 #include <xen/core/String.hpp>
+#include <xen/kernel/Module.hpp>
 
 #include "game.hpp"
 
@@ -54,9 +55,4 @@ void shutdown(void* data, const void* params){
 	printf("Shutting down game module\n");
 }
 
-xen::Module exported_xen_module = {
-	xen::hash("game"),
-	&init, &shutdown,
-	&load, nullptr,
-	&tick,
-};
+XenDeclareModule("game", &init, &shutdown, &load, nullptr, &tick);

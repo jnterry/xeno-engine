@@ -10,7 +10,6 @@
 #define XEN_KERNEL_CONTEXT_CPP
 
 #include <xen/kernel/Kernel.hpp>
-#include "DynamicLibrary.hxx"
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/core/memory/ArenaPool.hpp>
 #include <xen/core/memory/utilities.hpp>
@@ -18,15 +17,10 @@
 #include <xen/core/time.hpp>
 #include <xen/kernel/log.hpp>
 
+#include <xen/config.hpp>
+
 #include <utility>
 #include <new>
-
-// sigsegv handler includes
-#include <stdio.h>
-#include <execinfo.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <unistd.h>
 
 #include "Kernel.hxx"
 #include "threads.hxx"
@@ -36,25 +30,7 @@ xke::Kernel xke::kernel;
 
 namespace {
 
-	bool doModuleLoad(xke::LoadedModule* lmod){
-		XenLogInfo("Loading shared library %s", lmod->lib_path);
-		lmod->library = xke::loadDynamicLibrary(*xke::kernel.root_allocator, lmod->lib_path);
-
-		if(lmod->library == nullptr){
-			return false;
-		}
-
-
-		lmod->module = (xen::Module*)xke::getDynamicLibrarySymbol(lmod->library, "exported_xen_module");
-
-		if(lmod->module == nullptr){
-			XenLogError("Cannot load the shared library '%s' as a kernel module "
-			            "- expected a symbol 'exported_xen_module' to be present",
-			            lmod->lib_path
-			           );
-			return false;
-		}
-
+	bool doModuleInit(xke::LoadedModule* lmod){
 		if(lmod->data == nullptr){
 			XenLogInfo("Initializing module: %s", lmod->lib_path);
 			if(lmod->module->initialize == nullptr){
@@ -88,51 +64,13 @@ namespace {
 		    lmod = lmod->next
 		   ){
 
-		  xen::DateTime mod_time = xen::getPathModificationTime(lmod->lib_path);
+			xen::Module* module = xke::platformReloadModuleIfChanged(lmod);
 
-		  if(mod_time > lmod->lib_modification_time){
-			  xen::DateTime now = xen::getLocalTime();
-
-			  if(now - mod_time < xen::seconds(1.5f)){
-				  // :TODO: this is a nasty hack - issue is that the linker will
-				  // truncate the file, then begin writing to it. Initial truncation
-				  // changes modification time, so we may start trying to load the
-				  // module before the linker has finished writing it. This says that
-				  // we should only load the module if it changed AND that was at least
-				  // 1 second ago. If linker takes longer than 1 second this will blow
-				  // up
-				  continue;
-			  }
-
-			  XenLogInfo("Reloading modified module: %s", lmod->lib_path);
-			  // :TODO: would be better to attempt to load new version
-			  // before we let go of the old version
-			  // But windows/unix etc doesn't let us load the same dynamic
-			  // library more than once (we could make a copy of the library
-			  // file and load the copy, hence tricking the OS loader to let us
-			  // load a dll multiple times)
-			  if(lmod->module->unload != nullptr){
-				  lmod->module->unload(lmod->data, lmod->params);
-			  }
-			  xke::unloadDynamicLibrary(*xke::kernel.root_allocator, lmod->library);
-
-			  doModuleLoad(lmod);
-			  lmod->lib_modification_time = mod_time;
-		  }
+			if(module != nullptr){
+				lmod->module = module;
+				doModuleInit(lmod);
+			}
 		}
-	}
-
-	void sigsegvHandler(int sig) {
-		void* array[256];
-		size_t size;
-
-		// get void*'s for all entries on the stack
-		size = backtrace(array, 256);
-
-		// print out all the frames to stderr
-		fprintf(stderr, "Error: signal SIGSEGV\n");
-		backtrace_symbols_fd(array, size, STDERR_FILENO);
-		exit(1);
 	}
 }
 
@@ -141,7 +79,7 @@ bool xen::initKernel(const xen::KernelSettings& settings){
 	          "Expected kernel to be initialised only once"
 	         );
 
-	signal(SIGSEGV, sigsegvHandler);
+	xke::platformRegisterSignalHandlers();
 
 	constexpr u32 SYSTEM_ARENA_SIZE = xen::kilobytes(16);
 
@@ -153,7 +91,7 @@ bool xen::initKernel(const xen::KernelSettings& settings){
 
 	xen::copyBytes(&settings, &xke::kernel.settings, sizeof(xen::KernelSettings));
 
-	xke::kernel.modules            = xen::createArenaPool<xke::LoadedModule>(xke::kernel.system_arena, 128);
+	xke::kernel.modules = xen::createArenaPool<xke::LoadedModule>(xke::kernel.system_arena, 128);
 
 	if(!xke::initLogSubsystem()){
 		printf("Error occured while initializing log subsystem\n");
@@ -182,27 +120,27 @@ bool xen::initKernel(const xen::KernelSettings& settings){
 xen::StringHash xen::loadModule(const char* name,
                                 const void* params
                                ){
+	XenAssert(xke::kernel.state >= xke::Kernel::INITIALIZED,
+		      "Expected initKernel to be called before loadModule");
+
 	xke::LoadedModule* lmod = xen::reserveType<xke::LoadedModule>(xke::kernel.modules);
-	char* lib_path = nullptr;
+	xen::clearToZero(lmod);
 
 	if(lmod == nullptr){
 		XenLogError("Failed to load module as max number of loaded modules has been reached");
 		goto cleanup;
 	}
 
-	lib_path = xke::resolveDynamicLibrary(name);
-	if(lib_path == nullptr){
-		XenLogError("Failed to find library file for module: %s", name);
+	lmod->module = xke::platformLoadModule(name, lmod);
+	if(lmod->module == nullptr){
 		goto cleanup;
 	}
-	lmod->lib_modification_time = xen::getPathModificationTime(lib_path);
 
 	lmod->params     = params;
-	lmod->lib_path   = lib_path;
 	lmod->next       = xke::kernel.module_head;
 	xke::kernel.module_head = lmod;
 
-	if(!doModuleLoad(lmod)){
+	if(!doModuleInit(lmod)){
 		goto cleanup;
 	}
 
@@ -213,10 +151,7 @@ xen::StringHash xen::loadModule(const char* name,
 		XenLogWarn("Cleaning up from failed module load: %s", name);
 		if(lmod == nullptr){ return 0; }
 
-		if(lmod->library != nullptr){
-			xke::unloadDynamicLibrary(*xke::kernel.root_allocator, lmod->library);
-		}
-
+		xke::platformUnloadModule(lmod);
 		xen::freeType<xke::LoadedModule>(xke::kernel.modules, lmod);
 
 		return 0;
@@ -325,5 +260,14 @@ void xen::kernelFree(void* data){
 void xen::requestKernelShutdown(){
 	xke::kernel.stop_requested = true;
 }
+
+#include <xen/config.hpp>
+#ifdef XEN_OS_WINDOWS
+	#include "Kernel.win.cpp"
+#elif defined XEN_OS_UNIX
+	#include "Kernel.unix.cpp"
+#else
+  #error "Kernel is not implemented on this platform"
+#endif
 
 #endif

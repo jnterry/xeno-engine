@@ -117,9 +117,4 @@ void shutdown(void* data, const void* params){
 	xen::kernelFree(state);
 }
 
-xen::Module exported_xen_module = {
-	xen::hash("game"),
-	&init, &shutdown,
-	&load, nullptr,
-	&tick,
-};
+XenDeclareModule("game", &init, &shutdown, &load, nullptr, &tick);

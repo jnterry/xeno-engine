@@ -1,20 +1,21 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \brief Contains implementation of thread related functions in a dummy
-/// fashion which simply processes all work synchronously on the calling
-/// thread
+/// \brief Contains unix specific macro defintions for modules
 ///
-/// \ingroup kernel
+/// \ingroup kerenel
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_KERNEL_THREAD_DUMMY_HXX
-#define XEN_KERNEL_THREAD_DUMMY_HXX
+#ifndef XEN_KERNEL_UNIX_HPP
+#define XEN_KERNEL_UNIX_HPP
 
-namespace xke {
-	struct ThreadData {
-		// empty
+#define XenDeclareModule(NAME, INIT, SHUTDOWN, LOAD, UNLOAD, TICK) \
+	::xen::Module exported_xen_module = { \
+		xen::hash(NAME), \
+		INIT, SHUTDOWN, \
+		LOAD, UNLOAD, \
+		TICK \
 	};
-}
+
 
 #endif
