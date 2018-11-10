@@ -18,8 +18,9 @@ namespace xen {
 /////////////////////////////////////////////////////////////////////
 template<typename T>
 struct RingBuffer {
+	typedef T TYPE;
 
-	/// \brief Array of length `capactiy` containing the elements in the buffer
+	/// \brief Array of length `capacity` containing the elements in the buffer
 	T* elements;
 
 	/// \brief The size of the elements array
@@ -75,6 +76,21 @@ T& peak_front(const RingBuffer<T>& buffer) {
 }
 
 /////////////////////////////////////////////////////////////////////
+/// \brief Retrieves reference to last element in RingBuffer, (IE:
+/// that which was most recently pushed) without modifing the ring buffer
+/////////////////////////////////////////////////////////////////////
+template<typename T>
+T& peak_back(const RingBuffer<T>& buffer){
+	XenAssert(buffer.size > 0, "Expected at least 1 element in ring buffer");
+
+	if(buffer.first_free == 0){
+		return buffer.elements[buffer.capacity-1];
+	} else {
+		return buffer.elements[buffer.first_free-1];
+	}
+}
+
+/////////////////////////////////////////////////////////////////////
 /// \brief Removes the first element in a RingBuffer returning the element
 /// by value
 /////////////////////////////////////////////////////////////////////
@@ -89,6 +105,17 @@ T pop_front(RingBuffer<T>& buffer){
 	--buffer.size;
 
 	return result;
+}
+
+/////////////////////////////////////////////////////////////////////
+/// \brief Resets a RingBuffer such that all slots are once again free
+/// to be used
+/////////////////////////////////////////////////////////////////////
+template<typename T>
+void clear(RingBuffer<T>& buffer){
+	buffer.size       = 0;
+	buffer.first_free = 0;
+	buffer.front      = 0;
 }
 
 }
