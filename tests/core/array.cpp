@@ -148,4 +148,34 @@ TEST_CASE("Stretchy Array", "[core][array_types]"){
 		REQUIRE(xen::size(test) == 0);
 	}
 
+  SECTION("Peaks, pushes and pops", "[core][array_types]"){
+		REQUIRE(xen::size     (test) ==  3);
+		CHECK  (xen::peakFront(test) == 10);
+		CHECK  (xen::peakBack (test) == 12);
+
+
+		CHECK  (xen::popFront(test)  == 10);
+		REQUIRE(xen::size     (test) ==  2);
+		CHECK  (xen::peakFront(test) == 11);
+		CHECK  (xen::peakBack (test) == 12);
+
+		xen::pushBack(test, 99);
+		REQUIRE(xen::size     (test) ==  3);
+		CHECK  (xen::peakFront(test) == 11);
+		CHECK  (xen::peakBack (test) == 99);
+
+		xen::remove(test,1);
+		REQUIRE(xen::size     (test) ==  2);
+		CHECK  (xen::peakFront(test) == 11);
+		CHECK  (xen::peakBack (test) == 99);
+
+		CHECK  (xen::popFront(test)  == 11);
+		REQUIRE(xen::size     (test) ==  1);
+		CHECK  (xen::peakFront(test) == 99);
+		CHECK  (xen::peakBack (test) == 99);
+
+		CHECK  (xen::popFront(test)  == 99);
+		REQUIRE(xen::size     (test) ==  0);
+	}
+
 }
