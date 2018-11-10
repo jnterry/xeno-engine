@@ -14,11 +14,10 @@
 namespace xen{
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Represents an array whose size may change at runtime
+	/// \brief Represents an array whose size is defined at runtime
 	/////////////////////////////////////////////////////////////////////
 	template<typename T>
 	struct Array {
-
 		u64 size;
 		T*  elements;
 
@@ -28,9 +27,18 @@ namespace xen{
 		/// \brief Represents an EmptyArray of type T
 		static const Array EmptyArray;
 	};
-
 	template<typename T>
 	const Array<T> Array<T>::EmptyArray = {0, 0};
+
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents an array whose size is expected to vary over time
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	struct StretchyArray : public Array<T> {
+		/// \brief Number of elements in allocated array
+		u64 capacity;
+	};
 
 	// Disable gcc's warning about anonymous structs in unions temporarily...
 	#pragma GCC diagnostic push

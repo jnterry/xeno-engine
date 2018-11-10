@@ -7,7 +7,7 @@
 /// \ingroup unit_tests
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <xen/math/geometry.hpp>
+#include <xen/core/array.hpp>
 #include <catch.hpp>
 
 TEST_CASE("Initializing and accessing 1d array", "[core][array_types]"){
@@ -56,3 +56,87 @@ TEST_CASE("Initializing and accessing fixed 2d array", "[core][array_types]"){
 	CHECK(test[1][1] == testArray[3]);
 }
 */
+
+TEST_CASE("Stretchy Array - push and remove ordered", "[core][array_types]"){
+	int buffer[5] = {10,11,12,0,0};
+
+	xen::StretchyArray<int> test;
+	test.elements = buffer;
+	test.size     = 3;
+	test.capacity = 5;
+
+	REQUIRE(xen::size(test) == 3);
+	CHECK  (test[0] == 10);
+	CHECK  (test[1] == 11);
+	CHECK  (test[2] == 12);
+
+	xen::pushBack(test, 50);
+	REQUIRE(xen::size(test) == 4);
+	CHECK(test[0] == 10);
+	CHECK(test[1] == 11);
+	CHECK(test[2] == 12);
+	CHECK(test[3] == 50);
+
+	xen::pushBack(test, 70);
+	REQUIRE(xen::size(test) == 5);
+	CHECK(test[0] == 10);
+	CHECK(test[1] == 11);
+	CHECK(test[2] == 12);
+	CHECK(test[3] == 50);
+	CHECK(test[4] == 70);
+
+	xen::remove(test, 4);
+	REQUIRE(xen::size(test) == 4);
+	CHECK(test[0] == 10);
+	CHECK(test[1] == 11);
+	CHECK(test[2] == 12);
+	CHECK(test[3] == 50);
+
+	xen::remove(test, 1);
+	REQUIRE(xen::size(test) == 3);
+	CHECK(test[0] == 10);
+	CHECK(test[1] == 12);
+	CHECK(test[2] == 50);
+}
+
+TEST_CASE("Stretchy Array - push and remove unordered", "[core][array_types]"){
+	int buffer[5] = {10,11,12,0,0};
+
+	xen::StretchyArray<int> test;
+	test.elements = buffer;
+	test.size     = 3;
+	test.capacity = 5;
+
+	REQUIRE(xen::size(test) == 3);
+	CHECK  (test[0] == 10);
+	CHECK  (test[1] == 11);
+	CHECK  (test[2] == 12);
+
+	xen::pushBack(test, 50);
+	REQUIRE(xen::size(test) == 4);
+	CHECK(test[0] == 10);
+	CHECK(test[1] == 11);
+	CHECK(test[2] == 12);
+	CHECK(test[3] == 50);
+
+	xen::pushBack(test, 70);
+	REQUIRE(xen::size(test) == 5);
+	CHECK(test[0] == 10);
+	CHECK(test[1] == 11);
+	CHECK(test[2] == 12);
+	CHECK(test[3] == 50);
+	CHECK(test[4] == 70);
+
+	xen::removeUnordered(test, 4);
+	REQUIRE(xen::size(test) == 4);
+	CHECK(test[0] == 10);
+	CHECK(test[1] == 11);
+	CHECK(test[2] == 12);
+	CHECK(test[3] == 50);
+
+	xen::removeUnordered(test, 1);
+	REQUIRE(xen::size(test) == 3);
+	CHECK(test[0] == 10);
+	CHECK(test[1] == 50);
+	CHECK(test[2] == 12);
+}

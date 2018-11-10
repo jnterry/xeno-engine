@@ -68,6 +68,45 @@ namespace xen{
 		}
 		return nullptr;
 	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Inserts a new element at the end of the stretchy array
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	T* pushBack(StretchyArray<T>& array, const T& value){
+		XenAssert(array.size < array.capacity,
+		          "Expected there to be space in array"
+		          );
+		T* result = &array.elements[array.size++];
+		*result = value;
+		return result;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Removes an element from the specified array, but does not
+	/// maintain ordering of the other elements for efficiency. This implementation
+	/// takes the current last element and moves it to the now vacant slot
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	void removeUnordered(StretchyArray<T>& array, u64 index){
+		if(index != array.size-1){
+			xen::copyBytes(&array.elements[array.size-1], &array.elements[index], sizeof(T));
+		}
+
+		--array.size;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Removes some element from the array, shifting all subsequent
+	/// elements down an index, thus preserving order of all other elements
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	void remove(StretchyArray<T>& array, u64 index){
+		for(int i = index + 1; i < array.size; ++i){
+			xen::copyBytes(&array.elements[i], &array.elements[i-1], sizeof(T));
+		}
+		--array.size;
+	}
 }
 
 #endif
