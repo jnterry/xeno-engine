@@ -468,6 +468,9 @@ TEST_CASE("RingBufferIterator", "[core][RingBuffer]"){
 		auto it_front = xen::iterateFront(buffer);
 		auto it_back  = xen::iterateBack (buffer);
 
+		REQUIRE(it_back  - it_front ==  1);
+		REQUIRE(it_front - it_back  == -1);
+
 		REQUIRE((bool)it_front[-1] == false);
 		REQUIRE((bool)it_front[ 0] ==  true);
 		CHECK  (     *it_front[ 0] ==     5);
@@ -499,6 +502,8 @@ TEST_CASE("RingBufferIterator", "[core][RingBuffer]"){
 		++it_front;
 
 		REQUIRE(it_front == it_back);
+		REQUIRE(it_back  - it_front == 0);
+		REQUIRE(it_front - it_back  == 0);
 		REQUIRE((bool)it_front[-2] == false);
 		REQUIRE((bool)it_front[-1] == false);
 		REQUIRE((bool)it_front[ 0] ==  true);

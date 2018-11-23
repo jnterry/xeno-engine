@@ -234,6 +234,10 @@ namespace xen {
 		bool operator!=(const RingBufferIterator<T, T_ASSERT>& other) const {
 			return &this->buffer != &other.buffer || this->index != other.index;
 		}
+
+		s64 operator-(const RingBufferIterator<T, T_ASSERT>& other) const {
+			return (s64)this->index - (s64)other.index;
+		}
 	};
 
 	template<typename T, bool T_ASSERT>
