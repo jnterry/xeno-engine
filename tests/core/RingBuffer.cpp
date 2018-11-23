@@ -1,16 +1,16 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief Contains unit tests for xen ring buffer
+/// \brief Contains unit tests for xen::RingBuffer
 ///
 /// \ingroup unit_tests
 ////////////////////////////////////////////////////////////////////////////////
 
-#include <xen/core/RollingArray.hpp>
+#include <xen/core/RingBuffer.hpp>
 #include <catch.hpp>
 
-TEST_CASE("RollingArray as a Standard Queue", "[core][RollingArray]"){
-	xen::RollingArray<int> buffer = {0};
+TEST_CASE("RingBuffer as a Standard Queue", "[core][RingBuffer]"){
+	xen::RingBuffer<int> buffer = {0};
 	int buffer_memory[4];
 	buffer.capacity = XenArrayLength(buffer_memory);
 	buffer.elements = buffer_memory;
@@ -25,23 +25,23 @@ TEST_CASE("RollingArray as a Standard Queue", "[core][RollingArray]"){
 	REQUIRE(xen::capacity(buffer) == 4);
 
 	SECTION("Pop all"){
-	  REQUIRE(xen::peakFront(buffer) ==  5);
-	  REQUIRE(xen::peakBack (buffer) == 10);
-	  REQUIRE(xen::size     (buffer) ==  2);
-	  REQUIRE(xen::capacity (buffer) ==  4);
+		REQUIRE(xen::peakFront(buffer) ==  5);
+		REQUIRE(xen::peakBack (buffer) == 10);
+		REQUIRE(xen::size     (buffer) ==  2);
+		REQUIRE(xen::capacity (buffer) ==  4);
 
-	  CHECK(xen::popFront(buffer) == 5);
-	  CHECK(xen::size     (buffer) == 1);
-	  CHECK(xen::capacity (buffer) == 4);
+		CHECK(xen::popFront(buffer) == 5);
+		CHECK(xen::size     (buffer) == 1);
+		CHECK(xen::capacity (buffer) == 4);
 
-	  REQUIRE(xen::peakFront(buffer) == 10);
-	  REQUIRE(xen::peakBack (buffer) == 10);
-	  REQUIRE(xen::size     (buffer) ==  1);
-	  REQUIRE(xen::capacity (buffer) ==  4);
+		REQUIRE(xen::peakFront(buffer) == 10);
+		REQUIRE(xen::peakBack (buffer) == 10);
+		REQUIRE(xen::size     (buffer) ==  1);
+		REQUIRE(xen::capacity (buffer) ==  4);
 
-	  CHECK(xen::popFront(buffer) == 10);
-	  CHECK(xen::size    (buffer) ==  0);
-	  CHECK(xen::capacity(buffer) ==  4);
+		CHECK(xen::popFront(buffer) == 10);
+		CHECK(xen::size    (buffer) ==  0);
+		CHECK(xen::capacity(buffer) ==  4);
 	}
 
 	SECTION("Fill and pop"){
@@ -61,8 +61,8 @@ TEST_CASE("RollingArray as a Standard Queue", "[core][RollingArray]"){
 
 	SECTION("Mixed pop and push"){
 		CHECK(xen::popFront(buffer) == 5);
-	  CHECK(xen::size    (buffer) == 1);
-	  CHECK(xen::capacity(buffer) == 4);
+		CHECK(xen::size    (buffer) == 1);
+		CHECK(xen::capacity(buffer) == 4);
 
 		xen::pushBack(buffer, 15);
 		xen::pushBack(buffer, 20);
@@ -102,8 +102,8 @@ TEST_CASE("RollingArray as a Standard Queue", "[core][RollingArray]"){
 
 	SECTION("Clear"){
 		xen::clear(buffer);
-	  CHECK(xen::size     (buffer) == 0);
-	  CHECK(xen::capacity (buffer) == 4);
+		CHECK(xen::size     (buffer) == 0);
+		CHECK(xen::capacity (buffer) == 4);
 
 		xen::pushBack(buffer, 15);
 		xen::pushBack(buffer, 20);
@@ -158,8 +158,8 @@ TEST_CASE("RollingArray as a Standard Queue", "[core][RollingArray]"){
 	}
 }
 
-TEST_CASE("RollingArray as a Reverse Queue", "[core][RollingArray]"){
-	xen::RollingArray<int> buffer = {0};
+TEST_CASE("RingBuffer as a Reverse Queue", "[core][RingBuffer]"){
+	xen::RingBuffer<int> buffer = {0};
 	int buffer_memory[4];
 	buffer.capacity = XenArrayLength(buffer_memory);
 	buffer.elements = buffer_memory;
@@ -174,23 +174,23 @@ TEST_CASE("RollingArray as a Reverse Queue", "[core][RollingArray]"){
 	REQUIRE(xen::capacity(buffer) == 4);
 
 	SECTION("Pop all"){
-	  REQUIRE(xen::peakBack(buffer) ==  5);
-	  REQUIRE(xen::peakFront (buffer) == 10);
-	  REQUIRE(xen::size     (buffer) ==  2);
-	  REQUIRE(xen::capacity (buffer) ==  4);
+		REQUIRE(xen::peakBack(buffer) ==  5);
+		REQUIRE(xen::peakFront (buffer) == 10);
+		REQUIRE(xen::size     (buffer) ==  2);
+		REQUIRE(xen::capacity (buffer) ==  4);
 
-	  CHECK(xen::popBack(buffer) == 5);
-	  CHECK(xen::size     (buffer) == 1);
-	  CHECK(xen::capacity (buffer) == 4);
+		CHECK(xen::popBack(buffer) == 5);
+		CHECK(xen::size     (buffer) == 1);
+		CHECK(xen::capacity (buffer) == 4);
 
-	  REQUIRE(xen::peakBack(buffer) == 10);
-	  REQUIRE(xen::peakFront (buffer) == 10);
-	  REQUIRE(xen::size     (buffer) ==  1);
-	  REQUIRE(xen::capacity (buffer) ==  4);
+		REQUIRE(xen::peakBack(buffer) == 10);
+		REQUIRE(xen::peakFront (buffer) == 10);
+		REQUIRE(xen::size     (buffer) ==  1);
+		REQUIRE(xen::capacity (buffer) ==  4);
 
-	  CHECK(xen::popBack(buffer) == 10);
-	  CHECK(xen::size    (buffer) ==  0);
-	  CHECK(xen::capacity(buffer) ==  4);
+		CHECK(xen::popBack(buffer) == 10);
+		CHECK(xen::size    (buffer) ==  0);
+		CHECK(xen::capacity(buffer) ==  4);
 	}
 
 	SECTION("Fill and pop"){
@@ -210,8 +210,8 @@ TEST_CASE("RollingArray as a Reverse Queue", "[core][RollingArray]"){
 
 	SECTION("Mixed pop and push"){
 		CHECK(xen::popBack(buffer) == 5);
-	  CHECK(xen::size    (buffer) == 1);
-	  CHECK(xen::capacity(buffer) == 4);
+		CHECK(xen::size    (buffer) == 1);
+		CHECK(xen::capacity(buffer) == 4);
 
 		xen::pushFront(buffer, 15);
 		xen::pushFront(buffer, 20);
@@ -251,8 +251,8 @@ TEST_CASE("RollingArray as a Reverse Queue", "[core][RollingArray]"){
 
 	SECTION("Clear"){
 		xen::clear(buffer);
-	  CHECK(xen::size    (buffer) == 0);
-	  CHECK(xen::capacity(buffer) == 4);
+		CHECK(xen::size    (buffer) == 0);
+		CHECK(xen::capacity(buffer) == 4);
 
 		xen::pushFront(buffer, 15);
 		xen::pushFront(buffer, 20);
@@ -307,8 +307,8 @@ TEST_CASE("RollingArray as a Reverse Queue", "[core][RollingArray]"){
 	}
 }
 
-TEST_CASE("RollingArray as an Array", "[core][RollingArray]"){
-	xen::RollingArray<int> buffer = {0};
+TEST_CASE("RingBuffer as an Array", "[core][RingBuffer]"){
+	xen::RingBuffer<int> buffer = {0};
 	int buffer_memory[4];
 	buffer.capacity = XenArrayLength(buffer_memory);
 	buffer.elements = buffer_memory;
@@ -328,18 +328,18 @@ TEST_CASE("RollingArray as an Array", "[core][RollingArray]"){
 
 		CHECK(xen::popFront(buffer) == 5);
 
-	  REQUIRE(xen::isIndexValid(buffer, 0) == false);
-	  REQUIRE(xen::isIndexValid(buffer, 1) == true );
-	  CHECK  (                  buffer [1] ==    10);
-	  CHECK  (xen::isIndexValid(buffer, 2) == false);
+		REQUIRE(xen::isIndexValid(buffer, 0) == false);
+		REQUIRE(xen::isIndexValid(buffer, 1) == true );
+		CHECK  (                  buffer [1] ==    10);
+		CHECK  (xen::isIndexValid(buffer, 2) == false);
 
-	  CHECK(xen::popFront(buffer) == 10);
-	  CHECK(xen::isIndexValid(buffer, 0) == false);
-	  CHECK(xen::isIndexValid(buffer, 1) == false);
-	  CHECK(xen::isIndexValid(buffer, 2) == false);
-	  CHECK(xen::isEmpty (buffer)        ==  true);
-	  CHECK(xen::size    (buffer)        ==     0);
-	  CHECK(xen::capacity(buffer)        ==     4);
+		CHECK(xen::popFront(buffer) == 10);
+		CHECK(xen::isIndexValid(buffer, 0) == false);
+		CHECK(xen::isIndexValid(buffer, 1) == false);
+		CHECK(xen::isIndexValid(buffer, 2) == false);
+		CHECK(xen::isEmpty (buffer)        ==  true);
+		CHECK(xen::size    (buffer)        ==     0);
+		CHECK(xen::capacity(buffer)        ==     4);
 	}
 
 	SECTION("With Wrap") {
@@ -349,7 +349,7 @@ TEST_CASE("RollingArray as an Array", "[core][RollingArray]"){
 		xen::pushBack(buffer, 30);
 
 		CHECK  (xen::size    (buffer)        ==     4);
-	  CHECK  (xen::capacity(buffer)        ==     4);
+		CHECK  (xen::capacity(buffer)        ==     4);
 
 		REQUIRE(xen::isIndexValid(buffer, 0) == false);
 		REQUIRE(xen::isIndexValid(buffer, 1) == false);
@@ -370,7 +370,7 @@ TEST_CASE("RollingArray as an Array", "[core][RollingArray]"){
 		xen::pushBack(buffer, 20);
 
 		CHECK  (xen::size    (buffer)        ==     4);
-	  CHECK  (xen::capacity(buffer)        ==     4);
+		CHECK  (xen::capacity(buffer)        ==     4);
 
 		REQUIRE(xen::isIndexValid(buffer, 0) ==  true);
 		CHECK  (                  buffer [0] ==     5);
@@ -450,3 +450,6 @@ TEST_CASE("RollingArray as an Array", "[core][RollingArray]"){
 		REQUIRE(xen::isIndexValid(buffer,10) ==  false);
 	}
 }
+
+// :TODO: test that asserts happen correctly when T_ASSERT_ON_OVERFLOW is set
+// (would need to have some way of unit test intercepting a XenAssert)

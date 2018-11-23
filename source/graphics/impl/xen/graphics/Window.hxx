@@ -11,7 +11,7 @@
 
 #include <xen/graphics/Window.hpp>
 #include <xen/math/vector_types.hpp>
-#include <xen/core/ring_buffer.hpp>
+#include <xen/core/RingBuffer.hpp>
 #include <xen/config.hpp>
 
 namespace xen {
