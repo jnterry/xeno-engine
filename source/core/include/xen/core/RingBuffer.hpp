@@ -189,6 +189,49 @@ namespace xen {
 		}
 		return array.elements[(array.front + array.size - 1) % array.capacity];
 	}
+
+
+	/*
+	//////////////////////////////////////////////////////////////////////
+	//
+	// Iterator implementation below
+	//
+	//////////////////////////////////////////////////////////////////////
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents an iterator into a RingBuffer with operator[] providing
+	/// access to elements relative to the current position of the iterator
+	/////////////////////////////////////////////////////////////////////
+	template<typename T, bool T_ASSERT>
+	struct RingBufferIterator {
+		/// \brief The buffer being accessed
+		RingBuffer<T, T_ASSERT>& buffer;
+
+		/// \brief The base index being accessed
+		u64         base;
+
+		T* operator->(){
+			return buffer[base];
+		}
+
+		T& operator*(){
+			return buffer[base];
+		}
+
+		operator(bool)() {
+			return xen::isIndexValid(buffer, base);
+		}
+
+		/// \brief Retrieves another iterator relative to this one
+		RingBufferIterator operator[](s64 delta) {
+			return { this->buffer, this->base + delta };
+		}
+
+		RingBufferIterator& operator++(){ ++this->base; return *this; }
+		RingBufferIterator& operator--(){ ++this->base; return *this; }
+	};
+
+	*/
 }
 
 #endif
