@@ -200,24 +200,24 @@ namespace xen {
 	/// \brief Represents an iterator into a RingBuffer with operator[] providing
 	/// access to elements relative to the current position of the iterator
 	/////////////////////////////////////////////////////////////////////
-	template<typename T, bool T_ASSERT>
+	template<typename T, bool T_ASSERT = true>
 	struct RingBufferIterator {
 		/// \brief The buffer being accessed
-		RingBuffer<T, T_ASSERT>& buffer;
+		RingBuffer<T, T_ASSERT>* buffer;
 
 		/// \brief The base index being accessed
 		u64         index;
 
 		T* operator->(){
-			return &buffer[index];
+			return &(*buffer)[index];
 		}
 
 		T& operator*(){
-			return buffer[index];
+			return (*buffer)[index];
 		}
 
 		operator bool() {
-			return xen::isIndexValid(buffer, index);
+			return xen::isIndexValid(*buffer, index);
 		}
 
 		/// \brief Retrieves another iterator relative to this one
@@ -229,10 +229,10 @@ namespace xen {
 		RingBufferIterator& operator--(){ ++this->index; return *this; }
 
 		bool operator==(const RingBufferIterator<T, T_ASSERT>& other) const {
-			return &this->buffer == &other.buffer && this->index == other.index;
+			return this->buffer == other.buffer && this->index == other.index;
 		}
 		bool operator!=(const RingBufferIterator<T, T_ASSERT>& other) const {
-			return &this->buffer != &other.buffer || this->index != other.index;
+			return this->buffer != other.buffer || this->index != other.index;
 		}
 
 		s64 operator-(const RingBufferIterator<T, T_ASSERT>& other) const {
@@ -242,12 +242,17 @@ namespace xen {
 
 	template<typename T, bool T_ASSERT>
 	RingBufferIterator<T, T_ASSERT> iterateFront(RingBuffer<T, T_ASSERT>& buffer){
-		return { buffer, buffer.first_index };
+		return { &buffer, buffer.first_index };
 	}
 
 	template<typename T, bool T_ASSERT>
 	RingBufferIterator<T, T_ASSERT> iterateBack(RingBuffer<T, T_ASSERT>& buffer){
-        return { buffer, buffer.first_index + buffer.size - 1};
+        return { &buffer, buffer.first_index + buffer.size - 1};
+	}
+
+	template<typename T, bool T_ASSERT>
+	RingBufferIterator<T, T_ASSERT> iterateAt(RingBuffer<T, T_ASSERT>& buffer, u64 index){
+        return { &buffer, index };
 	}
 }
 
