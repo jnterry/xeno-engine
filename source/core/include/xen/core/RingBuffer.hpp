@@ -206,33 +206,33 @@ namespace xen {
 		RingBuffer<T, T_ASSERT>& buffer;
 
 		/// \brief The base index being accessed
-		u64         base;
+		u64         index;
 
 		T* operator->(){
-			return buffer[base];
+			return buffer[index];
 		}
 
 		T& operator*(){
-			return buffer[base];
+			return buffer[index];
 		}
 
 		operator bool() {
-			return xen::isIndexValid(buffer, base);
+			return xen::isIndexValid(buffer, index);
 		}
 
 		/// \brief Retrieves another iterator relative to this one
 		RingBufferIterator operator[](s64 delta) {
-			return { this->buffer, this->base + delta };
+			return { this->buffer, this->index + delta };
 		}
 
-		RingBufferIterator& operator++(){ ++this->base; return *this; }
-		RingBufferIterator& operator--(){ ++this->base; return *this; }
+		RingBufferIterator& operator++(){ ++this->index; return *this; }
+		RingBufferIterator& operator--(){ ++this->index; return *this; }
 
 		bool operator==(const RingBufferIterator<T, T_ASSERT>& other) const {
-			return &this->buffer == &other.buffer && this->base == other.base;
+			return &this->buffer == &other.buffer && this->index == other.index;
 		}
 		bool operator!=(const RingBufferIterator<T, T_ASSERT>& other) const {
-			return &this->buffer != &other.buffer || this->base != other.base;
+			return &this->buffer != &other.buffer || this->index != other.index;
 		}
 	};
 
