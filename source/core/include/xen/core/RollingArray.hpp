@@ -14,27 +14,32 @@
 namespace xen {
 
 	/////////////////////////////////////////////////////////////////////
-	/// \brief A RollingArray represents some contiguous slice of n elements
-	/// taken from some larger virtual array. For example a RollingArray with
-	/// capacity 10 might store the elements 10-19 of the virtual array.
+	/// \brief A RingBuffer is some buffer of objects to which elements
+	/// may be pushed or popped from each end at any time. As such it may be
+	/// used for implementing stack and queue like behaviour
 	///
-	/// operator[] will thus be well defined for all indices in the range 10-19.
-	///
+	/// In additional the RingBuffer offer's "RollingArray" behaviour, in this
+	/// usage the buffer represents some contiguous slice of n elements
+	/// taken from some larger virtual array. For example a RingBuffer with
+	/// capacity 10 might store the elements 10-19 of the arbitrary length virtual
+	/// array. operator[] is defined as per RollingArray semantics, and hence in
+	/// this example would be well defined only for the indices in the range 10-19.
 	/// Pushing a new element onto the end of the array will cause it to store
 	/// the elements 11-20
-	///
 	/// Note that the size of the slice may be less than the capacity, for example,
 	/// the capacity 10 array may just be storing the elements 10-15, and hence
 	/// pushing a new element to the back will cause it to store the elements
 	/// 10-16 without displacing any other element
+	/// This RollingArray behaviour is useful for implementing stream processing
+	/// which requires access to some number of elements before and/or after the
+	/// examined element
 	///
-	/// A RollingArray is hence useful for:
-	/// - implementing a queue (push to back, pop from front, or vice versa)
-	/// - implementing a stack (push and pop from sand end)
-	/// - implementing some form of stream processing where access is required to
-	///   some number of elements either side of the currently examined element
+	/// \tparam T_ASSERT_ON_OVERFLOW - if true then XenAssert's will be used
+	/// then check pushes do not overflow the buffer and pops do not underflow
+	/// the buffer. Note that the use of operator[] is not bound checked in
+	/// either case
 	/////////////////////////////////////////////////////////////////////
-	template<typename T>
+	template<typename T, bool T_ASSERT_ON_OVERFLOW = false>
 	struct RollingArray {
 		typedef T TYPE;
 
@@ -64,32 +69,36 @@ namespace xen {
 		}
 	};
 
-	template<typename T>
-	u64 capacity(RollingArray<T>& array) { return array.capacity; }
+	template<typename T, bool T_ASSERT>
+	u64 capacity(RollingArray<T, T_ASSERT>& array) { return array.capacity; }
 
-	template<typename T>
-	u64 size(RollingArray<T>& array) {
-		return array.size;
-	}
+	template<typename T, bool T_ASSERT>
+	u64 size(RollingArray<T, T_ASSERT>& array) { return array.size; }
 
-	template<typename T>
-	bool isIndexValid(RollingArray<T>& array, u64 index){
+	template<typename T, bool T_ASSERT>
+	bool isIndexValid(RollingArray<T, T_ASSERT>& array, u64 index){
 		return array.first_index <= index && index < (array.first_index + array.size);
 	}
 
-	template<typename T>
-	void clear(RollingArray<T>& array, u64 base_index = 0) {
+	template<typename T, bool T_ASSERT>
+	void clear(RollingArray<T, T_ASSERT>& array, u64 base_index = 0) {
 		array.first_index = base_index;
 		array.size        = 0;
 	}
 
-	template<typename T>
-	bool hasSpace(RollingArray<T>& array){
+	template<typename T, bool T_ASSERT>
+	bool hasSpace(RollingArray<T, T_ASSERT>& array){
 		return array.size < array.capacity;
 	}
 
-	template<typename T>
-	T* pushFront(RollingArray<T>& array, T value){
+	template<typename T, bool T_ASSERT>
+	T* pushFront(RollingArray<T, T_ASSERT>& array, T value){
+		if(T_ASSERT){
+			XenAssert(xen::hasSpace(array),
+			          "Expected room in order to element to front of ring buffer"
+			          );
+		}
+
 		array.first_index -= 1;
 		array.size        += hasSpace(array);
 
@@ -101,8 +110,14 @@ namespace xen {
 		array.elements[array.front] = value;
 	}
 
-	template<typename T>
-	T* pushBack(RollingArray<T>& array, T value){
+	template<typename T, bool T_ASSERT>
+	T* pushBack(RollingArray<T, T_ASSERT>& array, T value){
+		if(T_ASSERT){
+			XenAssert(xen::hasSpace(array),
+			          "Expected room in order to element to back of ring buffer"
+			          );
+		}
+
 		if(hasSpace(array)){
 			array.size += 1;
 		} else {
@@ -114,15 +129,20 @@ namespace xen {
 		array.elements[(array.front + array.size - 1) % array.capacity] = value;
 	}
 
-
-	template<typename T>
-	bool isEmpty(RollingArray<T>& array) {
+	template<typename T, bool T_ASSERT>
+	bool isEmpty(RollingArray<T, T_ASSERT>& array) {
 		return array.size == 0;
 	}
 
 
-	template<typename T>
-	T popFront(RollingArray<T>& array){
+	template<typename T, bool T_ASSERT>
+	T popFront(RollingArray<T, T_ASSERT>& array){
+		if(T_ASSERT){
+			XenAssert(!xen::isEmpty(array),
+			          "Expected RingBuffer to be non-empty when popping front"
+			         );
+		}
+
 		u64 old_front = array.front;
 
 		array.front += 1;
@@ -134,20 +154,37 @@ namespace xen {
 		return array[old_front];
 	}
 
-	template<typename T>
-	T popBack(RollingArray<T>& array){
+	template<typename T, bool T_ASSERT>
+	T popBack(RollingArray<T, T_ASSERT>& array){
+		if(T_ASSERT){
+			XenAssert(!xen::isEmpty(array),
+			          "Expected RingBuffer to be non-empty when popping back"
+			         );
+		}
+
 		--array.size;
 		return array.elements[(array.front + array.size) % array.capacity];
 	}
 
-	template<typename T>
-	T& peakFront(RollingArray<T>& array) {
+	template<typename T, bool T_ASSERT>
+	T& peakFront(RollingArray<T, T_ASSERT>& array) {
+		if(T_ASSERT){
+			XenAssert(!xen::isEmpty(array),
+			          "Expected RingBuffer to be non-empty when peaking front"
+			         );
+		}
+
 		return array.elements[array.front];
 	}
 
-	template<typename T>
-	T& peakBack(RollingArray<T>& array) {
-        return array.elements[(array.front + array.size - 1) % array.capacity];
+	template<typename T, bool T_ASSERT>
+	T& peakBack(RollingArray<T, T_ASSERT>& array) {
+		if(T_ASSERT){
+			XenAssert(!xen::isEmpty(array),
+			          "Expected RingBuffer to be non-empty when peaking back"
+			         );
+		}
+		return array.elements[(array.front + array.size - 1) % array.capacity];
 	}
 }
 
