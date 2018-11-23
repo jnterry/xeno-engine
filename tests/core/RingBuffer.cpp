@@ -451,5 +451,69 @@ TEST_CASE("RingBuffer as an Array", "[core][RingBuffer]"){
 	}
 }
 
+
+TEST_CASE("RingBufferIterator", "[core][RingBuffer]"){
+	xen::RingBuffer<int> buffer = {0};
+	int buffer_memory[4];
+	buffer.capacity = XenArrayLength(buffer_memory);
+	buffer.elements = buffer_memory;
+
+	REQUIRE(xen::size    (buffer) == 0);
+	REQUIRE(xen::capacity(buffer) == 4);
+
+	xen::pushBack(buffer,  5);
+	xen::pushBack(buffer, 10);
+
+	SECTION("No wrap"){
+		auto it_front = xen::iterateFront(buffer);
+		auto it_back  = xen::iterateBack (buffer);
+
+		REQUIRE((bool)it_front[-1] == false);
+		REQUIRE((bool)it_front[ 0] ==  true);
+		CHECK  (     *it_front[ 0] ==     5);
+		REQUIRE((bool)it_front[ 1] ==  true);
+		CHECK  (     *it_front[ 1] ==    10);
+		REQUIRE((bool)it_front[ 2] == false);
+
+		REQUIRE((bool)it_back[-2] == false);
+		REQUIRE((bool)it_back[-1] ==  true);
+		CHECK  (     *it_back[-1] ==     5);
+		REQUIRE((bool)it_back[ 0] ==  true);
+		CHECK  (     *it_back[ 0] ==    10);
+		REQUIRE((bool)it_back[ 1] == false);
+
+		CHECK(xen::popFront(buffer) == 5);
+
+		REQUIRE((bool)it_front[-1] == false);
+		REQUIRE((bool)it_front[ 0] == false);
+		REQUIRE((bool)it_front[ 1] ==  true);
+		CHECK  (     *it_front[ 1] ==    10);
+		REQUIRE((bool)it_front[ 2] == false);
+
+		REQUIRE((bool)it_back[-2] == false);
+		REQUIRE((bool)it_back[-1] == false);
+		REQUIRE((bool)it_back[ 0] ==  true);
+		CHECK  (     *it_back[ 0] ==    10);
+		REQUIRE((bool)it_back[ 1] == false);
+
+		++it_front;
+
+		REQUIRE(it_front == it_back);
+		REQUIRE((bool)it_front[-2] == false);
+		REQUIRE((bool)it_front[-1] == false);
+		REQUIRE((bool)it_front[ 0] ==  true);
+		CHECK  (     *it_front[ 0] ==    10);
+		REQUIRE((bool)it_front[ 1] == false);
+		REQUIRE((bool)it_front[ 2] == false);
+
+		REQUIRE((bool)it_back[-2] == false);
+		REQUIRE((bool)it_back[-1] == false);
+		REQUIRE((bool)it_back[ 0] ==  true);
+		CHECK  (     *it_back[ 0] ==    10);
+		REQUIRE((bool)it_back[ 1] == false);
+		REQUIRE((bool)it_back[ 2] == false);
+	}
+}
+
 // :TODO: test that asserts happen correctly when T_ASSERT_ON_OVERFLOW is set
 // (would need to have some way of unit test intercepting a XenAssert)

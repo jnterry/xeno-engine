@@ -190,8 +190,6 @@ namespace xen {
 		return array.elements[(array.front + array.size - 1) % array.capacity];
 	}
 
-
-	/*
 	//////////////////////////////////////////////////////////////////////
 	//
 	// Iterator implementation below
@@ -218,7 +216,7 @@ namespace xen {
 			return buffer[base];
 		}
 
-		operator(bool)() {
+		operator bool() {
 			return xen::isIndexValid(buffer, base);
 		}
 
@@ -229,9 +227,24 @@ namespace xen {
 
 		RingBufferIterator& operator++(){ ++this->base; return *this; }
 		RingBufferIterator& operator--(){ ++this->base; return *this; }
+
+		bool operator==(const RingBufferIterator<T, T_ASSERT>& other) const {
+			return &this->buffer == &other.buffer && this->base == other.base;
+		}
+		bool operator!=(const RingBufferIterator<T, T_ASSERT>& other) const {
+			return &this->buffer != &other.buffer || this->base != other.base;
+		}
 	};
 
-	*/
+	template<typename T, bool T_ASSERT>
+	RingBufferIterator<T, T_ASSERT> iterateFront(RingBuffer<T, T_ASSERT>& buffer){
+		return { buffer, buffer.first_index };
+	}
+
+	template<typename T, bool T_ASSERT>
+	RingBufferIterator<T, T_ASSERT> iterateBack(RingBuffer<T, T_ASSERT>& buffer){
+        return { buffer, buffer.first_index + buffer.size - 1};
+	}
 }
 
 #endif
