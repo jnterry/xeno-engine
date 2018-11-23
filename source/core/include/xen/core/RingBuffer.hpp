@@ -209,7 +209,7 @@ namespace xen {
 		u64         index;
 
 		T* operator->(){
-			return buffer[index];
+			return &buffer[index];
 		}
 
 		T& operator*(){
