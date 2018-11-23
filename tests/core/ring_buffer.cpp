@@ -158,5 +158,73 @@ TEST_CASE("Standard ring buffer usage", "[core][ring_buffer]"){
 	}
 }
 
+TEST_CASE("Ring Buffer Iterator", "[core][ring_buffer]"){
+	xen::RingBuffer<int> buffer = {0};
+	int buffer_memory[4];
+	buffer.capacity = XenArrayLength(buffer_memory);
+	buffer.elements = buffer_memory;
+
+	REQUIRE(xen::size    (buffer) == 0);
+	REQUIRE(xen::capacity(buffer) == 4);
+
+	xen::pushBack(buffer,  5);
+	xen::pushBack(buffer, 10);
+
+	SECTION("No wrap"){
+		xen::RingBufferIterator<int> it = xen::iterateFirst(buffer);
+
+		REQUIRE((bool)it == true);
+		CHECK  (*it == 5);
+		CHECK  (it.operator->() == &buffer_memory[0]);
+
+		++it;
+
+		REQUIRE((bool)it == true);
+		CHECK  (*it == 10);
+		CHECK  (it.operator->() == &buffer_memory[1]);
+
+		++it;
+
+		REQUIRE((bool)it == false);
+	}
+
+	SECTION("With Wrap") {
+		xen::RingBufferIterator<int> it = xen::iterateFirst(buffer);
+
+		xen::pushBack(buffer, 15);
+		xen::pushBack(buffer, 20);
+		xen::popFront(buffer);
+		xen::popFront(buffer);
+		xen::pushBack(buffer, 25);
+		xen::pushBack(buffer, 30);
+
+		REQUIRE((bool)it == true);
+		CHECK  (*it == 15);
+		CHECK  (it.operator->() == &buffer_memory[2]);
+
+		++it;
+
+		REQUIRE((bool)it == true);
+		CHECK  (*it == 20);
+		CHECK  (it.operator->() == &buffer_memory[3]);
+
+		++it;
+
+	  REQUIRE((bool)it == true);
+		CHECK  (*it == 25);
+		CHECK  (it.operator->() == &buffer_memory[0]);
+
+		++it;
+
+		REQUIRE((bool)it == true);
+		CHECK  (*it == 30);
+		CHECK  (it.operator->() == &buffer_memory[1]);
+
+		++it;
+
+		REQUIRE((bool)it == false);
+	}
+}
+
 // :TODO: test popping from empty ring buffer -> expect assert
 // :TODO: test pushing to full ring buffer -> expect assert

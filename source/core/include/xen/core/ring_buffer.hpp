@@ -29,7 +29,7 @@ struct RingBuffer {
 	/// \brief The number of elements in the ring buffer
 	u64 size;
 
-	/// \brief The index next element in the buffer
+	/// \brief The index of the first element of `elements` which is in use
 	u64 front;
 
 	/// \brief The index of the first element of `elements` which is free
@@ -118,6 +118,38 @@ void clear(RingBuffer<T>& buffer){
 	buffer.front      = 0;
 }
 
+/// \brief Represents iterator over the elements of some RingBuffer
+template<typename T>
+struct RingBufferIterator {
+	RingBuffer<T>* buffer;
+	u64 offset;
+
+	/// \brief Access current element
+	T* operator->() {
+		return &this->buffer->elements[(buffer->front + this->offset) % buffer->capacity];
+	}
+
+	/// \brief Retrieves reference to current element
+	T& operator*() {
+		return *this->operator->();
+	}
+
+	/// \brief Determines if this iterator is valid
+	operator bool() {
+		return this->offset < buffer->size;
+	}
+
+	/// \brief Advances this iterator to the next element of the buffer
+	RingBufferIterator& operator++(){
+		++this->offset;
+	}
+};
+
+/// \brief Retrieves an iterator to the first element in some RingBuffer
+template<typename T>
+RingBufferIterator<T> iterateFirst(RingBuffer<T>& buffer){
+	return { &buffer, 0 };
 }
 
+}
 #endif
