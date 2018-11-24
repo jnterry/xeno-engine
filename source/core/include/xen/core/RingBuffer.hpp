@@ -96,7 +96,7 @@ namespace xen {
 	T* pushFront(RingBuffer<T, T_ASSERT>& array, T value){
 		if(T_ASSERT){
 			XenAssert(xen::hasSpace(array),
-			          "Expected room in order to element to front of ring buffer"
+			          "Expected room in order to push element to front of ring buffer"
 			          );
 		}
 
@@ -116,7 +116,7 @@ namespace xen {
 	T* pushBack(RingBuffer<T, T_ASSERT>& array, T value){
 		if(T_ASSERT){
 			XenAssert(xen::hasSpace(array),
-			          "Expected room in order to element to back of ring buffer"
+			          "Expected room in order to push element to back of ring buffer"
 			          );
 		}
 
