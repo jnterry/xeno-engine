@@ -10,6 +10,7 @@
 #define XEN_CORE_RINGBUFFER_HPP
 
 #include <xen/core/intrinsics.hpp>
+#include <xen/core/memory/utilities.hpp>
 
 namespace xen {
 
@@ -188,6 +189,19 @@ namespace xen {
 			         );
 		}
 		return array.elements[(array.front + array.size - 1) % array.capacity];
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Removes some element from a RingBuffer replacing it with
+	/// the currently last element
+	/////////////////////////////////////////////////////////////////////
+	template<typename T, bool T_ASSET>
+	void removeUnordered(RingBuffer<T, T_ASSET>& array, u64 index){
+		u64 last_index = array.first_index + array.size - 1;
+		if(index != last_index){
+			xen::copyBytes(&array[last_index], &array[index], sizeof(T));
+		}
+		--array.size;
 	}
 
 	//////////////////////////////////////////////////////////////////////

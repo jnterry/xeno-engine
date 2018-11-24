@@ -449,6 +449,90 @@ TEST_CASE("RingBuffer as an Array", "[core][RingBuffer]"){
 		REQUIRE(xen::isIndexValid(buffer, 9) ==  false);
 		REQUIRE(xen::isIndexValid(buffer,10) ==  false);
 	}
+
+
+	SECTION("Remove unordered"){
+		REQUIRE(xen::popFront(buffer) ==  5);
+		REQUIRE(xen::popFront(buffer) == 10);
+
+		REQUIRE(xen::size(buffer) == 0);
+
+	  xen::pushBack(buffer, 100);
+	  xen::pushBack(buffer, 200);
+	  xen::pushBack(buffer, 300);
+	  xen::pushBack(buffer, 400);
+
+	  REQUIRE(xen::isIndexValid(buffer, 1) == false);
+	  REQUIRE(xen::isIndexValid(buffer, 2) ==  true);
+	  REQUIRE(xen::isIndexValid(buffer, 3) ==  true);
+	  REQUIRE(xen::isIndexValid(buffer, 4) ==  true);
+	  REQUIRE(xen::isIndexValid(buffer, 5) ==  true);
+	  REQUIRE(xen::isIndexValid(buffer, 6) == false);
+	  REQUIRE(buffer[2] == 100);
+	  REQUIRE(buffer[3] == 200);
+	  REQUIRE(buffer[4] == 300);
+	  REQUIRE(buffer[5] == 400);
+
+	  SECTION("Remove First"){
+		  xen::removeUnordered(buffer, 2);
+
+		  CHECK  (xen::size(buffer) == 3);
+		  REQUIRE(xen::isIndexValid(buffer, 1) == false);
+		  REQUIRE(xen::isIndexValid(buffer, 2) ==  true);
+		  REQUIRE(xen::isIndexValid(buffer, 3) ==  true);
+		  REQUIRE(xen::isIndexValid(buffer, 4) ==  true);
+		  REQUIRE(xen::isIndexValid(buffer, 5) == false);
+		  REQUIRE(xen::isIndexValid(buffer, 6) == false);
+		  CHECK(buffer[2] == 400);
+		  CHECK(buffer[3] == 200);
+		  CHECK(buffer[4] == 300);
+	  }
+
+	  SECTION("Remove Before Wrap"){
+		  xen::removeUnordered(buffer, 3);
+
+		  CHECK  (xen::size(buffer) == 3);
+		  REQUIRE(xen::isIndexValid(buffer, 1) == false);
+		  REQUIRE(xen::isIndexValid(buffer, 2) ==  true);
+		  REQUIRE(xen::isIndexValid(buffer, 3) ==  true);
+		  REQUIRE(xen::isIndexValid(buffer, 4) ==  true);
+		  REQUIRE(xen::isIndexValid(buffer, 5) == false);
+		  REQUIRE(xen::isIndexValid(buffer, 6) == false);
+		  CHECK(buffer[2] == 100);
+		  CHECK(buffer[3] == 400);
+		  CHECK(buffer[4] == 300);
+	  }
+
+	   SECTION("Remove After Wrap"){
+		  xen::removeUnordered(buffer, 4);
+
+		  CHECK  (xen::size(buffer) == 3);
+		  REQUIRE(xen::isIndexValid(buffer, 1) == false);
+		  REQUIRE(xen::isIndexValid(buffer, 2) ==  true);
+		  REQUIRE(xen::isIndexValid(buffer, 3) ==  true);
+		  REQUIRE(xen::isIndexValid(buffer, 4) ==  true);
+		  REQUIRE(xen::isIndexValid(buffer, 5) == false);
+		  REQUIRE(xen::isIndexValid(buffer, 6) == false);
+		  CHECK(buffer[2] == 100);
+		  CHECK(buffer[3] == 200);
+		  CHECK(buffer[4] == 400);
+	  }
+
+	  SECTION("Remove Last"){
+		  xen::removeUnordered(buffer, 5);
+
+		  CHECK  (xen::size(buffer) == 3);
+		  REQUIRE(xen::isIndexValid(buffer, 1) == false);
+		  REQUIRE(xen::isIndexValid(buffer, 2) ==  true);
+		  REQUIRE(xen::isIndexValid(buffer, 3) ==  true);
+		  REQUIRE(xen::isIndexValid(buffer, 4) ==  true);
+		  REQUIRE(xen::isIndexValid(buffer, 5) == false);
+		  REQUIRE(xen::isIndexValid(buffer, 6) == false);
+		  CHECK(buffer[2] == 100);
+		  CHECK(buffer[3] == 200);
+		  CHECK(buffer[4] == 300);
+	  }
+	}
 }
 
 
