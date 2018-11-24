@@ -520,5 +520,56 @@ TEST_CASE("RingBufferIterator", "[core][RingBuffer]"){
 	}
 }
 
+
+TEST_CASE("RingBuffer Regression Tests", "[core][RingBuffer]"){
+	SECTION("Capacity 8, front 3, empty, push 4", "[core][RingBuffer]"){
+		char buffer_memory[8];
+		xen::RingBuffer<char> buffer;
+		buffer.elements    = buffer_memory;
+		buffer.capacity    = 8;
+		buffer.front       = 3;
+		buffer.size        = 0;
+		buffer.first_index = 10;
+
+		xen::pushBack(buffer, 'a');
+		xen::pushBack(buffer, 'e');
+		xen::pushBack(buffer, 'i');
+		xen::pushBack(buffer, 'o');
+
+		REQUIRE(xen::size        (buffer)       ==  4);
+		REQUIRE(xen::capacity    (buffer)       ==  8);
+		REQUIRE(xen::iterateFront(buffer).index == 10);
+
+		REQUIRE(xen::isIndexValid(buffer,  9) == false);
+		REQUIRE(xen::isIndexValid(buffer, 10) ==  true);
+		CHECK  (                  buffer [10] ==    'a');
+		REQUIRE(xen::isIndexValid(buffer, 11) ==  true);
+		CHECK  (                  buffer [11] ==    'e');
+		REQUIRE(xen::isIndexValid(buffer, 12) ==  true);
+		CHECK  (                  buffer [12] ==    'i');
+		REQUIRE(xen::isIndexValid(buffer, 13) ==  true);
+		CHECK  (                  buffer [13] ==    'o');
+		REQUIRE(xen::isIndexValid(buffer, 14) == false);
+
+		CHECK(*(xen::iterateFront(buffer)   ) == 'a');
+		CHECK(*(xen::iterateFront(buffer)[0]) == 'a');
+		CHECK(*(xen::iterateFront(buffer)[1]) == 'e');
+		CHECK(*(xen::iterateFront(buffer)[2]) == 'i');
+		CHECK(*(xen::iterateFront(buffer)[3]) == 'o');
+
+		CHECK(xen::peakFront(buffer) == 'a');
+		CHECK(xen::peakBack (buffer) == 'o');
+
+		CHECK(xen::popFront(buffer) == 'a');
+		CHECK(xen::popFront(buffer) == 'e');
+		CHECK(xen::popFront(buffer) == 'i');
+		CHECK(xen::popFront(buffer) == 'o');
+
+	  CHECK(xen::size        (buffer)       ==     0);
+		CHECK(xen::capacity    (buffer)       ==     8);
+		CHECK(xen::iterateFront(buffer).index ==    14);
+	}
+}
+
 // :TODO: test that asserts happen correctly when T_ASSERT_ON_OVERFLOW is set
 // (would need to have some way of unit test intercepting a XenAssert)

@@ -154,7 +154,7 @@ namespace xen {
 		++array.first_index;
 		--array.size;
 
-		return array[old_front];
+		return array.elements[old_front];
 	}
 
 	template<typename T, bool T_ASSERT>
