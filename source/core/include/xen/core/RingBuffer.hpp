@@ -38,9 +38,9 @@ namespace xen {
 	/// \tparam T_ASSERT_ON_OVERFLOW - if true then XenAssert's will be used
 	/// then check pushes do not overflow the buffer and pops do not underflow
 	/// the buffer. Note that the use of operator[] is not bound checked in
-	/// either case
+	/// either case. This is set to true by default
 	/////////////////////////////////////////////////////////////////////
-	template<typename T, bool T_ASSERT_ON_OVERFLOW = false>
+	template<typename T, bool T_ASSERT_ON_OVERFLOW = true>
 	struct RingBuffer {
 		typedef T TYPE;
 
