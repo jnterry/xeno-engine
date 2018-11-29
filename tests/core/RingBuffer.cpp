@@ -343,10 +343,10 @@ TEST_CASE("RingBuffer as an Array", "[core][RingBuffer]"){
 	}
 
 	SECTION("With Wrap") {
-		xen::pushBack(buffer, 15);
-		xen::pushBack(buffer, 20);
-		xen::pushBack(buffer, 25);
-		xen::pushBack(buffer, 30);
+		xen::pushBack<int, false>(buffer, 15);
+		xen::pushBack<int, false>(buffer, 20);
+		xen::pushBack<int, false>(buffer, 25);
+		xen::pushBack<int, false>(buffer, 30);
 
 		CHECK  (xen::size    (buffer)        ==     4);
 		CHECK  (xen::capacity(buffer)        ==     4);
@@ -393,9 +393,9 @@ TEST_CASE("RingBuffer as an Array", "[core][RingBuffer]"){
 		REQUIRE(xen::isIndexValid(buffer, 3) ==  false);
 		REQUIRE(xen::isIndexValid(buffer, 5) ==  false);
 
-		xen::pushBack(buffer, 100);
-		xen::pushBack(buffer, 200);
-		xen::pushBack(buffer, 300);
+		xen::pushBack<int, false>(buffer, 100);
+		xen::pushBack<int, false>(buffer, 200);
+		xen::pushBack<int, false>(buffer, 300);
 
 		REQUIRE(xen::isIndexValid(buffer, 0) ==  false);
 		REQUIRE(xen::isIndexValid(buffer, 1) ==  false);
@@ -409,10 +409,10 @@ TEST_CASE("RingBuffer as an Array", "[core][RingBuffer]"){
 		CHECK  (                  buffer [5] ==    300);
 		REQUIRE(xen::isIndexValid(buffer, 6) ==  false);
 
-		xen::pushBack(buffer, 400);
-		xen::pushBack(buffer, 500);
-		xen::pushBack(buffer, 600);
-		xen::pushBack(buffer, 700);
+		xen::pushBack<int, false>(buffer, 400);
+		xen::pushBack<int, false>(buffer, 500);
+		xen::pushBack<int, false>(buffer, 600);
+		xen::pushBack<int, false>(buffer, 700);
 
 		REQUIRE(xen::isIndexValid(buffer, 0) ==  false);
 		REQUIRE(xen::isIndexValid(buffer, 1) ==  false);
@@ -430,8 +430,8 @@ TEST_CASE("RingBuffer as an Array", "[core][RingBuffer]"){
 		CHECK  (                  buffer [9] ==    700);
 		REQUIRE(xen::isIndexValid(buffer,10) ==  false);
 
-		xen::pushFront(buffer, 999);
-		xen::pushFront(buffer, 888);
+		xen::pushFront<int, false>(buffer, 999);
+		xen::pushFront<int, false>(buffer, 888);
 
 		REQUIRE(xen::isIndexValid(buffer, 0) ==  false);
 		REQUIRE(xen::isIndexValid(buffer, 1) ==  false);

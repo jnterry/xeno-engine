@@ -68,6 +68,16 @@ namespace xen {
 			u64 true_index = (front + (index - first_index)) % this->capacity;
 			return this->elements[true_index];
 		}
+
+		template<bool T_OTHER>
+		operator RingBuffer<T, T_OTHER>&() {
+			return *reinterpret_cast<RingBuffer<T, T_OTHER>*>(this);
+		}
+
+		template<bool T_OTHER>
+		operator const RingBuffer<T, T_OTHER>&() const {
+			return *reinterpret_cast<const RingBuffer<T, T_OTHER>*>(this);
+		}
 	};
 
 	template<typename T, bool T_ASSERT>
@@ -195,8 +205,8 @@ namespace xen {
 	/// \brief Removes some element from a RingBuffer replacing it with
 	/// the currently last element
 	/////////////////////////////////////////////////////////////////////
-	template<typename T, bool T_ASSET>
-	void removeUnordered(RingBuffer<T, T_ASSET>& array, u64 index){
+	template<typename T, bool T_ASSERT>
+	void removeUnordered(RingBuffer<T, T_ASSERT>& array, u64 index){
 		u64 last_index = array.first_index + array.size - 1;
 		if(index != last_index){
 			xen::copyBytes(&array[last_index], &array[index], sizeof(T));
