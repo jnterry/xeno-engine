@@ -28,6 +28,15 @@ namespace xen{
 	template<typename T>
 	inline u64 capacity(StretchyArray<T>& buffer){ return buffer.capacity; }
 
+	template<typename T>
+	inline bool isEmpty(Array<T>& array) {
+		return array.size == 0;
+	}
+	template<typename T>
+	inline bool hasSpace(StretchyArray<T>& array){
+		return array.size < array.capacity;
+	}
+
 	template<typename T, size_t T_SIZE>
   inline constexpr void* clearToZero(FixedArray<T, T_SIZE>& array){
 		return clearToZero(array.elements, sizeof(T) * T_SIZE);
