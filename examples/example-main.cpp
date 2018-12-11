@@ -3,6 +3,7 @@
 
 #include <cstring>
 #include <cstdio>
+#include <cstdlib>
 
 
 xen::StringHash loadGraphicsModule(const char* cli_arg){
