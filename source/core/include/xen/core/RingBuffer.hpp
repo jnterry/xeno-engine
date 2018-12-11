@@ -99,7 +99,9 @@ namespace xen {
 
 	template<typename T, bool T_ASSERT>
 	bool hasSpace(RingBuffer<T, T_ASSERT>& array){
-		return array.size < array.capacity;
+		// extra brackets around array.size fix parse bug in gcc 4.8.5
+		// https://gcc.gnu.org/ml/gcc-help/2016-01/msg00087.html
+		return (array.size) < array.capacity;
 	}
 
 	template<typename T, bool T_ASSERT>
