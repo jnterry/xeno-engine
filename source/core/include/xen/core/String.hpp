@@ -83,6 +83,9 @@ namespace xen {
 	inline bool startsWith(const xen::String string, const xen::String prefix) {
 		return startsWith((const char*)string, (const char*)prefix);
 	}
+	inline bool startsWith(const xen::String string, const char prefix){
+		return *string.start == prefix;
+	}
 	#endif
 	inline bool startsWith(const char* string, const char prefix){
 		return *string == prefix;
