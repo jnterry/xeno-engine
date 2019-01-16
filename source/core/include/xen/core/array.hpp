@@ -120,6 +120,14 @@ namespace xen{
 	}
 
 	/////////////////////////////////////////////////////////////////////
+	/// \brief Removes the element at the back of the array
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	void popBack(StretchyArray<T>& array){
+		--array.size;
+	}
+
+	/////////////////////////////////////////////////////////////////////
 	/// \brief Removes the element at the front of the array, returning
 	/// its value to the user
 	/// \note Arrays have bad performance when used as queues. Use a ring_buffer
