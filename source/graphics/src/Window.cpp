@@ -43,8 +43,8 @@ namespace xen {
 			// to that function, and that function is called only within pollEvent
 			// currently, hence this is safe provided pollEvent is not called before
 			// the previous event is processed
-			WindowEvent* result = &xen::peak_front(win->events);
-			xen::pop_front(win->events);
+			WindowEvent* result = &xen::peakFront(win->events);
+			xen::popFront(win->events);
 			return result;
 		}
 	}
@@ -58,10 +58,10 @@ namespace xen {
 
 			bool is_full = win->events.capacity == win->events.size;
 			if(is_full){
-				xen::pop_front(win->events);
+				xen::popFront(win->events);
 			}
 
-			xen::push_back(win->events, event);
+			xen::pushBack(win->events, event);
 
 			return !is_full;
 		}

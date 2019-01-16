@@ -11,7 +11,7 @@
 
 #include <xen/graphics/Window.hpp>
 #include <xen/math/vector_types.hpp>
-#include <xen/core/ring_buffer.hpp>
+#include <xen/core/RingBuffer.hpp>
 #include <xen/config.hpp>
 
 namespace xen {
@@ -29,7 +29,7 @@ namespace xen {
 			bool is_open;
 
 			/// \brief Queue of events to process for this window
-			xen::RingBuffer<WindowEvent> events;
+			xen::RingBuffer<WindowEvent, false> events;
 
 			/// \brief The render target representing the area of the window
 			/// that may be drawn to

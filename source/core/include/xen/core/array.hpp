@@ -21,10 +21,23 @@ namespace xen{
 	/////////////////////////////////////////////////////////////////////
   template<typename T, size_t T_SIZE>
   inline constexpr size_t size(const FixedArray<T, T_SIZE>&){ return T_SIZE; }
-
 	template<typename T>
 	inline size_t size(const Array<T>& array){ return array.size; }
+	template<typename T>
+	inline u64 capacity(Array<T>& buffer){ return buffer.size; }
+	template<typename T>
+	inline u64 capacity(StretchyArray<T>& buffer){ return buffer.capacity; }
 
+	template<typename T>
+	inline bool isEmpty(Array<T>& array) {
+		return array.size == 0;
+	}
+	template<typename T>
+	inline bool hasSpace(StretchyArray<T>& array){
+		// extra brackets around array.size fix parse bug in gcc 4.8.5
+		// https://gcc.gnu.org/ml/gcc-help/2016-01/msg00087.html
+		return (array.size) < array.capacity;
+	}
 
 	template<typename T, size_t T_SIZE>
   inline constexpr void* clearToZero(FixedArray<T, T_SIZE>& array){
@@ -68,6 +81,95 @@ namespace xen{
 		}
 		return nullptr;
 	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Inserts a new element at the end of the stretchy array
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	T* pushBack(StretchyArray<T>& array, const T& value){
+		// extra brackets around array.size fix parse bug in gcc 4.8.5
+		// https://gcc.gnu.org/ml/gcc-help/2016-01/msg00087.html
+		XenAssert((array.size) < array.capacity,
+		          "Expected there to be space in array"
+		          );
+		T* result = &array.elements[array.size++];
+		*result = value;
+		return result;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Removes an element from the specified array, but does not
+	/// maintain ordering of the other elements for efficiency. This implementation
+	/// takes the current last element and moves it to the now vacant slot
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	void removeUnordered(StretchyArray<T>& array, u64 index){
+		if(index != array.size-1){
+			xen::copyBytes(&array.elements[array.size-1], &array.elements[index], sizeof(T));
+		}
+
+		--array.size;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Removes some element from the array, shifting all subsequent
+	/// elements down an index, thus preserving order of all other elements
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	void remove(StretchyArray<T>& array, u64 index){
+		for(u64 i = index + 1; i < array.size; ++i){
+			xen::copyBytes(&array.elements[i], &array.elements[i-1], sizeof(T));
+		}
+		--array.size;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Removes the element at the back of the array
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	void popBack(StretchyArray<T>& array){
+		--array.size;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Removes the element at the front of the array, returning
+	/// its value to the user
+	/// \note Arrays have bad performance when used as queues. Use a ring_buffer
+	/// instead
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	T popFront(StretchyArray<T>& array){
+		T result = array[0];
+		remove(array, 0);
+		return result;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Returns reference to the front of the array, does not modify
+	/// the array
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	T& peakFront(Array<T>& array){
+		return array[0];
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Returns reference to the last element in the array,
+	/// does not modify the array
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	T& peakBack(Array<T>& array){
+		return array[array.size-1];
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Clears a stretchy array so that it becomes empty
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	void clear(StretchyArray<T>& array){
+		array.size = 0;
+	}
+
 }
 
 #endif

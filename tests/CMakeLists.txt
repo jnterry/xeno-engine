@@ -4,7 +4,7 @@ add_executable(unit-tests
   ${CMAKE_CURRENT_LIST_DIR}/extlibs/catch.hpp
 
 	${CMAKE_CURRENT_LIST_DIR}/core/array.cpp
-	${CMAKE_CURRENT_LIST_DIR}/core/ring_buffer.cpp
+	${CMAKE_CURRENT_LIST_DIR}/core/RingBuffer.cpp
 	${CMAKE_CURRENT_LIST_DIR}/core/minmax.cpp
 	${CMAKE_CURRENT_LIST_DIR}/core/bits.cpp
 	${CMAKE_CURRENT_LIST_DIR}/core/ArenaPool.cpp
