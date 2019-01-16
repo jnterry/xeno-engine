@@ -1,0 +1,3 @@
+* Overview
+
+	This library contains common functionality for implementing software based rendering. Note that applications are not expected to use this library directly, and should instead prefer to use the [[file:../graphics/][Graphics API]] along with a corresponding software rendering module such as the [[file:../module-sren-rasterize][Software Rasterizer]].

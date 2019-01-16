@@ -1,0 +1,12 @@
+* Overview
+	Xeno-Engine supports multiple rendering "backends" through a unified API (IE: targeting OpenGL, or DirectX, etc).
+
+	This module contains both backend agnostic utility types and functions, as well as the interface which particular backends should expose.
+
+	Note that backends are expected to be implemented as [[file:../kernel/][kernel modules]] in order to facilitate setup/teardown call backs, and to allow the use of asynchronous tick work. The interface that must be implemented by each backend is defined in [[file:./include/xen/graphics/GraphicsModuleApi.hpp][GraphicsModuleApi.hpp]]
+
+* Design of Backend Agnostic API
+
+	The ability to target multiple backends is facilitate by building up a data only representation of the scene to be rendered, through a list of so called "RenderCommands". Backends are then able to process a list of RenderCommand instances in order to render the scene. For further details, see:
+	- [[file:./xen/graphics/RenderCommand3d.hpp][RenderCommand3d.hpp]]
+	- :TODO: Implement 2d rendering interface

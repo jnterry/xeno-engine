@@ -1,0 +1,25 @@
+* Overview
+
+	This directory contains all source code for the engine - note that source code for external libraries should be placed in the [[file:/extlibs][extlibs/]] directory.
+
+	Xeno Engine is split into various smaller libraries, each of which is contained within a subdirectory of this. Directories without the =module-= prefix are standard libraries which encapsulate some general unit of functionality and can be linked into any application wishing to make use of that functionality.
+
+	Libraries prefixed by =module-= are designed to be built as dynamic link libraries which can be loaded at run time in order to provide additional optional functionality to the engine. Loading is performed by the [[file:./kernel/][kernel]] library, so please see its documentation for further details.
+
+* Library Structure
+
+	Each sub-directory within this should contain a subset of the following files/directories:
+
+  | Name             | What                                                                                 |
+  |------------------+--------------------------------------------------------------------------------------|
+  | sources.cmake    | CMake file exporting lists of files =XEN_HEADERS_XXX= and =XEN_SOURCES_XXX=          |
+  | include/xen/XXX/ | Directory containing headers describing the public interface to the module           |
+  | impl/            | Directory for headers used by internal engine libraries, but not client applications |
+  | src/             | Directory containing all private implementation details for the module               |
+  | *.org            | Documentation files for the module                                                   |
+
+* Adding a Library or Module
+
+	1. Create sub-directory
+	2. Add =include= statement to file:./sources.cmake
+	3. Add target to [[file:./CMakeLists.txt]]

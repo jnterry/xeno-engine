@@ -1,0 +1,34 @@
+* Overview
+
+	The core module contains various utilities which may be useful in any applications, not just games/multimedia applications. This includes helper functions for memory/pointer manipulation, container types, string types, and so forth.
+
+* Guide to Library Contents
+
+** Core Operation
+
+	 The file [[file:./include/xen/core/intrinsics.hpp][intrinsics.hpp]] includes core types, macros and functions vital to pretty much every other file in Xeno Engine.
+
+	 [[file:./include/xen/config.hpp][config.hpp]] contains macros for determining the platform xeno-engine is being built upon.
+
+** Containers
+
+	 The following container types are supported by Xeno Engine:
+	 - [[file:./include/xen/core/RingBuffer.hpp][Ring Buffers]]
+	 - [[file:./include/xen/array_types.hpp][Arrays (both fixed size and dynamically sized]]
+	 - [[file:./include/xen/core/StringBuffer.hpp][String Buffers, for dynamically growable strings (at either end)]]
+	 - [[file:./inclue/xen/core/String.hpp][String Type Wrapper]]
+	 - [[file:./include/xen/core/bit_types.hpp][Bit Field for arbitrary number of indexable boolean values]]
+
+** Platform Utilities
+
+	 The following utilities act as wrappers around the underling operating system calls to provide a platform agnostic interface.
+
+	 - [[file:./include/xen/core/time.hpp][Time (Real clock, durations, timers, etc)]]
+	 - [[file:./include/xen/core/File.hpp][Files and Paths]]
+
+** Misc Utilities
+
+	 The following utilities are build a top standard C features to provide more convenient interfaces for various operations:
+	 - [[file:./include/xen/core/random.hpp][Random number generator]]
+	 - [[file:./include/xen/core/memory.hpp][Memory and pointer manipulation]]
+	 - [[file:./include/xen/core/atomic_intrinsics.hpp][Atomic Operations]]
