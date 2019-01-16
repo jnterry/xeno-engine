@@ -14,10 +14,10 @@
 
 	 The following container types are supported by Xeno Engine:
 	 - [[file:./include/xen/core/RingBuffer.hpp][Ring Buffers]]
-	 - [[file:./include/xen/array_types.hpp][Arrays (both fixed size and dynamically sized]]
+	 - [[file:./include/xen/core/array_types.hpp][Arrays (both fixed size and dynamically sized]]
 	 - [[file:./include/xen/core/StringBuffer.hpp][String Buffers, for dynamically growable strings (at either end)]]
-	 - [[file:./inclue/xen/core/String.hpp][String Type Wrapper]]
-	 - [[file:./include/xen/core/bit_types.hpp][Bit Field for arbitrary number of indexable boolean values]]
+	 - [[file:./include/xen/core/String.hpp][String Type Wrapper]]
+	 - [[file:./include/xen/core/bits_types.hpp][Bit Field for arbitrary number of indexable boolean values]]
 
 ** Platform Utilities
 

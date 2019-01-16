@@ -25,7 +25,7 @@
 
 	The exception to this rule is that it is the individual modules *DO NOT* link against the =xen-kernel= library. *THIS APPLIED TO ALL SYSTEMS*. Instead only the central executable should link against =xen-kernel=. Failure to adhere to this will cause global kernel state to be duplicated in each module, causing strange errors (usually segfaults during module init).
 
-	Instead modules should use the macro =XenDelcareModule= to ensure they export the correct symbols on each platform, this will also magically ensure any calls made from the modules to the kernel use the function linked into the executable. This "magic" is not done for any other modules since it is a pain to maintain (see [[file:./include/kernel/Module.win.hpp][Module.win.hpp]]).
+	Instead modules should use the macro =XenDelcareModule= to ensure they export the correct symbols on each platform, this will also magically ensure any calls made from the modules to the kernel use the function linked into the executable. This "magic" is not done for any other modules since it is a pain to maintain (see [[file:./include/xen/kernel/Module.win.hpp][Module.win.hpp]]).
 
 * Ticks
 

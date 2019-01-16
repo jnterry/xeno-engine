@@ -8,5 +8,5 @@
 * Design of Backend Agnostic API
 
 	The ability to target multiple backends is facilitate by building up a data only representation of the scene to be rendered, through a list of so called "RenderCommands". Backends are then able to process a list of RenderCommand instances in order to render the scene. For further details, see:
-	- [[file:./xen/graphics/RenderCommand3d.hpp][RenderCommand3d.hpp]]
+	- [[file:./include/xen/graphics/RenderCommand3d.hpp][RenderCommand3d.hpp]]
 	- :TODO: Implement 2d rendering interface
