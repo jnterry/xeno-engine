@@ -34,7 +34,9 @@ namespace xen{
 	}
 	template<typename T>
 	inline bool hasSpace(StretchyArray<T>& array){
-		return array.size < array.capacity;
+		// extra brackets around array.size fix parse bug in gcc 4.8.5
+		// https://gcc.gnu.org/ml/gcc-help/2016-01/msg00087.html
+		return (array.size) < array.capacity;
 	}
 
 	template<typename T, size_t T_SIZE>
@@ -85,7 +87,9 @@ namespace xen{
 	/////////////////////////////////////////////////////////////////////
 	template<typename T>
 	T* pushBack(StretchyArray<T>& array, const T& value){
-		XenAssert(array.size < array.capacity,
+		// extra brackets around array.size fix parse bug in gcc 4.8.5
+		// https://gcc.gnu.org/ml/gcc-help/2016-01/msg00087.html
+		XenAssert((array.size) < array.capacity,
 		          "Expected there to be space in array"
 		          );
 		T* result = &array.elements[array.size++];
