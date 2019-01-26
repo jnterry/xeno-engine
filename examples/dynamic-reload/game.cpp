@@ -16,7 +16,7 @@ struct GameState {
 GameState* global_state = nullptr;
 
 void tick( const xen::TickContext& cntx){
-	printf("Start of game main loop, tick: %5lu, dt: %10f, time: %10f\n",
+	printf("Start of game main loop, tick: %5llu, dt: %10f, time: %10f\n",
 	       cntx.tick,
 	       xen::asSeconds<real>(cntx.dt),
 	       xen::asSeconds<real>(cntx.time)
