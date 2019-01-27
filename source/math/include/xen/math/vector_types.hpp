@@ -93,8 +93,8 @@ namespace xen{
 	template<typename T> const Vec<2, T> Vec<2, T>::Origin      = {0,0};
 	template<typename T> const Vec<2, T> Vec<2, T>::UnitAxes[2] = {{1,0}, {0,1}};
 	template<typename T> const Vec<2, T> Vec<2, T>::Min         = {
-		std::numeric_limits<T>::min(),
-		std::numeric_limits<T>::min()
+		std::numeric_limits<T>::lowest(),
+		std::numeric_limits<T>::lowest()
 	};
 	template<typename T> const Vec<2, T> Vec<2, T>::Max         = {
 		std::numeric_limits<T>::max(),
@@ -137,9 +137,9 @@ namespace xen{
 	                                                              ,{0,0,1}
 	                                                              };
 	template<typename T> const Vec<3, T> Vec<3, T>::Min = {
-		std::numeric_limits<T>::min(),
-		std::numeric_limits<T>::min(),
-		std::numeric_limits<T>::min()
+		std::numeric_limits<T>::lowest(),
+		std::numeric_limits<T>::lowest(),
+		std::numeric_limits<T>::lowest()
 	};
 	template<typename T> const Vec<3, T> Vec<3, T>::Max = {
 		std::numeric_limits<T>::max(),
@@ -188,10 +188,10 @@ namespace xen{
 	                                                              ,{0,0,0,1}
 	                                                              };
 	template<typename T> const Vec<4, T> Vec<4, T>::Min = {
-		std::numeric_limits<T>::min(),
-		std::numeric_limits<T>::min(),
-		std::numeric_limits<T>::min(),
-		std::numeric_limits<T>::min()
+		std::numeric_limits<T>::lowest(),
+		std::numeric_limits<T>::lowest(),
+		std::numeric_limits<T>::lowest(),
+		std::numeric_limits<T>::lowest()
 	};
 	template<typename T> const Vec<4, T> Vec<4, T>::Max = {
 		std::numeric_limits<T>::max(),

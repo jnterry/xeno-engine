@@ -82,10 +82,7 @@ namespace xen {
 
 		/////////////////////////////////////////////////////////////////
 		// Compute mesh bounding box
-		mesh_data.bounds = xen::Aabb3r::MaxMinBox;
-		for(u32 i = 0; i < mesh_geom.vertex_count; ++i){
-			xen::addPoint(mesh_data.bounds, mesh_geom.position[i]);
-		}
+		mesh_data.bounds = xen::computeBoundingBox(mesh_geom.position, mesh_data.vertex_count);
 
 		return this->createMesh(&mesh_data);
 	}
@@ -119,12 +116,8 @@ namespace xen {
 
 		XenAssert(pbuf != nullptr, "Expected mesh to have position data");
 
-		/////////////////////////////////////////////////////////////////
-		// Compute mesh bounding box
-		md.bounds = xen::Aabb3r::MaxMinBox;
-		for(u32 i = 0; i < vertex_count; ++i){
-			xen::addPoint(md.bounds, pbuf[i]);
-		}
+		md.bounds = xen::computeBoundingBox(pbuf, vertex_count);
+
 		/////////////////////////////////////////////////////////////////
 
 		return this->createMesh(&md);

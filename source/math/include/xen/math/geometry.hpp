@@ -508,7 +508,10 @@ namespace xen{
 
 	template<u32 T_DIM, typename T>
 	Aabb<T_DIM, T> computeBoundingBox(const Vec<T_DIM, T>* ps, u64 p_count){
-		Aabb<T_DIM, T> result = Aabb<T_DIM, T>::MaxMinBox;
+		// :TODO: this should be = xen::Aabb<T_DIM, T>::MaxMinBox, but that breaks
+		// unit tests on windows... Underlying issue?
+		Aabb<T_DIM, T> result = { Vec<T_DIM, T>::Max, Vec<T_DIM, T>::Min };
+
 		for(u64 i = 0; i < p_count; ++i){
 			xen::addPoint(result, ps[i]);
 		}
