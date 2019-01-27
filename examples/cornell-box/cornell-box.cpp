@@ -152,6 +152,7 @@ void tick( const xen::TickContext& cntx){
 		switch(event->type){
 		case xen::WindowEvent::Closed:
 			gmod->destroyWindow(state->window);
+			xen::requestKernelShutdown();
 			break;
 		default: break;
 		}

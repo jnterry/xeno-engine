@@ -152,7 +152,8 @@ void tick( const xen::TickContext& cntx){
 	while((event = xen::pollEvent(state->window)) != nullptr){
 		switch(event->type){
 		case xen::WindowEvent::Closed:
-		  gmod->destroyWindow(state->window);
+			gmod->destroyWindow(state->window);
+			xen::requestKernelShutdown();
 			break;
 		case xen::WindowEvent::Resized:
 			viewport.max = event->resize.new_size;

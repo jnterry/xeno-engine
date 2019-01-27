@@ -39,7 +39,7 @@ namespace xen {
 		}
 	};
 	template<u32 T_DIM, typename T> const Aabb<T_DIM, T> Aabb<T_DIM, T>::MaxMinBox = {
-		Vec<T_DIM, T>::Max, -Vec<T_DIM, T>::Max
+		Vec<T_DIM, T>::Max, Vec<T_DIM, T>::Min
 	};
 	template <typename T> using Aabb2 = Aabb<2, T>;
 	template <typename T> using Aabb3 = Aabb<3, T>;
