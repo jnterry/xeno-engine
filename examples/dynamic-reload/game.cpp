@@ -55,4 +55,4 @@ void shutdown(void* data, const void* params){
 	printf("Shutting down game module\n");
 }
 
-XenDeclareModule("game", &init, &shutdown, &load, nullptr, &tick);
+XenDeclareModule("game", &init, &shutdown, &load, nullptr, &tick)

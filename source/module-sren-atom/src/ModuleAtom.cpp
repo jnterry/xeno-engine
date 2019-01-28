@@ -166,6 +166,6 @@ void unload(void* data, const void* params){
 	xen::kernelFree(frame_scratch.start);
 }
 
-XenDeclareModule("graphics", &init, &shutdown, &atomLoad, &unload, &tick);
+XenDeclareModule("graphics", &init, &shutdown, &atomLoad, &unload, &tick)
 
 #endif
