@@ -30,13 +30,28 @@ add_subdirectory(glew-2.1.0)
 
 set(CMAKE_SKIP_RULE_DEPENDENCY OFF)
 
-set_target_properties(assimp                              PROPERTIES FOLDER "extlibs")
-set_target_properties(uninstall                           PROPERTIES FOLDER "extlibs")
-set_target_properties(libglew_shared                      PROPERTIES FOLDER "extlibs")
-set_target_properties(libglew_static                      PROPERTIES FOLDER "extlibs")
-set_target_properties(libglewmx_shared                    PROPERTIES FOLDER "extlibs")
-set_target_properties(libglewmx_static                    PROPERTIES FOLDER "extlibs")
+
+##########################################
+# Set additional properties on extlibs
+
+set(XEN_EXTLIB_TARGETS
+	assimp
+	uninstall
+	libglew_shared
+	libglew_static
+	libglewmx_shared
+	libglewmx_static
+)
 if(WIN32)
-	set_target_properties(UpdateAssimpLibsDebugSymbolsAndDLLs PROPERTIES FOLDER "extlibs")
-	set_target_properties(zlibstatic                          PROPERTIES FOLDER "extlibs")
+	set(XEN_EXTLIB_TARGETS ${XEN_EXTLIB_TARGETS}
+		UpdateAssimpLibsDebugSymbolsAndDLLs
+		zlibstatic
+	)
 endif()
+
+foreach(TARGET ${XEN_EXTLIB_TARGETS})
+	set_target_properties(${TARGET} PROPERTIES FOLDER        "extlibs"     )
+
+	# Disable warnings in extlibs by using default build flags rather than our custom ones
+	set_target_properties(${TARGET} PROPERTIES COMPILE_FLAGS "${BUILD_FLAGS} -w")
+endforeach()
