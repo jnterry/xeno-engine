@@ -33,6 +33,6 @@ namespace {
 
 }
 
-XenDeclareModule("graphics", &init, &shutdown, &load, nullptr, &tick);
+XenDeclareModule("graphics", &init, &shutdown, &load, nullptr, &tick)
 
 #endif

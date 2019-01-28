@@ -129,6 +129,6 @@ void tick(const xen::TickContext& tick){
 	// no-op
 }
 
-XenDeclareModule("graphics", &init, &shutdown, &load, nullptr, &tick);
+XenDeclareModule("graphics", &init, &shutdown, &load, nullptr, &tick)
 
 #endif

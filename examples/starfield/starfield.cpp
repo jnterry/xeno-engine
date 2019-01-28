@@ -140,4 +140,4 @@ void* load( void* data, const void* params){
 	return (void*)true;
 }
 
-XenDeclareModule("game", &init, &shutdown, &load, nullptr, &tick);
+XenDeclareModule("game", &init, &shutdown, &load, nullptr, &tick)
