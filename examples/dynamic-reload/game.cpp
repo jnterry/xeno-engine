@@ -24,7 +24,7 @@ void tick( const xen::TickContext& cntx){
 
 	// processing
 	printf("Game module is doing some processing...\n");
-	printf("Value is: %lu\n", global_state->value);
+	printf("Value is: %llu\n", global_state->value);
 	std::this_thread::sleep_for(std::chrono::milliseconds(16));
 
 	if(cntx.tick % global_state->increment_delay == 0){
