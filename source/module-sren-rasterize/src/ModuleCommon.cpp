@@ -82,7 +82,7 @@ namespace {
 	void* load( void* data, const void* params){
 		xsr::state = (xsr::ModuleRasterize*)data;
 
-		xen::GraphicsModuleApi& api = xsr::state->api;
+		xen::ModuleApiGraphics& api = xsr::state->api;
 
 
 		api.createWindow            = &xsr::createWindow;

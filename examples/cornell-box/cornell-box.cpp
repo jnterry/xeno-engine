@@ -104,33 +104,33 @@ void initSceneLights(){
 	state->render_params.lights        = state->scene_lights;
 }
 
-void initMeshes(xen::GraphicsModuleApi* gmod){
+void initMeshes(xen::ModuleApiGraphics* mod_ren){
 	state->vertex_spec[0] = xen::VertexAttribute::Position3r;
 	state->vertex_spec[1] = xen::VertexAttribute::Normal3r;
 	state->vertex_spec[2] = xen::VertexAttribute::Color4b;
 
-	state->mesh_cornell_walls = gmod->createMesh(state->vertex_spec,
+	state->mesh_cornell_walls = mod_ren->createMesh(state->vertex_spec,
 	                                             MeshGeometry_CornellBoxWalls
 	                                            );
-	state->mesh_cube = gmod->createMesh(state->vertex_spec,
+	state->mesh_cube = mod_ren->createMesh(state->vertex_spec,
 	                                    xen::TestMeshGeometry_UnitCube
 	                                   );
-	state->mesh_axes = gmod->createMesh(state->vertex_spec,
+	state->mesh_axes = mod_ren->createMesh(state->vertex_spec,
 	                                    xen::TestMeshGeometry_Axes
 	                                   );
 }
 
 void* init( const void* params){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
-	XenAssert(gmod != nullptr, "Graphics module must be loaded before cornell-box");
+	xen::ModuleApiGraphics* mod_ren = (xen::ModuleApiGraphics*)xen::getModuleApi("graphics");
+	XenAssert(mod_ren != nullptr, "Graphics module must be loaded before cornell-box");
 
 	state = (State*)xen::kernelAlloc(sizeof(State));
 
-	state->window = gmod->createWindow({600, 600}, "cornell-box");
+	state->window = mod_ren->createWindow({600, 600}, "cornell-box");
 
 	initCamera();
 	initSceneLights();
-	initMeshes(gmod);
+	initMeshes(mod_ren);
 	initRenderCommands();
 
 	return state;
@@ -142,22 +142,22 @@ void* load( void* data, const void* params){
 }
 
 void tick( const xen::TickContext& cntx){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
-	XenAssert(gmod != nullptr, "Graphics module must be loaded before cornell-box");
+	xen::ModuleApiGraphics* mod_ren = xen::getModuleApi<xen::ModuleApiGraphics>();
+	xen::ModuleApiWindow*   mod_win = xen::getModuleApi<xen::ModuleApiWindow>();
 
-	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(state->window) };
+	xen::Aabb2u viewport = { Vec2u::Origin, mod_win->getClientAreaSize(state->window) };
 
 	xen::WindowEvent* event;
-	while((event = xen::pollEvent(state->window)) != nullptr){
+	while((event = mod_win->pollEvent(state->window)) != nullptr){
 		switch(event->type){
 		case xen::WindowEvent::Closed:
-			gmod->destroyWindow(state->window);
+			mod_ren->destroyWindow(state->window);
 			xen::requestKernelShutdown();
 			break;
 		default: break;
 		}
 	}
-	handleCameraInputCylinder(state->window, state->camera, xen::asSeconds<real>(cntx.dt), 20);
+	handleCameraInputCylinder(mod_win, state->window, state->camera, xen::asSeconds<real>(cntx.dt), 20);
 	state->render_params.camera = xen::generateCamera3d(state->camera);
 
 	Vec3r light_1_pos = (tall_box_center +
@@ -172,9 +172,9 @@ void tick( const xen::TickContext& cntx){
 	                                         );
 	state->scene_lights[1].point.position = light_1_pos;
 
-  gmod->clear      (state->window, xen::Color{20, 20, 20, 255});
-  gmod->render     (state->window, viewport, state->render_params, state->render_commands);
-  gmod->swapBuffers(state->window);
+  mod_ren->clear      (state->window, xen::Color{20, 20, 20, 255});
+  mod_ren->render     (state->window, viewport, state->render_params, state->render_commands);
+  mod_ren->swapBuffers(state->window);
 
 }
 

@@ -6,7 +6,7 @@
 
 #include <xen/window/Window.hpp>
 #include <xen/graphics/TestMeshes.hpp>
-#include <xen/graphics/GraphicsModuleApi.hpp>
+#include <xen/graphics/ModuleApiGraphics.hpp>
 #include <xen/math/vector.hpp>
 #include <xen/math/utilities.hpp>
 #include <xen/math/quaternion.hpp>
@@ -35,9 +35,9 @@ struct StarfieldState {
 
 StarfieldState* star_state;
 
-void* init( const void* params){
-	xen::GraphicsModuleApi* mod_graphics = (xen::GraphicsModuleApi*)xen::getModuleApi(xen::hash("graphics"));
-	XenAssert(mod_graphics != nullptr, "Graphics module must be loaded before starfield module");
+void* init(const void* params){
+	xen::ModuleApiGraphics* mod_ren = xen::getModuleApi<xen::ModuleApiGraphics>();
+	XenAssert(mod_ren != nullptr, "Graphics module must be loaded before starfield module");
 
 	StarfieldState* ss = (StarfieldState*)xen::kernelAlloc(sizeof(StarfieldState));
 
@@ -68,11 +68,11 @@ void* init( const void* params){
 	ss->vertex_spec[0] = xen::VertexAttribute::Position3r;
 	ss->vertex_spec[1] = xen::VertexAttribute::Color4b;
 
-	ss->window = mod_graphics->createWindow(Vec2u{800, 600}, "Starfield");
+	ss->window = mod_ren->createWindow(Vec2u{800, 600}, "Starfield");
 
-	ss->mesh_stars      = mod_graphics->createMesh(ss->vertex_spec, STAR_COUNT, ss->star_positions, ss->star_colors);
-	ss->mesh_axes       = mod_graphics->createMesh(ss->vertex_spec, xen::TestMeshGeometry_Axes);
-	ss->mesh_cube_lines = mod_graphics->createMesh(ss->vertex_spec, xen::TestMeshGeometry_UnitCubeLines);
+	ss->mesh_stars      = mod_ren->createMesh(ss->vertex_spec, STAR_COUNT, ss->star_positions, ss->star_colors);
+	ss->mesh_axes       = mod_ren->createMesh(ss->vertex_spec, xen::TestMeshGeometry_Axes);
+	ss->mesh_cube_lines = mod_ren->createMesh(ss->vertex_spec, xen::TestMeshGeometry_UnitCubeLines);
 
 	xen::clearToZero(ss->render_commands);
 
@@ -102,22 +102,23 @@ void shutdown(void* data, const void* params){
 }
 
 void tick( const xen::TickContext& cntx){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
+	xen::ModuleApiGraphics* mod_ren = xen::getModuleApi<xen::ModuleApiGraphics>();
+	xen::ModuleApiWindow*   mod_win = xen::getModuleApi<xen::ModuleApiWindow>();
 
-	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(star_state->window) };
+	xen::Aabb2u viewport = { Vec2u::Origin, mod_win->getClientAreaSize(star_state->window) };
 
 	xen::WindowEvent* event;
-	while((event = xen::pollEvent(star_state->window)) != nullptr){
+	while((event = mod_win->pollEvent(star_state->window))){
 		switch(event->type){
 		case xen::WindowEvent::Closed:
-			gmod->destroyWindow(star_state->window);
+			mod_ren->destroyWindow(star_state->window);
 			xen::requestKernelShutdown();
 			break;
 		default: break;
 		}
 	}
 
-	handleCameraInputCylinder(star_state->window, star_state->camera, xen::asSeconds<real>(cntx.dt));
+	handleCameraInputCylinder(mod_win, star_state->window, star_state->camera, xen::asSeconds<real>(cntx.dt));
 	star_state->render_params.camera = xen::generateCamera3d(star_state->camera);
 
 	for(u32 i = 0; i < STAR_COUNT; ++i){
@@ -126,12 +127,12 @@ void tick( const xen::TickContext& cntx){
 			star_state->star_positions[i].z -= 200.0f;
 		}
 	}
-	gmod->updateMeshVertexData(star_state->mesh_stars, 0, star_state->star_positions);
+	mod_ren->updateMeshVertexData(star_state->mesh_stars, 0, star_state->star_positions);
 
-	gmod->clear      (star_state->window, xen::Color{20,20,20,255});
-	gmod->render     (star_state->window, viewport,
+	mod_ren->clear      (star_state->window, xen::Color{20,20,20,255});
+	mod_ren->render     (star_state->window, viewport,
 	                                star_state->render_params, star_state->render_commands);
-	gmod->swapBuffers(star_state->window);
+	mod_ren->swapBuffers(star_state->window);
 }
 
 void* load( void* data, const void* params){

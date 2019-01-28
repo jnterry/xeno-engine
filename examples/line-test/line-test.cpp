@@ -43,12 +43,12 @@ void initRenderCommands(){
 	state->render_commands[2].mesh                   = state->mesh_parallel_lines;
 }
 
-void initMeshes(xen::GraphicsModuleApi* gmod){
+void initMeshes(xen::ModuleApiGraphics* mod_ren){
 	state->vertex_spec[0] = xen::VertexAttribute::Position3r;
 	state->vertex_spec[1] = xen::VertexAttribute::Color4b;
 
 	XenLogDebug("Creating axes mesh...");
-	state->mesh_axes = gmod->createMesh(state->vertex_spec, xen::TestMeshGeometry_Axes);
+	state->mesh_axes = mod_ren->createMesh(state->vertex_spec, xen::TestMeshGeometry_Axes);
 
 	Vec3r parallel_lines_pbuf[LINE_COUNT * 2];
 
@@ -63,21 +63,21 @@ void initMeshes(xen::GraphicsModuleApi* gmod){
 		}
 	}
 	XenLogDebug("Uploading verts...");
-	state->mesh_parallel_lines = gmod->createMesh(state->vertex_spec,
-	                                              XenArrayLength(parallel_lines_pbuf),
-	                                              parallel_lines_pbuf,
-	                                              nullptr
-	                                             );
+	state->mesh_parallel_lines = mod_ren->createMesh(state->vertex_spec,
+	                                                 XenArrayLength(parallel_lines_pbuf),
+	                                                 parallel_lines_pbuf,
+	                                                 nullptr
+	                                                );
 }
 
 void* init( const void* params){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
-	XenAssert(gmod != nullptr,
+	xen::ModuleApiGraphics* mod_ren = xen::getModuleApi<xen::ModuleApiGraphics>();
+	XenAssert(mod_ren != nullptr,
 	          "Expected graphics module to be loaded before line-test");
 
   state = (State*)xen::kernelAlloc(sizeof(State));
 
-	state->window = gmod->createWindow({800, 600}, "line-test");
+	state->window = mod_ren->createWindow({800, 600}, "line-test");
 
 	state->render_params.camera.z_near   =  0.001;
 	state->render_params.camera.z_far    =  1000;
@@ -88,7 +88,7 @@ void* init( const void* params){
 
 	state->render_params.ambient_light = {1,1,1};
 
-	initMeshes(gmod);
+	initMeshes(mod_ren);
 	initRenderCommands();
 
 	return state;
@@ -100,29 +100,27 @@ void* load( void* data, const void* params){
 }
 
 void tick( const xen::TickContext& cntx){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
-	XenAssert(gmod != nullptr,
-	          "Expected graphics module to be loaded before line-test");
+	xen::ModuleApiGraphics* mod_ren = xen::getModuleApi<xen::ModuleApiGraphics>();
+	xen::ModuleApiWindow*   mod_win = xen::getModuleApi<xen::ModuleApiWindow>();
 
-
-	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(state->window) };
+	xen::Aabb2u viewport = { Vec2u::Origin, mod_win->getClientAreaSize(state->window) };
 
 	xen::WindowEvent* event;
-	while((event = xen::pollEvent(state->window)) != nullptr){
+	while((event = mod_win->pollEvent(state->window)) != nullptr){
 		switch(event->type){
 		case xen::WindowEvent::Closed:
-			gmod->destroyWindow(state->window);
+			mod_ren->destroyWindow(state->window);
 			xen::requestKernelShutdown();
 			break;
 		default: break;
 		}
 	}
-	handleCameraInputPlane(state->window, state->render_params.camera, xen::asSeconds<real>(cntx.dt));
+	handleCameraInputPlane(mod_win, state->window, state->render_params.camera, xen::asSeconds<real>(cntx.dt));
 
 	// Rendering
-	gmod->clear      (state->window, xen::Color{20, 20, 20, 255});
-	gmod->render     (state->window, viewport, state->render_params, state->render_commands);
-	gmod->swapBuffers(state->window);
+	mod_ren->clear      (state->window, xen::Color{20, 20, 20, 255});
+	mod_ren->render     (state->window, viewport, state->render_params, state->render_commands);
+	mod_ren->swapBuffers(state->window);
 
 }
 

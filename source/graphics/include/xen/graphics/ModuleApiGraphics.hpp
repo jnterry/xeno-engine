@@ -85,6 +85,8 @@ namespace xen {
 	/// to expose
 	/////////////////////////////////////////////////////////////////////
 	struct ModuleApiGraphics {
+		static const constexpr char* const NAME = "graphics";
+
 		Window* (*createWindow )(Vec2u size, const char* title);
 		void    (*destroyWindow)(Window* window);
 

@@ -134,7 +134,7 @@ void initSceneLights(){
 	state->render_params.lights = state->scene_lights;
 }
 
-void initMeshes(xen::GraphicsModuleApi* gmod){
+void initMeshes(xen::ModuleApiGraphics* mod_ren){
 	xen::ArenaLinear& arena = xen::getThreadScratchSpace();
 
 	state->vertex_spec[0] = xen::VertexAttribute::Position3r;
@@ -148,37 +148,37 @@ void initMeshes(xen::GraphicsModuleApi* gmod){
 	                  xen::MeshLoadFlags::SCALE_UNIT_SIZE
 	                 );
 	XenLogDone("Loaded torus mesh, %i faces", mesh_data_torus->vertex_count / 3);
-	state->mesh_torus_smooth = gmod->createMesh(mesh_data_torus);
+	state->mesh_torus_smooth = mod_ren->createMesh(mesh_data_torus);
 	computeFlatNormals(mesh_data_torus);
-	state->mesh_torus_flat = gmod->createMesh(mesh_data_torus);
+	state->mesh_torus_flat = mod_ren->createMesh(mesh_data_torus);
 
-	state->mesh_cube  = gmod->createMesh(state->vertex_spec,
+	state->mesh_cube  = mod_ren->createMesh(state->vertex_spec,
 	                                     xen::TestMeshGeometry_UnitCube
 	                                    );
-	state->mesh_axes = gmod->createMesh(state->vertex_spec,
+	state->mesh_axes = mod_ren->createMesh(state->vertex_spec,
 	                                    xen::TestMeshGeometry_Axes
 	                                   );
 
-	state->mesh_xzplane = gmod->createMesh(state->vertex_spec,
+	state->mesh_xzplane = mod_ren->createMesh(state->vertex_spec,
 	                                       xen::TestMeshGeometry_UnitXzPlaneCentered
 	                                      );
 
-	state->shader_phong     = gmod->createShader({(void*)&FragmentShader_Phong    , nullptr, nullptr});
-	state->shader_normals   = gmod->createShader({(void*)&FragmentShader_Normals  , nullptr, nullptr});
-	state->shader_positions = gmod->createShader({(void*)&FragmentShader_Positions, nullptr, nullptr});
+	state->shader_phong     = mod_ren->createShader({(void*)&FragmentShader_Phong    , nullptr, nullptr});
+	state->shader_normals   = mod_ren->createShader({(void*)&FragmentShader_Normals  , nullptr, nullptr});
+	state->shader_positions = mod_ren->createShader({(void*)&FragmentShader_Positions, nullptr, nullptr});
 }
 
 void* init( const void* params){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
-	XenAssert(gmod != nullptr, "Expected graphics module to be loaded before torus");
+	xen::ModuleApiGraphics* mod_ren = (xen::ModuleApiGraphics*)xen::getModuleApi("graphics");
+	XenAssert(mod_ren != nullptr, "Expected graphics module to be loaded before torus");
 
 	state = (State*)xen::kernelAlloc(sizeof(State));
 
-	state->window = gmod->createWindow({800, 600}, "torus");
+	state->window = mod_ren->createWindow({800, 600}, "torus");
 
 	initCamera();
 	initSceneLights();
-	initMeshes(gmod);
+	initMeshes(mod_ren);
 	initRenderCommands();
 
 	return state;
@@ -190,16 +190,16 @@ void* load( void* data, const void* params){
 }
 
 void tick( const xen::TickContext& cntx){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
-	XenAssert(gmod != nullptr, "Expected graphics module to be loaded before torus");
+	xen::ModuleApiGraphics* mod_ren = xen::getModuleApi<xen::ModuleApiGraphics>();
+	xen::ModuleApiWindow*   mod_win = xen::getModuleApi<xen::ModuleApiWindow>();
 
-	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(state->window) };
+	xen::Aabb2u viewport = { Vec2u::Origin, mod_win->getClientAreaSize(state->window) };
 
 	xen::WindowEvent* event;
-	while((event = xen::pollEvent(state->window)) != nullptr){
+	while((event = mod_win->pollEvent(state->window)) != nullptr){
 		switch(event->type){
 		case xen::WindowEvent::Closed:
-			gmod->destroyWindow(state->window);
+			mod_ren->destroyWindow(state->window);
 			xen::requestKernelShutdown();
 			break;
 		default: break;
@@ -207,33 +207,33 @@ void tick( const xen::TickContext& cntx){
 	}
 
 	// :TODO: these should use window events...
-	if(xen::isKeyPressed(xen::Key::Num1, state->window)){ // points
+	if(mod_win->isKeyPressed(xen::Key::Num1, state->window)){ // points
 		state->render_commands[0].primitive_type = xen::PrimitiveType::POINTS;
 	}
-	if(xen::isKeyPressed(xen::Key::Num2, state->window)){ // lines
+	if(mod_win->isKeyPressed(xen::Key::Num2, state->window)){ // lines
 		state->render_commands[0].primitive_type = xen::PrimitiveType::LINES;
 	}
-	if(xen::isKeyPressed(xen::Key::Num3, state->window)){ // triangles
+	if(mod_win->isKeyPressed(xen::Key::Num3, state->window)){ // triangles
 			state->render_commands[0].primitive_type = xen::PrimitiveType::TRIANGLES;
 	}
-	if(xen::isKeyPressed(xen::Key::Num4, state->window)){ // normals
+	if(mod_win->isKeyPressed(xen::Key::Num4, state->window)){ // normals
 		state->render_commands[0].shader = state->shader_normals;
 		state->render_commands[1].shader = state->shader_normals;
 	}
-	if(xen::isKeyPressed(xen::Key::Num5, state->window)){ // world positions
+	if(mod_win->isKeyPressed(xen::Key::Num5, state->window)){ // world positions
 		state->render_commands[0].shader = state->shader_positions;
 		state->render_commands[1].shader = state->shader_positions;
 	}
-	if(xen::isKeyPressed(xen::Key::Num6, state->window)){ // Shaded
+	if(mod_win->isKeyPressed(xen::Key::Num6, state->window)){ // Shaded
 		state->render_commands[0].shader = state->shader_phong;
 		state->render_commands[1].shader = state->shader_phong;
 	}
-	if(xen::isKeyPressed(xen::Key::Num7, state->window)){ // Basic Shaded
+	if(mod_win->isKeyPressed(xen::Key::Num7, state->window)){ // Basic Shaded
 		state->render_commands[0].shader = xen::makeNullGraphicsHandle<xen::Shader>();
 		state->render_commands[1].shader = xen::makeNullGraphicsHandle<xen::Shader>();
 	}
 
-	handleCameraInputCylinder(state->window, state->camera, xen::asSeconds<real>(cntx.dt), 30);
+	handleCameraInputCylinder(mod_win, state->window, state->camera, xen::asSeconds<real>(cntx.dt), 30);
 	state->render_params.camera = xen::generateCamera3d(state->camera);
 
 	for(u32 i = 0; i < 3; ++i){
@@ -251,9 +251,9 @@ void tick( const xen::TickContext& cntx){
 		                                                       );
 	}
 
-  gmod->clear      (state->window, xen::Color{20, 20, 20, 255});
-  gmod->render     (state->window, viewport, state->render_params, state->render_commands);
-  gmod->swapBuffers(state->window);
+  mod_ren->clear      (state->window, xen::Color{20, 20, 20, 255});
+  mod_ren->render     (state->window, viewport, state->render_params, state->render_commands);
+  mod_ren->swapBuffers(state->window);
 }
 
 void shutdown(void* data, const void* params){

@@ -76,6 +76,11 @@ namespace xen {
 		return getModuleApi(xen::hash(type_name));
 	}
 
+	template<typename T>
+	T* getModuleApi(){
+		return (T*)getModuleApi(xen::hash(T::NAME));
+	}
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Allows a module to allocate memory through the kernel
 	/// \note This may be called before startKernel, but not before initKernel

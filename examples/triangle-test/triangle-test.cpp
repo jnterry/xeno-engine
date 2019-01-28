@@ -33,8 +33,8 @@ struct State {
 State* state = nullptr;
 
 void* init(const void* params){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(xen::hash("graphics"));
-	XenAssert(gmod != nullptr, "A graphics module must be loaded before triangle-test");
+	xen::ModuleApiGraphics* mod_ren = (xen::ModuleApiGraphics*)xen::getModuleApi(xen::hash("graphics"));
+	XenAssert(mod_ren != nullptr, "A graphics module must be loaded before triangle-test");
 
 	state = (State*)xen::kernelAlloc(sizeof(State));
 	xen::clearToZero(state);
@@ -52,14 +52,14 @@ void* init(const void* params){
 	state->vertex_spec[1] = xen::VertexAttribute::Normal3r;
 	state->vertex_spec[2] = xen::VertexAttribute::Color4b;
 
-	state->window = gmod->createWindow({800, 600}, "triangle-test");
+	state->window = mod_ren->createWindow({800, 600}, "triangle-test");
 
-	state->mesh_triangles = gmod->createMesh
+	state->mesh_triangles = mod_ren->createMesh
 		(state->vertex_spec, XenArrayLength(test_triangles_pos),
 		 test_triangles_pos, nullptr, test_triangles_color
 		);
-	state->mesh_axes = gmod->createMesh(state->vertex_spec, xen::TestMeshGeometry_Axes);
-	state->mesh_cube = gmod->createMesh(state->vertex_spec, xen::TestMeshGeometry_UnitCube);
+	state->mesh_axes = mod_ren->createMesh(state->vertex_spec, xen::TestMeshGeometry_Axes);
+	state->mesh_cube = mod_ren->createMesh(state->vertex_spec, xen::TestMeshGeometry_UnitCube);
 
 	state->render_commands[0].primitive_type         = xen::PrimitiveType::LINES;
 	state->render_commands[0].color                  = xen::Color::WHITE4f;
@@ -85,22 +85,22 @@ void* load(void* data, const void* params){
 }
 
 void tick(const xen::TickContext& cntx){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi(xen::hash("graphics"));
-	XenAssert(gmod != nullptr, "A graphics module must be loaded before triangle-test");
+	xen::ModuleApiGraphics* mod_ren = xen::getModuleApi<xen::ModuleApiGraphics>();
+	xen::ModuleApiWindow*   mod_win = xen::getModuleApi<xen::ModuleApiWindow>();
 
-	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(state->window) };
+	xen::Aabb2u viewport = { Vec2u::Origin, mod_win->getClientAreaSize(state->window) };
 
 	xen::WindowEvent* event;
-	while((event = xen::pollEvent(state->window)) != nullptr){
+	while((event = mod_win->pollEvent(state->window)) != nullptr){
 		switch(event->type){
 		case xen::WindowEvent::Closed:
-			gmod->destroyWindow(state->window);
+			mod_ren->destroyWindow(state->window);
 			xen::requestKernelShutdown();
 			break;
 		default: break;
 		}
 	}
-	handleCameraInputPlane(state->window, state->render_params.camera, xen::asSeconds<real>(cntx.dt));
+	handleCameraInputPlane(mod_win, state->window, state->render_params.camera, xen::asSeconds<real>(cntx.dt));
 
 	state->render_commands[2].model_matrix = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
 	                                          xen::Rotation3dy(90_deg * xen::asSeconds<real>(cntx.time)) *
@@ -108,9 +108,9 @@ void tick(const xen::TickContext& cntx){
 	                                         );
 
 	// Rendering
-	gmod->clear      (state->window, xen::Color{20,20,20,255});
-	gmod->render     (state->window, viewport, state->render_params, state->render_commands);
-	gmod->swapBuffers(state->window);
+	mod_ren->clear      (state->window, xen::Color{20,20,20,255});
+	mod_ren->render     (state->window, viewport, state->render_params, state->render_commands);
+	mod_ren->swapBuffers(state->window);
 }
 
 void shutdown(void* data, const void* params){

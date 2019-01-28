@@ -50,8 +50,7 @@ struct State {
 State* state = nullptr;
 
 void* init(const void* params){
-	xen::ModuleApiGraphics* mod_ren = (xen::ModuleApiGraphics*)xen::getModuleApi("graphics");
-
+	xen::ModuleApiGraphics* mod_ren = xen::getModuleApi<xen::ModuleApiGraphics>();
 	XenAssert(mod_ren != nullptr, "Expected graphics module to be loaded before quicktest");
 
 	xen::ArenaLinear& arena = xen::getThreadScratchSpace();
