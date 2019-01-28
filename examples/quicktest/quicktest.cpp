@@ -206,8 +206,8 @@ void tick( const xen::TickContext& cntx){
 	////////////////////////////////////////////
 	// Draw Bunny
 	model_mat = Mat4r::Identity;
-	//model_mat *= xen::Rotation3dz(73_deg * time);
 	model_mat *= xen::Scale3d(20);
+	model_mat *= xen::Translation3d(0, 1, 0);
 	model_mat *= xen::Rotation3dy(67_deg * time);
 	state->render_cmds[CMD_BUNNY].model_matrix = model_mat;
 
