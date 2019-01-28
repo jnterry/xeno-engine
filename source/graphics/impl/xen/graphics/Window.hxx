@@ -20,13 +20,20 @@ namespace xen {
 
 	namespace impl {
 		struct WindowBase {
-			/// \brief True when the mouse is within the window's client area
-			/// WindowEvent::MouseEntered and WindowEvnet::MouseLeft events are
-			/// generated when this value changes
-			bool mouse_over_window;
+			/// \brief Bitfield representing misc state about the window
+			enum StateFlags : u08 {
+				/// \brief Whether the window is currently open
+				IS_OPEN           = 0x01,
 
-			/// \brief Specifies whether a window is currently open
-			bool is_open;
+				/// \brief Whether the window is currently focused
+				IS_FOCUSED        = 0x02,
+
+				/// \brief Set when the mouse cursor is within the window's client
+				/// area. WindowEvent::MouseEntered and WindowEvent::MouseLeft events
+				/// should be generated when this value changes
+				MOUSE_OVER_WINDOW = 0x04,
+			};
+			u08 state;
 
 			/// \brief Queue of events to process for this window
 			xen::RingBuffer<WindowEvent, false> events;

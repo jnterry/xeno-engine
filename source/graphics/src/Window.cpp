@@ -50,7 +50,7 @@ namespace xen {
 	}
 
 	bool isWindowOpen(const Window* win){
-		return win->is_open;
+		return win->state & xen::Window::IS_OPEN;
 	}
 
 	namespace impl {

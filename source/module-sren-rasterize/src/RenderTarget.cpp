@@ -16,6 +16,7 @@
 #include <xen/sren/RenderTarget.hxx>
 #include <xen/sren/PostProcessor.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/core/bits.hpp>
 
 
 xsr::RenderTarget* xsr::getRenderTargetImpl(xen::RenderTarget target){
@@ -91,11 +92,13 @@ xen::Window* xsr::createWindow(Vec2u size, const char* title) {
 void xsr::destroyWindow(xen::Window* window) {
 	destroyRenderTarget(window->render_target);
 	xen::impl::destroyWindow(window);
-	window->is_open = false;
+	xen::clearBits(window->state,
+	               (u08)(xen::Window::IS_OPEN | xen::Window::IS_FOCUSED | xen::Window::MOUSE_OVER_WINDOW)
+	              );
 }
 
 void xsr::swapBuffers(xen::Window* window) {
-	if(!window->is_open){ return; }
+	if(!(window->state & xen::Window::IS_OPEN)){ return; }
 	xsr::RenderTarget& target = *xsr::getRenderTargetImpl(window->render_target);
 
 	for(u32 i = 0; i < xsr::state->post_processors.size; ++i){

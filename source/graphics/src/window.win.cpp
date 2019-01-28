@@ -379,7 +379,7 @@ namespace xen{
 				return nullptr;
 			}
 
-			result->is_open = true;
+			result->state |= xen::Window::IS_OPEN;
 
 			return result;
 		}

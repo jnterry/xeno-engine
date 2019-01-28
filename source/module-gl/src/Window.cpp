@@ -126,7 +126,7 @@ namespace xgl {
 	}
 
 	void swapBuffers  (xen::Window* window){
-		if(window->is_open){
+		if(window->state & xen::Window::IS_OPEN){
 			xen::gl::swapBuffers(getRenderTargetImpl(window->render_target));
 		}
 	}

@@ -129,7 +129,7 @@ void xen::GraphicsModuleApi::clear(xen::RenderTarget target, xen::Color color){
 }
 
 void xen::GraphicsModuleApi::clear(xen::Window* window, xen::Color color){
-	if(window->is_open){
+	if(window->state & xen::Window::IS_OPEN){
 		this->clear(window->render_target, color);
 	}
 }
@@ -148,10 +148,10 @@ void xen::GraphicsModuleApi::render(xen::Window* window,
                                     xen::RenderParameters3d& params,
                                     xen::Array<RenderCommand3d> commands
                                    ){
-		if(window->is_open){
-			this->render(window->render_target, viewport, params, commands);
-		}
+	if(window->state & Window::IS_OPEN){
+		this->render(window->render_target, viewport, params, commands);
 	}
+}
 
 void xen::GraphicsModuleApi::swapBuffers(xen::Window* window){
 	this->pushOp(xen::RenderOp::SwapBuffers(window));

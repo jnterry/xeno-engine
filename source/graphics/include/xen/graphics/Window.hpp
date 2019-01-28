@@ -202,6 +202,8 @@ namespace xen {
 
 		Type type; ///< The type of the event
 
+		/// \brief Whether the window had focus when this event was produced
+		bool has_focus;
 
 		///< Extra data, which is set depends on the event's type
 		union{

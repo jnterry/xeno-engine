@@ -522,7 +522,7 @@ namespace xen {
 				setWindowTitle(result, title); // Set proper window title
 				XMapWindow(result->display, result->xwindow);
 				XMapRaised(result->display, result->xwindow);
-				result->is_open = true;
+				result->state |= xen::Window::IS_OPEN;
 				////////////////////////////////////////////////////////////////////////
 
 				// :TODO: don't really want to have to wait here, but need to do it
