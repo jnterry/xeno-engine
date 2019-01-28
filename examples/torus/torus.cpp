@@ -207,28 +207,28 @@ void tick( const xen::TickContext& cntx){
 	}
 
 	// :TODO: these should use window events...
-	if(mod_win->isKeyPressed(xen::Key::Num1, state->window)){ // points
+	if(mod_win->isKeyPressed(xen::Key::Num1)){ // points
 		state->render_commands[0].primitive_type = xen::PrimitiveType::POINTS;
 	}
-	if(mod_win->isKeyPressed(xen::Key::Num2, state->window)){ // lines
+	if(mod_win->isKeyPressed(xen::Key::Num2)){ // lines
 		state->render_commands[0].primitive_type = xen::PrimitiveType::LINES;
 	}
-	if(mod_win->isKeyPressed(xen::Key::Num3, state->window)){ // triangles
+	if(mod_win->isKeyPressed(xen::Key::Num3)){ // triangles
 			state->render_commands[0].primitive_type = xen::PrimitiveType::TRIANGLES;
 	}
-	if(mod_win->isKeyPressed(xen::Key::Num4, state->window)){ // normals
+	if(mod_win->isKeyPressed(xen::Key::Num4)){ // normals
 		state->render_commands[0].shader = state->shader_normals;
 		state->render_commands[1].shader = state->shader_normals;
 	}
-	if(mod_win->isKeyPressed(xen::Key::Num5, state->window)){ // world positions
+	if(mod_win->isKeyPressed(xen::Key::Num5)){ // world positions
 		state->render_commands[0].shader = state->shader_positions;
 		state->render_commands[1].shader = state->shader_positions;
 	}
-	if(mod_win->isKeyPressed(xen::Key::Num6, state->window)){ // Shaded
+	if(mod_win->isKeyPressed(xen::Key::Num6)){ // Shaded
 		state->render_commands[0].shader = state->shader_phong;
 		state->render_commands[1].shader = state->shader_phong;
 	}
-	if(mod_win->isKeyPressed(xen::Key::Num7, state->window)){ // Basic Shaded
+	if(mod_win->isKeyPressed(xen::Key::Num7)){ // Basic Shaded
 		state->render_commands[0].shader = xen::makeNullGraphicsHandle<xen::Shader>();
 		state->render_commands[1].shader = xen::makeNullGraphicsHandle<xen::Shader>();
 	}

@@ -135,23 +135,23 @@ void tick( const xen::TickContext& cntx){
 		}
 	}
 
-	if(mod_win->isKeyPressed(xen::Key::Num1, state->window)){ // bricks
+	if(mod_win->isKeyPressed(xen::Key::Num1)){ // bricks
 		state->render_commands[0].textures[0]        = state->texture_bricks_diffuse;
 		state->render_commands[0].textures[1]        = state->texture_bricks_normal;
 		state->render_commands[0].specular_exponent  = 5_r;
 		state->render_commands[0].specular_intensity = 0.5_r;
 	}
-	if(mod_win->isKeyPressed(xen::Key::Num2, state->window)){ // metal
+	if(mod_win->isKeyPressed(xen::Key::Num2)){ // metal
 		state->render_commands[0].textures[0]        = state->texture_metal_diffuse;
 		state->render_commands[0].textures[1]        = state->texture_metal_normal;
 		state->render_commands[0].specular_exponent  = 100_r;
 		state->render_commands[0].specular_intensity = 5_r;
 	}
 
-	if(mod_win->isKeyPressed(xen::Key::Num9, state->window)){ // normal
+	if(mod_win->isKeyPressed(xen::Key::Num9)){ // normal
 		state->render_commands[0].shader = state->shader_normal_map;
 	}
-	if(mod_win->isKeyPressed(xen::Key::Num0, state->window)){ // phong
+	if(mod_win->isKeyPressed(xen::Key::Num0)){ // phong
 		state->render_commands[0].shader = state->shader_phong;
 	}
 

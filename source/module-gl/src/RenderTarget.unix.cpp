@@ -63,8 +63,8 @@ namespace xen {
 			/////////////////////////////////////////////////////////////////////
 			// Get list of supported frame buffer configurations
 			int          fb_config_count = 0;
-			GLXFBConfig* fb_configs = glXChooseFBConfig(window->display,
-			                                            DefaultScreen(window->display),
+			GLXFBConfig* fb_configs = glXChooseFBConfig(window->xdisplay,
+			                                            DefaultScreen(window->xdisplay),
 			                                            gl_attribs,
 			                                            &fb_config_count
 			                                           );
@@ -79,10 +79,10 @@ namespace xen {
 			/////////////////////////////////////////////////////////////////////
 			// Create an old GL context so we can get function pointer to
 			// glXCreateContextAttribsARBProc
-			XVisualInfo* visual_info = glXGetVisualFromFBConfig(window->display,
+			XVisualInfo* visual_info = glXGetVisualFromFBConfig(window->xdisplay,
 			                                                    fb_configs[0]
 			                                                   );
-			GLXContext ctx_old = glXCreateContext(window->display,
+			GLXContext ctx_old = glXCreateContext(window->xdisplay,
 			                                      visual_info,
 			                                      0,
 			                                      GL_TRUE
@@ -94,8 +94,8 @@ namespace xen {
 
 			/////////////////////////////////////////////////////////////////////
 			// Destroy the old context
-			glXMakeCurrent(window->display, 0, 0);
-			glXDestroyContext(window->display, ctx_old);
+			glXMakeCurrent(window->xdisplay, 0, 0);
+			glXDestroyContext(window->xdisplay, ctx_old);
 			if (!glXCreateContextAttribsARB) {
 				XenLogError("glXCreateContextAttribsARB() not found");
 				XenBreak();
@@ -112,7 +112,7 @@ namespace xen {
 
 			/////////////////////////////////////////////////////////////////////
 			// Create the GL Context
-			result->gl_context = glXCreateContextAttribsARB(window->display,
+			result->gl_context = glXCreateContextAttribsARB(window->xdisplay,
 			                                                fb_configs[0],
 			                                                NULL,
 			                                                true,
@@ -124,18 +124,18 @@ namespace xen {
 		}
 
 		void destroyRenderTarget(RenderTargetImpl* target){
-			glXDestroyContext(target->window->display, target->gl_context);
+			glXDestroyContext(target->window->xdisplay, target->gl_context);
 		}
 
 		void makeCurrent(RenderTargetImpl* target){
-			glXMakeCurrent(target->window->display,
+			glXMakeCurrent(target->window->xdisplay,
 			               target->drawable,
 			               target->gl_context
 			              );
 		}
 
 		void swapBuffers(RenderTargetImpl* target){
-			glXSwapBuffers(target->window->display, target->drawable);
+			glXSwapBuffers(target->window->xdisplay, target->drawable);
 		}
 	}
 
