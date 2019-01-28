@@ -19,10 +19,10 @@ namespace xen{
 	/// \note  For multidimensional arrays, this is the total number of elements
 	///        rather than the size along some dimension
 	/////////////////////////////////////////////////////////////////////
-  template<typename T, size_t T_SIZE>
-  inline constexpr size_t size(const FixedArray<T, T_SIZE>&){ return T_SIZE; }
+  template<typename T, u64 T_SIZE>
+  inline constexpr u64 size(const FixedArray<T, T_SIZE>&){ return (u64)T_SIZE; }
 	template<typename T>
-	inline size_t size(const Array<T>& array){ return array.size; }
+	inline u64 size(const Array<T>& array){ return array.size; }
 	template<typename T>
 	inline u64 capacity(Array<T>& buffer){ return buffer.size; }
 	template<typename T>
@@ -39,7 +39,7 @@ namespace xen{
 		return (array.size) < array.capacity;
 	}
 
-	template<typename T, size_t T_SIZE>
+	template<typename T, u64 T_SIZE>
   inline constexpr void* clearToZero(FixedArray<T, T_SIZE>& array){
 		return clearToZero(array.elements, sizeof(T) * T_SIZE);
 	}
@@ -49,13 +49,13 @@ namespace xen{
 		return clearToZero(array.elements, sizeof(T) * xen::size(array));
 	}
 
-	//template<typename T, size_t T_ROWS, size_t T_COLS>
-	//inline constexpr size_t size(const FixedArray2d<T, T_ROWS, T_COLS>&){ return T_ROWS * T_COLS; }
+	//template<typename T, u64 T_ROWS, u64 T_COLS>
+	//inline constexpr u64 size(const FixedArray2d<T, T_ROWS, T_COLS>&){ return T_ROWS * T_COLS; }
 
 	// :TODO: iterator syntax?
 
 	template<typename T>
-	Array<T> makeArray(T* elements, size_t count){
+	Array<T> makeArray(T* elements, u64 count){
 		Array<T> result;
 		result.elements = elements;
 		result.size     = count;
