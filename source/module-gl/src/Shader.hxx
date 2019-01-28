@@ -15,7 +15,7 @@
 #include <xen/math/vector_types.hpp>
 #include <xen/math/matrix_types.hpp>
 #include "gl_header.hxx"
-#include <xen/graphics/GraphicsModuleApi.hpp>
+#include <xen/graphics/ModuleApiGraphics.hpp>
 
 namespace xen{
 	struct ArenaLinear;

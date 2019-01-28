@@ -84,7 +84,7 @@ namespace xen {
 	/// \brief Type representing the Api that a graphics module is expected
 	/// to expose
 	/////////////////////////////////////////////////////////////////////
-	struct GraphicsModuleApi {
+	struct ModuleApiGraphics {
 		Window* (*createWindow )(Vec2u size, const char* title);
 		void    (*destroyWindow)(Window* window);
 

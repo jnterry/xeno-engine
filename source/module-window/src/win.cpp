@@ -12,7 +12,7 @@
 
 #include <xen/math/vector_types.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
-#include <xen/graphics/Window.win.hxx>
+#include <xen/window/win.hxx>
 
 namespace xen{
 	struct Allocator;

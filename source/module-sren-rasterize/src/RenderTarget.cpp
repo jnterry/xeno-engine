@@ -11,8 +11,8 @@
 
 #include "RenderTarget.hxx"
 #include "ModuleRasterize.hxx"
+#include <xen/window/Window.hxx>
 #include <xen/graphics/GraphicsHandles.hpp>
-#include <xen/graphics/Window.hxx>
 #include <xen/sren/RenderTarget.hxx>
 #include <xen/sren/PostProcessor.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>

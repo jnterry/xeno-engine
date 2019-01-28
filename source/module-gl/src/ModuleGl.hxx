@@ -13,7 +13,7 @@
 #include "Shader.hxx"
 #include "Texture.hxx"
 
-#include <xen/graphics/GraphicsModuleApi.hpp>
+#include <xen/graphics/ModuleApiGraphics.hpp>
 #include <xen/core/memory/ArenaPool.hpp>
 
 namespace xen {
@@ -26,7 +26,7 @@ namespace xgl {
 
 	struct GlState {
 		/// \brief The public Api exposed to other modules
-		xen::GraphicsModuleApi api;
+		xen::ModuleApiGraphics api;
 
 		/// \brief The primary memory arena used for module wide allocations
 		xen::ArenaLinear primary_arena;

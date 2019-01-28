@@ -10,8 +10,8 @@
 #ifndef XEN_GRAPHICS_GRAPHICSMODULEAPI_CPP
 #define XEN_GRAPHICS_GRAPHICSMODULEAPI_CPP
 
-#include <xen/graphics/Window.hxx>
-#include <xen/graphics/GraphicsModuleApi.hpp>
+#include <xen/window/Window.hxx> // :TODO: remove
+#include <xen/graphics/ModuleApiGraphics.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/core/intrinsics.hpp>
 
@@ -45,7 +45,7 @@ xen::RenderOp xen::RenderOp::SwapBuffers(xen::Window* window){
 }
 
 namespace xen {
-	Mesh GraphicsModuleApi::createMesh(const VertexSpec&         vertex_spec,
+	Mesh ModuleApiGraphics::createMesh(const VertexSpec&         vertex_spec,
 	                                   const MeshAttribArrays& mesh_geom
 	                                  ){
 
@@ -87,7 +87,7 @@ namespace xen {
 		return this->createMesh(&mesh_data);
 	}
 
-	Mesh GraphicsModuleApi::createMesh(const VertexSpec& vertex_spec,
+	Mesh ModuleApiGraphics::createMesh(const VertexSpec& vertex_spec,
 	                                   u32               vertex_count,
 	                                   ...
 	                                  ){
@@ -124,18 +124,18 @@ namespace xen {
 	}
 }
 
-void xen::GraphicsModuleApi::clear(xen::RenderTarget target, xen::Color color){
+void xen::ModuleApiGraphics::clear(xen::RenderTarget target, xen::Color color){
 	this->pushOp(xen::RenderOp::Clear(target, color));
 }
 
-void xen::GraphicsModuleApi::clear(xen::Window* window, xen::Color color){
+void xen::ModuleApiGraphics::clear(xen::Window* window, xen::Color color){
 	if(window->state & xen::Window::IS_OPEN){
 		this->clear(window->render_target, color);
 	}
 }
 
 
-void xen::GraphicsModuleApi::render(xen::RenderTarget target,
+void xen::ModuleApiGraphics::render(xen::RenderTarget target,
                                     xen::Aabb2u viewport,
                                     xen::RenderParameters3d& params,
                                     xen::Array<RenderCommand3d> commands
@@ -143,7 +143,7 @@ void xen::GraphicsModuleApi::render(xen::RenderTarget target,
 	this->pushOp(xen::RenderOp::Draw(target, viewport, params, commands));
 }
 
-void xen::GraphicsModuleApi::render(xen::Window* window,
+void xen::ModuleApiGraphics::render(xen::Window* window,
                                     xen::Aabb2u viewport,
                                     xen::RenderParameters3d& params,
                                     xen::Array<RenderCommand3d> commands
@@ -153,7 +153,7 @@ void xen::GraphicsModuleApi::render(xen::Window* window,
 	}
 }
 
-void xen::GraphicsModuleApi::swapBuffers(xen::Window* window){
+void xen::ModuleApiGraphics::swapBuffers(xen::Window* window){
 	this->pushOp(xen::RenderOp::SwapBuffers(window));
 }
 

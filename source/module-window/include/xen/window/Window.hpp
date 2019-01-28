@@ -17,25 +17,6 @@ namespace xen {
 	/// \brief Opaque type representing a Window - actual type depends on platform
 	struct Window;
 
-	/// \brief Retrieves the size of the client area (IE: part that may
-	// be rendered to) of some window
-	Vec2u getClientAreaSize(Window* window);
-
-	/// \brief Updates the title of some window - typically displayed by the
-	/// window manager above the client area
-	void setWindowTitle(Window* window, const char* title);
-
-	/// \brief Retrieves the RenderTarget representing the client area of
-	/// some window
-	RenderTarget getRenderTarget(Window* window);
-
-	/// \brief Swaps the buffers of some Window such that the application
-	/// can begin drawing to a buffer while the other is displayed. Nothing
-	/// will be displayed on the window's surface until this function is called
-	//void swapBuffers(Window* window);
-
-	bool isWindowOpen(const Window* window);
-
 	/// \brief Unsigned integer type which is capable of holding a bitwise
 	/// combination the MouseButtons bit field values
 	typedef u08 MouseButtonState;
@@ -215,21 +196,40 @@ namespace xen {
 		};
 	};
 
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Retrieves a pointer to the next event in the event queue of a
-	/// window, or null pointer if there are no more events at the current time
-	///
-	/// \note This pointer refers to memory owned by the window system and no
-	/// attempt should be made to free it. The pointer is guarenteed to remain
-	/// valid until the next call to pollEvent for the same window
-	/////////////////////////////////////////////////////////////////////
-	WindowEvent* pollEvent(Window* window);
+	struct ModuleApiWindow {
+		/// \brief Retrieves the size of the client area (IE: part that may
+		// be rendered to) of some window
+		Vec2u (*getClientAreaSize)(Window* window);
 
-	/// \brief Determines if a keyboard key is currently pressed
-	/// \todo :TODO: only reason we need to pass a Window in is that on unix
-	/// we need a display connection -> turn window management into a reloadable
-	/// module so we can store some global state
-	bool isKeyPressed(Key key, Window* window);
+			/// \brief Updates the title of some window - typically displayed by the
+		/// window manager above the client area
+		void (*setWindowTitle)(Window* window, const char* title);
+
+		/// \brief Retrieves the RenderTarget representing the client area of
+		/// some window
+		RenderTarget (*getRenderTarget)(Window* window);
+
+		/// \brief Swaps the buffers of some Window such that the application
+		/// can begin drawing to a buffer while the other is displayed. Nothing
+		/// will be displayed on the window's surface until this function is called
+		//void swapBuffers(Window* window);
+
+		bool (*isWindowOpen)(const Window* window);
+
+		/// \brief Retrieves a pointer to the next event in the event queue of a
+		/// window, or null pointer if there are no more events at the current time
+		///
+		/// \note This pointer refers to memory owned by the window system and no
+		/// attempt should be made to free it. The pointer is guarenteed to remain
+		/// valid until the next call to pollEvent for the same window
+		WindowEvent* (*pollEvent)(Window* window);
+
+		/// \brief Determines if a keyboard key is currently pressed
+		/// \todo :TODO: only reason we need to pass a Window in is that on unix
+		/// we need a display connection -> turn window management into a reloadable
+		/// module so we can store some global state
+		bool (*isKeyPressed)(Key key, Window* window);
+	};
 }
 
 #endif

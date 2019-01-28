@@ -17,7 +17,7 @@
 #include <xen/graphics/TestMeshes.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/Light3d.hpp>
-#include <xen/graphics/Window.hpp>
+#include <xen/window/Window.hpp>
 
 #include "../utilities.hpp"
 #include "../fragment_shaders.cpp"
@@ -50,15 +50,16 @@ struct State {
 State* state = nullptr;
 
 void* init(const void* params){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
-	XenAssert(gmod != nullptr, "Expected graphics module to be loaded before quicktest");
+	xen::ModuleApiGraphics* mod_ren = (xen::ModuleApiGraphics*)xen::getModuleApi("graphics");
+
+	XenAssert(mod_ren != nullptr, "Expected graphics module to be loaded before quicktest");
 
 	xen::ArenaLinear& arena = xen::getThreadScratchSpace();
 
 	state = (State*)xen::kernelAlloc(sizeof(State));
 	xen::clearToZero(state);
 
-	state->window = gmod->createWindow({800, 600}, "quicktest");
+	state->window = mod_ren->createWindow({800, 600}, "quicktest");
 
 	state->camera.z_near = 0.001;
 	state->camera.z_far  = 10000;
@@ -79,16 +80,16 @@ void* init(const void* params){
 	state->vertex_spec[2] = xen::VertexAttribute::Color4b;
 	state->vertex_spec[3] = xen::VertexAttribute::TexCoord2f;
 
-	state->shader_phong      = gmod->createShader({ (void*)&FragmentShader_Phong, nullptr, nullptr });
+	state->shader_phong      = mod_ren->createShader({ (void*)&FragmentShader_Phong, nullptr, nullptr });
 
 	xen::RawImage test_image = xen::loadImage(arena, "test.bmp");
-	state->texture_debug_img = gmod->createTexture(&test_image);
+	state->texture_debug_img = mod_ren->createTexture(&test_image);
 
-	state->mesh_cube         = gmod->createMesh(state->vertex_spec, xen::TestMeshGeometry_UnitCube);
+	state->mesh_cube         = mod_ren->createMesh(state->vertex_spec, xen::TestMeshGeometry_UnitCube);
 
 	xen::MeshData* mesh_data_bunny = xen::createEmptyMeshData(arena, state->vertex_spec);
 	xen::loadMeshFile(mesh_data_bunny, arena, "bunny.obj", xen::MeshLoadFlags::CENTER_ORIGIN);
-	state->mesh_bunny = gmod->createMesh(mesh_data_bunny);
+	state->mesh_bunny = mod_ren->createMesh(mesh_data_bunny);
 
 	state->render_cmds[CMD_BUNNY ].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	state->render_cmds[CMD_BUNNY ].color           = xen::Color::RED4f;
@@ -139,20 +140,22 @@ void* load( void* data, const void* params){
 }
 
 void tick( const xen::TickContext& cntx){
-	xen::GraphicsModuleApi* gmod = (xen::GraphicsModuleApi*)xen::getModuleApi("graphics");
-	XenAssert(gmod != nullptr, "Expected graphics module to be loaded before quicktest");
+	xen::ModuleApiWindow*   mod_win = (xen::ModuleApiWindow*  )xen::getModuleApi("window"  );
+	xen::ModuleApiGraphics* mod_ren = (xen::ModuleApiGraphics*)xen::getModuleApi("graphics");
+	XenAssert(mod_win != nullptr, "Expected window module to be loaded before quicktest");
+	XenAssert(mod_ren != nullptr, "Expected graphics module to be loaded before quicktest");
 
-	xen::Aabb2u viewport = { Vec2u::Origin, xen::getClientAreaSize(state->window) };
+	xen::Aabb2u viewport = { Vec2u::Origin, mod_win->getClientAreaSize(state->window) };
 
 	Mat4r model_mat;
 
 	real time = xen::asSeconds<real>(cntx.time);
 
 	xen::WindowEvent* event;
-	while((event = xen::pollEvent(state->window)) != nullptr){
+	while((event = mod_win->pollEvent(state->window)) != nullptr){
 		switch(event->type){
 		case xen::WindowEvent::Closed:
-			gmod->destroyWindow(state->window);
+			mod_ren->destroyWindow(state->window);
 			xen::requestKernelShutdown();
 			break;
 		case xen::WindowEvent::Resized:
@@ -178,7 +181,7 @@ void tick( const xen::TickContext& cntx){
 		default: break;
 		}
 	}
-	handleCameraInputCylinder(state->window, state->camera, xen::asSeconds<real>(cntx.dt));
+	handleCameraInputCylinder(mod_win, state->window, state->camera, xen::asSeconds<real>(cntx.dt));
 
 	Vec3r light_pos = xen::rotated(Vec3r{4, 3, 0}, Vec3r::UnitY, xen::Degrees(time*90_r));
 	state->point_light_color.w = (1_r + sin(time*9)) / 2.0_r;
@@ -213,9 +216,9 @@ void tick( const xen::TickContext& cntx){
 
 	////////////////////////////////////////////
 	// Do rendering
-	gmod->clear      (state->window, xen::Color::BLACK);
-	gmod->render     (state->window, viewport, state->render_params, state->render_cmds);
-	gmod->swapBuffers(state->window);
+	mod_ren->clear      (state->window, xen::Color::BLACK);
+	mod_ren->render     (state->window, viewport, state->render_params, state->render_cmds);
+	mod_ren->swapBuffers(state->window);
 }
 
 void shutdown(void* data, const void* params){

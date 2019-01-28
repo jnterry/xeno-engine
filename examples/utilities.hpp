@@ -10,8 +10,8 @@
 #define XEN_EXAMPLES_UTILITIES_HPP
 
 #include <xen/core/intrinsics.hpp>
-#include <xen/graphics/Window.hpp>
-#include <xen/graphics/GraphicsModuleApi.hpp>
+#include <xen/window/Window.hpp>
+#include <xen/graphics/ModuleApiGraphics.hpp>
 #include <xen/kernel/Kernel.hpp>
 #include <xen/kernel/Module.hpp>
 #include <xen/kernel/threads.hpp>
@@ -26,12 +26,12 @@ namespace xen {
 /////////////////////////////////////////////////////////////////////
 /// \brief Handles the control input for a cylinder orbit camera
 /////////////////////////////////////////////////////////////////////
-void handleCameraInputCylinder(xen::Window* win, xen::Camera3dCylinder& camera, real dt, real max_radius = 750_r);
+void handleCameraInputCylinder(xen::ModuleApiWindow* mod_win, xen::Window* win, xen::Camera3dCylinder& camera, real dt, real max_radius = 750_r);
 
 /////////////////////////////////////////////////////////////////////
 /// \brief Handles the control input for a camera which moves around in
 /// the xy plane
 /////////////////////////////////////////////////////////////////////
-void handleCameraInputPlane   (xen::Window* win, xen::Camera3d& camera, real dt);
+void handleCameraInputPlane   (xen::ModuleApiWindow* mod_win, xen::Window* win, xen::Camera3d& camera, real dt);
 
 #endif

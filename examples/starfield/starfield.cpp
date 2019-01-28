@@ -4,7 +4,7 @@
 #include <xen/kernel/Module.hpp>
 #include <xen/core/random.hpp>
 
-#include <xen/graphics/Window.hpp>
+#include <xen/window/Window.hpp>
 #include <xen/graphics/TestMeshes.hpp>
 #include <xen/graphics/GraphicsModuleApi.hpp>
 #include <xen/math/vector.hpp>

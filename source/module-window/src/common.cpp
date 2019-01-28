@@ -10,24 +10,11 @@
 #ifndef XEN_GRAPHICS_WINDOW_CPP
 #define XEN_GRAPHICS_WINDOW_CPP
 
-#include <xen/graphics/Window.hpp>
-#include <xen/graphics/Window.hxx>
+#include <xen/window/Window.hpp>
+#include <xen/window/Window.hxx>
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/config.hpp>
-
-#ifdef XEN_OS_WINDOWS
-	#include "Window.win.cpp"
-#elif defined XEN_OS_UNIX
-	#include "Window.unix.cpp"
-#else
-	// Then use a dummy implementation, this done rather than #error to make
-	// porting xeno engine to new platforms easier, since can work on one thing
-	// at a time rather than having to implement everything at once (dummy also
-	// acts a nice skeleton for the new implementation)
-	#warning "Window system not implemented on this platform... using dummy implementation"
-	#include "Window.dummy.cpp"
-#endif
 
 namespace xen {
 	WindowEvent* pollEvent(Window* win){
@@ -53,6 +40,10 @@ namespace xen {
 		return win->state & xen::Window::IS_OPEN;
 	}
 
+	xen::RenderTarget getRenderTarget(Window* win){
+		return win->render_target;
+	}
+
 	namespace impl {
 		bool pushEvent(xen::Window* win, const xen::WindowEvent& event){
 
@@ -67,5 +58,18 @@ namespace xen {
 		}
 	}
 }
+
+#ifdef XEN_OS_WINDOWS
+	#include "win.cpp"
+#elif defined XEN_OS_UNIX
+	#include "unix.cpp"
+#else
+	// Then use a dummy implementation, this done rather than #error to make
+	// porting xeno engine to new platforms easier, since can work on one thing
+	// at a time rather than having to implement everything at once (dummy also
+	// acts a nice skeleton for the new implementation)
+	#warning "Window system not implemented on this platform... using dummy implementation"
+	#include "dummy.cpp"
+#endif
 
 #endif

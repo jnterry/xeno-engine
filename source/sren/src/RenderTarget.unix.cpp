@@ -9,7 +9,7 @@
 #ifndef XEN_SREN_RENDERTARGETIMPL_UNIX_CPP
 #define XEN_SREN_RENDERTARGETIMPL_UNIX_CPP
 
-#include <xen/graphics/Window.hxx>
+#include <xen/window/Window.hxx>
 
 #include <xen/sren/RenderTarget.hxx>
 #include <xen/sren/Framebuffer.hpp>

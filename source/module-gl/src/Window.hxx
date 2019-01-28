@@ -9,7 +9,7 @@
 #ifndef XEN_GL_WINDOW_HXX
 #define XEN_GL_WINDOW_HXX
 
-#include <xen/graphics/Window.hpp>
+#include <xen/window/Window.hpp>
 
 namespace xgl {
 	xen::Window* createWindow(Vec2u size, const char* title);

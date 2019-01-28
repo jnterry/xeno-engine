@@ -9,7 +9,7 @@
 #ifndef XEN_GL_RENDERTARGETIMPL_UNIX_CPP
 #define XEN_GL_RENDERTARGETIMPL_UNIX_CPP
 
-#include <xen/graphics/Window.unix.hxx>
+#include <xen/window/Window.hxx>
 #include <xen/kernel/log.hpp>
 
 #include <GL/glx.h>

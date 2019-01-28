@@ -9,7 +9,7 @@
 #ifndef XEN_GL_MODULE_CPP
 #define XEN_GL_MODULE_CPP
 
-#include <xen/graphics/GraphicsModuleApi.hpp>
+#include <xen/graphics/ModuleApiGraphics.hpp>
 #include <xen/kernel/Module.hpp>
 #include <xen/kernel/Kernel.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>

@@ -9,7 +9,7 @@
 #ifndef XEN_GRAPHICS_WINDOW_HXX
 #define XEN_GRAPHICS_WINDOW_HXX
 
-#include <xen/graphics/Window.hpp>
+#include <xen/window/Window.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/core/RingBuffer.hpp>
 #include <xen/config.hpp>
@@ -67,9 +67,9 @@ namespace xen {
 }
 
 #if defined XEN_OS_UNIX
-	#include "Window.unix.hxx"
+	#include "unix.hxx"
 #elif defined XEN_OS_WINDOWS
-	#include "Window.win.hxx"
+	#include "win.hxx"
 #endif
 
 #endif

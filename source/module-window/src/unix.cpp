@@ -9,16 +9,23 @@
 #ifndef XEN_GRAPHICS_WINDOW_UNIX_CPP
 #define XEN_GRAPHICS_WINDOW_UNIX_CPP
 
-#include <xen/graphics/Window.hpp>
+#include <xen/window/Window.hpp>
+#include <xen/window/Window.hxx>
+
 #include <xen/math/vector.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
+
+#include <xen/kernel/Module.hpp>
+#include <xen/kernel/Kernel.hpp>
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <X11/Xutil.h>
 
-#include <xen/graphics/Window.unix.hxx>
+namespace xen {
+	struct Allocator;
+}
 
 namespace {
 	xen::Key xenKeyFromKeysym(KeySym symbol){
@@ -335,10 +342,12 @@ namespace {
 }
 
 namespace xen {
-	struct Allocator;
+	void setWindowTitle(Window* window, const char* title){
+		XStoreName(window->display, window->xwindow, title);
+	}
 
-	namespace impl{
-		void dispatchEvents(Window* w){
+	namespace impl {
+		void dispatchEvents(xen::Window* w){
 			XEvent event;
 			while(XCheckIfEvent(w->display, &event,
 			                    &checkEventMatchesWindow,
@@ -350,9 +359,9 @@ namespace xen {
 			}
 		}
 
-		Window* createWindow(xen::ArenaLinear& arena, Vec2u size, const char* title){
+		xen::Window* createWindow(xen::ArenaLinear& arena, Vec2u size, const char* title){
 				xen::MemoryTransaction transaction(arena);
-				Window* result = xen::reserveType<Window>(arena);
+				xen::Window* result = xen::reserveType<xen::Window>(arena);
 				*result = {};
 
 				result->events.elements = xen::reserveTypeArray<xen::WindowEvent>(arena, 64);
@@ -565,10 +574,41 @@ namespace xen {
 		// Check the keycode in question
 		return (keys[keycode / 8] & (1 << (keycode % 8))) != 0;
 	}
-
-	void setWindowTitle(Window* window, const char* title){
-		XStoreName(window->display, window->xwindow, title);
-	}
 }
 
+namespace xwn {
+	struct State {
+		xen::ModuleApiWindow api;
+	};
+
+	State* state;
+}
+
+void* init(const void* params){
+	xwn::state = (xwn::State*)xen::kernelAlloc(sizeof(xwn::State));
+	return xwn::state;
+}
+
+void shutdown(void* data, const void* params){
+	xen::kernelFree(xwn::state);
+}
+
+void* load( void* data, const void* params){
+	xwn::state = (xwn::State*)data;
+
+	xwn::state->api.getClientAreaSize = &xen::getClientAreaSize;
+	xwn::state->api.setWindowTitle    = &xen::setWindowTitle;
+	xwn::state->api.getRenderTarget   = &xen::getRenderTarget;
+	xwn::state->api.isWindowOpen      = &xen::isWindowOpen;
+	xwn::state->api.pollEvent         = &xen::pollEvent;
+	xwn::state->api.isKeyPressed      = &xen::isKeyPressed;
+
+	return &xwn::state->api;
+}
+
+void tick(const xen::TickContext& tick){
+	// no-op
+}
+
+XenDeclareModule("window", &init, &shutdown, &load, nullptr, &tick)
 #endif
