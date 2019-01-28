@@ -13,7 +13,6 @@
 #include <xen/kernel/threads.hpp>
 #include <xen/core/String.hpp>
 #include <xen/core/memory/utilities.hpp>
-#include <xen/graphics/Color.hpp>
 
 #include <cstdio>
 
@@ -31,11 +30,15 @@ struct LogData {
 };
 LogData log_data;
 
-/// \brief Converts an rgb color to the closest ansi color between 0 and 256
-uint ansiColor(xen::Color c){
-	uint r = ((uint)c.r) * 6 / 256;
-	uint g = ((uint)c.g) * 6 / 256;
-	uint b = ((uint)c.b) * 6 / 256;
+/// \brief Converts an rgba color to the closest ansi color between 0 and 256
+uint ansiColor(u32 c){
+	uint r = c >> 24 & 255;
+	uint g = c >> 16 & 255;
+	uint b = c >>  8 & 255;
+
+	r = r * 6 / 256;
+	g = g * 6 / 256;
+	b = b * 6 / 256;
 
   return 16 + 36 * r + 6 * g + b;
 }
@@ -66,46 +69,46 @@ void xke::printLogMsgToStdio(const xen::LogMessage& lm){
 	static const char* str_setaf = tigetstr("setaf");
 	static const char* str_setab = tigetstr("setab");
 
-	xen::Color  level_foreground;
-	xen::Color  level_background;
+	u32 level_foreground; // rgba colors
+  u32 level_background;
 	const char* level_name;
 
 	switch(lm.level){
 	case xen::LogLevel::TRACE:
 		level_name = "TRACE";
-		level_foreground = xen::Color{255, 255, 255};
-		level_background = xen::Color{ 70,  80,  90};
+		level_foreground = 0xFFFFFFFF;
+		level_background = 0x46505AFF;
 		break;
 	case xen::LogLevel::DEBUG:
 		level_name = "DEBUG";
-		level_foreground = xen::Color{255, 255, 255};
-		level_background = xen::Color{ 30,  30,  30};
+		level_foreground = 0xFFFFFFFF;
+		level_background = 0x1E1E1E00;
 		break;
 	case xen::LogLevel::INFO:
 		level_name = "INFO ";
-	  level_foreground = xen::Color{  0,   0,   0};
-		level_background = xen::Color{  0, 255, 255};
+		level_foreground = 0x000000FF;
+		level_background = 0x00FFFFFF;
 		break;
 	case xen::LogLevel::DONE:
 		level_name = "DONE ";
-	  level_foreground = xen::Color{  0,   0,   0};
-		level_background = xen::Color{130, 255,  40};
+		level_foreground = 0x000000FF;
+		level_background = 0x82FF28FF;
 		break;
 	case xen::LogLevel::WARN:
 		level_name = "WARN ";
-		level_foreground = xen::Color{  0,   0,   0};
-		level_background = xen::Color{255, 150,   0};
+		level_foreground = 0x000000FF;
+		level_background = 0xFF9600FF;
 		break;
 	case xen::LogLevel::ERROR:
 		level_name = "ERROR";
-		level_foreground = xen::Color{255, 255, 255};
-		level_background = xen::Color{255,   0,   0};
+		level_foreground = 0xFFFFFFFF;
+		level_background = 0xFF0000FF;
 		break;
 	case xen::LogLevel::FATAL_DEV:
 	case xen::LogLevel::FATAL:
 		level_name       = "FATAL";
-		level_foreground = xen::Color{255, 255, 255};
-		level_background = xen::Color{100,   0,   0};
+		level_foreground = 0xFFFFFFFF;
+		level_background = 0x640000FF;
 	}
 
 	char date_buffer[256];
