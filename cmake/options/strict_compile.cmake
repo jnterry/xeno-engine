@@ -30,5 +30,6 @@ if(XEN_STRICT_COMPILE)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-long-long"      ) # don't warn for long long type
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-function") # don't warn for cpp with unused functions
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror"             ) # turn warnings into errors
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=unused-variable")
   endif()
 endif()
