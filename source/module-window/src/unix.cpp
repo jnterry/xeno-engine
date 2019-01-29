@@ -470,26 +470,16 @@ namespace xen {
 		);
 		result->events.capacity = EVENT_QUEUE_LENGTH;
 
-		//XSelectInput(xwn::state->display, result->xwindow,
-		//             //ExposureMask      | // Window shown
-			//             StructureNotifyMask | // Resize request, window moved
-			              //             FocusChangeMask     |
-			              //             ResizeRedirectMask  | // Window resized
-			              //             ButtonPressMask     | // Mouse
-			              //             ButtonReleaseMask   |
-			              //             KeyPressMask        | // Keyboard
-			              //             KeyReleaseMask      |
-			              //             0);
-	//
 		XSelectInput(xwn::state->display, result->xwindow,
-		             FocusChangeMask      | ButtonPressMask     |
-		             ButtonReleaseMask    | ButtonMotionMask    |
-		             PointerMotionMask    | KeyPressMask        |
-		             KeyReleaseMask       | StructureNotifyMask |
-		             EnterWindowMask      | LeaveWindowMask     |
-		             VisibilityChangeMask | PropertyChangeMask);
-
-
+		             ExposureMask        | // Window shown
+		             StructureNotifyMask | // Resize request, window moved
+		             FocusChangeMask     |
+		             ResizeRedirectMask  | // Window resized
+		             ButtonPressMask     | // Mouse
+		             ButtonReleaseMask   |
+		             KeyPressMask        | // Keyboard
+		             KeyReleaseMask      |
+		             0);
 
 		// Change the close button behaviour so that we can capture event,
 		// rather than the window manager destroying the window by itself
