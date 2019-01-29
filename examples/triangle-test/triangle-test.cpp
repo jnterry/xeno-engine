@@ -21,7 +21,8 @@ struct State {
 	xen::RenderParameters3d render_params;
 	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
 
-	xen::Window* window;
+	xen::Window*      window;
+	xen::RenderTarget window_target;
 
 	xen::Mesh mesh_triangles;
 	xen::Mesh mesh_axes;
@@ -33,11 +34,16 @@ struct State {
 State* state = nullptr;
 
 void* init(const void* params){
-	xen::ModuleApiGraphics* mod_ren = (xen::ModuleApiGraphics*)xen::getModuleApi(xen::hash("graphics"));
-	XenAssert(mod_ren != nullptr, "A graphics module must be loaded before triangle-test");
+	xen::ModuleApiGraphics* mod_ren = xen::getModuleApi<xen::ModuleApiGraphics>();
+	xen::ModuleApiWindow*   mod_win = xen::getModuleApi<xen::ModuleApiWindow>();
+	XenAssert(mod_ren != nullptr, "Graphics module must be loaded before cornell-box");
+	XenAssert(mod_win != nullptr, "Window module must be loaded before cornell-box");
 
 	state = (State*)xen::kernelAlloc(sizeof(State));
 	xen::clearToZero(state);
+
+	state->window        = mod_win->createWindow({800, 600}, "triangle-test");
+	state->window_target = mod_ren->createWindowRenderTarget(state->window);
 
 	state->render_params.lights.size = 0;
 	state->render_params.ambient_light = {1,1,1};
@@ -51,8 +57,6 @@ void* init(const void* params){
 	state->vertex_spec[0] = xen::VertexAttribute::Position3r;
 	state->vertex_spec[1] = xen::VertexAttribute::Normal3r;
 	state->vertex_spec[2] = xen::VertexAttribute::Color4b;
-
-	state->window = mod_ren->createWindow({800, 600}, "triangle-test");
 
 	state->mesh_triangles = mod_ren->createMesh
 		(state->vertex_spec, XenArrayLength(test_triangles_pos),
@@ -94,7 +98,7 @@ void tick(const xen::TickContext& cntx){
 	while((event = mod_win->pollEvent(state->window)) != nullptr){
 		switch(event->type){
 		case xen::WindowEvent::Closed:
-			mod_ren->destroyWindow(state->window);
+			mod_win->destroyWindow(state->window);
 			xen::requestKernelShutdown();
 			break;
 		default: break;
@@ -108,10 +112,9 @@ void tick(const xen::TickContext& cntx){
 	                                         );
 
 	// Rendering
-	mod_ren->clear      (state->window, xen::Color{20,20,20,255});
-	mod_ren->render     (state->window, viewport, state->render_params, state->render_commands);
-	mo
-		d_ren->swapBuffers(state->window);
+	mod_ren->clear      (state->window_target, xen::Color{20,20,20,255});
+	mod_ren->render     (state->window_target, viewport, state->render_params, state->render_commands);
+	mod_ren->swapBuffers(state->window_target);
 }
 
 void shutdown(void* data, const void* params){

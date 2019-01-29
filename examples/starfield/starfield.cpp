@@ -27,6 +27,7 @@ struct StarfieldState {
 	xen::Mesh mesh_cube_lines;
 
 	xen::Window*                             window;
+	xen::RenderTarget                        window_target;
 
 	xen::RenderParameters3d                  render_params;
 	xen::Camera3dCylinder                    camera;
@@ -37,9 +38,14 @@ StarfieldState* star_state;
 
 void* init(const void* params){
 	xen::ModuleApiGraphics* mod_ren = xen::getModuleApi<xen::ModuleApiGraphics>();
-	XenAssert(mod_ren != nullptr, "Graphics module must be loaded before starfield module");
+	xen::ModuleApiWindow*   mod_win = xen::getModuleApi<xen::ModuleApiWindow>();
+	XenAssert(mod_ren != nullptr, "Graphics module must be loaded before cornell-box");
+	XenAssert(mod_win != nullptr, "Window module must be loaded before cornell-box");
 
 	StarfieldState* ss = (StarfieldState*)xen::kernelAlloc(sizeof(StarfieldState));
+
+	ss->window        = mod_win->createWindow({600, 600}, "starfield");
+	ss->window_target = mod_ren->createWindowRenderTarget(ss->window);
 
 	ss->camera.z_near = 0.001;
 	ss->camera.z_far  = 1000;
@@ -67,8 +73,6 @@ void* init(const void* params){
 
 	ss->vertex_spec[0] = xen::VertexAttribute::Position3r;
 	ss->vertex_spec[1] = xen::VertexAttribute::Color4b;
-
-	ss->window = mod_ren->createWindow(Vec2u{800, 600}, "Starfield");
 
 	ss->mesh_stars      = mod_ren->createMesh(ss->vertex_spec, STAR_COUNT, ss->star_positions, ss->star_colors);
 	ss->mesh_axes       = mod_ren->createMesh(ss->vertex_spec, xen::TestMeshGeometry_Axes);
@@ -111,7 +115,7 @@ void tick( const xen::TickContext& cntx){
 	while((event = mod_win->pollEvent(star_state->window))){
 		switch(event->type){
 		case xen::WindowEvent::Closed:
-			mod_ren->destroyWindow(star_state->window);
+			mod_win->destroyWindow(star_state->window);
 			xen::requestKernelShutdown();
 			break;
 		default: break;
@@ -129,10 +133,10 @@ void tick( const xen::TickContext& cntx){
 	}
 	mod_ren->updateMeshVertexData(star_state->mesh_stars, 0, star_state->star_positions);
 
-	mod_ren->clear      (star_state->window, xen::Color{20,20,20,255});
-	mod_ren->render     (star_state->window, viewport,
-	                                star_state->render_params, star_state->render_commands);
-	mod_ren->swapBuffers(star_state->window);
+	mod_ren->clear      (star_state->window_target, xen::Color{20,20,20,255});
+	mod_ren->render     (star_state->window_target, viewport,
+	                     star_state->render_params, star_state->render_commands);
+	mod_ren->swapBuffers(star_state->window_target);
 }
 
 void* load( void* data, const void* params){

@@ -34,7 +34,8 @@ struct State {
 	xen::FixedArray<xen::LightSource3d, 1> light_sources;
 	xen::Camera3dCylinder camera;
 
-	xen::Window* window;
+	xen::Window*      window;
+	xen::RenderTarget window_target;
 
 	xen::Color4f point_light_color = xen::Color4f(1,0,0,1);
 	xen::FixedArray<xen::VertexAttribute::Type, 4> vertex_spec;
@@ -51,14 +52,17 @@ State* state = nullptr;
 
 void* init(const void* params){
 	xen::ModuleApiGraphics* mod_ren = xen::getModuleApi<xen::ModuleApiGraphics>();
-	XenAssert(mod_ren != nullptr, "Expected graphics module to be loaded before quicktest");
+	xen::ModuleApiWindow*   mod_win = xen::getModuleApi<xen::ModuleApiWindow>();
+	XenAssert(mod_ren != nullptr, "Graphics module must be loaded before cornell-box");
+	XenAssert(mod_win != nullptr, "Window module must be loaded before cornell-box");
 
 	xen::ArenaLinear& arena = xen::getThreadScratchSpace();
 
 	state = (State*)xen::kernelAlloc(sizeof(State));
 	xen::clearToZero(state);
 
-	state->window = mod_ren->createWindow({800, 600}, "quicktest");
+	state->window        = mod_win->createWindow({800, 600}, "quicktest");
+	state->window_target = mod_ren->createWindowRenderTarget(state->window);
 
 	state->camera.z_near = 0.001;
 	state->camera.z_far  = 10000;
@@ -154,7 +158,7 @@ void tick( const xen::TickContext& cntx){
 	while((event = mod_win->pollEvent(state->window)) != nullptr){
 		switch(event->type){
 		case xen::WindowEvent::Closed:
-			mod_ren->destroyWindow(state->window);
+			mod_win->destroyWindow(state->window);
 			xen::requestKernelShutdown();
 			break;
 		case xen::WindowEvent::Resized:
@@ -215,9 +219,9 @@ void tick( const xen::TickContext& cntx){
 
 	////////////////////////////////////////////
 	// Do rendering
-	mod_ren->clear      (state->window, xen::Color::BLACK);
-	mod_ren->render     (state->window, viewport, state->render_params, state->render_cmds);
-	mod_ren->swapBuffers(state->window);
+	mod_ren->clear      (state->window_target, xen::Color::BLACK);
+	mod_ren->render     (state->window_target, viewport, state->render_params, state->render_cmds);
+	mod_ren->swapBuffers(state->window_target);
 }
 
 void shutdown(void* data, const void* params){

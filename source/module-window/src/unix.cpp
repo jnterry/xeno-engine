@@ -350,8 +350,13 @@ namespace {
 		} // end of case ButtonPress
 		case ResizeRequest:{
 			e.type = xen::WindowEvent::Resized;
-			e.resize.new_size.x = xe->xresizerequest.width;
-			e.resize.new_size.y = xe->xresizerequest.height;
+
+			e.resize.old_size = win->size;
+
+			win->size.x = xe->xresizerequest.width;
+			win->size.y = xe->xresizerequest.height;
+
+			e.resize.new_size = win->size;
 			break;
 		} // end of case ResizeRequest
 		default:
@@ -377,6 +382,7 @@ namespace xen {
 
 		xen::Window* result = &xwn::state->windows[xwn::state->windows.size++];
 		*result = {};
+		result->size     = size;
 		result->xdisplay = xwn::state->display;
 
 		////////////////////////////////////////////////////////////////////////

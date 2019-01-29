@@ -35,6 +35,9 @@ namespace xen {
 			};
 			u08 state;
 
+			/// \brief Size in pixels of the window
+			Vec2u size;
+
 			/// \brief Queue of events to process for this window
 			xen::RingBuffer<WindowEvent, false> events;
 		};

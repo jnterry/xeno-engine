@@ -141,8 +141,7 @@ namespace xen {
 
 	struct EventResized {
 		Vec2u new_size;
-
-		// :TODO: old size?
+		Vec2u old_size;
 	};
 
 	/// \brief Stores information about user input related to some Window instance

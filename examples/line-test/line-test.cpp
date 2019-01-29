@@ -10,7 +10,8 @@ struct State {
 	xen::Mesh mesh_axes;
 	xen::Mesh mesh_parallel_lines;
 
-	xen::Window* window;
+	xen::Window*      window;
+	xen::RenderTarget window_target;
 
 	xen::RenderParameters3d render_params;
 	xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
@@ -72,12 +73,14 @@ void initMeshes(xen::ModuleApiGraphics* mod_ren){
 
 void* init( const void* params){
 	xen::ModuleApiGraphics* mod_ren = xen::getModuleApi<xen::ModuleApiGraphics>();
-	XenAssert(mod_ren != nullptr,
-	          "Expected graphics module to be loaded before line-test");
+	xen::ModuleApiWindow*   mod_win = xen::getModuleApi<xen::ModuleApiWindow>();
+	XenAssert(mod_ren != nullptr, "Graphics module must be loaded before cornell-box");
+	XenAssert(mod_win != nullptr, "Window module must be loaded before cornell-box");
 
-  state = (State*)xen::kernelAlloc(sizeof(State));
+	state = (State*)xen::kernelAlloc(sizeof(State));
 
-	state->window = mod_ren->createWindow({800, 600}, "line-test");
+	state->window        = mod_win->createWindow({600, 600}, "line-test");
+	state->window_target = mod_ren->createWindowRenderTarget(state->window);
 
 	state->render_params.camera.z_near   =  0.001;
 	state->render_params.camera.z_far    =  1000;
@@ -109,7 +112,7 @@ void tick( const xen::TickContext& cntx){
 	while((event = mod_win->pollEvent(state->window)) != nullptr){
 		switch(event->type){
 		case xen::WindowEvent::Closed:
-			mod_ren->destroyWindow(state->window);
+			mod_win->destroyWindow(state->window);
 			xen::requestKernelShutdown();
 			break;
 		default: break;
@@ -118,9 +121,9 @@ void tick( const xen::TickContext& cntx){
 	handleCameraInputPlane(mod_win, state->window, state->render_params.camera, xen::asSeconds<real>(cntx.dt));
 
 	// Rendering
-	mod_ren->clear      (state->window, xen::Color{20, 20, 20, 255});
-	mod_ren->render     (state->window, viewport, state->render_params, state->render_commands);
-	mod_ren->swapBuffers(state->window);
+	mod_ren->clear      (state->window_target, xen::Color{20, 20, 20, 255});
+	mod_ren->render     (state->window_target, viewport, state->render_params, state->render_commands);
+	mod_ren->swapBuffers(state->window_target);
 
 }
 
