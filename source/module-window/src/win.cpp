@@ -12,7 +12,20 @@
 
 #include <xen/math/vector_types.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/core/bits.hpp>
+#include <xen/kernel/log.hpp>
 #include <xen/window/win.hxx>
+
+namespace xwn {
+	Vec2u getClientAreaSize(xen::Window* window){
+		RECT rect;
+		if(GetClientRect(window->handle, &rect)){
+			return { (u32)rect.right, (u32)rect.bottom };
+		} else {
+			return Vec2u::Origin;
+		}
+	}
+}
 
 namespace xen{
 	struct Allocator;
@@ -22,7 +35,7 @@ namespace xen{
 		bool windowClassRegistered = false;
 
 		void setModifierKeys(xen::ModifierKeyState& state, WPARAM wParam){
-			//:TOOD: what about alt, system, caps lock etc???
+			//:TODO: what about alt, system, caps lock etc???
 			if(wParam & MK_CONTROL) { state |= xen::ModifierKeys::Control; }
 			if(wParam & MK_SHIFT)   { state |= xen::ModifierKeys::Shift;   }
 		}
@@ -38,7 +51,7 @@ namespace xen{
 				button = xen::MouseButtons::Extra2;
 			}
 			e.mouse_button.button = button;
-			setModifierKeys(e.mouse_button.modifers, wParam);
+			setModifierKeys (e.modifiers, wParam);
 			setMousePosition(e.mouse_button.position, lParam);
 		}
 
@@ -136,16 +149,15 @@ namespace xen{
 		}
 
 		void startMouseTracking(Window* window){
-			window->mouse_over_window = true;
+			window->state |= xen::Window::MOUSE_OVER_WINDOW;
 			TRACKMOUSEEVENT mouse_track;
 			mouse_track.cbSize = sizeof(TRACKMOUSEEVENT);
 			mouse_track.dwFlags = TME_LEAVE;
 			mouse_track.hwndTrack = window->handle;
 			mouse_track.dwHoverTime = 1;
 			if(!TrackMouseEvent(&mouse_track)){
-				// :TODO: log warn
-				printf("Failed to setup mouse tracking on window, MouseLeft events will not be generated, "
-				       "GetLastError: %i\n", GetLastError());
+				XenLogWarn("Failed to setup mouse tracking on window, MouseLeft events will not be generated, "
+				           "GetLastError: %i\n", GetLastError());
 			}
 		}
 
@@ -162,8 +174,10 @@ namespace xen{
 				switch (msg){
 				case WM_SIZE:
 					e.type = xen::WindowEvent::Resized;
-					e.resize.new_size = getClientAreaSize(w);
-					break;
+					e.resize.old_size = w->size;
+					e.resize.new_size = xwn::getClientAreaSize(w);
+					w->size           = e.resize.new_size;
+					break; 
 				case WM_CLOSE:
 					e.type = xen::WindowEvent::Closed;
 					break;
@@ -174,17 +188,17 @@ namespace xen{
 					e.type = xen::WindowEvent::LostFocus;
 					break;
 				case WM_MOUSEMOVE:
-					if(!w->mouse_over_window){
+					if(!w->state & xen::Window::MOUSE_OVER_WINDOW){
 						startMouseTracking(w);
 						WindowEvent enter_event;
 						enter_event.type = xen::WindowEvent::MouseEntered;
-						w->mouse_over_window = true;
+						w->state |= xen::Window::MOUSE_OVER_WINDOW;
 						xen::impl::pushEvent(w, enter_event);
 					}
 					e.type = xen::WindowEvent::MouseMoved;
 					break;
 				case WM_MOUSELEAVE:
-					w->mouse_over_window = false;
+					xen::clearBits(w->state, (u08)xen::Window::MOUSE_OVER_WINDOW);
 					e.type = xen::WindowEvent::MouseLeft;
 					break;
 				case WM_LBUTTONDOWN:
@@ -232,7 +246,7 @@ namespace xen{
 					if(keys & MK_RBUTTON) { e.mouse_wheel.buttons |= xen::MouseButtons::Right;  }
 					if(keys & MK_XBUTTON1){ e.mouse_wheel.buttons |= xen::MouseButtons::Extra1; }
 					if(keys & MK_XBUTTON2){ e.mouse_wheel.buttons |= xen::MouseButtons::Extra2; }
-					setModifierKeys(e.mouse_wheel.modifiers, keys);
+					setModifierKeys(e.modifiers, keys);
 					break;
 				}
 				case WM_KEYDOWN:
@@ -241,12 +255,12 @@ namespace xen{
 					} else {
 						e.type = xen::WindowEvent::KeyPressed;
 					}
-					e.key.key = xen::impl::xenKeyFromVirtualKey(wParam, lParam);
+					e.key = xen::impl::xenKeyFromVirtualKey(wParam, lParam);
 					//:TODO: find state of modifier keys (GetAsyncKeyState())
 					break;
 				case WM_KEYUP:
 					e.type = xen::WindowEvent::KeyReleased;
-					e.key.key = xen::impl::xenKeyFromVirtualKey(wParam, lParam);
+					e.key = xen::impl::xenKeyFromVirtualKey(wParam, lParam);
 					//:TODO: find state of modifier keys (GetAsyncKeyState())
 					break;
 				default: //some other msg we don't care about, defer to windows
@@ -292,14 +306,12 @@ namespace xen{
 			HINSTANCE module = GetModuleHandle(NULL);
 			if(!impl::windowClassRegistered){
 				if(impl::registerWindowClass(module)){
-					// :TODO: log info
-					printf("Registered Xeno Engine's window class successfully\n");
+					XenLogInfo("Registered Xeno Engine's window class successfully");
 				} else {
-					// :TODO: log
 					// :TODO: FormatMessage lets you get a error string from a GetLastError, make some helper?
-					printf("ERROR: Failed to register Xeno Engine's window class, GetLastError: %i\n",
-					       GetLastError()
-					       );
+					XenLogError("Failed to register Xeno Engine's window class, GetLastError: %i\n",
+					            GetLastError()
+					           );
 					return nullptr;
 				}
 			}
@@ -327,7 +339,7 @@ namespace xen{
 			                                0);
 
 			if(result->handle == nullptr){
-				printf("ERROR: Failed to create a window, GetLastError: %i\n", GetLastError());
+			  XenLogError("Failed to create a window, GetLastError: %i", GetLastError());
 				arena.next_byte = oldNextByte;
 				return nullptr;
 			}
@@ -338,7 +350,7 @@ namespace xen{
 			// Setup the window's pixel format and get a device context
 			result->context = GetDC(result->handle);
 			if(result->context == NULL){
-				printf("ERROR: Failed to create window since was unable to obtain a device context\n");
+				XenLogError("Failed to create window since was unable to obtain a device context");
 				arena.next_byte = oldNextByte;
 				return nullptr;
 			}
@@ -366,7 +378,7 @@ namespace xen{
 			//get index of closest match that the hardware supports
 			int actualFormatIndex = ChoosePixelFormat(result->context, &desiredPixelFormat);
 			if(actualFormatIndex == 0){
-				printf("Failed to create window as was unable to find a suitable pixel format supported by the hardware\n");
+			  XenLogError("Failed to create window as was unable to find a suitable pixel format supported by the hardware");
 				arena.next_byte = oldNextByte;
 				return nullptr;
 			}
@@ -374,8 +386,8 @@ namespace xen{
 			PIXELFORMATDESCRIPTOR actualFormat;
 			DescribePixelFormat(result->context, actualFormatIndex, sizeof(PIXELFORMATDESCRIPTOR), &actualFormat);
 			if (!SetPixelFormat(result->context, actualFormatIndex, &actualFormat)){
-				printf("Failed to create window as was unable to set its pixel format\n");
-				arena.next_byte = oldNextByte; // :TDOO: use memory transaction
+				XenLogError("Failed to create window as was unable to set its pixel format");
+				arena.next_byte = oldNextByte; // :TODO: use memory transaction
 				return nullptr;
 			}
 

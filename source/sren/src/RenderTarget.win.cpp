@@ -11,7 +11,7 @@
 
 #include <xen/core/memory/Allocator.hpp>
 #include <xen/graphics/Image.hpp>
-#include <xen/graphics/Window.hxx>
+#include <xen/window/Window.hxx>
 #include <xen/sren/RenderTarget.hxx>
 
 void xsr::doPlatformRenderTargetInit(xen::Allocator* alloc,
