@@ -13,7 +13,8 @@
 #include <xen/window/Window.hxx>
 
 #include <xen/math/vector.hpp>
-#include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/core/array.hpp>
+#include <xen/core/memory/utilities.hpp>
 
 #include <xen/kernel/Module.hpp>
 #include <xen/kernel/Kernel.hpp>
@@ -24,15 +25,28 @@
 #include <X11/keysym.h>
 #include <X11/Xutil.h>
 
+// Max number of windows that can be opened and managed by this module
+static const constexpr u64 MAX_WINDOWS = 32;
+
+// Number of events that can be in each window's queue
+static const constexpr u64 EVENT_QUEUE_LENGTH = 64;
+
 namespace xen {
 	struct Allocator;
 }
 
 namespace xwn {
 	struct State {
+		// The API exposed to other modules
 		xen::ModuleApiWindow api;
+
+		// Connection to the unix x server
 		Display* display;
+
+		// List of active windows
+		xen::StretchyArray<xen::Window> windows;
 	};
+
 	State* state = nullptr;
 }
 
@@ -276,7 +290,7 @@ namespace {
 	/// \breif Processes an XEvent, converting it into a xen::WindowEvent and
 	/// adding it to the window's queue
 	//////////////////////////////////////////////////////////////////////////
-	void processEvent(xen::Window* w, XEvent* xe){
+	void processWindowEvent(xen::Window* win, XEvent* xe){
 		xen::WindowEvent e;
 		bool valid_event = true;
 		switch(xe->type){
@@ -345,12 +359,8 @@ namespace {
 		}
 
 		if(valid_event){
-			xen::impl::pushEvent(w, e);
+			xen::impl::pushEvent(win, e);
 		}
-	}
-
-	int checkEventMatchesWindow(Display* disp, XEvent* event, XPointer user_data){
-		return event->xany.window == (reinterpret_cast< ::Window >(user_data));
 	}
 }
 
@@ -360,190 +370,131 @@ namespace xen {
 	}
 
 	namespace impl {
-		void dispatchEvents(xen::Window* w){
-			XEvent event;
-			while(XCheckIfEvent(xwn::state->display, &event,
-			                    &checkEventMatchesWindow,
-			                    reinterpret_cast< XPointer >( w->xwindow)
-			                    )
-			      ){
-
-				processEvent(w, &event);
+		xen::Window* createWindow(xen::ArenaLinear& arena, Vec2u size, const char* title){
+			if(xwn::state->windows.size >= xwn::state->windows.capacity){
+				XenLogError("Maximum number of active windows has been reached");
+				return nullptr;
 			}
+
+			xen::Window* result = &xwn::state->windows[xwn::state->windows.size++];
+			*result = {};
+			result->xdisplay = xwn::state->display;
+
+			////////////////////////////////////////////////////////////////////////
+			// Establish connection to x server, setup some parameters
+
+			// Get window representing whole screen
+			::Window root   = DefaultRootWindow(xwn::state->display);
+
+			// Find an appropriate visual
+			int color_depth  = 32;
+
+			XVisualInfo vinfo;
+			if(!XMatchVisualInfo(xwn::state->display,
+			                     XDefaultScreen(xwn::state->display),
+			                     color_depth,
+			                     TrueColor,
+			                     &vinfo)){
+				XenLogError("Cannot find 32bit truecolor visual");
+				return nullptr;
+			}
+			result->visual = vinfo.visual;
+
+			XSetWindowAttributes    frame_attributes;
+			frame_attributes.colormap = XCreateColormap(xwn::state->display,
+			                                            root,
+			                                            result->visual,
+			                                            AllocNone);
+			frame_attributes.background_pixel = 0; //XWhitePixel(xen::impl::unix_display, 0);
+			frame_attributes.border_pixel = 0;
+			////////////////////////////////////////////////////////////////////////
+
+
+			////////////////////////////////////////////////////////////////////////
+			// Create the X Window
+			result->xwindow = XCreateWindow(xwn::state->display,         // open locally
+			                                root,                    // parent window
+			                                0, 0,                    // top left coords
+			                                size.x, size.y,
+			                                0,                       // border width
+			                                color_depth,
+			                                InputOutput,             // window type
+			                                result->visual,
+			                                CWBackPixel |            // Attribute mask
+			                                CWColormap |
+			                                CWBorderPixel,
+			                                &frame_attributes        // Attributes
+			);
+			XSync(xwn::state->display, True);
+
+			if(result->xwindow){
+				XenLogDone("Created x window %lu", result->xwindow);
+			} else {
+				XenLogError("Failed to create x window");
+				return nullptr;
+			}
+			////////////////////////////////////////////////////////////////////////
+
+
+
+			////////////////////////////////////////////////////////////////////////
+			// Setup what event queue and which input events we want to capture
+			result->events.elements = (xen::WindowEvent*)xen::kernelAlloc(
+				sizeof(xen::WindowEvent) * EVENT_QUEUE_LENGTH
+			);
+			result->events.capacity = EVENT_QUEUE_LENGTH;
+
+			XSelectInput(xwn::state->display, result->xwindow,
+			             //ExposureMask        | // Window shown
+			             StructureNotifyMask | // Resize request, window moved
+			             ResizeRedirectMask  | // Window resized
+			             ButtonPressMask     | // Mouse
+			             ButtonReleaseMask   |
+			             KeyPressMask        | // Keyboard
+			             KeyReleaseMask      |
+			             0);
+
+			// Change the close button behaviour so that we can capture event,
+			// rather than the window manager destroying the window by itself
+			Atom wm_delete_window = XInternAtom(xwn::state->display, "WM_DELETE_WINDOW", False);
+			XSetWMProtocols(xwn::state->display, result->xwindow, &wm_delete_window, 1);
+			////////////////////////////////////////////////////////////////////////
+
+			////////////////////////////////////////////////////////////////////////
+			// Show the window on screen
+			setWindowTitle(result, title); // Set proper window title
+			XMapWindow(xwn::state->display, result->xwindow);
+			XMapRaised(xwn::state->display, result->xwindow);
+			result->state |= xen::Window::IS_OPEN;
+			////////////////////////////////////////////////////////////////////////
+
+			// :TODO: don't really want to have to wait here, but need to do it
+			// before we can draw
+			// https://tronche.com/gui/x/xlib-tutorial/
+			while(true){
+				XEvent e;
+				XNextEvent(xwn::state->display, &e);
+				if(e.type == MapNotify){ break; }
+			}
+
+			return result;
 		}
 
-		xen::Window* createWindow(xen::ArenaLinear& arena, Vec2u size, const char* title){
-				xen::MemoryTransaction transaction(arena);
-				xen::Window* result = xen::reserveType<xen::Window>(arena);
-				*result = {};
-				result->xdisplay = xwn::state->display;
-				result->events.elements = xen::reserveTypeArray<xen::WindowEvent>(arena, 64);
-				result->events.capacity = 64;
-
-				////////////////////////////////////////////////////////////////////////
-				// Establish connection to x server, setup some parameters
-
-				// Get window representing whole screen
-				::Window root   = DefaultRootWindow(xwn::state->display);
-
-				// Find an appropriate visual
-				int color_depth  = 32;
-
-				XVisualInfo vinfo;
-				if(!XMatchVisualInfo(xwn::state->display,
-				                     XDefaultScreen(xwn::state->display),
-				                     color_depth,
-				                     TrueColor,
-				                     &vinfo)){
-				  XenLogError("Cannot find 32bit truecolor visual");
-					return nullptr;
-				}
-				Visual*  visual = vinfo.visual;
-
-				XSetWindowAttributes    frame_attributes;
-				frame_attributes.colormap = XCreateColormap(xwn::state->display,
-				                                            root,
-				                                            visual,
-				                                            AllocNone);
-				frame_attributes.background_pixel = 0; //XWhitePixel(xen::impl::unix_display, 0);
-				frame_attributes.border_pixel = 0;
-				////////////////////////////////////////////////////////////////////////
-
-
-				////////////////////////////////////////////////////////////////////////
-				// Create the X Window
-				result->xwindow = XCreateWindow(xwn::state->display,         // open locally
-				                                root,                    // parent window
-				                                0, 0,                    // top left coords
-				                                size.x, size.y,
-				                                0,                       // border width
-				                                color_depth,
-				                                InputOutput,             // window type
-				                                visual,
-				                                CWBackPixel |            // Attribute mask
-				                                CWColormap |
-				                                CWBorderPixel,
-				                                &frame_attributes        // Attributes
-				                               );
-				XSync(xwn::state->display, True);
-
-				if(result->xwindow){
-					XenLogDone("Created x window %lu", result->xwindow);
-				} else {
-					XenLogError("Failed to create x window");
-					return nullptr;
-				}
-				////////////////////////////////////////////////////////////////////////
-
-
-				////////////////////////////////////////////////////////////////////////
-				// Determine the XVisualInfo that is in use (contains data about
-				// color channels, etc)
-				/*int num_visual_info      = 0;
-				XVisualInfo visual_info_template;
-				visual_info_template.visualid = XVisualIDFromVisual(visual);
-
-				XVisualInfo* visual_info = XGetVisualInfo(xen::impl::unix_display,
-				                                          VisualIDMask,
-				                                          &visual_info_template,
-				                                          &num_visual_info
-				                                         );
-				if(visual_info == nullptr){
-					XenLogError("Failed to determine visual info for window!");
-					return nullptr;
-				}
-
-				if(visual_info->c_class == TrueColor){
-					XenLogInfo("Using TrueColor visual");
-				} else if (visual_info->c_class == DirectColor){
-				  XenLogInfo("Using DirectColor visual");
-				} else {
-					XenLogError("Using unsupported visual type");
-					return nullptr;
-				}
-				if(visual_info->bits_per_rgb != 8){
-					XenLogError("Expected 8 bits per color channel, got: %i", visual_info->bits_per_rgb);
-					return nullptr;
-				}
-
-				switch(visual_info->red_mask) {
-				case 0xff000000: result->shift_r = 24; break;
-				case 0x00ff0000: result->shift_r = 16; break;
-				case 0x0000ff00: result->shift_r =  8; break;
-				case 0x000000ff: result->shift_r =  0; break;
-				default:
-					XenLogError("Invalid red mask in visual info");
-					return nullptr;
-				}
-				switch(visual_info->green_mask) {
-				case 0xff000000: result->shift_g = 24; break;
-				case 0x00ff0000: result->shift_g = 16; break;
-				case 0x0000ff00: result->shift_g =  8; break;
-				case 0x000000ff: result->shift_g =  0; break;
-				default:
-					XenLogError("Invalid green mask in visual info");
-					return nullptr;
-				}
-				switch(visual_info->blue_mask) {
-				case 0xff000000: result->shift_b = 24; break;
-				case 0x00ff0000: result->shift_b = 16; break;
-				case 0x0000ff00: result->shift_b =  8; break;
-				case 0x000000ff: result->shift_b =  0; break;
-				default:
-					XenLogError("Invalid blue mask in visual info");
-					return nullptr;
-				}
-
-				result->visual_info = *visual_info;
-
-				XFree(visual_info);*/
-			  ////////////////////////////////////////////////////////////////////////
-
-				result->visual      = visual;
-
-				////////////////////////////////////////////////////////////////////////
-				// Setup what input events we want to capture for the window
-				XSelectInput(xwn::state->display, result->xwindow,
-				             //ExposureMask        | // Window shown
-				             StructureNotifyMask | // Resize request, window moved
-				             ResizeRedirectMask  | // Window resized
-				             ButtonPressMask     | // Mouse
-				             ButtonReleaseMask   |
-				             KeyPressMask        | // Keyboard
-				             KeyReleaseMask      |
-				             0);
-
-				// Change the close button behaviour so that we can capture event,
-				// rather than the window manager destroying the window by itself
-				Atom wm_delete_window = XInternAtom(xwn::state->display, "WM_DELETE_WINDOW", False);
-				XSetWMProtocols(xwn::state->display, result->xwindow, &wm_delete_window, 1);
-				////////////////////////////////////////////////////////////////////////
-
-				////////////////////////////////////////////////////////////////////////
-				// Show the window on screen
-				setWindowTitle(result, title); // Set proper window title
-				XMapWindow(xwn::state->display, result->xwindow);
-				XMapRaised(xwn::state->display, result->xwindow);
-				result->state |= xen::Window::IS_OPEN;
-				////////////////////////////////////////////////////////////////////////
-
-				// :TODO: don't really want to have to wait here, but need to do it
-				// before we can draw
-				// https://tronche.com/gui/x/xlib-tutorial/
-				while(true){
-					XEvent e;
-					XNextEvent(xwn::state->display, &e);
-					if(e.type == MapNotify){ break; }
-				}
-
-				transaction.commit();
-				return result;
+		void destroyWindow(xen::Window* window){
+			u64 window_index = (
+				(u64)(window - xwn::state->windows.elements) / sizeof(xen::Window)
+			);
+			if(window_index > xwn::state->windows.size){
+				XenLogError("destroyWindow called with pointer to unknown window");
+				*window = {};
+				return;
 			}
 
-		void destroyWindow(xen::Window* window){
+			xen::kernelFree(window->events.elements);
 			XDestroyWindow(xwn::state->display, window->xwindow);
-			XCloseDisplay(xwn::state->display);
 			*window = {};
+
+			xen::removeUnordered(xwn::state->windows, window_index);
 		}
 	} //end of namespace xen::impl::
 
@@ -570,8 +521,19 @@ namespace xen {
 }
 
 void* init(const void* params){
-	xwn::state = (xwn::State*)xen::kernelAlloc(sizeof(xwn::State));
+	xwn::state = (xwn::State*)xen::kernelAlloc(
+		sizeof(xwn::State) +
+		sizeof(xen::Window) * MAX_WINDOWS +
+		alignof(xen::Window)
+	);
 	xen::clearToZero(xwn::state);
+
+	xwn::state->windows.elements = (xen::Window*)(
+		xen::ptrGetAlignedForward(
+			xen::ptrGetAdvanced(xwn::state, sizeof(xwn::State)), alignof(xen::Window)
+		)
+	);
+	xwn::state->windows.capacity = MAX_WINDOWS;
 
 	xwn::state->display = XOpenDisplay(NULL);
 
@@ -587,6 +549,10 @@ void* init(const void* params){
 }
 
 void shutdown(void* data, const void* params){
+	for(int i = xwn::state->windows.size-1; i >= 0; --i){
+		xen::impl::destroyWindow(&xwn::state->windows[i]);
+	}
+
 	XCloseDisplay(xwn::state->display);
 	xen::kernelFree(xwn::state);
 	xwn::state = nullptr;
@@ -605,8 +571,23 @@ void* load( void* data, const void* params){
 	return &xwn::state->api;
 }
 
+int checkEventMatchesWindow(Display* disp, XEvent* event, XPointer user_data){
+	return event->xany.window == (reinterpret_cast< ::Window >(user_data));
+}
+
 void tick(const xen::TickContext& tick){
-	// no-op
+  XEvent event;
+  for(uint i = 0; i < xwn::state->windows.size; ++i){
+	  xen::Window* win = &xwn::state->windows[i];
+
+
+	  while(XCheckIfEvent(xwn::state->display, &event,
+	                      &checkEventMatchesWindow,
+	                      reinterpret_cast<XPointer>(win->xwindow))
+	  ){
+		  processWindowEvent(win, &event);
+	  }
+  }
 }
 
 XenDeclareModule("window", &init, &shutdown, &load, nullptr, &tick)

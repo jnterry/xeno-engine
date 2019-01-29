@@ -51,15 +51,6 @@ namespace xen {
 		/////////////////////////////////////////////////////////////////////
 		bool pushEvent(Window* window, const WindowEvent& event);
 
-		/////////////////////////////////////////////////////////////////////
-		/// \brief Operating system specific function which interacts with the
-		/// OS to update the window's event queue. Automatically called by pollEvent.
-		/// If this is not called frequently enough the OS may think the application
-		/// is not responding.
-		/////////////////////////////////////////////////////////////////////
-		void dispatchEvents(Window* window);
-
-
 		Window* createWindow (xen::ArenaLinear& arena, Vec2u size, const char* title);
 
 		void destroyWindow(xen::Window* window);

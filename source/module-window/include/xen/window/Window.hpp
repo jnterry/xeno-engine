@@ -199,6 +199,8 @@ namespace xen {
 	struct ModuleApiWindow {
 		static const constexpr char* const NAME = "window";
 
+		Window* (*createWindow)(Vec2u);
+
 		/// \brief Retrieves the size of the client area (IE: part that may
 		// be rendered to) of some window
 		Vec2u (*getClientAreaSize)(Window* window);

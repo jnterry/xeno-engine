@@ -18,18 +18,14 @@
 
 namespace xen {
 	WindowEvent* pollEvent(Window* win){
-		impl::dispatchEvents(win);
-
 		if(win->events.size == 0){
 			return nullptr;
 		} else {
 			// Note that we are returning a pointer to something that we cannot
 			// guarentee will not be overwritten (eg, if new event comes in).
-			// HOWEVER -> we will only push events during impl::dispatchEvents,
-			// hence the pointer will remain valid at least until the next call
-			// to that function, and that function is called only within pollEvent
-			// currently, hence this is safe provided pollEvent is not called before
-			// the previous event is processed
+			// HOWEVER -> new events only arrive during window module's tick()
+			// function, and we should be doing event processing inside the tick()
+			// function of some other module
 			WindowEvent* result = &xen::peakFront(win->events);
 			xen::popFront(win->events);
 			return result;
