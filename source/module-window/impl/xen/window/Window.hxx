@@ -37,10 +37,6 @@ namespace xen {
 
 			/// \brief Queue of events to process for this window
 			xen::RingBuffer<WindowEvent, false> events;
-
-			/// \brief The render target representing the area of the window
-			/// that may be drawn to
-			RenderTarget render_target;
 		};
 
 		/////////////////////////////////////////////////////////////////////
@@ -50,10 +46,6 @@ namespace xen {
 		/// returns false.
 		/////////////////////////////////////////////////////////////////////
 		bool pushEvent(Window* window, const WindowEvent& event);
-
-		Window* createWindow (xen::ArenaLinear& arena, Vec2u size, const char* title);
-
-		void destroyWindow(xen::Window* window);
 	}
 }
 

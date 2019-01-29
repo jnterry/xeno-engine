@@ -110,7 +110,8 @@ void tick(const xen::TickContext& cntx){
 	// Rendering
 	mod_ren->clear      (state->window, xen::Color{20,20,20,255});
 	mod_ren->render     (state->window, viewport, state->render_params, state->render_commands);
-	mod_ren->swapBuffers(state->window);
+	mo
+		d_ren->swapBuffers(state->window);
 }
 
 void shutdown(void* data, const void* params){

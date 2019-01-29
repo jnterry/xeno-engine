@@ -37,10 +37,10 @@ xen::RenderOp xen::RenderOp::Draw(xen::RenderTarget target, xen::Aabb2u viewport
 	return result;
 }
 
-xen::RenderOp xen::RenderOp::SwapBuffers(xen::Window* window){
+xen::RenderOp xen::RenderOp::SwapBuffers(xen::RenderTarget target){
 	xen::RenderOp result;
 	result.type                = xen::RenderOp::SWAP_BUFFERS;
-	result.swap_buffers.window = window;
+	result.swap_buffers.target = target;
 	return result;
 }
 
@@ -128,13 +128,6 @@ void xen::ModuleApiGraphics::clear(xen::RenderTarget target, xen::Color color){
 	this->pushOp(xen::RenderOp::Clear(target, color));
 }
 
-void xen::ModuleApiGraphics::clear(xen::Window* window, xen::Color color){
-	if(window->state & xen::Window::IS_OPEN){
-		this->clear(window->render_target, color);
-	}
-}
-
-
 void xen::ModuleApiGraphics::render(xen::RenderTarget target,
                                     xen::Aabb2u viewport,
                                     xen::RenderParameters3d& params,
@@ -143,18 +136,8 @@ void xen::ModuleApiGraphics::render(xen::RenderTarget target,
 	this->pushOp(xen::RenderOp::Draw(target, viewport, params, commands));
 }
 
-void xen::ModuleApiGraphics::render(xen::Window* window,
-                                    xen::Aabb2u viewport,
-                                    xen::RenderParameters3d& params,
-                                    xen::Array<RenderCommand3d> commands
-                                   ){
-	if(window->state & Window::IS_OPEN){
-		this->render(window->render_target, viewport, params, commands);
-	}
-}
-
-void xen::ModuleApiGraphics::swapBuffers(xen::Window* window){
-	this->pushOp(xen::RenderOp::SwapBuffers(window));
+void xen::ModuleApiGraphics::swapBuffers(xen::RenderTarget target){
+	this->pushOp(xen::RenderOp::SwapBuffers(target));
 }
 
 #endif

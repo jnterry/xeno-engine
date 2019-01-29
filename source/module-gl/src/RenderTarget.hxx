@@ -6,22 +6,32 @@
 /// \ingroup module-gl
 ////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_GL_RENDER_TARGET_HXX
-#define XEN_GL_RENDER_TARGET_HXX
+#ifndef XEN_GL_RENDERTARGET_HXX
+#define XEN_GL_RENDERTARGET_HXX
 
 #include <xen/graphics/GraphicsHandles.hpp>
 #include <xen/graphics/Color.hpp>
 
 namespace xen {
-	namespace gl {
-		struct RenderTargetImpl;
-		void makeCurrent(RenderTargetImpl* target);
-	}
+	struct Window;
+	struct ArenaLinear;
 }
 
 namespace xgl {
-	xen::gl::RenderTargetImpl* getRenderTargetImpl(xen::RenderTarget target);
+	struct RenderTargetImpl;
+
+	void makeCurrent(RenderTargetImpl* target);
+
+	RenderTargetImpl* getRenderTargetImpl(xen::RenderTarget target);
 	void clearTarget(xen::RenderTarget target, xen::Color color);
+
+	xen::RenderTarget createWindowRenderTarget(xen::Window* window);
+	void destroyRenderTarget                  (xen::RenderTarget target);
+	void swapBuffers                          (xen::RenderTarget target);
+
+
+	void destroyPlatformRenderTarget                  (RenderTargetImpl* target);
+	RenderTargetImpl* createPlatformWindowRenderTarget(xen::ArenaLinear& arena, xen::Window* window);
 }
 
 #endif

@@ -117,8 +117,8 @@ namespace xgl {
 	            const xen::Array<xen::RenderCommand3d> commands
 	            ) {
 
-		xen::gl::RenderTargetImpl* target = getRenderTargetImpl(render_target);
-		xen::gl::makeCurrent(target);
+		xgl::RenderTargetImpl* target = getRenderTargetImpl(render_target);
+		xgl::makeCurrent(target);
 
 		Vec2u viewport_size = viewport.max - viewport.min;
 		glViewport(viewport.min.x, viewport.min.y, viewport_size.x, viewport_size.y);

@@ -199,7 +199,8 @@ namespace xen {
 	struct ModuleApiWindow {
 		static const constexpr char* const NAME = "window";
 
-		Window* (*createWindow)(Vec2u);
+		Window* (*createWindow )(Vec2u size, const char* title);
+		void    (*destroyWindow)(Window* window);
 
 		/// \brief Retrieves the size of the client area (IE: part that may
 		// be rendered to) of some window
@@ -208,10 +209,6 @@ namespace xen {
 			/// \brief Updates the title of some window - typically displayed by the
 		/// window manager above the client area
 		void (*setWindowTitle)(Window* window, const char* title);
-
-		/// \brief Retrieves the RenderTarget representing the client area of
-		/// some window
-		RenderTarget (*getRenderTarget)(Window* window);
 
 		/// \brief Swaps the buffers of some Window such that the application
 		/// can begin drawing to a buffer while the other is displayed. Nothing

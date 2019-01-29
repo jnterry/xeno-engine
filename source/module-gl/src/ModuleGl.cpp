@@ -17,7 +17,6 @@
 #include <xen/core/String.hpp>
 
 #include "ModuleGl.hxx"
-#include "Window.hxx"
 #include "Texture.hxx"
 #include "Mesh.hxx"
 #include "RenderTarget.hxx"
@@ -79,7 +78,7 @@ void* init( const void* params){
 	xgl::gl_state->pool_mesh          = xen::createArenaPool<xgl::MeshGlData>(xgl::gl_state->primary_arena, 128);
 	xgl::gl_state->pool_texture       = xen::createArenaPool<xgl::TextureImpl>(xgl::gl_state->primary_arena, 128);
 	xgl::gl_state->pool_shader        = xen::createArenaPool<xgl::ShaderProgram>(xgl::gl_state->primary_arena, 128);
-	xgl::gl_state->pool_render_target = xen::createArenaPool<xen::gl::RenderTargetImpl*>(xgl::gl_state->primary_arena, 128);
+	xgl::gl_state->pool_render_target = xen::createArenaPool<xgl::RenderTargetImpl*>(xgl::gl_state->primary_arena, 128);
 
 	return xgl::gl_state;
 }
@@ -98,7 +97,7 @@ void pushOp(const xen::RenderOp& op){
 		xgl::render(op.draw.target, op.draw.viewport, *op.draw.params, op.draw.commands);
 		break;
 	case xen::RenderOp::SWAP_BUFFERS:
-		xgl::swapBuffers(op.swap_buffers.window);
+		xgl::swapBuffers(op.swap_buffers.target);
 		break;
 	}
 }
@@ -106,9 +105,8 @@ void pushOp(const xen::RenderOp& op){
 void* load( void* data, const void* params){
 	xgl::gl_state = (xgl::GlState*)data;
 
-
-	xgl::gl_state->api.createWindow            = &xgl::createWindow;
-	xgl::gl_state->api.destroyWindow           = &xgl::destroyWindow;
+	xgl::gl_state->api.createWindowRenderTarget = &xgl::createWindowRenderTarget;
+	xgl::gl_state->api.destroyRenderTarget      = &xgl::destroyRenderTarget;
 
 	xgl::gl_state->api._createMeshFromMeshData = &xgl::createMesh;
 	xgl::gl_state->api.destroyMesh             = &xgl::destroyMesh;

@@ -36,10 +36,6 @@ namespace xen {
 		return win->state & xen::Window::IS_OPEN;
 	}
 
-	xen::RenderTarget getRenderTarget(Window* win){
-		return win->render_target;
-	}
-
 	namespace impl {
 		bool pushEvent(xen::Window* win, const xen::WindowEvent& event){
 
