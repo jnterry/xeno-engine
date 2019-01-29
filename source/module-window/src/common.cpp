@@ -35,6 +35,9 @@ namespace xen {
 	bool isWindowOpen(const Window* win){
 		return win->state & xen::Window::IS_OPEN;
 	}
+	bool hasFocus(const Window* win){
+		return win->state & xen::Window::HAS_FOCUS;
+	}
 
 	namespace impl {
 		bool pushEvent(xen::Window* win, const xen::WindowEvent& event){

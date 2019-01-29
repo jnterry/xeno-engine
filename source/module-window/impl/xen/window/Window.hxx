@@ -26,7 +26,7 @@ namespace xen {
 				IS_OPEN           = 0x01,
 
 				/// \brief Whether the window is currently focused
-				IS_FOCUSED        = 0x02,
+				HAS_FOCUS         = 0x02,
 
 				/// \brief Set when the mouse cursor is within the window's client
 				/// area. WindowEvent::MouseEntered and WindowEvent::MouseLeft events

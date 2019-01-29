@@ -14,6 +14,7 @@
 
 #include <xen/math/vector.hpp>
 #include <xen/core/array.hpp>
+#include <xen/core/bits.hpp>
 #include <xen/core/memory/utilities.hpp>
 
 #include <xen/kernel/Module.hpp>
@@ -45,6 +46,12 @@ namespace xwn {
 
 		// List of active windows
 		xen::StretchyArray<xen::Window> windows;
+
+		// Most recent keymap state (as determined by XQueryKeymap)
+		char keymap_state[32];
+
+		// Current state of modifier keys
+		xen::ModifierKeyState modifier_keys;
 	};
 
 	State* state = nullptr;
@@ -309,9 +316,21 @@ namespace {
 		case KeyRelease:{
 			// :TODO: if release determine if actually released, or just a key repeat
 			e.type = xe->type == KeyPress ? xen::WindowEvent::KeyPressed : xen::WindowEvent::KeyReleased;
-			e.key.key = xenKeyFromXKeyEvent(&xe->xkey);
+			e.key = xenKeyFromXKeyEvent(&xe->xkey);
 			break;
 		} // end of case KeyPress/KeyRelease
+		case FocusIn:
+			if(xe->xfocus.mode == NotifyNormal){
+				xen::setBits(win->state, (u08)xen::Window::HAS_FOCUS);
+			}
+			e.type = xen::WindowEvent::GainedFocus;
+			break;
+		case FocusOut:
+			if(xe->xfocus.mode == NotifyNormal){
+					xen::clearBits(win->state, (u08)xen::Window::HAS_FOCUS);
+			}
+			e.type = xen::WindowEvent::LostFocus;
+			break;
 		case ButtonPress:
 		case ButtonRelease:{
 			// x11 mouse buttons:
@@ -364,6 +383,8 @@ namespace {
 		}
 
 		if(valid_event){
+			e.modifiers  = xwn::state->modifier_keys;
+			e.has_focus  = win->state & xen::Window::HAS_FOCUS;
 			xen::impl::pushEvent(win, e);
 		}
 	}
@@ -449,15 +470,26 @@ namespace xen {
 		);
 		result->events.capacity = EVENT_QUEUE_LENGTH;
 
+		//XSelectInput(xwn::state->display, result->xwindow,
+		//             //ExposureMask      | // Window shown
+			//             StructureNotifyMask | // Resize request, window moved
+			              //             FocusChangeMask     |
+			              //             ResizeRedirectMask  | // Window resized
+			              //             ButtonPressMask     | // Mouse
+			              //             ButtonReleaseMask   |
+			              //             KeyPressMask        | // Keyboard
+			              //             KeyReleaseMask      |
+			              //             0);
+	//
 		XSelectInput(xwn::state->display, result->xwindow,
-		             //ExposureMask        | // Window shown
-		             StructureNotifyMask | // Resize request, window moved
-		             ResizeRedirectMask  | // Window resized
-		             ButtonPressMask     | // Mouse
-		             ButtonReleaseMask   |
-		             KeyPressMask        | // Keyboard
-		             KeyReleaseMask      |
-		             0);
+		             FocusChangeMask      | ButtonPressMask     |
+		             ButtonReleaseMask    | ButtonMotionMask    |
+		             PointerMotionMask    | KeyPressMask        |
+		             KeyReleaseMask       | StructureNotifyMask |
+		             EnterWindowMask      | LeaveWindowMask     |
+		             VisibilityChangeMask | PropertyChangeMask);
+
+
 
 		// Change the close button behaviour so that we can capture event,
 		// rather than the window manager destroying the window by itself
@@ -476,11 +508,11 @@ namespace xen {
 		// :TODO: don't really want to have to wait here, but need to do it
 		// before we can draw
 		// https://tronche.com/gui/x/xlib-tutorial/
-		while(true){
-			XEvent e;
-			XNextEvent(xwn::state->display, &e);
-			if(e.type == MapNotify){ break; }
-		}
+		//while(true){
+		//	XEvent e;
+		//	XNextEvent(xwn::state->display, &e);
+		//	if(e.type == MapNotify){ break; }
+		//}
 
 		return result;
 	}
@@ -514,13 +546,7 @@ namespace xen {
 		KeySym  keysym  = xenKeysymFromKey(key);
 		KeyCode keycode = XKeysymToKeycode(xwn::state->display, keysym);
 		if(keycode == 0){ return false; }
-
-		// Get state of all keys - each key corrosponds to a single bit
-		char keys[32];
-		XQueryKeymap(xwn::state->display, keys);
-
-		// Check the keycode in question
-		return (keys[keycode / 8] & (1 << (keycode % 8))) != 0;
+		return (xwn::state->keymap_state[keycode / 8] & (1 << (keycode % 8))) != 0;
 	}
 }
 
@@ -540,7 +566,6 @@ void* init(const void* params){
 	xwn::state->windows.capacity = MAX_WINDOWS;
 
 	xwn::state->display = XOpenDisplay(NULL);
-
 	if(xwn::state->display == nullptr){
 		XenLogError("Failed to open x display  ");
 		xen::kernelFree(xwn::state);
@@ -568,6 +593,7 @@ void* load( void* data, const void* params){
 	xwn::state->api.getClientAreaSize = &xen::getClientAreaSize;
 	xwn::state->api.setWindowTitle    = &xen::setWindowTitle;
 	xwn::state->api.isWindowOpen      = &xen::isWindowOpen;
+	xwn::state->api.hasFocus          = &xen::hasFocus;
 	xwn::state->api.pollEvent         = &xen::pollEvent;
 	xwn::state->api.isKeyPressed      = &xen::isKeyPressed;
 	xwn::state->api.createWindow      = &xen::createWindow;
@@ -581,10 +607,34 @@ int checkEventMatchesWindow(Display* disp, XEvent* event, XPointer user_data){
 }
 
 void tick(const xen::TickContext& tick){
+	//////////////////////////////////////////////////////////////////
+	// Update the cached state of the keyboard
+	XQueryKeymap(xwn::state->display, xwn::state->keymap_state);
+
+	//////////////////////////////////////////////////////////////////
+	// Update modifier key state
+	// :TODO: we should really update this in response to actual events as well,
+	// but issue is that the press or release of one of the keys does not
+	// guarentee state (eg, if holding both shift keys simultaneously)
+	// This is rare, but possible...
+	xen::setBitState(xwn::state->modifier_keys,
+	                 (xen::ModifierKeyState)xen::ModifierKeys::Control,
+	                 isKeyPressed(xen::Key::RCtrl) || isKeyPressed(xen::Key::LCtrl));
+	xen::setBitState(xwn::state->modifier_keys,
+	                 (xen::ModifierKeyState)xen::ModifierKeys::Alt,
+	                 isKeyPressed(xen::Key::RAlt) || isKeyPressed(xen::Key::LAlt));
+	xen::setBitState(xwn::state->modifier_keys,
+	                 (xen::ModifierKeyState)xen::ModifierKeys::Shift,
+	                 isKeyPressed(xen::Key::RShift) || isKeyPressed(xen::Key::LShift));
+	xen::setBitState(xwn::state->modifier_keys,
+	                 (xen::ModifierKeyState)xen::ModifierKeys::System,
+	                 isKeyPressed(xen::Key::RSystem) || isKeyPressed(xen::Key::LSystem));
+
+	//////////////////////////////////////////////////////////////////
+	// Process window events
   XEvent event;
   for(uint i = 0; i < xwn::state->windows.size; ++i){
 	  xen::Window* win = &xwn::state->windows[i];
-
 
 	  while(XCheckIfEvent(xwn::state->display, &event,
 	                      &checkEventMatchesWindow,
@@ -593,6 +643,11 @@ void tick(const xen::TickContext& tick){
 		  processWindowEvent(win, &event);
 	  }
   }
+
+  //while(XPending(xwn::state->display)){
+  //  XNextEvent(xwn::state->display, &event);
+  //  printf("Found pending event\n");
+  //}
 }
 
 XenDeclareModule("window", &init, &shutdown, &load, nullptr, &tick)

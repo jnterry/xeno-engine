@@ -206,35 +206,37 @@ void tick( const xen::TickContext& cntx){
 			mod_win->destroyWindow(state->window);
 			xen::requestKernelShutdown();
 			break;
+		case xen::WindowEvent::KeyPressed:
+			switch(event->key){
+			case xen::Key::Num1: // points
+				state->render_commands[0].primitive_type = xen::PrimitiveType::POINTS;
+				break;
+			case xen::Key::Num2: // lines
+				state->render_commands[0].primitive_type = xen::PrimitiveType::LINES;
+				break;
+			case xen::Key::Num3: // triangles
+				state->render_commands[0].primitive_type = xen::PrimitiveType::TRIANGLES;
+				break;
+			case xen::Key::Num4: // normals
+				state->render_commands[0].shader = state->shader_normals;
+				state->render_commands[1].shader = state->shader_normals;
+				break;
+			case xen::Key::Num5: // world positions
+				state->render_commands[0].shader = state->shader_positions;
+				state->render_commands[1].shader = state->shader_positions;
+				break;
+			case xen::Key::Num6: // Shaded
+				state->render_commands[0].shader = state->shader_phong;
+				state->render_commands[1].shader = state->shader_phong;
+				break;
+			case xen::Key::Num7: // Basic Shaded
+				state->render_commands[0].shader = xen::makeNullGraphicsHandle<xen::Shader>();
+				state->render_commands[1].shader = xen::makeNullGraphicsHandle<xen::Shader>();
+				break;
+			default: break;
+			}
 		default: break;
 		}
-	}
-
-	// :TODO: these should use window events...
-	if(mod_win->isKeyPressed(xen::Key::Num1)){ // points
-		state->render_commands[0].primitive_type = xen::PrimitiveType::POINTS;
-	}
-	if(mod_win->isKeyPressed(xen::Key::Num2)){ // lines
-		state->render_commands[0].primitive_type = xen::PrimitiveType::LINES;
-	}
-	if(mod_win->isKeyPressed(xen::Key::Num3)){ // triangles
-			state->render_commands[0].primitive_type = xen::PrimitiveType::TRIANGLES;
-	}
-	if(mod_win->isKeyPressed(xen::Key::Num4)){ // normals
-		state->render_commands[0].shader = state->shader_normals;
-		state->render_commands[1].shader = state->shader_normals;
-	}
-	if(mod_win->isKeyPressed(xen::Key::Num5)){ // world positions
-		state->render_commands[0].shader = state->shader_positions;
-		state->render_commands[1].shader = state->shader_positions;
-	}
-	if(mod_win->isKeyPressed(xen::Key::Num6)){ // Shaded
-		state->render_commands[0].shader = state->shader_phong;
-		state->render_commands[1].shader = state->shader_phong;
-	}
-	if(mod_win->isKeyPressed(xen::Key::Num7)){ // Basic Shaded
-		state->render_commands[0].shader = xen::makeNullGraphicsHandle<xen::Shader>();
-		state->render_commands[1].shader = xen::makeNullGraphicsHandle<xen::Shader>();
 	}
 
 	handleCameraInputCylinder(mod_win, state->window, state->camera, xen::asSeconds<real>(cntx.dt), 30);
@@ -255,9 +257,9 @@ void tick( const xen::TickContext& cntx){
 		                                                       );
 	}
 
-  mod_ren->clear      (state->window_target, xen::Color{20, 20, 20, 255});
-  mod_ren->render     (state->window_target, viewport, state->render_params, state->render_commands);
-  mod_ren->swapBuffers(state->window_target);
+	mod_ren->clear      (state->window_target, xen::Color{20, 20, 20, 255});
+	mod_ren->render     (state->window_target, viewport, state->render_params, state->render_commands);
+	mod_ren->swapBuffers(state->window_target);
 }
 
 void shutdown(void* data, const void* params){

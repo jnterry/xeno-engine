@@ -39,7 +39,7 @@ namespace xen {
 
 	// :TODO: convert to xen::BitField
 	struct ModifierKeys {
-		enum Values {
+		enum Values : ModifierKeyState{
 			Alt     = 0x01,
 			Shift   = 0x02,
 			Control = 0x04,
@@ -94,16 +94,6 @@ namespace xen {
 		Count, ///< The number of defined keys
 	};
 
-	struct EventKey {
-		/// \brief Which key was pressed/released
-		Key key;
-
-		/// \brief Which modifier keys were pressed at the time of the event
-		ModifierKeyState modifiers;
-
-		//:TODO: mouse position ?
-	};
-
 	/// \brief Contains data about the mouse wheel being moved
 	struct EventMouseWheel{
 		enum Wheels{
@@ -114,7 +104,6 @@ namespace xen {
 		Vec2s            position;  ///< position of mouse in pixels relative to top left of the window
 		int              delta;     ///< The number of ticks the mouse wheel moved (:TODO: +ve is which dir?)
 		Wheels           wheel;     ///< Which wheel was moved
-		ModifierKeyState modifiers; ///< The state of the modifier keys when the mouse wheel was moved
 		MouseButtonState buttons;   ///< The state of the mouse button s when the mouse wheel was moved
 	};
 
@@ -129,14 +118,12 @@ namespace xen {
 		///< Note that pressing or releasing a key while the mouse is in motion
 		///< will cause separate EventMouseMoved instances to be made
 		MouseButtonState button;
-		ModifierKeyState modifers; ///< The state of the modifier keys when the mouse was being moved
 	};
 
 	/// \brief Contains data about a mouse button being pressed or released
 	struct EventMouseButton{
 		Vec2s position; 	         ///< position of mouse relative to top left of window, unit is pixels
 		MouseButtons::Values button; ///< The button that was pressed or released
-		ModifierKeyState modifers;   ///< The state of the modifier keys when the button was pressed/released
 	};
 
 	struct EventResized {
@@ -185,12 +172,15 @@ namespace xen {
 		/// \brief Whether the window had focus when this event was produced
 		bool has_focus;
 
+		/// \brief The state of modifier keys when this event was produced
+		ModifierKeyState modifiers;
+
 		///< Extra data, which is set depends on the event's type
 		union{
 			EventMouseButton mouse_button;
 			EventMouseMoved  mouse_moved;
 			EventMouseWheel  mouse_wheel;
-			EventKey         key;
+			Key              key;
 			EventResized     resize;
 		};
 	};
@@ -215,6 +205,7 @@ namespace xen {
 		//void swapBuffers(Window* window);
 
 		bool (*isWindowOpen)(const Window* window);
+		bool (*hasFocus)    (const Window* window);
 
 		/// \brief Retrieves a pointer to the next event in the event queue of a
 		/// window, or null pointer if there are no more events at the current time
@@ -225,6 +216,14 @@ namespace xen {
 		WindowEvent* (*pollEvent)(Window* window);
 
 		/// \brief Determines if a keyboard key is currently pressed
+		///
+		/// \note This function is guaranteed to return the same value
+		/// for a given key for the entire duration of a tick, based on the
+		/// state at the start of the tick.
+		/// Window events should be used for press-and-release operations,
+		/// this function is intended to be used for detecting a user who is
+		/// holding a key for a longer period of time (eg, holding arrow key
+		/// to move around the screen)
 		bool (*isKeyPressed)(Key key);
 	};
 }

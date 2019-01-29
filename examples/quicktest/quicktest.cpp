@@ -165,7 +165,7 @@ void tick( const xen::TickContext& cntx){
 			viewport.max = event->resize.new_size;
 			break;
 		case xen::WindowEvent::KeyReleased:
-			switch(event->key.key){
+			switch(event->key){
 			case xen::Key::R:
 				state->point_light_color.rgb = xen::Color3f(1,0,0);
 				break;

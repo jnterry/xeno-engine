@@ -15,6 +15,8 @@
 #include <xen/math/utilities.hpp>
 
 void handleCameraInputCylinder(xen::ModuleApiWindow* mod_win, xen::Window* win, xen::Camera3dCylinder& camera, real dt, real max_radius){
+	if(!mod_win->hasFocus(win)){ return; }
+
 	// compute speed such that can get from full zoom to no zoom in 3 seconds
 	const real       camera_speed        = (max_radius / 3_r);
 	const xen::Angle camera_rotate_speed = 120_deg;
@@ -50,6 +52,8 @@ void handleCameraInputCylinder(xen::ModuleApiWindow* mod_win, xen::Window* win, 
 }
 
 void handleCameraInputPlane(xen::ModuleApiWindow* mod_win, xen::Window* win, xen::Camera3d& camera, real dt) {
+	if(!mod_win->hasFocus(win)){ return; }
+
 	const static constexpr real camera_speed = 1.0f;
 
 	if(mod_win->isKeyPressed(xen::Key::ArrowUp)){

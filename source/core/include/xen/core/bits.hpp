@@ -68,6 +68,15 @@ namespace xen {
 		primitive ^= mask;
 		return primitive;
 	}
+
+	template<typename T>
+	inline T& setBitState(T& primitive, const T mask, bool high){
+		clearBits(primitive, mask);
+		if(high){
+			setBits(primitive, mask);
+		}
+		return primitive;
+	}
 }
 
 /// \brief Returns the not of the value of the bit referenced by this BitReference
