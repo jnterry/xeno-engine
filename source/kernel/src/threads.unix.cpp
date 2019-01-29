@@ -342,12 +342,12 @@ bool xke::stopThreadSubsystem(){
 	pthread_mutex_unlock  (&xke::thread_data.work_available_lock);
 
 
-	for(u64 i = 0; i < xke::thread_data.thread_count; ++i){
+	for(u64 i = 1; i < xke::thread_data.thread_count; ++i){
 		XenLogInfo("Waiting for termination of worker thread: %u", i);
 
 		errno = 0;
 		if(0 != pthread_join(xke::thread_data.threads[i], nullptr)){
-			XenLogWarn("Error occured joining with worker %i, errno: %i", i, errno);
+			XenLogWarn("Error occurred joining with worker %i, errno: %i", i, errno);
 		}
 
 		xen::destroyArenaLinear(*xke::kernel.root_allocator, xke::thread_data.scratch_arenas[i]);
