@@ -52,21 +52,21 @@ namespace xen {
 
 
 	template<typename T>
-	inline T& setBits(T& primative, const T mask){
-		primative |= mask;
-		return primative;
+	inline T& setBits(T& primitive, const T mask){
+		primitive |= mask;
+		return primitive;
 	}
 
 	template<typename T>
-	inline T& clearBits(T& primative, const T mask){
-		primative &= (~mask);
-		return primative;
+	inline T& clearBits(T& primitive, const T mask){
+		primitive &= (~mask);
+		return primitive;
 	}
 
 	template<typename T>
-	inline T& toogleBits(T& primative, const T mask){
-		primative ^= mask;
-		return primative;
+	inline T& toogleBits(T& primitive, const T mask){
+		primitive ^= mask;
+		return primitive;
 	}
 }
 
