@@ -241,10 +241,9 @@ namespace {
 	}
 }
 void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target){
-
 	// Make sure the previous frame has been presented before we go messing
 	// with the pixel values...
-	XSync(window->xdisplay, True);
+	XSync(window->xdisplay, False);
 
 	//////////////////////////////////////////////////////////////////////////
 	// Update the byte array we show on screen from the float array we do
