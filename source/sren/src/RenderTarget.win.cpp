@@ -57,7 +57,6 @@ void xsr::doPlatformRenderTargetResize(xen::Allocator* alloc,
 }
 
 void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target){
-	printf("presenting render target, %i, %i\n", target.width, target.height);
 	//////////////////////////////////////////////////////////////////////////
 	// Update the byte array we show on screen from the float array we do
 	// our rendering into

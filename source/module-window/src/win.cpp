@@ -197,9 +197,11 @@ namespace xen{
 					e.type = xen::WindowEvent::Closed;
 					break;
 				case WM_SETFOCUS:
+					xen::setBits(w->state, (u08)xen::Window::HAS_FOCUS);
 					e.type = xen::WindowEvent::GainedFocus;
 					break;
 				case WM_KILLFOCUS:
+					xen::clearBits(w->state, (u08)xen::Window::HAS_FOCUS);
 					e.type = xen::WindowEvent::LostFocus;
 					break;
 				case WM_MOUSEMOVE:
@@ -365,7 +367,7 @@ namespace xen{
 				return nullptr;
 			}
 
-			result->state |= xen::Window::IS_OPEN;
+			result->state |= xen::Window::IS_OPEN | xen::Window::HAS_FOCUS;
 			result->size = size;
 			result->events.elements = (xen::WindowEvent*)xen::kernelAlloc(
 		  	sizeof(xen::WindowEvent) * EVENT_QUEUE_LENGTH
