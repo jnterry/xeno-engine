@@ -156,10 +156,21 @@ namespace {
 		backtrace_symbols_fd(array, size, STDERR_FILENO);
 		exit(1);
 	}
+
+	void sigintHandler(int sig){
+		if(xke::kernel.state == xke::Kernel::RUNNING){
+			XenLogInfo("SIGINT intercepted, requesting kernel shutdown\n");
+			xen::requestKernelShutdown();
+		} else {
+			printf("SIGINT intercepted but kernel not running, force quiting\n");
+			exit(0);
+		}
+	}
 }
 
 void xke::platformRegisterSignalHandlers(){
 	signal(SIGSEGV, sigsegvHandler);
+	signal(SIGINT,  sigintHandler);
 }
 
 
