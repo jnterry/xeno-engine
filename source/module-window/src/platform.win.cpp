@@ -453,7 +453,7 @@ void* init(const void* params){
 
 	if (RegisterClass(&wc) == 0){
 		// :TODO: FormatMessage lets you get a error string from a GetLastError, make some helper?
-		XenLogError("Failed to register Xeno Engine's window class, GetLastError: %i\n",
+		XenLogError("Failed to register Xeno Engine's window class, GetLastError: %i",
 		            GetLastError()
 		           );
 		return nullptr;
