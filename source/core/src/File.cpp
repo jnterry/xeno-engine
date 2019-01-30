@@ -38,6 +38,7 @@ namespace xen{
 		if(file_size < 0){
 			// :TODO: log -> failed to determine file size
 			printf("FILE: failed to determine size of: %s\n", path);
+			fclose(file);
 			return {0};
 		}
 		fseek(file, 0, SEEK_SET);
@@ -45,12 +46,14 @@ namespace xen{
 		if(arena_space < (u64)file_size + 1){ //safe cast since already checked if file_size < 0
 			// :TODO: -> log, not enough space
 			printf("FILE: failed allocate space for: %s\n", path);
+			fclose(file);
 			return {0};
 		}
 
 		u8* data = (u8*)xen::reserveBytes(arena, (u64)file_size + 1);
 		if(!fread(data, (u64)file_size, 1, file)){
 			printf("FILE: Failed to read %s\n", path);
+			fclose(file);
 			return {0};
 		}
 		data[file_size] = '\0';
