@@ -88,7 +88,6 @@ target_include_directories(xen-module-gl PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/sren/
 target_include_directories(xen-module-gl PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/module-window/include/)
 target_include_directories(xen-module-gl PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/module-window/impl/)
 target_link_libraries     (xen-module-gl libglew_shared)
-target_link_libraries     (xen-module-gl xen-module-window) # :TODO: remove
 if(MSVC)
 	target_link_libraries(xen-module-gl PRIVATE xen-core)
 	target_link_libraries(xen-module-gl PRIVATE xen-graphics)
@@ -106,7 +105,6 @@ target_include_directories(xen-module-sren-rasterize PUBLIC ${CMAKE_CURRENT_LIST
 target_include_directories(xen-module-sren-rasterize PRIVATE ${CMAKE_CURRENT_LIST_DIR}/sren/impl/)
 target_include_directories(xen-module-sren-rasterize PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/module-window/include/)
 target_include_directories(xen-module-sren-rasterize PRIVATE ${CMAKE_CURRENT_LIST_DIR}/module-window/impl/)
-target_link_libraries     (xen-module-sren-rasterize xen-module-window) # :TODO: remove
 if(MSVC)
 	target_link_libraries(xen-module-sren-rasterize PRIVATE xen-core)
 	target_link_libraries(xen-module-sren-rasterize PRIVATE xen-graphics)
@@ -127,7 +125,6 @@ target_include_directories(xen-module-sren-raytrace PRIVATE ${CMAKE_CURRENT_LIST
 target_include_directories(xen-module-sren-raytrace PRIVATE ${CMAKE_CURRENT_LIST_DIR}/module-sren-rasterize/src/)
 target_include_directories(xen-module-sren-raytrace PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/module-window/include/)
 target_include_directories(xen-module-sren-raytrace PRIVATE ${CMAKE_CURRENT_LIST_DIR}/module-window/impl/)
-target_link_libraries     (xen-module-sren-raytrace xen-module-window) # :TODO: remove
 if(MSVC)
 	target_link_libraries(xen-module-sren-raytrace PRIVATE xen-core)
 	target_link_libraries(xen-module-sren-raytrace PRIVATE xen-graphics)
@@ -147,7 +144,6 @@ target_include_directories(xen-module-sren-atom PRIVATE ${CMAKE_CURRENT_LIST_DIR
 target_include_directories(xen-module-sren-atom PRIVATE ${CMAKE_CURRENT_LIST_DIR}/module-sren-rasterize/src/)
 target_include_directories(xen-module-sren-atom PUBLIC  ${CMAKE_CURRENT_LIST_DIR}/module-window/include/)
 target_include_directories(xen-module-sren-atom PRIVATE ${CMAKE_CURRENT_LIST_DIR}/module-window/impl/)
-target_link_libraries     (xen-module-sren-atom xen-module-window) # :TODO: remove
 if(MSVC)
 	target_link_libraries(xen-module-sren-atom PRIVATE xen-core)
 	target_link_libraries(xen-module-sren-atom PRIVATE xen-graphics)
