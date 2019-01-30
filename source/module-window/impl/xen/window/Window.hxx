@@ -41,14 +41,6 @@ namespace xen {
 			/// \brief Queue of events to process for this window
 			xen::RingBuffer<WindowEvent, false> events;
 		};
-
-		/////////////////////////////////////////////////////////////////////
-		/// \brief Pushes some event onto the event queue. Makes a copy of
-		/// the specified event, thus caller retains ownership of the event instance
-		/// If the queue is already full then overwrites the oldest event and
-		/// returns false.
-		/////////////////////////////////////////////////////////////////////
-		bool pushEvent(Window* window, const WindowEvent& event);
 	}
 }
 

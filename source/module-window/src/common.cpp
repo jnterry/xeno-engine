@@ -16,43 +16,39 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/config.hpp>
 
-namespace xen {
-	WindowEvent* pollEvent(Window* win){
-		if(win->events.size == 0){
-			return nullptr;
-		} else {
-			// Note that we are returning a pointer to something that we cannot
-			// guarentee will not be overwritten (eg, if new event comes in).
-			// HOWEVER -> new events only arrive during window module's tick()
-			// function, and we should be doing event processing inside the tick()
-			// function of some other module
-			WindowEvent* result = &xen::peakFront(win->events);
-			xen::popFront(win->events);
-			return result;
-		}
-	}
+#include "common.hxx"
 
-	bool isWindowOpen(const Window* win){
-		return win->state & xen::Window::IS_OPEN;
-	}
-	bool hasFocus(const Window* win){
-		return win->state & xen::Window::HAS_FOCUS;
-	}
-
-	namespace impl {
-		bool pushEvent(xen::Window* win, const xen::WindowEvent& event){
-
-			bool is_full = win->events.capacity == win->events.size;
-			if(is_full){
-				xen::popFront(win->events);
-			}
-
-			xen::pushBack(win->events, event);
-
-			return !is_full;
-		}
+xen::WindowEvent* xwn::pollEvent(xen::Window* win){
+	if(win->events.size == 0){
+		return nullptr;
+	} else {
+		// Note that we are returning a pointer to something that we cannot
+		// guarentee will not be overwritten (eg, if new event comes in).
+		// HOWEVER -> new events only arrive during window module's tick()
+		// function, and we should be doing event processing inside the tick()
+		// function of some other module
+		xen::WindowEvent* result = &xen::peakFront(win->events);
+		xen::popFront(win->events);
+		return result;
 	}
 }
+
+bool xwn::isWindowOpen(const xen::Window* win){
+	return win->state & xen::Window::IS_OPEN;
+}
+bool xwn::hasFocus(const xen::Window* win){
+	return win->state & xen::Window::HAS_FOCUS;
+}
+
+bool xwn::pushEvent(xen::Window* win, const xen::WindowEvent& event){
+	bool is_full = win->events.capacity == win->events.size;
+	if(is_full){
+		xen::popFront(win->events);
+	}
+	xen::pushBack(win->events, event);
+	return !is_full;
+}
+
 
 #ifdef XEN_OS_WINDOWS
 	#include "win.cpp"
