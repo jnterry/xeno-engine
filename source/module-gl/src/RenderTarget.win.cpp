@@ -9,21 +9,21 @@
 #ifndef XEN_GL_RENDERTARGETIMPL_WIN_CPP
 #define XEN_GL_RENDERTARGETIMPL_WIN_CPP
 
-#include <xen/graphics/Window.hxx>
+#include <xen/window/Window.hxx>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/kernel/log.hpp>
 
 namespace xgl {
 	struct RenderTargetImpl {
 		HGLRC gl_context;
-		Window* window;
+		xen::Window* window;
 	};
 
 	void makeCurrent(RenderTargetImpl* target){
 		wglMakeCurrent(target->window->context, target->gl_context);
 	}
 
-	RenderTargetImpl* createWindowRenderTarget(xen::ArenaLinear& arena, xen::Window* window){
+	RenderTargetImpl* createPlatformWindowRenderTarget(xen::ArenaLinear& arena, xen::Window* window){
 		xen::MemoryTransaction transaction(arena);
 
 		RenderTargetImpl* result = xen::reserveType<RenderTargetImpl>(arena);

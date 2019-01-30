@@ -547,7 +547,6 @@ void* init(const void* params){
 		alignof(xen::Window)
 	);
 	xen::clearToZero(xwn::state);
-
 	xwn::state->windows.elements = (xen::Window*)(
 		xen::ptrGetAlignedForward(
 			xen::ptrGetAdvanced(xwn::state, sizeof(xwn::State)), alignof(xen::Window)

@@ -13,10 +13,28 @@
 #include <xen/math/vector_types.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/bits.hpp>
+#include <xen/core/array.hpp>
 #include <xen/kernel/log.hpp>
+#include <xen/kernel/Kernel.hpp>
 #include <xen/window/win.hxx>
 
+static const constexpr char* const WINDOW_CLASS_NAME = "XenWindowClass";
+
+// Max number of windows that can be opened and managed by this module
+static const constexpr u64 MAX_WINDOWS = 32;
+
+// Number of events that can be in each window's queue
+static const constexpr u64 EVENT_QUEUE_LENGTH = 64;
+
 namespace xwn {
+	struct State {
+		xen::ModuleApiWindow api;
+
+		// List of active windows
+		xen::StretchyArray<xen::Window> windows;
+	};
+	State* state;
+
 	Vec2u getClientAreaSize(xen::Window* window){
 		RECT rect;
 		if(GetClientRect(window->handle, &rect)){
@@ -31,9 +49,6 @@ namespace xen{
 	struct Allocator;
 
 	namespace impl {
-		const char* const WINDOW_CLASS_NAME = "XenWindowClass";
-		bool windowClassRegistered = false;
-
 		void setModifierKeys(xen::ModifierKeyState& state, WPARAM wParam){
 			//:TODO: what about alt, system, caps lock etc???
 			if(wParam & MK_CONTROL) { state |= xen::ModifierKeys::Control; }
@@ -177,7 +192,7 @@ namespace xen{
 					e.resize.old_size = w->size;
 					e.resize.new_size = xwn::getClientAreaSize(w);
 					w->size           = e.resize.new_size;
-					break; 
+					break;
 				case WM_CLOSE:
 					e.type = xen::WindowEvent::Closed;
 					break;
@@ -275,58 +290,21 @@ namespace xen{
 			return result;
 		}
 
-		///< Registers the WNDCLASS with windows so that we can create instances
-		bool registerWindowClass(HINSTANCE hInstance){
-			WNDCLASS wc = {};
-			wc.style = CS_OWNDC | CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
-			wc.lpfnWndProc = windowEventCallback;
-			wc.hInstance = hInstance;
-			wc.lpszClassName = WINDOW_CLASS_NAME;
-
-			if (RegisterClass(&wc) == 0){
-				return false;
-			} else {
-				windowClassRegistered = true;
-				return true;
+		Window* createWindow(Vec2u size, const char* title){
+			if(xwn::state->windows.size >= xwn::state->windows.capacity){
+				XenLogError("Cannot create window as reached xenogin active window limit");
+				return nullptr;
 			}
-		}
 
-		void dispatchEvents(Window* w){
-			if(w->handle == NULL){ return; }
-			MSG msg;
-			BOOL msgResult = PeekMessage(&msg, w->handle, 0, 0, PM_REMOVE);
-			while (msgResult != 0){
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-				msgResult = PeekMessage(&msg, w->handle, 0, 0, PM_REMOVE);
-			}
-		}
+			Window* result = &xwn::state->windows[xwn::state->windows.size++];
+			*result = {};
 
-		Window* createWindow(xen::ArenaLinear& arena, Vec2u size, const char* title){
 			HINSTANCE module = GetModuleHandle(NULL);
-			if(!impl::windowClassRegistered){
-				if(impl::registerWindowClass(module)){
-					XenLogInfo("Registered Xeno Engine's window class successfully");
-				} else {
-					// :TODO: FormatMessage lets you get a error string from a GetLastError, make some helper?
-					XenLogError("Failed to register Xeno Engine's window class, GetLastError: %i\n",
-					            GetLastError()
-					           );
-					return nullptr;
-				}
-			}
 
 			//////////////////////////////////////////////////////////
 			// Create the window
-			void* oldNextByte = arena.next_byte; // :TODO: use memory transaction
-			Window* result = xen::reserveType<xen::Window>(arena);
-			*result = {};
-
-		  result->events.elements = xen::reserveTypeArray<xen::WindowEvent>(arena, 64);
-			result->events.capacity = 64;
-
 			result->handle = CreateWindowEx(0,
-			                                impl::WINDOW_CLASS_NAME,
+			                                WINDOW_CLASS_NAME,
 			                                title,
 			                                WS_OVERLAPPEDWINDOW | WS_VISIBLE,
 			                                CW_USEDEFAULT,
@@ -340,7 +318,6 @@ namespace xen{
 
 			if(result->handle == nullptr){
 			  XenLogError("Failed to create a window, GetLastError: %i", GetLastError());
-				arena.next_byte = oldNextByte;
 				return nullptr;
 			}
 			//enable us to get the xen::Window* from the HWND, eg when handling event callbacks
@@ -351,7 +328,6 @@ namespace xen{
 			result->context = GetDC(result->handle);
 			if(result->context == NULL){
 				XenLogError("Failed to create window since was unable to obtain a device context");
-				arena.next_byte = oldNextByte;
 				return nullptr;
 			}
 			//setup pixel format
@@ -379,7 +355,6 @@ namespace xen{
 			int actualFormatIndex = ChoosePixelFormat(result->context, &desiredPixelFormat);
 			if(actualFormatIndex == 0){
 			  XenLogError("Failed to create window as was unable to find a suitable pixel format supported by the hardware");
-				arena.next_byte = oldNextByte;
 				return nullptr;
 			}
 
@@ -387,34 +362,38 @@ namespace xen{
 			DescribePixelFormat(result->context, actualFormatIndex, sizeof(PIXELFORMATDESCRIPTOR), &actualFormat);
 			if (!SetPixelFormat(result->context, actualFormatIndex, &actualFormat)){
 				XenLogError("Failed to create window as was unable to set its pixel format");
-				arena.next_byte = oldNextByte; // :TODO: use memory transaction
 				return nullptr;
 			}
 
 			result->state |= xen::Window::IS_OPEN;
+			result->size = size;
+			result->events.elements = (xen::WindowEvent*)xen::kernelAlloc(
+		  	sizeof(xen::WindowEvent) * EVENT_QUEUE_LENGTH
+		  );
+			result->events.capacity = EVENT_QUEUE_LENGTH;
 
 			return result;
 		}
 
-		//Doesn't deallocate any memory, closes + destroys window with window api
-		void destroyWindow(Window* window){
+		void destroyWindow(xen::Window* window){
+			u64 window_index = (
+				(u64)(window - xwn::state->windows.elements) / sizeof(xen::Window)
+			);
+			if(window_index > xwn::state->windows.size){
+				XenLogError("destroyWindow called with pointer to unknown window");
+				*window = {};
+				return;
+			}
+
+			xen::kernelFree(window->events.elements);
 			DestroyWindow(window->handle);
 			*window = {};
+
+			xen::removeUnordered(xwn::state->windows, window_index);
 		}
 	} //end of namespace xen::impl::
 
-	/// \brief Retrieves the size of the client area (ie, part that may be renderered on) of some window
-	Vec2u getClientAreaSize(Window* window){
-		Vec2u result = {};
-		if(window->handle == NULL){ return result; }
-		RECT rect;
-		GetClientRect(window->handle, &rect);
-		result.x = (u32)rect.right;
-		result.y = (u32)rect.bottom;
-		return result;
-	}
-
-	bool isKeyPressed(Key key, Window*){
+	bool isKeyPressed(Key key){
 		UINT vk = impl::virtualKeyFromXenKey(key);
 		if(vk == 0){ return false; }
 		return (GetAsyncKeyState((int)vk) & ~1) != 0; //well done microsoft, store virtual key as UINT usually, but then take ints sometimes...
@@ -424,5 +403,90 @@ namespace xen{
 		SetWindowText(window->handle, title);
 	}
 }
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////
+
+void* init(const void* params){
+	//////////////////////////////////////////////////////////////
+	// Allocate window storage
+	xwn::state = (xwn::State*)xen::kernelAlloc(
+		sizeof(xwn::State) +
+		sizeof(xen::Window) * MAX_WINDOWS +
+		alignof(xen::Window)
+	);
+	xen::clearToZero(xwn::state);
+	xwn::state->windows.elements = (xen::Window*)(
+		xen::ptrGetAlignedForward(
+			xen::ptrGetAdvanced(xwn::state, sizeof(xwn::State)), alignof(xen::Window)
+		)
+	);
+	xwn::state->windows.capacity = MAX_WINDOWS;
+	//////////////////////////////////////////////////////////////
+
+	//////////////////////////////////////////////////////////////
+	// Register "window class"
+	HINSTANCE module = GetModuleHandle(NULL);
+	WNDCLASS wc = {};
+	wc.style = CS_OWNDC | CS_DBLCLKS | CS_HREDRAW | CS_VREDRAW;
+	wc.lpfnWndProc = xen::impl::windowEventCallback;
+	wc.hInstance = module;
+	wc.lpszClassName = WINDOW_CLASS_NAME;
+
+	if (RegisterClass(&wc) == 0){
+		// :TODO: FormatMessage lets you get a error string from a GetLastError, make some helper?
+		XenLogError("Failed to register Xeno Engine's window class, GetLastError: %i\n",
+		            GetLastError()
+		           );
+		return nullptr;
+	} else {
+		XenLogDone("Registered Xeno Engine's window class successfully");
+	}
+	//////////////////////////////////////////////////////////////
+
+	return xwn::state;
+}
+
+void shutdown(void* data, const void* params){
+	for(int i = xwn::state->windows.size-1; i >= 0; --i){
+		xen::impl::destroyWindow(&xwn::state->windows[i]);
+	}
+
+	xen::kernelFree(xwn::state);
+	xwn::state = nullptr;
+}
+
+void* load( void* data, const void* params){
+	xwn::state = (xwn::State*)data;
+
+	xwn::state->api.getClientAreaSize = &xwn::getClientAreaSize;
+	xwn::state->api.setWindowTitle    = &xen::setWindowTitle;
+	xwn::state->api.isWindowOpen      = &xen::isWindowOpen;
+	xwn::state->api.hasFocus          = &xen::hasFocus;
+	xwn::state->api.pollEvent         = &xen::pollEvent;
+	xwn::state->api.isKeyPressed      = &xen::isKeyPressed;
+	xwn::state->api.createWindow      = &xen::impl::createWindow;
+	xwn::state->api.destroyWindow     = &xen::impl::destroyWindow;
+
+	return &xwn::state->api;
+}
+
+void tick(const xen::TickContext& tick){
+	//////////////////////////////////////////////////////////////////
+	// Process window events
+	for(uint i = 0; i < xwn::state->windows.size; ++i){
+		xen::Window* win = &xwn::state->windows[i];
+	  MSG msg;
+	  BOOL msgResult = PeekMessage(&msg, win->handle, 0, 0, PM_REMOVE);
+	  while (msgResult != 0){
+		  TranslateMessage(&msg);
+		  DispatchMessage(&msg);
+		  msgResult = PeekMessage(&msg, win->handle, 0, 0, PM_REMOVE);
+	  }
+  }
+}
+
+XenDeclareModule("window", &init, &shutdown, &load, nullptr, &tick)
 
 #endif

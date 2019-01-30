@@ -10,6 +10,7 @@
 #define XEN_SREN_RENDERTARGETIMPL_WIN_CPP
 
 #include <xen/core/memory/Allocator.hpp>
+#include <xen/kernel/log.hpp>
 #include <xen/graphics/Image.hpp>
 #include <xen/window/Window.hxx>
 #include <xen/sren/RenderTarget.hxx>
@@ -39,8 +40,7 @@ void xsr::doPlatformRenderTargetInit(xen::Allocator* alloc,
 	target.bitmap_info.bmiHeader.biBitCount    = 32;
 	target.bitmap_info.bmiHeader.biCompression = BI_RGB;
 
-	// :TODO: log
-	printf("Created software render target for window\n");
+	XenLogDone("Created software render target for window");
 }
 
 void xsr::doPlatformRenderTargetDestruction(xen::Allocator* alloc,
@@ -57,6 +57,7 @@ void xsr::doPlatformRenderTargetResize(xen::Allocator* alloc,
 }
 
 void xsr::presentRenderTarget(xen::Window* window, xsr::RenderTarget& target){
+	printf("presenting render target, %i, %i\n", target.width, target.height);
 	//////////////////////////////////////////////////////////////////////////
 	// Update the byte array we show on screen from the float array we do
 	// our rendering into
