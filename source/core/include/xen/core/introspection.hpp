@@ -22,8 +22,10 @@ namespace xen {
 	// by the MetaType system. If this is not done a sensible default will be used
 	template<typename T>
 	struct meta_type {
-		constexpr static const xen::MetaType type = { typeid(T).name(), sizeof(T), 0 };
+		static const xen::MetaType type;
 	};
+	template<typename T>
+	const xen::MetaType meta_type<T>::type = { typeid(T).name(), sizeof(T), 0 };
 
 
 	// Helper type with a print function to pretty print some type with sensible
@@ -33,6 +35,8 @@ namespace xen {
 	// Determines if some type is atomic. This is any type for which the internal
 	// structure cannot be broken down. For example, primitive types such as int,
 	// and also unknown types (IE: for which meta_type<T> has not been specialized)
+	inline bool isAtomic(const xen::MetaType& type){ return type.field_count == 0; }
+	inline bool isAtomic(const xen::MetaType* type){ return type->field_count == 0; }
 	template<typename T>
 	constexpr bool isAtomic() { return meta_type<T>::type.field_count == 0; }
 
