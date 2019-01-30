@@ -13,7 +13,6 @@
 #include <type_traits>
 
 namespace xen {
-
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Creates a new BitReference
 	/// \constructor
@@ -49,6 +48,34 @@ namespace xen {
 	template<typename T, u32 T_NUM>
 	const BitReference<T> BitField<T, T_NUM>::operator[](u32 index){
 		return makeBitReference(bits, index);
+	}
+
+
+	template<typename T>
+	inline T& setBits(T& primitive, const T mask){
+		primitive |= mask;
+		return primitive;
+	}
+
+	template<typename T>
+	inline T& clearBits(T& primitive, const T mask){
+		primitive &= (~mask);
+		return primitive;
+	}
+
+	template<typename T>
+	inline T& toogleBits(T& primitive, const T mask){
+		primitive ^= mask;
+		return primitive;
+	}
+
+	template<typename T>
+	inline T& setBitState(T& primitive, const T mask, bool high){
+		clearBits(primitive, mask);
+		if(high){
+			setBits(primitive, mask);
+		}
+		return primitive;
 	}
 }
 

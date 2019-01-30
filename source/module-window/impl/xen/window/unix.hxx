@@ -20,9 +20,10 @@ namespace xen {
 	struct Window : public xen::impl::WindowBase{
 		::Window xwindow;
 
+		::Display* xdisplay;
+
 		::Visual* visual;
 
-		Display* display;
 
 		/*::XVisualInfo visual_info;
 

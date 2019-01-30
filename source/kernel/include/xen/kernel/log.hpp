@@ -146,8 +146,6 @@ namespace xen {
 		logv(level, file, line, msg_format, args);
 		va_end(args);
 	}
-
-	
 }
 
 #define XenLogTrace(...)    ::xen::log(::xen::LogLevel::TRACE,     __FILE__, __LINE__, __VA_ARGS__)

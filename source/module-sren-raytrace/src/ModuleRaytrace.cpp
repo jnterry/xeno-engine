@@ -211,7 +211,7 @@ namespace {
 				       *op.draw.params, op.draw.commands);
 				break;
 			case xen::RenderOp::SWAP_BUFFERS:
-				xsr::swapBuffers(op.swap_buffers.window);
+				xsr::swapBuffers(op.swap_buffers.target);
 				break;
 			}
 		}

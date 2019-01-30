@@ -17,25 +17,6 @@ namespace xen {
 	/// \brief Opaque type representing a Window - actual type depends on platform
 	struct Window;
 
-	/// \brief Retrieves the size of the client area (IE: part that may
-	// be rendered to) of some window
-	Vec2u getClientAreaSize(Window* window);
-
-	/// \brief Updates the title of some window - typically displayed by the
-	/// window manager above the client area
-	void setWindowTitle(Window* window, const char* title);
-
-	/// \brief Retrieves the RenderTarget representing the client area of
-	/// some window
-	RenderTarget getRenderTarget(Window* window);
-
-	/// \brief Swaps the buffers of some Window such that the application
-	/// can begin drawing to a buffer while the other is displayed. Nothing
-	/// will be displayed on the window's surface until this function is called
-	//void swapBuffers(Window* window);
-
-	bool isWindowOpen(const Window* window);
-
 	/// \brief Unsigned integer type which is capable of holding a bitwise
 	/// combination the MouseButtons bit field values
 	typedef u08 MouseButtonState;
@@ -58,7 +39,7 @@ namespace xen {
 
 	// :TODO: convert to xen::BitField
 	struct ModifierKeys {
-		enum Values {
+		enum Values : ModifierKeyState{
 			Alt     = 0x01,
 			Shift   = 0x02,
 			Control = 0x04,
@@ -113,16 +94,6 @@ namespace xen {
 		Count, ///< The number of defined keys
 	};
 
-	struct EventKey {
-		/// \brief Which key was pressed/released
-		Key key;
-
-		/// \brief Which modifier keys were pressed at the time of the event
-		ModifierKeyState modifiers;
-
-		//:TODO: mouse position ?
-	};
-
 	/// \brief Contains data about the mouse wheel being moved
 	struct EventMouseWheel{
 		enum Wheels{
@@ -133,7 +104,6 @@ namespace xen {
 		Vec2s            position;  ///< position of mouse in pixels relative to top left of the window
 		int              delta;     ///< The number of ticks the mouse wheel moved (:TODO: +ve is which dir?)
 		Wheels           wheel;     ///< Which wheel was moved
-		ModifierKeyState modifiers; ///< The state of the modifier keys when the mouse wheel was moved
 		MouseButtonState buttons;   ///< The state of the mouse button s when the mouse wheel was moved
 	};
 
@@ -148,20 +118,17 @@ namespace xen {
 		///< Note that pressing or releasing a key while the mouse is in motion
 		///< will cause separate EventMouseMoved instances to be made
 		MouseButtonState button;
-		ModifierKeyState modifers; ///< The state of the modifier keys when the mouse was being moved
 	};
 
 	/// \brief Contains data about a mouse button being pressed or released
 	struct EventMouseButton{
 		Vec2s position; 	         ///< position of mouse relative to top left of window, unit is pixels
 		MouseButtons::Values button; ///< The button that was pressed or released
-		ModifierKeyState modifers;   ///< The state of the modifier keys when the button was pressed/released
 	};
 
 	struct EventResized {
 		Vec2u new_size;
-
-		// :TODO: old size?
+		Vec2u old_size;
 	};
 
 	/// \brief Stores information about user input related to some Window instance
@@ -202,32 +169,63 @@ namespace xen {
 
 		Type type; ///< The type of the event
 
+		/// \brief Whether the window had focus when this event was produced
+		bool has_focus;
+
+		/// \brief The state of modifier keys when this event was produced
+		ModifierKeyState modifiers;
 
 		///< Extra data, which is set depends on the event's type
 		union{
 			EventMouseButton mouse_button;
 			EventMouseMoved  mouse_moved;
 			EventMouseWheel  mouse_wheel;
-			EventKey         key;
+			Key              key;
 			EventResized     resize;
 		};
 	};
 
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Retrieves a pointer to the next event in the event queue of a
-	/// window, or null pointer if there are no more events at the current time
-	///
-	/// \note This pointer refers to memory owned by the window system and no
-	/// attempt should be made to free it. The pointer is guarenteed to remain
-	/// valid until the next call to pollEvent for the same window
-	/////////////////////////////////////////////////////////////////////
-	WindowEvent* pollEvent(Window* window);
+	struct ModuleApiWindow {
+		static const constexpr char* const NAME = "window";
 
-	/// \brief Determines if a keyboard key is currently pressed
-	/// \todo :TODO: only reason we need to pass a Window in is that on unix
-	/// we need a display connection -> turn window management into a reloadable
-	/// module so we can store some global state
-	bool isKeyPressed(Key key, Window* window);
+		Window* (*createWindow )(Vec2u size, const char* title);
+		void    (*destroyWindow)(Window* window);
+
+		/// \brief Retrieves the size of the client area (IE: part that may
+		// be rendered to) of some window
+		Vec2u (*getClientAreaSize)(Window* window);
+
+			/// \brief Updates the title of some window - typically displayed by the
+		/// window manager above the client area
+		void (*setWindowTitle)(Window* window, const char* title);
+
+		/// \brief Swaps the buffers of some Window such that the application
+		/// can begin drawing to a buffer while the other is displayed. Nothing
+		/// will be displayed on the window's surface until this function is called
+		//void swapBuffers(Window* window);
+
+		bool (*isWindowOpen)(const Window* window);
+		bool (*hasFocus)    (const Window* window);
+
+		/// \brief Retrieves a pointer to the next event in the event queue of a
+		/// window, or null pointer if there are no more events at the current time
+		///
+		/// \note This pointer refers to memory owned by the window system and no
+		/// attempt should be made to free it. The pointer is guarenteed to remain
+		/// valid until the next call to pollEvent for the same window
+		WindowEvent* (*pollEvent)(Window* window);
+
+		/// \brief Determines if a keyboard key is currently pressed
+		///
+		/// \note This function is guaranteed to return the same value
+		/// for a given key for the entire duration of a tick, based on the
+		/// state at the start of the tick.
+		/// Window events should be used for press-and-release operations,
+		/// this function is intended to be used for detecting a user who is
+		/// holding a key for a longer period of time (eg, holding arrow key
+		/// to move around the screen)
+		bool (*isKeyPressed)(Key key);
+	};
 }
 
 #endif

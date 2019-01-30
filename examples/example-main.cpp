@@ -36,15 +36,20 @@ int main(int argc, const char** argv){
 		return 2;
 	}
 
+	if(!xen::loadModule("xen-module-window")){
+		XenLogFatal("Failed to load window module");
+		return 3;
+	}
+
 	if(!loadGraphicsModule(argv[2])){
 		XenLogFatal("Failed to load graphics module");
-		return 3;
+		return 4;
 	}
 
 
 	if(!xen::loadModule(argv[1])){
 		XenLogFatal("Failed to load game module: %s", argv[1]);
-		return 4;
+		return 5;
 	}
 
 	xen::startKernel();

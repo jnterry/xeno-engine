@@ -26,11 +26,9 @@ namespace xsr {
 
 
 	void clear(xen::RenderTarget target, xen::Color color);
-	xen::RenderTarget createRenderTarget (Vec2u size, xen::Window* window);
+	xen::RenderTarget createWindowRenderTarget (xen::Window* window);
 	void destroyRenderTarget(xen::RenderTarget render_target);
-	xen::Window* createWindow(Vec2u size, const char* title);
-	void destroyWindow(xen::Window* window);
-	void swapBuffers(xen::Window* window);
+	void swapBuffers(xen::RenderTarget target);
 }
 
 #endif

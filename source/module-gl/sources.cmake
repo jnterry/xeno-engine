@@ -16,9 +16,6 @@ set(XEN_SOURCES_GL
 	${CMAKE_CURRENT_LIST_DIR}/src/ModuleGl.hxx
 	${CMAKE_CURRENT_LIST_DIR}/src/ModuleGl.cpp
 
-	${CMAKE_CURRENT_LIST_DIR}/src/Window.hxx
-	${CMAKE_CURRENT_LIST_DIR}/src/Window.cpp
-
 	${CMAKE_CURRENT_LIST_DIR}/src/RenderTarget.hxx
 	${CMAKE_CURRENT_LIST_DIR}/src/RenderTarget.cpp
 

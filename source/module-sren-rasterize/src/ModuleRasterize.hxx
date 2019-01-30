@@ -12,7 +12,7 @@
 #include <xen/core/memory/ArenaPool.hpp>
 #include <xen/sren/rasterizer3d.hxx>
 #include <xen/sren/RenderTarget.hxx>
-#include <xen/graphics/GraphicsModuleApi.hpp>
+#include <xen/graphics/ModuleApiGraphics.hpp>
 
 #include "Texture.hxx"
 
@@ -41,7 +41,7 @@ namespace xsr {
 		/// \brief index of the next operation in op_list which has not yet been used
 		u64 next_free_op;
 
-		xen::GraphicsModuleApi api;
+		xen::ModuleApiGraphics api;
 	};
 
 	extern ModuleRasterize* state;

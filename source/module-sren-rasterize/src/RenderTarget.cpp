@@ -11,11 +11,12 @@
 
 #include "RenderTarget.hxx"
 #include "ModuleRasterize.hxx"
+#include <xen/window/Window.hxx>
 #include <xen/graphics/GraphicsHandles.hpp>
-#include <xen/graphics/Window.hxx>
 #include <xen/sren/RenderTarget.hxx>
 #include <xen/sren/PostProcessor.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/core/bits.hpp>
 
 
 xsr::RenderTarget* xsr::getRenderTargetImpl(xen::RenderTarget target){
@@ -26,18 +27,21 @@ void xsr::clear(xen::RenderTarget target, xen::Color color){
 	xsr::clear(*xsr::getRenderTargetImpl(target), color);
 }
 
-xen::RenderTarget xsr::createRenderTarget (Vec2u size, xen::Window* window){
-	// :TODO:COMP::ISSUE_31: object pool with automatic handles / resizeable pool
+xen::RenderTarget xsr::createWindowRenderTarget(xen::Window* window) {
+	xen::MemoryTransaction transaction(xsr::state->root_arena);
+
 	u32 slot = xen::reserveSlot(xsr::state->render_target_pool);
 	xsr::RenderTarget* target = &xsr::state->render_target_pool.slots[slot].item;
+	xen::RenderTarget handle = xen::makeGraphicsHandle<xen::RenderTarget::HANDLE_ID>(slot, 0);
 
 	xen::clearToZero<xsr::RenderTarget>(target);
-	xsr::resizeRenderTarget(target, size);
-
+	xsr::resizeRenderTarget(target, window->size);
 	target->window = window;
-	xsr::doPlatformRenderTargetInit(xsr::state->render_target_alloc, *target, target->window);
 
-	return xen::makeGraphicsHandle<xen::RenderTarget::HANDLE_ID>(slot, 0);
+	xsr::doPlatformRenderTargetInit(xsr::state->render_target_alloc, *target, window);
+
+	transaction.commit();
+	return handle;
 }
 
 void xsr::destroyRenderTarget(xen::RenderTarget render_target){
@@ -74,29 +78,11 @@ void xsr::resizeRenderTarget(xsr::RenderTarget* target, Vec2u size){
 	xsr::doPlatformRenderTargetResize(alloc, *target, target->window);
 }
 
-xen::Window* xsr::createWindow(Vec2u size, const char* title) {
-	xen::MemoryTransaction transaction(xsr::state->root_arena);
+void xsr::swapBuffers(xen::RenderTarget handle) {
+	xsr::RenderTarget& target = *xsr::getRenderTargetImpl(handle);
+	xen::Window* window = target.window;
 
-	xen::Window* window = xen::impl::createWindow(xsr::state->root_arena, size, title);
-
-	window->render_target     = xsr::createRenderTarget(size, window);
-	xsr::RenderTarget* target = xsr::getRenderTargetImpl(window->render_target);
-
-	target->window = window;
-
-	transaction.commit();
-	return window;
-}
-
-void xsr::destroyWindow(xen::Window* window) {
-	destroyRenderTarget(window->render_target);
-	xen::impl::destroyWindow(window);
-	window->is_open = false;
-}
-
-void xsr::swapBuffers(xen::Window* window) {
-	if(!window->is_open){ return; }
-	xsr::RenderTarget& target = *xsr::getRenderTargetImpl(window->render_target);
+	if(window == nullptr || !(window->state & xen::Window::IS_OPEN)){ return; }
 
 	for(u32 i = 0; i < xsr::state->post_processors.size; ++i){
 		if(xsr::state->post_processors[i]->disabled){ continue; }

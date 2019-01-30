@@ -32,6 +32,7 @@ set(XEN_INCLUDE_DIRS
 	${CMAKE_CURRENT_LIST_DIR}/source/kernel/include/
 	${CMAKE_CURRENT_LIST_DIR}/source/graphics/include/
 	${CMAKE_CURRENT_LIST_DIR}/source/sren/include/
+	${CMAKE_CURRENT_LIST_DIR}/source/module-window/include/
 	${CMAKE_CURRENT_LIST_DIR}/source/module-gl/include/
 	${CMAKE_CURRENT_LIST_DIR}/source/module-sren/include/
 	${CMAKE_CURRENT_LIST_DIR}/source/module-sren-rasterize/include/

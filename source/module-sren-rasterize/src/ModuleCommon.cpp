@@ -82,19 +82,19 @@ namespace {
 	void* load( void* data, const void* params){
 		xsr::state = (xsr::ModuleRasterize*)data;
 
-		xen::GraphicsModuleApi& api = xsr::state->api;
+		xen::ModuleApiGraphics& api = xsr::state->api;
 
 
-		api.createWindow            = &xsr::createWindow;
-		api.destroyWindow           = &xsr::destroyWindow;
-		api._createMeshFromMeshData = &xsr::createMesh;
-		api.destroyMesh             = &xsr::destroyMesh;
-		api._updateMeshVertexData   = &xsr::updateMeshVertexData;
-		api.createTexture           = &xsr::createTexture;
-		api.destroyTexture          = &xsr::destroyTexture;
-		api.createShader            = &xsr::createShader;
-		api.destroyShader           = &xsr::destroyShader;
-		api.pushOp                  = &pushOp;
+		api.createWindowRenderTarget = &xsr::createWindowRenderTarget;
+		api.destroyRenderTarget      = &xsr::destroyRenderTarget;
+		api._createMeshFromMeshData  = &xsr::createMesh;
+		api.destroyMesh              = &xsr::destroyMesh;
+		api._updateMeshVertexData    = &xsr::updateMeshVertexData;
+		api.createTexture            = &xsr::createTexture;
+		api.destroyTexture           = &xsr::destroyTexture;
+		api.createShader             = &xsr::createShader;
+		api.destroyShader            = &xsr::destroyShader;
+		api.pushOp                   = &pushOp;
 
 		return &api;
 	}

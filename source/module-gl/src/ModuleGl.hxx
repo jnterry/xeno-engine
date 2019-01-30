@@ -13,20 +13,15 @@
 #include "Shader.hxx"
 #include "Texture.hxx"
 
-#include <xen/graphics/GraphicsModuleApi.hpp>
+#include <xen/graphics/ModuleApiGraphics.hpp>
 #include <xen/core/memory/ArenaPool.hpp>
 
-namespace xen {
-	namespace gl {
-		struct RenderTargetImpl;
-	}
-}
-
 namespace xgl {
+	struct RenderTargetImpl;
 
 	struct GlState {
 		/// \brief The public Api exposed to other modules
-		xen::GraphicsModuleApi api;
+		xen::ModuleApiGraphics api;
 
 		/// \brief The primary memory arena used for module wide allocations
 		xen::ArenaLinear primary_arena;
@@ -37,7 +32,7 @@ namespace xgl {
 		xen::ArenaPool<xgl::MeshGlData>        pool_mesh;
 		xen::ArenaPool<xgl::TextureImpl>       pool_texture;
 		xen::ArenaPool<xgl::ShaderProgram>     pool_shader;
-		xen::ArenaPool<xen::gl::RenderTargetImpl*> pool_render_target;
+		xen::ArenaPool<xgl::RenderTargetImpl*> pool_render_target;
 	};
 
 	extern GlState* gl_state;

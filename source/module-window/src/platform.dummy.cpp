@@ -19,12 +19,6 @@ namespace xen{
 
 	};
 
-	namespace impl{
-		void dispatchEvents(Window* w){
-			// no-op
-		}
-	} //end of namespace xen::impl::
-
 	bool isWindowOpen(Window* window){
 		return true;
 	}

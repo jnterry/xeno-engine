@@ -44,7 +44,7 @@ namespace xen {
 		};
 
 		struct SwapBufferParams {
-			xen::Window* window;
+			xen::RenderTarget target;
 		};
 
 		union {
@@ -56,7 +56,7 @@ namespace xen {
 		// Named constructors for RenderOp
 		static RenderOp Clear(xen::RenderTarget, xen::Color color);
 		static RenderOp Draw(xen::RenderTarget, xen::Aabb2u viewport, xen::RenderParameters3d& params, xen::Array<RenderCommand3d>& commands);
-		static RenderOp SwapBuffers(xen::Window* window);
+		static RenderOp SwapBuffers(xen::RenderTarget target);
 	};
 
 	/////////////////////////////////////////////////////////////////////
@@ -84,9 +84,15 @@ namespace xen {
 	/// \brief Type representing the Api that a graphics module is expected
 	/// to expose
 	/////////////////////////////////////////////////////////////////////
-	struct GraphicsModuleApi {
-		Window* (*createWindow )(Vec2u size, const char* title);
-		void    (*destroyWindow)(Window* window);
+	struct ModuleApiGraphics {
+		static const constexpr char* const NAME = "graphics";
+
+		xen::RenderTarget (*createWindowRenderTarget)(Window* window);
+		void              (*destroyRenderTarget)(xen::RenderTarget target);
+
+		// :TODO:
+		//RenderTarget* createRenderTarget(Vec2u size, int depth_bits);
+		//void resizeRenderTarget(RenderTarget* render_target);
 
 		Mesh    (*_createMeshFromMeshData)(const MeshData* mesh_data);
 		void    (*destroyMesh           )(Mesh mesh);
@@ -193,10 +199,8 @@ namespace xen {
 		}
 
 		void clear(xen::RenderTarget target, xen::Color color);
-		void clear(Window* window, xen::Color color);
 		void render(xen::RenderTarget, xen::Aabb2u viewport, xen::RenderParameters3d& params, xen::Array<RenderCommand3d> commands);
-		void render(xen::Window*, xen::Aabb2u viewport, xen::RenderParameters3d& params, xen::Array<RenderCommand3d> commands);
-		void swapBuffers(Window* window);
+		void swapBuffers(xen::RenderTarget window);
 	};
 }
 
