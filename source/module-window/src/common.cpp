@@ -17,6 +17,7 @@
 #include <xen/config.hpp>
 
 #include "common.hxx"
+#include "platform.hxx"
 
 xen::WindowEvent* xwn::pollEvent(xen::Window* win){
 	if(win->events.size == 0){
@@ -49,18 +50,29 @@ bool xwn::pushEvent(xen::Window* win, const xen::WindowEvent& event){
 	return !is_full;
 }
 
+void xwn::initApiFunctionPointers(xen::ModuleApiWindow* api){
+  api->getClientAreaSize = &xwn::getClientAreaSize;
+  api->setWindowTitle    = &xwn::setWindowTitle;
+  api->isWindowOpen      = &xwn::isWindowOpen;
+  api->hasFocus          = &xwn::hasFocus;
+  api->pollEvent         = &xwn::pollEvent;
+  api->isKeyPressed      = &xwn::isKeyPressed;
+  api->createWindow      = &xwn::createWindow;
+  api->destroyWindow     = &xwn::destroyWindow;
+}
+
 
 #ifdef XEN_OS_WINDOWS
-	#include "win.cpp"
+	#include "platform.win.cpp"
 #elif defined XEN_OS_UNIX
-	#include "unix.cpp"
+	#include "platform.unix.cpp"
 #else
 	// Then use a dummy implementation, this done rather than #error to make
 	// porting xeno engine to new platforms easier, since can work on one thing
 	// at a time rather than having to implement everything at once (dummy also
 	// acts a nice skeleton for the new implementation)
 	#warning "Window system not implemented on this platform... using dummy implementation"
-	#include "dummy.cpp"
+	#include "platform.dummy.cpp"
 #endif
 
 #endif

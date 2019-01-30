@@ -4,11 +4,11 @@
 /// \brief Contains windows specific implementations of functions for dealing
 /// with xen::Window
 ///
-/// \ingroup graphics
+/// \ingroup module-window
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_GRAPHICS_WINDOW_WIN_CPP
-#define XEN_GRAPHICS_WINDOW_WIN_CPP
+#ifndef XEN_MODULEWINDOW_PLATFORM_WIN_CPP
+#define XEN_MODULEWINDOW_PLATFORM_WIN_CPP
 
 #include <xen/math/vector_types.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
@@ -19,6 +19,11 @@
 #include <xen/window/win.hxx>
 
 #include "common.hxx"
+#include "platform.hxx"
+
+////////////////////////////////////////////////////////////////////////////////
+// * Utility Functions
+// This section contains private utility functions and types used by this file
 
 static const constexpr char* const WINDOW_CLASS_NAME = "XenWindowClass";
 
@@ -36,16 +41,6 @@ namespace xwn {
 		xen::StretchyArray<xen::Window> windows;
 	};
 	State* state;
-
-	Vec2u getClientAreaSize(xen::Window* window) {
-		RECT rect;
-		if (GetClientRect(window->handle, &rect)) {
-			return { (u32)rect.right, (u32)rect.bottom };
-		}
-		else {
-			return Vec2u::Origin;
-		}
-	}
 
 	void setModifierKeys(xen::ModifierKeyState& state, WPARAM wParam) {
 		//:TODO: what about alt, system, caps lock etc???
@@ -299,123 +294,136 @@ namespace xwn {
 		}
 		return result;
 	}
+}
 
-	xen::Window* createWindow(Vec2u size, const char* title) {
-		if (xwn::state->windows.size >= xwn::state->windows.capacity) {
-			XenLogError("Cannot create window as reached xenogin active window limit");
-			return nullptr;
-		}
+////////////////////////////////////////////////////////////////////////////////
+// * Platform Functions
+// This section contains the defintions of functions declared in platform.hxx
 
-		xen::Window* result = &xwn::state->windows[xwn::state->windows.size++];
-		*result = {};
-
-		HINSTANCE module = GetModuleHandle(NULL);
-
-		//////////////////////////////////////////////////////////
-		// Create the window
-		result->handle = CreateWindowEx(0,
-			WINDOW_CLASS_NAME,
-			title,
-			WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-			CW_USEDEFAULT,
-			CW_USEDEFAULT,
-			size.x,
-			size.y,
-			0,
-			0,
-			module,
-			0);
-
-		if (result->handle == nullptr) {
-			XenLogError("Failed to create a window, GetLastError: %i", GetLastError());
-			return nullptr;
-		}
-		//enable us to get the xen::Window* from the HWND, eg when handling event callbacks
-		SetWindowLongPtr(result->handle, GWLP_USERDATA, (LONG_PTR)result);
-
-		//////////////////////////////////////////////////////////
-		// Setup the window's pixel format and get a device context
-		result->context = GetDC(result->handle);
-		if (result->context == NULL) {
-			XenLogError("Failed to create window since was unable to obtain a device context");
-			return nullptr;
-		}
-		//setup pixel format
-		//https://msdn.microsoft.com/en-us/library/windows/desktop/dd368826(v=vs.85).aspx
-		//:TODO: make this configurable with params to the function?
-		//ie, if we need a depth buffer, SUPPORT_OPENGL need not be set if planning on using directx, software renderer, etc
-		PIXELFORMATDESCRIPTOR desiredPixelFormat = {
-			sizeof(PIXELFORMATDESCRIPTOR),
-			1, //version, always 1
-			PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,   //Flags
-			PFD_TYPE_RGBA,            //The kind of framebuffer. RGBA or palette.
-			32,                       //Colordepth of the framebuffer.
-			0, 0, 0, 0, 0, 0,
-			0,
-			0,
-			0,
-			0, 0, 0, 0,
-			24,                       //Number of bits for the depthbuffer
-			8,                        //Number of bits for the stencilbuffer
-			0,                        //Number of Aux buffers in the framebuffer (MSDN says not supported?)
-			PFD_MAIN_PLANE,
-			0,
-			0, 0, 0 };
-		//get index of closest match that the hardware supports
-		int actualFormatIndex = ChoosePixelFormat(result->context, &desiredPixelFormat);
-		if (actualFormatIndex == 0) {
-			XenLogError("Failed to create window as was unable to find a suitable pixel format supported by the hardware");
-			return nullptr;
-		}
-
-		PIXELFORMATDESCRIPTOR actualFormat;
-		DescribePixelFormat(result->context, actualFormatIndex, sizeof(PIXELFORMATDESCRIPTOR), &actualFormat);
-		if (!SetPixelFormat(result->context, actualFormatIndex, &actualFormat)) {
-			XenLogError("Failed to create window as was unable to set its pixel format");
-			return nullptr;
-		}
-
-		result->state |= xen::Window::IS_OPEN | xen::Window::HAS_FOCUS;
-		result->size = size;
-		result->events.elements = (xen::WindowEvent*)xen::kernelAlloc(
-			sizeof(xen::WindowEvent) * EVENT_QUEUE_LENGTH
-		);
-		result->events.capacity = EVENT_QUEUE_LENGTH;
-
-		return result;
+Vec2u xwn::getClientAreaSize(xen::Window* window) {
+	RECT rect;
+	if (GetClientRect(window->handle, &rect)) {
+		return { (u32)rect.right, (u32)rect.bottom };
 	}
-
-	void destroyWindow(xen::Window* window) {
-		u64 window_index = (
-			(u64)(window - xwn::state->windows.elements) / sizeof(xen::Window)
-			);
-		if (window_index > xwn::state->windows.size) {
-			XenLogError("destroyWindow called with pointer to unknown window");
-			*window = {};
-			return;
-		}
-
-		xen::kernelFree(window->events.elements);
-		DestroyWindow(window->handle);
-		*window = {};
-
-		xen::removeUnordered(xwn::state->windows, window_index);
-	}
-
-	bool isKeyPressed(xen::Key key) {
-		UINT vk = xwn::virtualKeyFromXenKey(key);
-		if (vk == 0) { return false; }
-		return (GetAsyncKeyState((int)vk) & ~1) != 0; //well done microsoft, store virtual key as UINT usually, but then take ints sometimes...
-	}
-
-	void setWindowTitle(xen::Window* window, const char* title) {
-		SetWindowText(window->handle, title);
+	else {
+		return Vec2u::Origin;
 	}
 }
 
+xen::Window* xwn::createWindow(Vec2u size, const char* title) {
+	if (xwn::state->windows.size >= xwn::state->windows.capacity) {
+		XenLogError("Cannot create window as reached xenogin active window limit");
+		return nullptr;
+	}
 
+	xen::Window* result = &xwn::state->windows[xwn::state->windows.size++];
+	*result = {};
 
-///////////////////////////////////////////////////////////////////////////////////////
+	HINSTANCE module = GetModuleHandle(NULL);
+
+	//////////////////////////////////////////////////////////
+	// Create the window
+	result->handle = CreateWindowEx(0,
+	                                WINDOW_CLASS_NAME,
+	                                title,
+	                                WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+	                                CW_USEDEFAULT,
+	                                CW_USEDEFAULT,
+	                                size.x,
+	                                size.y,
+	                                0,
+	                                0,
+	                                module,
+	                                0);
+
+	if (result->handle == nullptr) {
+		XenLogError("Failed to create a window, GetLastError: %i", GetLastError());
+		return nullptr;
+	}
+	//enable us to get the xen::Window* from the HWND, eg when handling event callbacks
+	SetWindowLongPtr(result->handle, GWLP_USERDATA, (LONG_PTR)result);
+
+	//////////////////////////////////////////////////////////
+	// Setup the window's pixel format and get a device context
+	result->context = GetDC(result->handle);
+	if (result->context == NULL) {
+		XenLogError("Failed to create window since was unable to obtain a device context");
+		return nullptr;
+	}
+	//setup pixel format
+	//https://msdn.microsoft.com/en-us/library/windows/desktop/dd368826(v=vs.85).aspx
+	//:TODO: make this configurable with params to the function?
+	//ie, if we need a depth buffer, SUPPORT_OPENGL need not be set if planning on using directx, software renderer, etc
+	PIXELFORMATDESCRIPTOR desiredPixelFormat = {
+		sizeof(PIXELFORMATDESCRIPTOR),
+		1, //version, always 1
+		PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER,   //Flags
+		PFD_TYPE_RGBA,            //The kind of framebuffer. RGBA or palette.
+		32,                       //Colordepth of the framebuffer.
+		0, 0, 0, 0, 0, 0,
+		0,
+		0,
+		0,
+		0, 0, 0, 0,
+		24,                       //Number of bits for the depthbuffer
+		8,                        //Number of bits for the stencilbuffer
+		0,                        //Number of Aux buffers in the framebuffer (MSDN says not supported?)
+		PFD_MAIN_PLANE,
+		0,
+		0, 0, 0 };
+	//get index of closest match that the hardware supports
+	int actualFormatIndex = ChoosePixelFormat(result->context, &desiredPixelFormat);
+	if (actualFormatIndex == 0) {
+		XenLogError("Failed to create window as was unable to find a suitable pixel format supported by the hardware");
+		return nullptr;
+	}
+
+	PIXELFORMATDESCRIPTOR actualFormat;
+	DescribePixelFormat(result->context, actualFormatIndex, sizeof(PIXELFORMATDESCRIPTOR), &actualFormat);
+	if (!SetPixelFormat(result->context, actualFormatIndex, &actualFormat)) {
+		XenLogError("Failed to create window as was unable to set its pixel format");
+		return nullptr;
+	}
+
+	result->state |= xen::Window::IS_OPEN | xen::Window::HAS_FOCUS;
+	result->size = size;
+	result->events.elements = (xen::WindowEvent*)xen::kernelAlloc(
+	                                                              sizeof(xen::WindowEvent) * EVENT_QUEUE_LENGTH
+	                                                              );
+	result->events.capacity = EVENT_QUEUE_LENGTH;
+
+	return result;
+}
+
+void xwn::destroyWindow(xen::Window* window) {
+	u64 window_index = (
+	                    (u64)(window - xwn::state->windows.elements) / sizeof(xen::Window)
+	                    );
+	if (window_index > xwn::state->windows.size) {
+		XenLogError("destroyWindow called with pointer to unknown window");
+		*window = {};
+		return;
+	}
+
+	xen::kernelFree(window->events.elements);
+	DestroyWindow(window->handle);
+	*window = {};
+
+	xen::removeUnordered(xwn::state->windows, window_index);
+}
+
+bool xwn::isKeyPressed(xen::Key key) {
+	UINT vk = xwn::virtualKeyFromXenKey(key);
+	if (vk == 0) { return false; }
+	return (GetAsyncKeyState((int)vk) & ~1) != 0; //well done microsoft, store virtual key as UINT usually, but then take ints sometimes...
+}
+
+void xwn::setWindowTitle(xen::Window* window, const char* title) {
+	SetWindowText(window->handle, title);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// * Module Defintion
 
 void* init(const void* params){
 	//////////////////////////////////////////////////////////////
@@ -469,15 +477,7 @@ void shutdown(void* data, const void* params){
 void* load( void* data, const void* params){
 	xwn::state = (xwn::State*)data;
 
-	xwn::state->api.getClientAreaSize = &xwn::getClientAreaSize;
-	xwn::state->api.setWindowTitle    = &xwn::setWindowTitle;
-	xwn::state->api.isWindowOpen      = &xwn::isWindowOpen;
-	xwn::state->api.hasFocus          = &xwn::hasFocus;
-	xwn::state->api.pollEvent         = &xwn::pollEvent;
-	xwn::state->api.isKeyPressed      = &xwn::isKeyPressed;
-	xwn::state->api.createWindow      = &xwn::createWindow;
-	xwn::state->api.destroyWindow     = &xwn::destroyWindow;
-
+	xwn::initApiFunctionPointers(&xwn::state->api);
 	return &xwn::state->api;
 }
 

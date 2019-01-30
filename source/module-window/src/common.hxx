@@ -13,6 +13,7 @@
 namespace xen {
 	struct WindowEvent;
 	struct Window;
+	struct ModuleApiWindow;
 }
 
 namespace xwn {
@@ -28,6 +29,8 @@ namespace xwn {
 
 	bool isWindowOpen(const xen::Window* win);
 	bool hasFocus(const xen::Window* win);
+
+	void initApiFunctionPointers(xen::ModuleApiWindow* api);
 }
 
 #endif
