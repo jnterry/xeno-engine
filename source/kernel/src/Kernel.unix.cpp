@@ -159,7 +159,7 @@ namespace {
 
 	void sigintHandler(int sig){
 		if(xke::kernel.state == xke::Kernel::RUNNING){
-			XenLogInfo("SIGINT intercepted, requesting kernel shutdown\n");
+			XenLogInfo("SIGINT intercepted, requesting kernel shutdown");
 			xen::requestKernelShutdown();
 		} else {
 			printf("SIGINT intercepted but kernel not running, force quitting\n");
