@@ -389,7 +389,7 @@ namespace {
 		if(valid_event){
 			e.modifiers  = xwn::state->modifier_keys;
 			e.has_focus  = win->state & xen::Window::HAS_FOCUS;
-			xen::impl::pushEvent(win, e);
+		  xwn::pushEvent(win, e);
 		}
 	}
 }
@@ -531,14 +531,14 @@ void xwn::destroyWindow(xen::Window* window){
 	xen::removeUnordered(xwn::state->windows, window_index);
 }
 
-Vec2u xwn::getClientAreaSize(Window* window){
+Vec2u xwn::getClientAreaSize(xen::Window* window){
 	XWindowAttributes attributes;
 	XGetWindowAttributes(xwn::state->display, window->xwindow, &attributes);
 
 	return { (u32)attributes.width, (u32)attributes.height };
 }
 
-bool xwn::isKeyPressed(Key key){
+bool xwn::isKeyPressed(xen::Key key){
 	KeySym  keysym  = xenKeysymFromKey(key);
 	KeyCode keycode = XKeysymToKeycode(xwn::state->display, keysym);
 	if(keycode == 0){ return false; }
@@ -576,7 +576,7 @@ void* init(const void* params){
 
 void shutdown(void* data, const void* params){
 	for(int i = xwn::state->windows.size-1; i >= 0; --i){
-		xen::destroyWindow(&xwn::state->windows[i]);
+		xwn::destroyWindow(&xwn::state->windows[i]);
 	}
 
 	XCloseDisplay(xwn::state->display);
@@ -587,15 +587,7 @@ void shutdown(void* data, const void* params){
 void* load( void* data, const void* params){
 	xwn::state = (xwn::State*)data;
 
-	xwn::state->api.getClientAreaSize = &xen::getClientAreaSize;
-	xwn::state->api.setWindowTitle    = &xen::setWindowTitle;
-	xwn::state->api.isWindowOpen      = &xen::isWindowOpen;
-	xwn::state->api.hasFocus          = &xen::hasFocus;
-	xwn::state->api.pollEvent         = &xen::pollEvent;
-	xwn::state->api.isKeyPressed      = &xen::isKeyPressed;
-	xwn::state->api.createWindow      = &xen::createWindow;
-	xwn::state->api.destroyWindow     = &xen::destroyWindow;
-
+	xwn::initApiFunctionPointers(&xwn::state->api);
 	return &xwn::state->api;
 }
 
@@ -616,16 +608,16 @@ void tick(const xen::TickContext& tick){
 	// This is rare, but possible...
 	xen::setBitState(xwn::state->modifier_keys,
 	                 (xen::ModifierKeyState)xen::ModifierKeys::Control,
-	                 isKeyPressed(xen::Key::RCtrl) || isKeyPressed(xen::Key::LCtrl));
+	                 xwn::isKeyPressed(xen::Key::RCtrl) || xwn::isKeyPressed(xen::Key::LCtrl));
 	xen::setBitState(xwn::state->modifier_keys,
 	                 (xen::ModifierKeyState)xen::ModifierKeys::Alt,
-	                 isKeyPressed(xen::Key::RAlt) || isKeyPressed(xen::Key::LAlt));
+	                 xwn::isKeyPressed(xen::Key::RAlt) || xwn::isKeyPressed(xen::Key::LAlt));
 	xen::setBitState(xwn::state->modifier_keys,
 	                 (xen::ModifierKeyState)xen::ModifierKeys::Shift,
-	                 isKeyPressed(xen::Key::RShift) || isKeyPressed(xen::Key::LShift));
+	                 xwn::isKeyPressed(xen::Key::RShift) || xwn::isKeyPressed(xen::Key::LShift));
 	xen::setBitState(xwn::state->modifier_keys,
 	                 (xen::ModifierKeyState)xen::ModifierKeys::System,
-	                 isKeyPressed(xen::Key::RSystem) || isKeyPressed(xen::Key::LSystem));
+	                 xwn::isKeyPressed(xen::Key::RSystem) || xwn::isKeyPressed(xen::Key::LSystem));
 
 	//////////////////////////////////////////////////////////////////
 	// Process window events
