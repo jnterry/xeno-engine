@@ -349,10 +349,10 @@ bool xke::stopThreadSubsystem(){
 		if(0 != pthread_join(xke::thread_data.threads[i], nullptr)){
 			XenLogWarn("Error occurred joining with worker %i, errno: %i", i, errno);
 		}
-
-		xen::destroyArenaLinear(*xke::kernel.root_allocator, xke::thread_data.scratch_arenas[i]);
 	}
 
+	XenLogInfo("Freeing threading subsystem resources");
+	xke::kernel.root_allocator->deallocate(xke::thread_data.scratch_arenas[0].start);
 	pthread_mutex_destroy(&xke::thread_data.work_available_lock);
 	pthread_cond_destroy (&xke::thread_data.work_available_cond);
 	pthread_mutex_destroy(&xke::thread_data.tick_work_complete_lock);

@@ -162,7 +162,7 @@ namespace {
 			XenLogInfo("SIGINT intercepted, requesting kernel shutdown\n");
 			xen::requestKernelShutdown();
 		} else {
-			printf("SIGINT intercepted but kernel not running, force quiting\n");
+			printf("SIGINT intercepted but kernel not running, force quitting\n");
 			exit(0);
 		}
 	}

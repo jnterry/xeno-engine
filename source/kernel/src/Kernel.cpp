@@ -224,6 +224,7 @@ void xen::startKernel(){
 		if(lmod->module->unload != nullptr){
 			lmod->module->unload(lmod->data, lmod->params);
 		}
+		XenLogInfo("Doing shutdown for module: %s", lmod->lib_path);
 		lmod->module->shutdown(lmod->data, lmod->params);
 		lmod = lmod->next;
 	}
