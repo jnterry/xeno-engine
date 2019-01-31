@@ -12,12 +12,21 @@ import qualified Text.Megaparsec.Char.Lexer as L
 type Parser = Parsec Void String
 
 --------------------------------------------------------------------------------
---                                 Lexer                                      --
+--                             Combinators                                    --
 --------------------------------------------------------------------------------
 
 -- Parser which simply produces some value without consuming any input tokens
 produce :: a -> Parser a
 produce val = val <$ string ""
+
+-- Tries to do some parse, if successful returns Just the value, if fails
+-- returns Nothing
+optionMaybe :: Parser a -> Parser (Maybe a)
+optionMaybe p = try(Just <$> p) <|> produce Nothing
+
+--------------------------------------------------------------------------------
+--                                 Lexer                                      --
+--------------------------------------------------------------------------------
 
 -- Space consumer, eats all whitespace, fails if there is no whitespace
 -- to be eaten
@@ -99,7 +108,7 @@ binop =  try binopLogical
      <|> try binopArithmetic
 
 --------------------------------------------------------------------------------
---                            Prefix Operators                                --
+--                         Pre and Postfix Operators                          --
 --------------------------------------------------------------------------------
 
 preop :: Parser PrefixOperator
@@ -112,6 +121,12 @@ preop =  Predecrement <$ symbol "--"
      <|> UnaryPlus    <$ symbol "+"
      <|> UnaryMinus   <$ symbol "-"
      <|> CCast        <$> withinParens typename -- eg (int)x
+
+postop :: Parser PostfixOperator
+postop =  Postdecrement <$ symbol "--"
+      <|> Postincrement <$ symbol "++"
+      <|> Call          <$> withinParens   (expression `sepBy` comma)
+      <|> ArrayAccess   <$> withinBrackets expression
 
 --------------------------------------------------------------------------------
 --                              Identifiers                                   --
@@ -275,9 +290,15 @@ literal  =  lexeme (    try literalNullptr
 -- Expression parsing with only guarded recursion preventing infinite
 -- recursive behaviour without any terms being consumed
 _exprTerm :: Parser Expression
-_exprTerm =  try (ExprLiteral    <$> literal)
-         <|> try (ExprIdentifier <$> identifier)
-         <|> try (ExprPrefix     <$> preop <*> _exprTerm)
+_exprTerm = build <$> term <*> many postop
+  where
+    term :: Parser Expression
+    term =  try (ExprLiteral    <$> literal)
+        <|> try (ExprIdentifier <$> identifier)
+        <|> try (ExprPrefix     <$> preop <*> _exprTerm)
+    build :: Expression -> [PostfixOperator] -> Expression
+    build e []        = e
+    build e (op:rest) = build (ExprPostfix e op) rest
 
 -- Sets of operators of equal precedence from most to least
 -- see: https://en.cppreference.com/w/cpp/language/operator_precedence

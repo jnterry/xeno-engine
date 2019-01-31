@@ -103,23 +103,23 @@ suite_literal = describe "literal" $ do
 --------------------------------------------------------------------------------
 
 suite_expression = describe "expression" $ do
-  -- :TODO: Note that we always use left-to-right associativity
-  -- IE: 1 - 2 - 3 is equivalent to (1-2)-3
-  --
-  -- Some operators (assignment) use right-to-left as per C spec, eg:
-  -- x = y = z is x = (y = z)
-  --
-  -- See: https://en.cppreference.com/w/cpp/language/operator_precedence
-  --
-  -- Our parser DOES NOT obey this!
-  -- (but precedence is correctly handled, eg, * always before +)
+  suite_expr_simple
+  suite_expr_prefix
+  suite_expr_postfix
+  suite_expr_precedence
+
+suite_expr_simple = describe "simple" $ do
   fail ""
   pass "5"      (ExprLiteral    (LiteralInt 5))
   pass "hello"  (ExprIdentifier "hello")
   pass "5 + 6"  (ExprBinary  (ExprLiteral (LiteralInt 5)) OpAdd    (ExprLiteral (LiteralInt 6)))
   pass "5 & 6"  (ExprBinary  (ExprLiteral (LiteralInt 5)) OpBitAnd (ExprLiteral (LiteralInt 6)))
   pass "5 == 6" (ExprBinary  (ExprLiteral (LiteralInt 5)) OpEq    (ExprLiteral (LiteralInt 6)))
+  where
+    pass input output = itShouldParse (expression <* eof) input output
+    fail input        = itShouldFail  (expression <* eof) input
 
+suite_expr_prefix = describe "prefix" $ do
   pass "-2"            (ExprPrefix UnaryMinus  (ExprLiteral (LiteralInt   2  )))
   pass "+1.0f"         (ExprPrefix UnaryPlus   (ExprLiteral (LiteralFloat 1.0)))
   pass "*a"            (ExprPrefix Dereference (ExprIdentifier "a"))
@@ -142,6 +142,47 @@ suite_expression = describe "expression" $ do
                     OpAdd
                     (ExprPrefix UnaryMinus (ExprIdentifier "b"))
                    )
+  where
+    pass input output = itShouldParse (expression <* eof) input output
+    fail input        = itShouldFail  (expression <* eof) input
+
+suite_expr_postfix = describe "postfix" $ do
+  pass "a++" (ExprPostfix (ExprIdentifier "a") Postincrement)
+  pass "a--" (ExprPostfix (ExprIdentifier "a") Postdecrement)
+
+  pass "a()"            (ExprPostfix (ExprIdentifier "a")
+                         (Call []))
+  pass "a(b)"           (ExprPostfix (ExprIdentifier "a")
+                         (Call [ExprIdentifier "b"]))
+  pass "a(b,c)"         (ExprPostfix (ExprIdentifier "a")
+                         (Call [ExprIdentifier "b", ExprIdentifier "c"]))
+  pass "a(1+b, (int)x)" (ExprPostfix (ExprIdentifier "a")
+                         (Call [ ExprBinary (ExprLiteral (LiteralInt 1)) OpAdd (ExprIdentifier "b")
+                               , ExprPrefix (CCast "int") (ExprIdentifier "x")
+                               ]
+                         ))
+
+  pass "a[i]"    (ExprPostfix (ExprIdentifier "a") (ArrayAccess (ExprIdentifier "i")))
+  pass "a(b)[0]" (ExprPostfix
+                  (ExprPostfix (ExprIdentifier "a") (Call [(ExprIdentifier "b")]))
+                  (ArrayAccess (ExprLiteral (LiteralInt 0)))
+                 )
+
+  where
+    pass input output = itShouldParse (expression <* eof) input output
+    fail input        = itShouldFail  (expression <* eof) input
+
+suite_expr_precedence = describe "precedence" $ do
+  -- :TODO: Note that we always use left-to-right associativity
+  -- IE: 1 - 2 - 3 is equivalent to (1-2)-3
+  --
+  -- Some operators (assignment) use right-to-left as per C spec, eg:
+  -- x = y = z is x = (y = z)
+  --
+  -- See: https://en.cppreference.com/w/cpp/language/operator_precedence
+  --
+  -- Our parser DOES NOT obey this!
+  -- (but precedence is correctly handled, eg, * always before +)
 
   -- Arithmetic precedence
   pass "1 + 2 + 3" (ExprBinary
@@ -226,7 +267,6 @@ suite_expression = describe "expression" $ do
                        OpEq
                       (ExprBinary (ExprIdentifier "b") OpAdd (ExprIdentifier "c"))
                     )
-
   where
     pass input output = itShouldParse (expression <* eof) input output
     fail input        = itShouldFail  (expression <* eof) input

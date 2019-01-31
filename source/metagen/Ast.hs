@@ -79,4 +79,5 @@ data Expression = ExprLiteral    Literal
                 | ExprBinary     Expression BinaryOperator Expression
                 | ExprIdentifier Identifier
                 | ExprPrefix     PrefixOperator Expression
+                | ExprPostfix    Expression PostfixOperator
                 deriving (Show, Eq)
