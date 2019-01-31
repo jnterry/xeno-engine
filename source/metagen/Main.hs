@@ -9,5 +9,5 @@ main :: IO ()
 main = do
   handle   <- openFile "test.txt" ReadMode
   contents <- hGetContents handle
-  parseTest (quoted <* eof) contents
+  --parseTest (quoted <* eof) contents
   hClose handle

@@ -4,6 +4,7 @@ import Ast
 
 import Prelude hiding (const)
 import Data.Void
+import Data.Functor.Identity
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
@@ -74,7 +75,7 @@ assignop =  AssignEq    <$ symbol "="   <|> AssignBitAnd <$ symbol "&="
 binopArithmetic :: Parser BinaryOperator
 binopArithmetic =  OpAdd <$ symbol "+" <|> OpSub <$ symbol "-"
                <|> OpMul <$ symbol "*" <|> OpDiv <$ symbol "/"
-               <|> OpDiv <$ symbol "%"
+               <|> OpMod <$ symbol "%"
 
 binopBitwise :: Parser BinaryOperator
 binopBitwise =  OpBitAnd <$ symbol "&" <|> OpBitOr <$ symbol "|"
@@ -196,24 +197,38 @@ declVar = do
 
 -- Parses a sequence of characters quoted by some other, where the sequence
 -- may include the quote character if it is prefixed by \
-_quotedSeq :: Char -> Parser String
-_quotedSeq c = do
-  (concat) <$> between (char c) (char c) (many (escaped <|> nonCloser))
+_quotedSeq :: Char -> (Parser String -> Parser [String]) -> Parser String
+_quotedSeq c repeat =
+  (concat) <$> between (char c) (char c) (repeat (escaped <|> nonCloser))
   where
     escaped   = try( string ('\\' : c : []))
     nonCloser = (:) <$> satisfy (/=c) <*> produce []
 
 literalString :: Parser Literal
-literalString = LiteralString <$> _quotedSeq '"'
+literalString = LiteralString <$> _quotedSeq '"' many
 
 literalChar :: Parser Literal
-literalChar = LiteralChar <$> _quotedSeq '\''
+literalChar = LiteralChar <$> _quotedSeq '\'' some
 
 literalInt :: Parser Literal
 literalInt = LiteralInt <$> L.signed sc L.decimal
 
-literalFloat :: Parser Literal
-literalFloat = LiteralFloat <$> L.signed sc L.float
+
+-- _literalFloating :: (a -> Literal) -> Char -> Parser Float
+_literalFloating litType c =
+      try ((litType . realToFrac  ) <$> L.signed sc pfloat    <* end)
+  <|> try ((litType . fromIntegral) <$> L.signed sc L.decimal <* (char '.' <* notFollowedBy digitChar) <* end)
+  where
+    pfloat :: Parser Float
+    pfloat =  L.float
+          <|> (\x -> fromIntegral(x) * 0.1) <$ (char '.') <*> L.decimal
+    end :: Parser ()
+    end = (() <$ lexeme (char c)) <|> notFollowedBy letterChar
+
+literalDouble :: Parser Literal
+literalDouble = _literalFloating LiteralDouble 'd'
+literalFloat  :: Parser Literal
+literalFloat  = _literalFloating LiteralFloat 'f'
 
 --literalArray :: Parser Literal
 --literalArray = withinBrackets (many expression)
@@ -221,6 +236,7 @@ literalFloat = LiteralFloat <$> L.signed sc L.float
 literal :: Parser Literal
 literal  =  try literalString
         <|> try literalChar
+        <|> try literalDouble
         <|> try literalFloat
         <|> try literalInt
 

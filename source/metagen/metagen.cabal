@@ -18,7 +18,6 @@ build-type:          Simple
 cabal-version:       >=1.10
 
 executable metagen
-  -- .hs or .lhs file containing the Main module.
   main-is:             Main.hs
 
   -- Modules included in this executable, other than Main.
@@ -34,5 +33,12 @@ executable metagen
   -- Directories containing source files.
   -- hs-source-dirs:
 
-  -- Base language which the package is written in.
+  default-language:    Haskell2010
+
+executable unit-tests
+  main-is:             UnitTests.hs
+  build-depends:       base >=4.9 && <4.10
+                     , megaparsec >=7.0.0 && <7.1.0
+                     , hspec-megaparsec >=2.0.0 && <2.1.0
+                     , hspec >=2.7.0 && <2.8.0
   default-language:    Haskell2010
