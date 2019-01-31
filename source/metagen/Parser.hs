@@ -296,6 +296,7 @@ _exprTerm = build <$> term <*> many postop
     term =  try (ExprLiteral    <$> literal)
         <|> try (ExprIdentifier <$> identifier)
         <|> try (ExprPrefix     <$> preop <*> _exprTerm)
+        <|> try (withinParens expression)
     build :: Expression -> [PostfixOperator] -> Expression
     build e []        = e
     build e (op:rest) = build (ExprPostfix e op) rest

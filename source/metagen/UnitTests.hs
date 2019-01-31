@@ -200,6 +200,11 @@ suite_expr_precedence = describe "precedence" $ do
                      OpSub
                      (ExprBinary (ExprLiteral (LiteralInt 2)) OpDiv (ExprLiteral (LiteralInt 3)))
                    )
+  pass "(1 - 2) / 3" (ExprBinary
+                      (ExprBinary (ExprLiteral (LiteralInt 1)) OpSub (ExprLiteral (LiteralInt 2)))
+                      OpDiv
+                      (ExprLiteral (LiteralInt 3))
+                   )
   -- Logical precedence
   pass "a || b || c" (ExprBinary
                       (ExprBinary (ExprIdentifier "a") OpOr (ExprIdentifier "b"))
