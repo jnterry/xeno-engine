@@ -27,7 +27,7 @@ data VariableStorage =
 type VariableName = String
 
 
-data Decleration =
+data Declaration =
   --          qualifiers  Type     Pointer?    Varname
   VariableDeclaration [Qualifier] Typename Indirection VariableName VariableStorage
   deriving (Show, Eq)

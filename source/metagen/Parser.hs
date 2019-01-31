@@ -98,7 +98,7 @@ binop =  try (OpAssign <$> assignop)
 
 _keywords :: [String]
 _keywords = [
-  "asm", "auto", "bool", "break", "case", "catch", "class", "const",
+  "asm", "auto", "break", "case", "catch", "class", "const",
   "const_cast", "continue", "default", "delete", "do", "dynamic_cast",
   "else", "enum", "explicit", "extern", "for", "goto", "inline", "namespace",
   "new", "operator", "private", "public", "reinterpret_cast", "sizeof",
@@ -170,18 +170,16 @@ _varStorage =  Bitfield <$ lexeme (char ':') <*> integer
 --
 -- Note that the following is valid (but extreamly ugly) c++:
 -- int& thing, * const test, array[5];
-declVar :: Parser [Decleration]
-declVar = do
+declVariable :: Parser [Declaration]
+declVariable = do
   -- Parse the "common" prefix, IE: qualifiers and typename
   qualifiers <- many _qualifier
   tname      <- typename
   -- Parse the set of fields, seperated by ','
-  vardecls   <- sepBy (vardecl qualifiers tname) comma
-  -- End the "line" with ;
-  _          <- semicolon
+  vardecls <- (sepBy (vardecl qualifiers tname) comma)
   return vardecls
   where
-    vardecl :: [Qualifier] -> Typename -> Parser Decleration
+    vardecl :: [Qualifier] -> Typename -> Parser Declaration
     vardecl q t = (VariableDeclaration q t) <$> _indirection <*> identifier <*> _varStorage
 
 --declFuncPointer :: Parser [Decleration]
