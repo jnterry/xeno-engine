@@ -1,6 +1,7 @@
 module Ast where
 
-type Typename = String
+type Type       = String
+type Identifier = String
 
 -- Qualifier that may appear before a typename
 -- eg, const int has qualifiers [Const]
@@ -26,10 +27,9 @@ data VariableStorage =
 
 type VariableName = String
 
-
 data Declaration =
   --       qualifiers Type     Pointer?    Varname      Array?          Initializer
-  DeclVar [Qualifier] Typename Indirection VariableName VariableStorage (Maybe Expression)
+  DeclVar [Qualifier] Type Indirection VariableName VariableStorage (Maybe Expression)
   deriving (Show, Eq)
 
 data Literal = LiteralInt      Int
@@ -63,8 +63,20 @@ data BinaryOperator = OpAdd | OpSub | OpMul | OpDiv | OpMod -- +   -   *   /   %
                     | OpAssign AssignmentOperator -- eg, x = (a =* 5)
                     deriving (Show, Eq)
 
+data PrefixOperator = Predecrement | Preincrement -- --x  ++x
+                    | Dereference  | AddressOf    --  *x   &x
+                    | Not          | Complement   --  !x   ~x
+                    | UnaryPlus    | UnaryMinus   --  +x   -x
+                    | CCast Type                  -- (type)x
+                    deriving (Show, Eq)
+
+data PostfixOperator = Postdecrement | Postincrement -- x--  x++
+                     | Call        [Expression]      -- x(a,b)
+                     | ArrayAccess Expression        -- x[1]
+                     deriving (Show, Eq)
 
 data Expression = ExprLiteral    Literal
                 | ExprBinary     Expression BinaryOperator Expression
-                | ExprIdentifier String
+                | ExprIdentifier Identifier
+                | ExprPrefix     PrefixOperator Expression
                 deriving (Show, Eq)

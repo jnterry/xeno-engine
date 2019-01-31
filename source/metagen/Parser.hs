@@ -63,7 +63,7 @@ comma :: Parser ()
 comma = () <$ lexeme (char ',')
 
 --------------------------------------------------------------------------------
---                               Operators                                    --
+--                            Binay Operators                                 --
 --------------------------------------------------------------------------------
 
 assignop :: Parser AssignmentOperator
@@ -98,7 +98,20 @@ binop =  try binopLogical
      <|> try binopCmp
      <|> try binopArithmetic
 
+--------------------------------------------------------------------------------
+--                            Prefix Operators                                --
+--------------------------------------------------------------------------------
 
+preop :: Parser PrefixOperator
+preop =  Predecrement <$ symbol "--"
+     <|> Preincrement <$ symbol "++"
+     <|> Dereference  <$ symbol "*"
+     <|> AddressOf    <$ symbol "&"
+     <|> Not          <$ symbol "!"
+     <|> Complement   <$ symbol "~"
+     <|> UnaryPlus    <$ symbol "+"
+     <|> UnaryMinus   <$ symbol "-"
+     <|> CCast        <$> withinParens typename -- eg (int)x
 
 --------------------------------------------------------------------------------
 --                              Identifiers                                   --
@@ -133,7 +146,7 @@ identifier :: Parser String
 identifier  = lexeme identifierWord
 
 -- Parses optionally fully qualified typename, for example, xen::Window
-typename :: Parser Typename
+typename :: Parser Type
 typename = lexeme p
   where
     p = ((++) <$> segment <*> (p <|> produce ""))
@@ -191,7 +204,7 @@ declVariable = do
   vardecls <- (sepBy (vardecl qualifiers tname) comma)
   return vardecls
   where
-    vardecl :: [Qualifier] -> Typename -> Parser Declaration
+    vardecl :: [Qualifier] -> Type -> Parser Declaration
     vardecl q t = (DeclVar q t) <$> _indirection <*> identifier <*> _varStorage <*> _varInitializer
 
 --declFuncPointer :: Parser [Decleration]
@@ -221,13 +234,13 @@ literalChar :: Parser Literal
 literalChar = LiteralChar <$> _quotedSeq '\'' some
 
 literalInt :: Parser Literal
-literalInt = LiteralInt <$> L.signed sc L.decimal
+literalInt = LiteralInt <$> L.decimal
 
 
 -- _literalFloating :: (a -> Literal) -> Char -> Parser Float
 _literalFloating litType c =
-      try ((litType . realToFrac  ) <$> L.signed sc pfloat    <* end)
-  <|> try ((litType . fromIntegral) <$> L.signed sc L.decimal <* (char '.' <* notFollowedBy digitChar) <* end)
+      try ((litType . realToFrac  ) <$> pfloat    <* end)
+  <|> try ((litType . fromIntegral) <$> L.decimal <* (char '.' <* notFollowedBy digitChar) <* end)
   where
     pfloat :: Parser Float
     pfloat =  L.float
@@ -264,6 +277,7 @@ literal  =  lexeme (    try literalNullptr
 _exprTerm :: Parser Expression
 _exprTerm =  try (ExprLiteral    <$> literal)
          <|> try (ExprIdentifier <$> identifier)
+         <|> try (ExprPrefix     <$> preop <*> _exprTerm)
 
 -- Sets of operators of equal precedence from most to least
 -- see: https://en.cppreference.com/w/cpp/language/operator_precedence

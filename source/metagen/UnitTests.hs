@@ -59,6 +59,8 @@ suite_binop = describe "binop" $ do
     pass input output = itShouldParse (binop <* eof) input output
     fail input        = itShouldFail  (binop <* eof) input
 
+--------------------------------------------------------------------------------
+
 suite_literal = describe "literal" $ do
   fail   ""
 
@@ -79,20 +81,26 @@ suite_literal = describe "literal" $ do
   fail   "\"\"\""
   fail   "\"hi\"\""
 
-  pass "123"   (LiteralInt    (  123 ))
-  pass "-5"    (LiteralInt    (-  5  ))
-  pass "0.5"   (LiteralDouble (   0.5))
-  pass "0.5f"  (LiteralFloat  (   0.5))
-  pass "0.5d"  (LiteralDouble (   0.5))
-  pass "-5."   (LiteralDouble (-  5.0))
-  pass "-5.f"  (LiteralFloat  (-  5.0))
-  pass "-5.d"  (LiteralDouble (-  5.0))
-  pass "-.5"   (LiteralDouble (-0.5  ))
-  pass "-.5f"  (LiteralFloat  (-0.5  ))
-  pass "-.5d"  (LiteralDouble (-0.5  ))
+  pass "123"  (LiteralInt    (  123 ))
+  pass "0.5"  (LiteralDouble (   0.5))
+  pass "0.5f" (LiteralFloat  (   0.5))
+  pass "0.5d" (LiteralDouble (   0.5))
+  pass "5."   (LiteralDouble (   5.0))
+  pass "5.f"  (LiteralFloat  (   5.0))
+  pass "5.d"  (LiteralDouble (   5.0))
+  pass ".5"   (LiteralDouble (   0.5))
+  pass ".5f"  (LiteralFloat  (   0.5))
+  pass ".5d"  (LiteralDouble (   0.5))
+
+  -- This handled by unary plus/minus expression
+  fail  "-5"
+  fail  "- 5"
+  fail  "- 1.2"
   where
     pass input output = itShouldParse (literal <* eof) input output
     fail   input        = itShouldFail  (literal <* eof) input
+
+--------------------------------------------------------------------------------
 
 suite_expression = describe "expression" $ do
   -- :TODO: Note that we always use left-to-right associativity
@@ -106,11 +114,34 @@ suite_expression = describe "expression" $ do
   -- Our parser DOES NOT obey this!
   -- (but precedence is correctly handled, eg, * always before +)
   fail ""
-  pass "5"     (ExprLiteral    (LiteralInt 5))
-  pass "hello" (ExprIdentifier "hello")
-  pass "5 + 6" (ExprBinary  (ExprLiteral (LiteralInt 5)) OpAdd    (ExprLiteral (LiteralInt 6)))
-  pass "5 & 6" (ExprBinary  (ExprLiteral (LiteralInt 5)) OpBitAnd (ExprLiteral (LiteralInt 6)))
+  pass "5"      (ExprLiteral    (LiteralInt 5))
+  pass "hello"  (ExprIdentifier "hello")
+  pass "5 + 6"  (ExprBinary  (ExprLiteral (LiteralInt 5)) OpAdd    (ExprLiteral (LiteralInt 6)))
+  pass "5 & 6"  (ExprBinary  (ExprLiteral (LiteralInt 5)) OpBitAnd (ExprLiteral (LiteralInt 6)))
   pass "5 == 6" (ExprBinary  (ExprLiteral (LiteralInt 5)) OpEq    (ExprLiteral (LiteralInt 6)))
+
+  pass "-2"            (ExprPrefix UnaryMinus  (ExprLiteral (LiteralInt   2  )))
+  pass "+1.0f"         (ExprPrefix UnaryPlus   (ExprLiteral (LiteralFloat 1.0)))
+  pass "*a"            (ExprPrefix Dereference (ExprIdentifier "a"))
+  pass "&a"            (ExprPrefix AddressOf   (ExprIdentifier "a"))
+  pass "!a"            (ExprPrefix Not         (ExprIdentifier "a"))
+  pass "~a"            (ExprPrefix Complement  (ExprIdentifier "a"))
+  pass "**a"           (ExprPrefix Dereference ((ExprPrefix Dereference (ExprIdentifier "a"))))
+  pass "(xen::Vec2r)a" (ExprPrefix (CCast "xen::Vec2r") (ExprIdentifier "a"))
+
+  pass "--a"   (ExprPrefix Predecrement  (ExprIdentifier "a"))
+  pass "- -a"  (ExprPrefix UnaryMinus (ExprPrefix UnaryMinus (ExprIdentifier "a")))
+  pass "- - a" (ExprPrefix UnaryMinus (ExprPrefix UnaryMinus (ExprIdentifier "a")))
+  pass "- + a" (ExprPrefix UnaryMinus (ExprPrefix UnaryPlus  (ExprIdentifier "a")))
+  pass "-+ a"  (ExprPrefix UnaryMinus (ExprPrefix UnaryPlus  (ExprIdentifier "a")))
+  pass "-+a"   (ExprPrefix UnaryMinus (ExprPrefix UnaryPlus  (ExprIdentifier "a")))
+
+  -- Unary operators have higher precedence than binary operators
+  pass "- -a + -b" (ExprBinary
+                    (ExprPrefix UnaryMinus (ExprPrefix UnaryMinus (ExprIdentifier "a")))
+                    OpAdd
+                    (ExprPrefix UnaryMinus (ExprIdentifier "b"))
+                   )
 
   -- Arithmetic precedence
   pass "1 + 2 + 3" (ExprBinary
@@ -200,6 +231,7 @@ suite_expression = describe "expression" $ do
     pass input output = itShouldParse (expression <* eof) input output
     fail input        = itShouldFail  (expression <* eof) input
 
+--------------------------------------------------------------------------------
 
 suite_declvar = describe "declVariable" $ do
   pass "int x"        [(DeclVar [      ] "int" Direct "x" Standalone)      Nothing]
