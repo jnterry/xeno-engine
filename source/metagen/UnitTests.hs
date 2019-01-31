@@ -14,9 +14,9 @@ import Ast
 
 main :: IO ()
 main = hspec $ do
-  --suite_binop
-  --suite_literal
-  --suite_declvar
+  suite_binop
+  suite_literal
+  suite_declvar
   suite_expression
 
 --------------------------------------------------------------------------------
@@ -41,8 +41,20 @@ suite_binop = describe "binop" $ do
   pass "/"   (OpDiv)
   pass "%"   (OpMod)
   pass ">>=" (OpAssign AssignShl)
-  fail   "a"
-  fail   ""
+  pass ">>"  (OpShl)
+  pass ">"   (OpGt)
+  pass ">="  (OpGe)
+  pass "=="  (OpEq)
+  pass "!="  (OpNeq)
+  pass "="   (OpAssign AssignEq)
+
+  fail "/*"
+  fail "<>"
+  fail "!>"
+  fail "==="
+  fail ">>>"
+  fail "a"
+  fail ""
   where
     pass input output = itShouldParse (binop <* eof) input output
     fail input        = itShouldFail  (binop <* eof) input
@@ -83,9 +95,107 @@ suite_literal = describe "literal" $ do
     fail   input        = itShouldFail  (literal <* eof) input
 
 suite_expression = describe "expression" $ do
+  -- :TODO: Note that we always use left-to-right associativity
+  -- IE: 1 - 2 - 3 is equivalent to (1-2)-3
+  --
+  -- Some operators (assignment) use right-to-left as per C spec, eg:
+  -- x = y = z is x = (y = z)
+  --
+  -- See: https://en.cppreference.com/w/cpp/language/operator_precedence
+  --
+  -- Our parser DOES NOT obey this!
+  -- (but precedence is correctly handled, eg, * always before +)
   fail ""
-  pass "5"     (ExprLiteral (LiteralInt 5))
-  pass "5 + 6" (ExprBinary  (ExprLiteral (LiteralInt 5)) OpAdd (ExprLiteral (LiteralInt 6)))
+  pass "5"     (ExprLiteral    (LiteralInt 5))
+  pass "hello" (ExprIdentifier "hello")
+  pass "5 + 6" (ExprBinary  (ExprLiteral (LiteralInt 5)) OpAdd    (ExprLiteral (LiteralInt 6)))
+  pass "5 & 6" (ExprBinary  (ExprLiteral (LiteralInt 5)) OpBitAnd (ExprLiteral (LiteralInt 6)))
+  pass "5 == 6" (ExprBinary  (ExprLiteral (LiteralInt 5)) OpEq    (ExprLiteral (LiteralInt 6)))
+
+  -- Arithmetic precedence
+  pass "1 + 2 + 3" (ExprBinary
+                     (ExprBinary (ExprLiteral (LiteralInt 1)) OpAdd (ExprLiteral (LiteralInt 2)))
+                     OpAdd
+                     (ExprLiteral (LiteralInt 3))
+                   )
+  pass "1 * 2 + 3" (ExprBinary
+                     (ExprBinary (ExprLiteral (LiteralInt 1)) OpMul (ExprLiteral (LiteralInt 2)))
+                     OpAdd
+                     (ExprLiteral (LiteralInt 3))
+                   )
+  pass "1 - 2 / 3" (ExprBinary
+                     (ExprLiteral (LiteralInt 1))
+                     OpSub
+                     (ExprBinary (ExprLiteral (LiteralInt 2)) OpDiv (ExprLiteral (LiteralInt 3)))
+                   )
+  -- Logical precedence
+  pass "a || b || c" (ExprBinary
+                      (ExprBinary (ExprIdentifier "a") OpOr (ExprIdentifier "b"))
+                      OpOr
+                      (ExprIdentifier "c")
+                     )
+  pass "a && b || c" (ExprBinary
+                      (ExprBinary (ExprIdentifier "a") OpAnd (ExprIdentifier "b"))
+                       OpOr
+                       (ExprIdentifier "c")
+                     )
+  pass "a || b && c" (ExprBinary
+                       (ExprIdentifier "a")
+                       OpOr
+                      (ExprBinary (ExprIdentifier "b") OpAnd (ExprIdentifier "c"))
+                     )
+
+  -- Bitwise precedence
+  pass "a & b ^ c | d" (ExprBinary
+                         (ExprBinary
+                          (ExprBinary (ExprIdentifier "a") OpBitAnd (ExprIdentifier "b"))
+                          OpBitXor
+                          (ExprIdentifier "c")
+                         )
+                         OpBitOr
+                         (ExprIdentifier "d")
+                       )
+  pass "a ^ b & c | d" (ExprBinary
+                         (ExprBinary
+                           (ExprIdentifier "a")
+                           OpBitXor
+                           (ExprBinary (ExprIdentifier "b") OpBitAnd (ExprIdentifier "c"))
+                         )
+                         OpBitOr
+                         (ExprIdentifier "d")
+                       )
+  pass "a | b & c ^ d" (ExprBinary
+                         (ExprIdentifier "a")
+                         OpBitOr
+                         (ExprBinary
+                           (ExprBinary (ExprIdentifier "b") OpBitAnd (ExprIdentifier "c"))
+                           OpBitXor
+                           (ExprIdentifier "d")
+                         )
+                       )
+
+  -- Mixed precedence
+  pass "a & b + c" (ExprBinary
+                     (ExprIdentifier "a")
+                     OpBitAnd
+                     (ExprBinary (ExprIdentifier "b") OpAdd (ExprIdentifier "c"))
+                   )
+  pass "a || b << c" (ExprBinary
+                      (ExprIdentifier "a")
+                      OpOr
+                      (ExprBinary (ExprIdentifier "b") OpShl (ExprIdentifier "c"))
+                     )
+  pass "a && b == c" (ExprBinary
+                      (ExprIdentifier "a")
+                       OpAnd
+                       (ExprBinary (ExprIdentifier "b") OpEq (ExprIdentifier "c"))
+                     )
+  pass "a == b + c" (ExprBinary
+                      (ExprIdentifier "a")
+                       OpEq
+                      (ExprBinary (ExprIdentifier "b") OpAdd (ExprIdentifier "c"))
+                    )
+
   where
     pass input output = itShouldParse (expression <* eof) input output
     fail input        = itShouldFail  (expression <* eof) input

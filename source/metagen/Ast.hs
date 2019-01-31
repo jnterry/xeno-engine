@@ -59,6 +59,7 @@ data BinaryOperator = OpAdd | OpSub | OpMul | OpDiv | OpMod -- +   -   *   /   %
                     | OpAnd    | OpOr                       -- &&  ||
                     | OpShl    | OpShr                      -- <<  >>
                     | OpEq     | OpNeq                      -- ==  !=
+                    | OpLt   | OpGt | OpLe | OpGe           -- <   >   <=  >=
                     | OpAssign AssignmentOperator -- eg, x = (a =* 5)
                     deriving (Show, Eq)
 

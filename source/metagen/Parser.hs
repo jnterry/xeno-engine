@@ -86,9 +86,17 @@ binopLogical :: Parser BinaryOperator
 binopLogical =  OpAnd <$ symbol "&&" <|> OpOr  <$ symbol "||"
             <|> OpEq <$ symbol "=="  <|> OpNeq <$ symbol "!="
 
+binopCmp :: Parser BinaryOperator
+binopCmp =  OpLe <$ symbol "<="  <|> OpGe  <$ symbol ">="
+        <|> OpLt <$ symbol "<"   <|> OpGt  <$ symbol ">"
+
+
 binop :: Parser BinaryOperator
-binop =  try (OpAssign <$> assignop)
-     <|> binopArithmetic <|> binopBitwise <|> binopLogical
+binop =  try binopLogical
+     <|> try (OpAssign <$> assignop)
+     <|> try binopBitwise
+     <|> try binopCmp
+     <|> try binopArithmetic
 
 
 
@@ -257,10 +265,30 @@ _exprTerm :: Parser Expression
 _exprTerm =  try (ExprLiteral    <$> literal)
          <|> try (ExprIdentifier <$> identifier)
 
+-- Sets of operators of equal precedence from most to least
+-- see: https://en.cppreference.com/w/cpp/language/operator_precedence
+_exprOpPrecedence = [ [ OpMul, OpDiv, OpMod ]
+                    , [ OpAdd, OpSub ]
+                    , [ OpShl, OpShr ]
+                    , [ OpLt, OpGt, OpLe, OpGe ]
+                    , [ OpEq, OpNeq ]
+                    , [ OpBitAnd ]
+                    , [ OpBitXor ]
+                    , [ OpBitOr ]
+                    , [ OpAnd ]
+                    , [ OpOr ]
+                    , [ OpAssign AssignEq
+                      , OpAssign AssignAdd,    OpAssign AssignSub
+                      , OpAssign AssignMul,    OpAssign AssignDiv
+                      , OpAssign AssignBitAnd, OpAssign AssignBitOr
+                      , OpAssign AssignBitXor
+                      , OpAssign AssignAnd,  OpAssign AssignOr
+                      , OpAssign AssignShl,  OpAssign AssignShr
+                      ]
+                    ]
+
 expression :: Parser Expression
-expression = genout <$> (collapse [OpAdd, OpSub] <$> (
-                            collapse [OpMul, OpDiv, OpMod] <$> plist)
-                        )
+expression = (genout . (fullCollapse _exprOpPrecedence)) <$> plist
   where
     -- Parses a list of sub expressions joined by binary operators
     -- For example, 1 - 2 * 3 becomes:
@@ -282,6 +310,13 @@ expression = genout <$> (collapse [OpAdd, OpSub] <$> (
       then collapse cset ((op1, (ExprBinary expr1 op2 expr2)) : rest)
       else (op1, expr1) : (collapse cset ((op2, expr2) : rest))
     collapse cset (head : []) = [head]
+
+    -- fully collapses an expression list by calling collapse multiple times for
+    -- each set of operators in a list of operator precedences
+    fullCollapse :: [[BinaryOperator]] -> [(BinaryOperator, Expression)] -> [(BinaryOperator, Expression)]
+    fullCollapse []   elist  = elist -- Base case, stop when no more operators
+    fullCollapse _    (e:[]) = [e]   -- Base case, bail out early if fully collapsed
+    fullCollapse prec elist  = fullCollapse (tail prec) (collapse (head prec) elist)
 
     -- Takes the single term output after collapse has been applied for all
     -- operators, strips the leading dummy + operator, and returns the
