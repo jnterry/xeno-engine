@@ -26,7 +26,40 @@ data VariableStorage =
 
 type VariableName = String
 
-data VariableDeclaration =
+
+data Decleration =
   --          qualifiers  Type     Pointer?    Varname
   VariableDeclaration [Qualifier] Typename Indirection VariableName VariableStorage
   deriving (Show)
+
+data Literal = LiteralInt      Int
+             | LiteralChar     String -- string since could be, eg, '\0'
+             | LiteralString   String
+             | LiteralFloat    Float
+             | LiteralArray    [Literal]
+             | LiteralInitList [Literal]
+             deriving Show
+--data FunctionParam = FunctionParam Type VariableName (Maybe Literal)
+
+-- Operators that can be used to express assignement, eg:
+-- x  = 5
+-- x += 6
+data AssignmentOperator = AssignEq
+                        | AssignAdd    | AssignSub   | AssignMul    | AssignDiv
+                        | AssignBitAnd | AssignBitOr | AssignBitXor
+                        | AssignAnd    | AssignOr -- no AssignXor, use != instead
+                        | AssignShl    | AssignShr
+                        deriving (Show)
+
+-- Binary operators
+data BinaryOperator = OpAdd | OpSub | OpMul | OpDiv | OpMod -- +   -   *   /   %
+                    | OpBitAnd | OpBitOr | OpBitXor         -- &   |   ^
+                    | OpAnd    | OpOr                       -- &&  ||
+                    | OpShl    | OpShr                      -- <<  >>
+                    | OpEq     | OpNeq                      -- ==  !=
+                    | OpAssign AssignmentOperator -- eg, x = (a =* 5)
+                    deriving (Show)
+
+
+data Expression = ExprLiteral Literal
+                deriving (Show)

@@ -11,14 +11,12 @@ import qualified Text.Megaparsec.Char.Lexer as L
 type Parser = Parsec Void String
 
 --------------------------------------------------------------------------------
--- Basic Helpers
+--                                 Lexer                                      --
+--------------------------------------------------------------------------------
 
 -- Parser which simply produces some value without consuming any input tokens
 produce :: a -> Parser a
 produce val = val <$ string ""
-
---------------------------------------------------------------------------------
--- Lexer
 
 -- Space consumer, eats all whitespace, fails if there is no whitespace
 -- to be eaten
@@ -64,10 +62,41 @@ comma :: Parser ()
 comma = () <$ lexeme (char ',')
 
 --------------------------------------------------------------------------------
+--                               Operators                                    --
+--------------------------------------------------------------------------------
 
--- List of keywords
-keywords :: [String]
-keywords = [
+assignop :: Parser AssignmentOperator
+assignop =  AssignEq    <$ symbol "="   <|> AssignBitAnd <$ symbol "&="
+        <|> AssignBitOr <$ symbol "|="  <|> AssignBitXor <$ symbol "^="
+        <|> AssignOr    <$ symbol "||=" <|> AssignAnd    <$ symbol "&&="
+        <|> AssignShl   <$ symbol ">>=" <|> AssignShr    <$ symbol "<<="
+
+binopArithmetic :: Parser BinaryOperator
+binopArithmetic =  OpAdd <$ symbol "+" <|> OpSub <$ symbol "-"
+               <|> OpMul <$ symbol "*" <|> OpDiv <$ symbol "/"
+               <|> OpDiv <$ symbol "%"
+
+binopBitwise :: Parser BinaryOperator
+binopBitwise =  OpBitAnd <$ symbol "&" <|> OpBitOr <$ symbol "|"
+            <|> OpBitXor <$ symbol "^" <|> OpShl   <$ symbol "<<"
+            <|> OpShl   <$ symbol ">>"
+
+binopLogical :: Parser BinaryOperator
+binopLogical =  OpAnd <$ symbol "&&" <|> OpOr  <$ symbol "||"
+            <|> OpEq <$ symbol "=="  <|> OpNeq <$ symbol "!="
+
+binop :: Parser BinaryOperator
+binop =  try (OpAssign <$> assignop)
+     <|> binopArithmetic <|> binopBitwise <|> binopLogical
+
+
+
+--------------------------------------------------------------------------------
+--                              Identifiers                                   --
+--------------------------------------------------------------------------------
+
+_keywords :: [String]
+_keywords = [
   "asm", "auto", "bool", "break", "case", "catch", "class", "const",
   "const_cast", "continue", "default", "delete", "do", "dynamic_cast",
   "else", "enum", "explicit", "extern", "for", "goto", "inline", "namespace",
@@ -86,7 +115,7 @@ identifierWord = try (p >>= check)
     p = (:)
         <$> (letterChar <|> char '_')
         <*> many (letterChar <|> char '_' <|> digitChar)
-    check x = if   elem x keywords
+    check x = if   elem x _keywords
               then fail $ "Wanted identifier but got keyword " ++ show x
               else return x
 
@@ -102,16 +131,19 @@ typename = lexeme p
     segment :: Parser String
     segment  = (++) <$> (string "::" <|> produce "") <*> identifierWord
 
+--------------------------------------------------------------------------------
+--                             Declerations                                   --
+--------------------------------------------------------------------------------
 
-qualifier :: Parser Qualifier
-qualifier =     Constexpr <$ lexeme (keyword "constexpr")
-            <|> Const     <$ lexeme (keyword "const")
-            <|> Static    <$ lexeme (keyword "static")
-            <|> Volatile  <$ lexeme (keyword "volatile")
-            <|> Mutable   <$ lexeme (keyword "mutable")
+_qualifier :: Parser Qualifier
+_qualifier =     Constexpr <$ keyword "constexpr"
+            <|> Const      <$ keyword "const"
+            <|> Static     <$ keyword "static"
+            <|> Volatile   <$ keyword "volatile"
+            <|> Mutable    <$ keyword "mutable"
 
-indirection :: Parser Indirection
-indirection =
+_indirection :: Parser Indirection
+_indirection =
       Reference <$ lexeme (char '&')
   <|> mkptr     <$> some (lexeme (char '*')) <*> checkLexeme (string "const")
   <|> Direct    <$  produce ""
@@ -119,8 +151,8 @@ indirection =
     mkptr :: String -> Bool -> Indirection
     mkptr ptr const = Pointer (length ptr) const
 
-varStorage :: Parser VariableStorage
-varStorage =  Bitfield <$ lexeme (char ':') <*> integer
+_varStorage :: Parser VariableStorage
+_varStorage =  Bitfield <$ lexeme (char ':') <*> integer
           <|> try (FixedArray <$> withinBrackets integer)
           <|> try (FlexibleArray <$ symbol "[" <* symbol "]")
           <|> Standalone <$ produce ()
@@ -137,10 +169,10 @@ varStorage =  Bitfield <$ lexeme (char ':') <*> integer
 --
 -- Note that the following is valid (but extreamly ugly) c++:
 -- int& thing, * const test, array[5];
-variableDeclaration :: Parser [VariableDeclaration]
-variableDeclaration = do
+declVar :: Parser [Decleration]
+declVar = do
   -- Parse the "common" prefix, IE: qualifiers and typename
-  qualifiers <- many qualifier
+  qualifiers <- many _qualifier
   tname      <- typename
   -- Parse the set of fields, seperated by ','
   vardecls   <- sepBy (vardecl qualifiers tname) comma
@@ -148,5 +180,49 @@ variableDeclaration = do
   _          <- semicolon
   return vardecls
   where
-    vardecl :: [Qualifier] -> Typename -> Parser VariableDeclaration
-    vardecl q t = (VariableDeclaration q t) <$> indirection <*> identifier <*> varStorage
+    vardecl :: [Qualifier] -> Typename -> Parser Decleration
+    vardecl q t = (VariableDeclaration q t) <$> _indirection <*> identifier <*> _varStorage
+
+--declFuncPointer :: Parser [Decleration]
+--declFuncPointer = do
+--  qualifiers <- many qualifier
+--  tname      <- typename
+--  varname    <- withinParens (symbol "*" *> identifier)
+--  params     <- parameterList
+
+--------------------------------------------------------------------------------
+--                                 Literals                                   --
+--------------------------------------------------------------------------------
+
+-- Parses a sequence of characters quoted by some other, where the sequence
+-- may include the quote character if it is prefixed by \
+_quotedSeq :: Char -> Parser String
+_quotedSeq c = do
+  (concat) <$> between (char c) (char c) (many (escaped <|> nonCloser))
+  where
+    escaped   = try( string ('\\' : c : []))
+    nonCloser = (:) <$> satisfy (/=c) <*> produce []
+
+literalString :: Parser Literal
+literalString = LiteralString <$> _quotedSeq '"'
+
+literalChar :: Parser Literal
+literalChar = LiteralChar <$> _quotedSeq '\''
+
+literalInt :: Parser Literal
+literalInt = LiteralInt <$> L.signed sc L.decimal
+
+literalFloat :: Parser Literal
+literalFloat = LiteralFloat <$> L.signed sc L.float
+
+--literalArray :: Parser Literal
+--literalArray = withinBrackets (many expression)
+
+literal :: Parser Literal
+literal  =  try literalString
+        <|> try literalChar
+        <|> try literalFloat
+        <|> try literalInt
+
+expression :: Parser Expression
+expression = try (ExprLiteral <$> literal)
