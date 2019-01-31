@@ -42,6 +42,12 @@ checkLexeme p = True <$ lexeme p <|> produce False
 integer :: Parser Integer
 integer = lexeme L.decimal
 
+semicolon :: Parser ()
+semicolon = () <$ lexeme (char ';')
+
+comma :: Parser ()
+comma = () <$ lexeme (char ',')
+
 --------------------------------------------------------------------------------
 
 -- List of keywords
@@ -98,9 +104,29 @@ indirection =
     mkptr :: String -> Bool -> Indirection
     mkptr ptr const = Pointer (length ptr) const
 
-structField :: Parser StructField
-structField = StructField
-              <$> many qualifier
-              <*> typename
-              <*> indirection
-              <*> identifier
+-- Parses a single "line" of struct field definitions
+--
+-- In the simple case this may just be "int x;"
+--
+-- "Indirection" is used to represent pointers and references, such as:
+-- "int** const x;
+--
+-- This also supports multiple field definitions, eg:
+-- int x, *ptr;
+--
+-- Note that the following is valid (but extreamly ugly) c++:
+-- int& thing, * const test, array[5];
+structField = do
+  -- Parse the "common" prefix, IE: qualifiers and typename
+  qualifiers <- many qualifier
+  tname      <- typename
+
+  -- Parse the set of fields, seperated by ','
+  fields     <- sepBy field comma
+
+  -- End the "line" with ;
+  _          <- semicolon
+  return (map (\(indir, ident) -> StructField qualifiers tname indir ident) fields)
+  where
+    --              ** const        var_name
+    field = (,) <$> indirection <*> identifier
