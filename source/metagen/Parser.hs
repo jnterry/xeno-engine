@@ -158,6 +158,10 @@ _varStorage =  Bitfield <$ lexeme (char ':') <*> integer
           <|> try (FlexibleArray <$ symbol "[" <* symbol "]")
           <|> Standalone <$ produce ()
 
+_varInitializer :: Parser (Maybe Expression)
+_varInitializer =  Nothing <$ notFollowedBy (char '=')
+               <|> Just <$ symbol "=" <*> expression
+
 -- Parses a single "line" of struct field definitions
 --
 -- In the simple case this may just be "int x;"
@@ -180,7 +184,7 @@ declVariable = do
   return vardecls
   where
     vardecl :: [Qualifier] -> Typename -> Parser Declaration
-    vardecl q t = (DeclVar q t) <$> _indirection <*> identifier <*> _varStorage
+    vardecl q t = (DeclVar q t) <$> _indirection <*> identifier <*> _varStorage <*> _varInitializer
 
 --declFuncPointer :: Parser [Decleration]
 --declFuncPointer = do
@@ -231,12 +235,56 @@ literalFloat  = _literalFloating LiteralFloat 'f'
 --literalArray :: Parser Literal
 --literalArray = withinBrackets (many expression)
 
+literalNullptr :: Parser Literal
+literalNullptr = LiteralNullptr <$ keyword "nullptr"
+
 literal :: Parser Literal
-literal  =  try literalString
-        <|> try literalChar
-        <|> try literalDouble
-        <|> try literalFloat
-        <|> try literalInt
+literal  =  lexeme (    try literalNullptr
+                    <|> try literalString
+                    <|> try literalChar
+                    <|> try literalDouble
+                    <|> try literalFloat
+                    <|> try literalInt
+                   )
+
+--------------------------------------------------------------------------------
+--                                 Expressions                                --
+--------------------------------------------------------------------------------
+
+-- Expression parsing with only guarded recursion preventing infinite
+-- recursive behaviour without any terms being consumed
+_exprTerm :: Parser Expression
+_exprTerm =  try (ExprLiteral    <$> literal)
+         <|> try (ExprIdentifier <$> identifier)
 
 expression :: Parser Expression
-expression = try (ExprLiteral <$> literal)
+expression = genout <$> (collapse [OpAdd, OpSub] <$> (
+                            collapse [OpMul, OpDiv, OpMod] <$> plist)
+                        )
+  where
+    -- Parses a list of sub expressions joined by binary operators
+    -- For example, 1 - 2 * 3 becomes:
+    -- [(+, 1), (-, 2), (*, 3)]
+    plist :: Parser [(BinaryOperator, Expression)]
+    plist = ((:)
+              <$> ((,) <$> produce OpAdd <*>  _exprTerm)
+              <*> (many ((,) <$> binop <*> _exprTerm))
+            )
+
+    -- Collapses a list produced by plist by joining neighbouring
+    -- terms where the operator is within some set, this enables collapsing
+    -- multiplication before addition and so on
+    --  - cset :: [BinaryOperator]                -> Set to collapse
+    --  - list :: [[(BinaryOperator, Expression)] -> Input list
+    collapse :: [BinaryOperator] -> [(BinaryOperator, Expression)] -> [(BinaryOperator, Expression)]
+    collapse cset ((op1, expr1) : (op2, expr2) : rest) =
+      if op2 `elem` cset
+      then collapse cset ((op1, (ExprBinary expr1 op2 expr2)) : rest)
+      else (op1, expr1) : (collapse cset ((op2, expr2) : rest))
+    collapse cset (head : []) = [head]
+
+    -- Takes the single term output after collapse has been applied for all
+    -- operators, strips the leading dummy + operator, and returns the
+    -- produced expression
+    genout :: [(BinaryOperator, Expression)] -> Expression
+    genout ((OpAdd, expr) : []) = expr

@@ -28,8 +28,8 @@ type VariableName = String
 
 
 data Declaration =
-  --          qualifiers  Type     Pointer?    Varname
-  DeclVar [Qualifier] Typename Indirection VariableName VariableStorage
+  --       qualifiers Type     Pointer?    Varname      Array?          Initializer
+  DeclVar [Qualifier] Typename Indirection VariableName VariableStorage (Maybe Expression)
   deriving (Show, Eq)
 
 data Literal = LiteralInt      Int
@@ -37,6 +37,7 @@ data Literal = LiteralInt      Int
              | LiteralString   String
              | LiteralFloat    Float
              | LiteralDouble   Double
+             | LiteralNullptr
              | LiteralArray    [Literal]
              | LiteralInitList [Literal]
              deriving (Show, Eq)
@@ -62,5 +63,7 @@ data BinaryOperator = OpAdd | OpSub | OpMul | OpDiv | OpMod -- +   -   *   /   %
                     deriving (Show, Eq)
 
 
-data Expression = ExprLiteral Literal
+data Expression = ExprLiteral    Literal
+                | ExprBinary     Expression BinaryOperator Expression
+                | ExprIdentifier String
                 deriving (Show, Eq)
