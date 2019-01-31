@@ -17,8 +17,16 @@ data Indirection = Direct           -- Plain variable, eg, char
                  | Reference        -- Reference, IE: char&
                  deriving (Show, Eq)
 
+data VariableStorage =
+    Standalone     -- The standard standalone variable, eg: int x;
+  | FixedArray Int -- A fixed sized array, eg: int x[5];
+  | FlexibleArray  -- An array with flexible length, eg: int x[];
+  | Bitfield Int   -- Using only some bits of containing type, eg: int x : 3;
+  deriving (Show, Eq)
 
-data StructField =
+type VariableName = String
+
+data VariableDeclaration =
   --          qualifiers  Type     Pointer?    Varname
-  StructField [Qualifier] Typename Indirection String
+  VariableDeclaration [Qualifier] Typename Indirection VariableName VariableStorage
   deriving (Show)

@@ -39,8 +39,23 @@ lexeme = L.lexeme sc
 checkLexeme :: Parser a -> Parser Bool
 checkLexeme p = True <$ lexeme p <|> produce False
 
-integer :: Parser Integer
+integer :: Parser Int
 integer = lexeme L.decimal
+
+symbol :: String -> Parser String
+symbol  = L.symbol sc
+
+withinParens :: Parser a -> Parser a
+withinParens = between (lexeme (char '(')) (lexeme (char ')'))
+
+withinBrackets :: Parser a -> Parser a
+withinBrackets = between (lexeme (char '[')) (lexeme (char ']'))
+
+withinBraces :: Parser a -> Parser a
+withinBraces = between (lexeme (char '{')) (lexeme (char '}'))
+
+withinAngled :: Parser a -> Parser a
+withinAngled = between (lexeme (char '<')) (lexeme (char '>'))
 
 semicolon :: Parser ()
 semicolon = () <$ lexeme (char ';')
@@ -104,6 +119,12 @@ indirection =
     mkptr :: String -> Bool -> Indirection
     mkptr ptr const = Pointer (length ptr) const
 
+varStorage :: Parser VariableStorage
+varStorage =  Bitfield <$ lexeme (char ':') <*> integer
+          <|> try (FixedArray <$> withinBrackets integer)
+          <|> try (FlexibleArray <$ symbol "[" <* symbol "]")
+          <|> Standalone <$ produce ()
+
 -- Parses a single "line" of struct field definitions
 --
 -- In the simple case this may just be "int x;"
@@ -116,17 +137,16 @@ indirection =
 --
 -- Note that the following is valid (but extreamly ugly) c++:
 -- int& thing, * const test, array[5];
-structField = do
+variableDeclaration :: Parser [VariableDeclaration]
+variableDeclaration = do
   -- Parse the "common" prefix, IE: qualifiers and typename
   qualifiers <- many qualifier
   tname      <- typename
-
   -- Parse the set of fields, seperated by ','
-  fields     <- sepBy field comma
-
+  vardecls   <- sepBy (vardecl qualifiers tname) comma
   -- End the "line" with ;
   _          <- semicolon
-  return (map (\(indir, ident) -> StructField qualifiers tname indir ident) fields)
+  return vardecls
   where
-    --              ** const        var_name
-    field = (,) <$> indirection <*> identifier
+    vardecl :: [Qualifier] -> Typename -> Parser VariableDeclaration
+    vardecl q t = (VariableDeclaration q t) <$> indirection <*> identifier <*> varStorage
