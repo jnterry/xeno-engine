@@ -80,57 +80,45 @@ suite_literal = describe "literal" $ do
     fail   input        = itShouldFail  (literal <* eof) input
 
 suite_declvar = describe "declVariable" $ do
-  should "int x"                       [(VariableDeclaration
-                                         [] "int" Direct "x" Standalone)
-                                       ]
-  should "int x[3]"                    [(VariableDeclaration
-                                         [] "int" Direct "x" (FixedArray 3))
-                                       ]
-  should "int x[]"                     [(VariableDeclaration
-                                         [] "int" Direct "x" (FlexibleArray))
-                                       ]
-  should "int x : 3"                   [(VariableDeclaration
-                                         [] "int" Direct "x" (Bitfield 3))
-                                       ]
-  should "const int x"                 [(VariableDeclaration
-                                         [Const] "int" Direct "x" Standalone)
-                                       ]
-  should "static int x"                [(VariableDeclaration
-                                         [Static] "int" Direct "x" Standalone)
-                                       ]
-  should "static constexpr bool thing" [(VariableDeclaration
+  should "int x"        [(DeclVar [      ] "int" Direct "x" Standalone)     ]
+  should "int x[3]"     [(DeclVar [      ] "int" Direct "x" (FixedArray 3)) ]
+  should "int x[]"      [(DeclVar [      ] "int" Direct "x" (FlexibleArray))]
+  should "int x : 3"    [(DeclVar [      ] "int" Direct "x" (Bitfield 3))   ]
+  should "const int x"  [(DeclVar [Const ] "int" Direct "x" Standalone)     ]
+  should "static int x" [(DeclVar [Static] "int" Direct "x" Standalone)     ]
+  should "static constexpr bool thing" [(DeclVar
                                           [Static, Constexpr]
                                           "bool" Direct "thing" Standalone)
                                        ]
-  should "xen::Aabb2r x"               [(VariableDeclaration
+  should "xen::Aabb2r x"               [(DeclVar
                                          [] "xen::Aabb2r" Direct "x" Standalone)
                                        ]
-  should "u64* z"                      [(VariableDeclaration
+  should "u64* z"                      [(DeclVar
                                          [] "u64" (Pointer 1 False) "z" Standalone)
                                        ]
-  should "u64** z"                     [(VariableDeclaration
+  should "u64** z"                     [(DeclVar
                                          [] "u64" (Pointer 2 False) "z" Standalone)
                                        ]
-  should "u64** const z"               [(VariableDeclaration
+  should "u64** const z"               [(DeclVar
                                           [] "u64" (Pointer 2 True) "z" Standalone)
                                        ]
-  should "int x, y"         [(VariableDeclaration [] "int" Direct "x" Standalone)
-                            ,(VariableDeclaration [] "int" Direct "y" Standalone)]
-  should "const int x, y"   [(VariableDeclaration [Const] "int" Direct "x" Standalone)
-                            ,(VariableDeclaration [Const] "int" Direct "y" Standalone)]
-  should "const int x, *y"  [(VariableDeclaration [Const] "int" Direct "x" Standalone)
-                            ,(VariableDeclaration [Const] "int" (Pointer 1 False) "y" Standalone)]
+  should "int x, y"         [(DeclVar [] "int" Direct "x" Standalone)
+                            ,(DeclVar [] "int" Direct "y" Standalone)]
+  should "const int x, y"   [(DeclVar [Const] "int" Direct "x" Standalone)
+                            ,(DeclVar [Const] "int" Direct "y" Standalone)]
+  should "const int x, *y"  [(DeclVar [Const] "int" Direct "x" Standalone)
+                            ,(DeclVar [Const] "int" (Pointer 1 False) "y" Standalone)]
 
   -- Yes, the following is valid c++, grim, but valid
   -- (at least inside a struct, since bitfields only work in structs)
   should "const static int& ref, *const ptr, **ptr2, fix[5], bit : 3, flag:1, flex[]"
-    [ (VariableDeclaration [Const, Static] "int" Reference         "ref"  Standalone)
-    , (VariableDeclaration [Const, Static] "int" (Pointer 1 True ) "ptr"  Standalone)
-    , (VariableDeclaration [Const, Static] "int" (Pointer 2 False) "ptr2" Standalone)
-    , (VariableDeclaration [Const, Static] "int" Direct            "fix"  (FixedArray 5))
-    , (VariableDeclaration [Const, Static] "int" Direct            "bit"  (Bitfield 3))
-    , (VariableDeclaration [Const, Static] "int" Direct            "flag" (Bitfield 1))
-    , (VariableDeclaration [Const, Static] "int" Direct            "flex" (FlexibleArray))
+    [ (DeclVar [Const, Static] "int" Reference         "ref"  Standalone)
+    , (DeclVar [Const, Static] "int" (Pointer 1 True ) "ptr"  Standalone)
+    , (DeclVar [Const, Static] "int" (Pointer 2 False) "ptr2" Standalone)
+    , (DeclVar [Const, Static] "int" Direct            "fix"  (FixedArray 5))
+    , (DeclVar [Const, Static] "int" Direct            "bit"  (Bitfield 3))
+    , (DeclVar [Const, Static] "int" Direct            "flag" (Bitfield 1))
+    , (DeclVar [Const, Static] "int" Direct            "flex" (FlexibleArray))
     ]
   where
     should input output = itShouldParse (declVariable <* eof) input output

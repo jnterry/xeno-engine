@@ -29,7 +29,7 @@ type VariableName = String
 
 data Declaration =
   --          qualifiers  Type     Pointer?    Varname
-  VariableDeclaration [Qualifier] Typename Indirection VariableName VariableStorage
+  DeclVar [Qualifier] Typename Indirection VariableName VariableStorage
   deriving (Show, Eq)
 
 data Literal = LiteralInt      Int

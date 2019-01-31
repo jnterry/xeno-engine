@@ -180,7 +180,7 @@ declVariable = do
   return vardecls
   where
     vardecl :: [Qualifier] -> Typename -> Parser Declaration
-    vardecl q t = (VariableDeclaration q t) <$> _indirection <*> identifier <*> _varStorage
+    vardecl q t = (DeclVar q t) <$> _indirection <*> identifier <*> _varStorage
 
 --declFuncPointer :: Parser [Decleration]
 --declFuncPointer = do
