@@ -441,6 +441,40 @@ typeid =  try (Tmem <$> _typeid_guarded <* string "::" <*> typeid)
                                            keyword "int"
                                           )
 
+
+-- Parses arbitrary number of qualifiers before a typename
+-- Eg, "const static"
+--
+-- Returns a function which, when given a QType wraps it within
+-- the qualifiers
+qtype_qualifiers :: Parser (QType -> QType)
+qtype_qualifiers = (foldr (.) id) <$>
+  -- Each of the data constructors below have type (QType -> QType)
+  -- The foldr combines these with function composition (IE: (.))
+  -- starting at the base case of ~id~ such that the overall result
+  -- still has the type (QType -> QType)
+  many (choice [ QConst     <$ keyword "const"
+               , QConstexpr <$ keyword "constexpr"
+               , QStatic    <$ keyword "static"
+               , QVolatile  <$ keyword "volatile"
+               , QMutable   <$ keyword "mutable"
+               ]
+       )
+
+-- Parses an "indirection specifier", IE: set of pointers or references
+-- that occur AFTER a typeid
+-- for example, would parse the "** const" in "int** const"
+--
+-- Returns a function which, given a QType, wraps it within the
+-- indirection specifiers
+qtype_indirection :: Parser (QType -> QType)
+qtype_indirection = ((foldr (.) id) . reverse) <$>
+  many ( choice [ try( Qconstptr <$ symbol "*" <* keyword "const" )
+                ,      Qptr      <$ symbol "*"
+                ,      Qref      <$ symbol "&"
+                ]
+       )
+
 -- Parses parts of a qualified type that come before the variable name
 -- IE: const int x* thing[3];
 --     ------------
@@ -448,24 +482,11 @@ typeid =  try (Tmem <$> _typeid_guarded <* string "::" <*> typeid)
 -- since these specifiers must all follow the variable name
 _qtypeBeforeName :: Parser QType
 _qtypeBeforeName = do
-  quals    <- many qualifier
-  typename <- (QType <$> typeid)
-  indirect <- many indirection
-  return (foldr ($) typename ((reverse indirect) ++ quals))
-  where
-    qualifier :: Parser (QType -> QType)
-    qualifier = choice [ QConst     <$ keyword "const"
-                       , QConstexpr <$ keyword "constexpr"
-                       , QStatic    <$ keyword "static"
-                       , QVolatile  <$ keyword "volatile"
-                       , QMutable   <$ keyword "mutable"
-                       ]
-
-    indirection :: Parser (QType -> QType)
-    indirection = choice [ try( Qconstptr <$ symbol "*" <* keyword "const" )
-                         ,      Qptr      <$ symbol "*"
-                         ,      Qref      <$ symbol "&"
-                         ]
+  -- Eg, for ~const static int*~
+  quals    <- qtype_qualifiers    --- const static
+  typename <- (QType <$> typeid)  --- int
+  indirect <- qtype_indirection   --- *
+  return ((indirect . quals) typename)
 
 -- Parses parts of a qualified type that come after the variable name
 -- IE: const int x* thing[3];
