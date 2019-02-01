@@ -218,14 +218,11 @@ accessModifier = choice [ Public    <$ keyword "public"
                         , Protected <$ keyword "protected"
                         ]
 
-defaultAccessModifier :: CompositeKind -> AccessModifier
-defaultAccessModifier Struct = Public
-defaultAccessModifier Union  = Public
-defaultAccessModifier Class  = Private
-
 declType :: Parser Declaration
 declType = do
-  default_am <- defaultAccessModifier <$> (Class <$ keyword "class" <|> Struct <$ keyword "struct")
+  default_am <- choice [ Private <$ keyword "class"
+                       , Public  <$ keyword "struct"
+                       ]
   name       <- (option "" identifier)
   parents    <- (option [] (inheritList default_am))
   members    <- withinBraces (body default_am)
@@ -237,29 +234,24 @@ declType = do
                                                   ) comma
 
     body :: AccessModifier -> Parser [TypeMember]
-    body default_am = (foldr (++) []) <$> ((:)
-                                           <$> ((foldr (++) []) <$>(many (bodyStmt default_am)))
-                                           <*> many (bodyBlock default_am)
-                                          )
+    body default_am = (++) <$> (bodyStmts default_am)
+                           <*> (concat <$> many bodyBlock)
 
-    -- Parses a block of the body optionally prefixed with
-    -- some access modifier statement
-    bodyBlock :: AccessModifier -> Parser [TypeMember]
-    bodyBlock default_am = do
-      am    <- (accessModifier <* symbol ":")
-      block <- many (bodyStmt am)
-      return (foldr (++) [] block)
+    -- Parses a block of body statements which are prefixed with some
+    -- access modfier, for example "public:"
+    bodyBlock :: Parser [TypeMember]
+    bodyBlock = (accessModifier <* symbol ":") >>= bodyStmts
 
     -- Parses a single statement in the body
-    bodyStmt :: AccessModifier -> Parser [TypeMember]
-    bodyStmt default_am =
-      (choice
-        [ ((:[]) . ((,) default_am)) <$> declType
-        , ((:[]) . ((,) default_am)) <$> declUnion
-        , map ((,) default_am)       <$> declVariable
-          -- :TOOD: declFunction
-        ]
-      ) <* symbol ";"
+    bodyStmts :: AccessModifier -> Parser [TypeMember]
+    bodyStmts default_am = concat <$> many
+      ((choice
+         [ ((:[]) . ((,) default_am)) <$> declType
+         , ((:[]) . ((,) default_am)) <$> declUnion
+         , map ((,) default_am)       <$> declVariable
+           -- :TOOD: declFunction
+         ]
+       ) <* symbol ";")
 
 declUnion :: Parser Declaration
 declUnion = DeclUnion <$ keyword "union" <*> identifier <*> withinBraces body
