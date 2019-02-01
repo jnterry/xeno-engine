@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \brief Contains decleration of functions that may operate on xeno engine
+/// \brief Contains declaration of functions that may operate on xeno engine
 /// arrays
 ///
 /// \ingroup

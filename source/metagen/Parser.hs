@@ -177,7 +177,7 @@ identifier :: Parser String
 identifier  = lexeme identifierWord
 
 --------------------------------------------------------------------------------
---                             Declerations                                   --
+--                             Declarations                                   --
 --------------------------------------------------------------------------------
 
 -- Parses a single "line" of struct field definitions

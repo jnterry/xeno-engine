@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \brief Contains decleration of platform specific types for implementing
+/// \brief Contains declaration of platform specific types for implementing
 /// thread related functions for systems with pthread library (unix, mac)
 ///
 /// \ingroup kernel

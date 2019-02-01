@@ -34,7 +34,7 @@
 #include <xen/kernel/log.hpp>
 
 
-// Forward declerations required for XenKernelSyscalls
+// Forward declarations required for XenKernelSyscalls
 namespace xen {
 	struct KernelSettings;
 	struct ArenaLinear;

@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \brief Contains decleration of various opaque types used to represent
+/// \brief Contains declaration of various opaque types used to represent
 /// handles to implementation specific types used by Xeno Engine's render
 /// system
 ///

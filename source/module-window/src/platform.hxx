@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////////////////////
 ///                      Part of Xeno Engine                             ///
 ////////////////////////////////////////////////////////////////////////////
-/// \brief Contains decleration of functions whose implementations is platform
+/// \brief Contains declaration of functions whose implementations is platform
 /// dependent
 ///
 /// \ingroup module-window

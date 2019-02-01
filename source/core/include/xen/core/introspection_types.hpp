@@ -70,7 +70,7 @@ namespace xen {
 			/// known and may vary at runtime, it is common to have another variable
 			/// to track the actual length of such an array.
 			///
-			/// For example, the following is a typical decleration of a DYNAMIC_ARRAY
+			/// For example, the following is a typical declaration of a DYNAMIC_ARRAY
 			/// of ints:
 			/// \code
 			/// int* data;
