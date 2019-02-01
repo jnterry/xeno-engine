@@ -121,7 +121,7 @@ preop =  Predecrement <$ symbol "--"
      <|> Complement   <$ symbol "~"
      <|> UnaryPlus    <$ symbol "+"
      <|> UnaryMinus   <$ symbol "-"
-     <|> CCast        <$> withinParens typename -- eg (int)x
+     <|> CCast        <$> withinParens qtype -- eg (int)x
 
 postop :: Parser PostfixOperator
 postop =  Postdecrement <$ symbol "--"

@@ -129,7 +129,10 @@ suite_expr_prefix = describe "prefix" $ do
   pass "!a"            (ExprPrefix Not         (ExprIdentifier "a"))
   pass "~a"            (ExprPrefix Complement  (ExprIdentifier "a"))
   pass "**a"           (ExprPrefix Dereference ((ExprPrefix Dereference (ExprIdentifier "a"))))
-  pass "(xen::Vec2r)a" (ExprPrefix (CCast "xen::Vec2r") (ExprIdentifier "a"))
+  pass "(xen::Vec2r)a" (ExprPrefix
+                        (CCast (QType (Tmem (Type "xen") (Type "Vec2r"))))
+                        (ExprIdentifier "a")
+                       )
 
   pass "--a"   (ExprPrefix Predecrement  (ExprIdentifier "a"))
   pass "- -a"  (ExprPrefix UnaryMinus (ExprPrefix UnaryMinus (ExprIdentifier "a")))
@@ -160,7 +163,7 @@ suite_expr_postfix = describe "postfix" $ do
                          (Call [ExprIdentifier "b", ExprIdentifier "c"]))
   pass "a(1+b, (int)x)" (ExprPostfix (ExprIdentifier "a")
                          (Call [ ExprBinary (ExprLiteral (LiteralInt 1)) OpAdd (ExprIdentifier "b")
-                               , ExprPrefix (CCast "int") (ExprIdentifier "x")
+                               , ExprPrefix (CCast (QType (Type "int"))) (ExprIdentifier "x")
                                ]
                          ))
 

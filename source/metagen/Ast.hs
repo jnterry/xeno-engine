@@ -67,7 +67,7 @@ data PrefixOperator = Predecrement | Preincrement -- --x  ++x
                     | Dereference  | AddressOf    --  *x   &x
                     | Not          | Complement   --  !x   ~x
                     | UnaryPlus    | UnaryMinus   --  +x   -x
-                    | CCast Type                  -- (type)x
+                    | CCast QType                 -- (type)x
                     deriving (Show, Eq)
 
 data Member = Mstatic Identifier -- ::x
