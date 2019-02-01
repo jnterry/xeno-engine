@@ -5,7 +5,6 @@ import Ast
 import Prelude hiding (const)
 import Data.Void
 import Data.List
-import Data.Functor.Identity
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
@@ -221,8 +220,8 @@ declVariable = do
 -- Parses a sequence of characters quoted by some other, where the sequence
 -- may include the quote character if it is prefixed by \
 _quotedSeq :: Char -> (Parser String -> Parser [String]) -> Parser String
-_quotedSeq c repeat =
-  (concat) <$> between (char c) (char c) (repeat (escaped <|> nonCloser))
+_quotedSeq c content =
+  (concat) <$> between (char c) (char c) (content (escaped <|> nonCloser))
   where
     escaped   = try( string ('\\' : c : []))
     nonCloser = (:) <$> satisfy (/=c) <*> produce []
@@ -237,7 +236,7 @@ literalInt :: Parser Literal
 literalInt = LInt <$> L.decimal
 
 
--- _literalFloating :: (a -> Literal) -> Char -> Parser Float
+_literalFloating :: Fractional b => (b -> a) -> Char -> Parser a
 _literalFloating litType c =
       try ((litType . realToFrac  ) <$> pfloat    <* end)
   <|> try ((litType . fromIntegral) <$> L.decimal <* (char '.' <* notFollowedBy digitChar) <* end)
@@ -293,6 +292,7 @@ _exprTerm = build <$> term <*> many postop
 
 -- Sets of operators of equal precedence from most to least
 -- see: https://en.cppreference.com/w/cpp/language/operator_precedence
+_exprOpPrecedence :: [[BinaryOperator]]
 _exprOpPrecedence = [ [ OpMul, OpDiv, OpMod ]
                     , [ OpAdd, OpSub ]
                     , [ OpShl, OpShr ]
@@ -335,7 +335,8 @@ expression = (genout . (fullCollapse _exprOpPrecedence)) <$> plist
       if op2 `elem` cset
       then collapse cset ((op1, (ExprBinary expr1 op2 expr2)) : rest)
       else (op1, expr1) : (collapse cset ((op2, expr2) : rest))
-    collapse cset (head : []) = [head]
+    collapse _ (x : []) = [x]
+    collapse _ []       = error "Attempt to collapse empty expression list"
 
     -- fully collapses an expression list by calling collapse multiple times for
     -- each set of operators in a list of operator precedences
@@ -349,6 +350,7 @@ expression = (genout . (fullCollapse _exprOpPrecedence)) <$> plist
     -- produced expression
     genout :: [(BinaryOperator, Expression)] -> Expression
     genout ((OpAdd, expr) : []) = expr
+    genout _ = error "Collapse resulted in bad output"
 
 --------------------------------------------------------------------------------
 --                            Type System                                     --
@@ -368,8 +370,8 @@ _typeid_guarded =  try (Type <$> integral)
                                            keyword "int"
                                           )
     buildTinst :: String -> Maybe [TParam] -> Typeid
-    buildTinst id Nothing   = Type id
-    buildTinst id (Just tp) = (Tinst (Type id) tp)
+    buildTinst typename Nothing   = Type typename
+    buildTinst typename (Just tp) = (Tinst (Type typename) tp)
 
     -- Tparam parsing is somwhat messy...
     -- Issue is that its fairly ambigious as <x> may be x as a
@@ -403,14 +405,6 @@ _typeid_guarded =  try (Type <$> integral)
 typeid :: Parser Typeid
 typeid =  try (Tmem <$> _typeid_guarded <* string "::" <*> typeid)
       <|> _typeid_guarded
-  where
-    integral :: Parser String
-    integral = (intercalate " ") <$> some (keyword "unsigned" <|>
-                                           keyword "signed"   <|>
-                                           keyword "long"     <|>
-                                           keyword "int"
-                                          )
-
 
 -- Parses arbitrary number of qualifiers before a typename
 -- Eg, "const static"
