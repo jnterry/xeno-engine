@@ -16,10 +16,11 @@ main :: IO ()
 main = hspec $ do
   suite_binop
   suite_literal
-  suite_declvar
   suite_expression
   suite_typeid
   suite_qtype
+  suite_declvar
+  suite_decltype
 
 --------------------------------------------------------------------------------
 --                                Helpers                                     --
@@ -442,6 +443,58 @@ suite_declvar = describe "declVariable" $ do
   where
     pass input output = itShouldParse (declVariable <* eof) input output
     fail input        = itShouldFail  (declVariable <* eof) input
+
+--------------------------------------------------------------------------------
+
+suite_decltype = describe "declType" $ do
+  pass "struct A             { }" (DeclType "A" [] [])
+  pass "struct B :         A { }" (DeclType "B" [(Public,  Type "A")] [])
+  pass "struct B : private A { }" (DeclType "B" [(Private, Type "A")] [])
+  pass "struct B : public  A { }" (DeclType "B" [(Public,  Type "A")] [])
+  pass "class  B :         A { }" (DeclType "B" [(Private, Type "A")] [])
+  pass "class  B : private A { }" (DeclType "B" [(Private, Type "A")] [])
+  pass "class  B : public  A { }" (DeclType "B" [(Public,  Type "A")] [])
+  pass "struct A : X, Y      { }" (DeclType "A" [(Public,  Type "X"), (Public, Type "Y")] [])
+
+  pass "struct A {          int x; }" (DeclType "A" []
+                                        [ (Public, DeclVar (QType (Type "int")) "x" Nothing) ]
+                                      )
+  pass "struct A { private: int x; }" (DeclType "A" []
+                                       [ (Private, DeclVar (QType (Type "int")) "x" Nothing) ]
+                                      )
+  pass "class  A {         int x; }"  (DeclType "A" []
+                                         [ (Private, DeclVar (QType (Type "int")) "x" Nothing) ]
+                                      )
+  pass "class  A { public: int x; }"   (DeclType "A" []
+                                         [ (Public, DeclVar (QType (Type "int")) "x" Nothing) ]
+                                      )
+
+  pass "struct A { int x, y; }" (DeclType "A" []
+                                 [ (Public, DeclVar (QType (Type "int")) "x" Nothing)
+                                 , (Public, DeclVar (QType (Type "int")) "y" Nothing)
+                                 ]
+                                )
+  pass "struct A { int x, y; long z; }" (
+    DeclType "A" []
+      [ (Public, DeclVar (QType (Type "int" )) "x" Nothing)
+      , (Public, DeclVar (QType (Type "int" )) "y" Nothing)
+      , (Public, DeclVar (QType (Type "long")) "z" Nothing)
+      ]
+    )
+
+
+  pass "struct A { int x; private: int y; }" (
+    DeclType "A" []
+      [ (Public,  DeclVar (QType (Type "int" )) "x" Nothing)
+      , (Private, DeclVar (QType (Type "int" )) "y" Nothing)
+      ]
+    )
+
+  where
+    pass input output = itShouldParse (declType <* eof) input output
+    fail input        = itShouldFail  (declType <* eof) input
+
+--------------------------------------------------------------------------------
 
 suite_typeid = describe "typeid" $ do
   pass "int"                 (Type "int")

@@ -109,7 +109,17 @@ data QType = QType      Typeid  -- int
 
 type Identifier = String
 
+data AccessModifier  = Public | Protected | Private deriving (Show, Eq)
+data CompositeKind   = Struct | Class     | Union   deriving (Show, Eq)
+
+type Inherit    = (AccessModifier, Typeid     )
+type TypeMember = (AccessModifier, Declaration)
+
 data Declaration =
   --      Type  Varname     Optional Initializer
   DeclVar QType Identifier (Maybe Expression)
+
+  --              Name   | Parent types | Member fields
+  | DeclType  Identifier    [Inherit]     [ TypeMember]
+  | DeclUnion Identifier                  [Declaration]
   deriving (Show, Eq)

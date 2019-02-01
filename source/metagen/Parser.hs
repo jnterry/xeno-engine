@@ -212,6 +212,64 @@ declVariable = do
       initializer <- varInitializer
       return (DeclVar ((storage . indir) base_type) varname initializer)
 
+accessModifier :: Parser AccessModifier
+accessModifier = choice [ Public    <$ keyword "public"
+                        , Private   <$ keyword "private"
+                        , Protected <$ keyword "protected"
+                        ]
+
+defaultAccessModifier :: CompositeKind -> AccessModifier
+defaultAccessModifier Struct = Public
+defaultAccessModifier Union  = Public
+defaultAccessModifier Class  = Private
+
+declType :: Parser Declaration
+declType = do
+  default_am <- defaultAccessModifier <$> (Class <$ keyword "class" <|> Struct <$ keyword "struct")
+  name       <- (option "" identifier)
+  parents    <- (option [] (inheritList default_am))
+  members    <- withinBraces (body default_am)
+  return (DeclType name parents members)
+  where
+    inheritList :: AccessModifier -> Parser [Inherit]
+    inheritList default_am = symbol ":" *> sepBy1 ((,) <$> (option default_am accessModifier)
+                                                       <*> typeid
+                                                  ) comma
+
+    body :: AccessModifier -> Parser [TypeMember]
+    body default_am = (foldr (++) []) <$> ((:)
+                                           <$> ((foldr (++) []) <$>(many (bodyStmt default_am)))
+                                           <*> many (bodyBlock default_am)
+                                          )
+
+    -- Parses a block of the body optionally prefixed with
+    -- some access modifier statement
+    bodyBlock :: AccessModifier -> Parser [TypeMember]
+    bodyBlock default_am = do
+      am    <- (accessModifier <* symbol ":")
+      block <- many (bodyStmt am)
+      return (foldr (++) [] block)
+
+    -- Parses a single statement in the body
+    bodyStmt :: AccessModifier -> Parser [TypeMember]
+    bodyStmt default_am =
+      (choice
+        [ ((:[]) . ((,) default_am)) <$> declType
+        , ((:[]) . ((,) default_am)) <$> declUnion
+        , map ((,) default_am)       <$> declVariable
+          -- :TOOD: declFunction
+        ]
+      ) <* symbol ";"
+
+declUnion :: Parser Declaration
+declUnion = DeclUnion <$ keyword "union" <*> identifier <*> withinBraces body
+  where
+    body :: Parser [Declaration]
+    body = foldr (++) [] <$> many (choice [ (:[]) <$> declType
+                                          , (:[]) <$> declUnion
+                                          , declVariable
+                                          ]
+                                  )
 
 --------------------------------------------------------------------------------
 --                                 Literals                                   --
