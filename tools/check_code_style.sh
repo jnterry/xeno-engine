@@ -39,7 +39,7 @@ check_section "Relative includes containing .. is messy" \
 
 
 check_section "The following spelling mistakes were found" \
-							"egrep --color -n -R -i 'verticies|indicies|matricies|primative'"
+							"egrep --color -n -R -i 'verticies|indicies|matricies|primative|decleration'"
 
 check_section "Log calls should not have trailing new line" \
 							"egrep --color -n -R -i 'XenLog[A-Za-z]+\(\".*\\\\n\"'"
