@@ -14,12 +14,12 @@ import Ast
 
 main :: IO ()
 main = hspec $ do
-  --suite_binop
-  --suite_literal
+  suite_binop
+  suite_literal
   suite_declvar
-  --suite_expression
-  --suite_typeid
-  --suite_qtype
+  suite_expression
+  suite_typeid
+  suite_qtype
 
 --------------------------------------------------------------------------------
 --                                Helpers                                     --

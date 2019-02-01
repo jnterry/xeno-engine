@@ -176,43 +176,9 @@ identifierWord = try (p >>= check)
 identifier :: Parser String
 identifier  = lexeme identifierWord
 
--- Parses optionally fully qualified typename, for example, xen::Window
---typename :: Parser String
---typename = lexeme p
---  where
---    p = ((++) <$> segment <*> (p <|> produce ""))
---    segment :: Parser String
---    segment  = (++) <$> (string "::" <|> produce "") <*> identifierWord
-
 --------------------------------------------------------------------------------
 --                             Declerations                                   --
 --------------------------------------------------------------------------------
-
-_qualifier :: Parser Qualifier
-_qualifier =     Constexpr <$ keyword "constexpr"
-            <|> Const      <$ keyword "const"
-            <|> Static     <$ keyword "static"
-            <|> Volatile   <$ keyword "volatile"
-            <|> Mutable    <$ keyword "mutable"
-
-_indirection :: Parser Indirection
-_indirection =
-      Reference <$ lexeme (char '&')
-  <|> mkptr     <$> some (lexeme (char '*')) <*> checkLexeme (string "const")
-  <|> Direct    <$  produce ""
-  where
-    mkptr :: String -> Bool -> Indirection
-    mkptr ptr const = Pointer (length ptr) const
-
-_varStorage :: Parser VariableStorage
-_varStorage =  Bitfield <$ lexeme (char ':') <*> integer
-          <|> try (FixedArray <$> withinBrackets integer)
-          <|> try (FlexibleArray <$ symbol "[" <* symbol "]")
-          <|> Standalone <$ produce ()
-
-_varInitializer :: Parser (Maybe Expression)
-_varInitializer =  Nothing <$ notFollowedBy (char '=')
-               <|> Just <$ symbol "=" <*> expression
 
 -- Parses a single "line" of struct field definitions
 --
@@ -235,13 +201,18 @@ declVariable = do
   vardecls <- (sepBy1 (vardecl (qualifiers tid)) comma)
   return vardecls
   where
+    varInitializer :: Parser (Maybe Expression)
+    varInitializer =  Nothing <$ notFollowedBy (char '=')
+                  <|> Just <$ symbol "=" <*> expression
+
     vardecl :: QType -> Parser Declaration
     vardecl base_type = do
       indir       <- qtype_indirection
       varname     <- identifier
       storage     <- qtype_storage
-      initializer <- _varInitializer
+      initializer <- varInitializer
       return (DeclVar ((storage . indir) base_type) varname initializer)
+
 
 --------------------------------------------------------------------------------
 --                                 Literals                                   --
