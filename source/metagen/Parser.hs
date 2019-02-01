@@ -4,6 +4,7 @@ import Ast
 
 import Prelude hiding (const)
 import Data.Void
+import Data.List
 import Data.Functor.Identity
 import Text.Megaparsec
 import Text.Megaparsec.Char
@@ -21,8 +22,8 @@ produce val = val <$ string ""
 
 -- Tries to do some parse, if successful returns Just the value, if fails
 -- returns Nothing
-optionMaybe :: Parser a -> Parser (Maybe a)
-optionMaybe p = try(Just <$> p) <|> produce Nothing
+optionalMaybe :: Parser a -> Parser (Maybe a)
+optionalMaybe p = try(Just <$> p) <|> produce Nothing
 
 --------------------------------------------------------------------------------
 --                                 Lexer                                      --
@@ -139,13 +140,22 @@ postop =  Postdecrement <$ symbol "--"
 --------------------------------------------------------------------------------
 
 _keywords :: [String]
+-- :TODO: reintroduce primitive type keywords once typeparsing is done
+--_keywords = [
+--  "asm", "auto", "bool", "break", "case", "catch", "class", "const",
+--  "const_cast", "continue", "default", "delete", "do", "double", "dynamic_cast",
+--  "else", "enum", "explicit", "extern", "float", "for", "goto", "inline", "int",
+--  "namespace", "new", "operator", "private", "public", "reinterpret_cast",
+--  "signed", "sizeof", "static_cast", "struct", "template", "throw", "try",
+--  "typeid", "union", "unsigned", "virtual", "volatile", "while"
+--  ]
 _keywords = [
   "asm", "auto", "break", "case", "catch", "class", "const",
   "const_cast", "continue", "default", "delete", "do", "dynamic_cast",
-  "else", "enum", "explicit", "extern", "for", "goto", "inline", "namespace",
-  "new", "operator", "private", "public", "reinterpret_cast", "sizeof",
-  "static_cast", "struct", "template", "throw", "try", "typeid", "union",
-  "virtual", "volatile", "while"
+  "else", "enum", "explicit", "extern", "for", "goto", "inline",
+  "namespace", "new", "operator", "private", "public", "reinterpret_cast",
+  "sizeof", "static_cast", "struct", "template", "throw", "try",
+  "typeid", "union", "virtual", "volatile", "while"
   ]
 
 keyword :: String -> Parser String
@@ -281,14 +291,14 @@ literalNullptr :: Parser Literal
 literalNullptr = LiteralNullptr <$ keyword "nullptr"
 
 literal :: Parser Literal
-literal  =  lexeme (    try literalNullptr
-                    <|> try literalString
-                    <|> try literalChar
-                    <|> try literalDouble
-                    <|> try literalFloat
-                    <|> try literalInt
+literal  =  lexeme (choice [ literalNullptr
+                           , literalString
+                           , literalChar
+                           , literalDouble
+                           , literalFloat
+                           , literalInt
+                           ]
                    )
-
 --------------------------------------------------------------------------------
 --                                 Expressions                                --
 --------------------------------------------------------------------------------
@@ -365,3 +375,118 @@ expression = (genout . (fullCollapse _exprOpPrecedence)) <$> plist
     -- produced expression
     genout :: [(BinaryOperator, Expression)] -> Expression
     genout ((OpAdd, expr) : []) = expr
+
+--------------------------------------------------------------------------------
+--                            Type System                                     --
+--------------------------------------------------------------------------------
+
+-- data Typeid = Type  String          -- Base type,         eg, int
+--             | Tmem  Typeid Typeid   -- Type member,       eg, xen::Window
+--             | Tinst Typeid [TParam] -- Template instance, eg, Vec<3,float>
+
+_typeid_guarded :: Parser Typeid
+_typeid_guarded =  try (Type <$> integral)
+               <|> try (Type <$> keyword "bool")
+               <|> try (Type <$> keyword "float")
+               <|> try (Type <$> keyword "double")
+               <|> try (buildTinst <$> identifier <*> tparamlist)
+  where
+    integral :: Parser String
+    integral = (intercalate " ") <$> some (keyword "unsigned" <|>
+                                           keyword "signed"   <|>
+                                           keyword "long"     <|>
+                                           keyword "int"
+                                          )
+    buildTinst :: String -> Maybe [TParam] -> Typeid
+    buildTinst id Nothing   = Type id
+    buildTinst id (Just tp) = (Tinst (Type id) tp)
+
+    -- Tparam parsing is somwhat messy...
+    -- Issue is that its fairly ambigious as <x> may be x as a
+    -- type, or a constexpr
+    --
+    -- Nievely we might try (sepBy tparam comma)
+    -- Where tparam first tries to parse a type, then an expression
+    --
+    -- But now consider trying to parse "<x+y>". This parses the "x" as
+    -- a type, then fails to find a "," (for more tparams) or ">" (to end
+    -- the tparam list). At that point we fail the entire template list parse
+    -- causing parse error to be produced.
+    --
+    -- If we define ~tparam~ to try expression then type then <x> fails
+    -- as we assume by default tparams are types rather than expressions
+    --
+    -- Hence instead we must define ~tparam~ to include the terminating character
+    -- so that we backtrack inside of the ~tparam~ parser such as in the case of
+    -- <x+y>
+    tparamlist :: Parser (Maybe [TParam])
+    tparamlist = Just <$ symbol "<" <*> ( (++)
+                                          <$> (many (tparam comma))
+                                          <*> ((\x -> x:[]) <$> (tparam (symbol ">")))
+                                        )
+              <|> produce Nothing
+    tparam :: Parser a -> Parser TParam
+    tparam term =  try (TParamType <$> qtype      <* term)
+               <|> try (TParamExpr <$> expression <* term)
+
+
+typeid :: Parser Typeid
+typeid =  try (Tmem <$> _typeid_guarded <* string "::" <*> typeid)
+      <|> _typeid_guarded
+  where
+    integral :: Parser String
+    integral = (intercalate " ") <$> some (keyword "unsigned" <|>
+                                           keyword "signed"   <|>
+                                           keyword "long"     <|>
+                                           keyword "int"
+                                          )
+
+-- Parses parts of a qualified type that come before the variable name
+-- IE: const int x* thing[3];
+--     ------------
+-- This hence ignores Qarray, Qflexarray and Qbitfield
+-- since these specifiers must all follow the variable name
+_qtypeBeforeName :: Parser QType
+_qtypeBeforeName = do
+  quals    <- many qualifier
+  typename <- (QType <$> typeid)
+  indirect <- many indirection
+  return (foldr ($) typename ((reverse indirect) ++ quals))
+  where
+    qualifier :: Parser (QType -> QType)
+    qualifier = choice [ QConst     <$ keyword "const"
+                       , QConstexpr <$ keyword "constexpr"
+                       , QStatic    <$ keyword "static"
+                       , QVolatile  <$ keyword "volatile"
+                       , QMutable   <$ keyword "mutable"
+                       ]
+
+    indirection :: Parser (QType -> QType)
+    indirection = choice [ try( Qconstptr <$ symbol "*" <* keyword "const" )
+                         ,      Qptr      <$ symbol "*"
+                         ,      Qref      <$ symbol "&"
+                         ]
+
+-- Parses parts of a qualified type that come after the variable name
+-- IE: const int x* thing[3];
+--                       ---
+-- Takes as input the portion before the variable name in order to
+-- construct the full QType
+_qtypeAfterName :: QType -> Parser QType
+_qtypeAfterName qt = foldr ($) qt
+  <$> choice [ (:[]) <$> (Qbitfield <$ symbol ":" <*> expression)
+             , many (choice [ try (Qflexarray <$ symbol "[]")
+                            , Qarray <$> withinBrackets expression
+                            ]
+                    )
+             ]
+
+qtypeWithName :: Parser (QType, Identifier)
+qtypeWithName = do
+  prename <- _qtypeBeforeName
+  name    <- identifier
+  qt      <- _qtypeAfterName prename
+  return (qt, name)
+
+qtype :: Parser QType
+qtype = _qtypeBeforeName >>= _qtypeAfterName

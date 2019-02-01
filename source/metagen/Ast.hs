@@ -97,6 +97,7 @@ data Expression = ExprLiteral    Literal
 -- Eg, Vec<3, float>
 data TParam = TParamType QType
             | TParamExpr Expression
+            deriving (Show, Eq)
 
 -- Represents some base type identifier
 -- Eg: int
@@ -106,6 +107,7 @@ data TParam = TParamType QType
 data Typeid = Type  String          -- Base type,         eg, int
             | Tmem  Typeid Typeid   -- Type member,       eg, xen::Window
             | Tinst Typeid [TParam] -- Template instance, eg, Vec<3,float>
+            deriving (Show, Eq)
 
 
 -- Represents a type with additional qualifiers, for example
@@ -115,15 +117,16 @@ data Typeid = Type  String          -- Base type,         eg, int
 -- int**const *const
 -- int[5]
 -- int : 3
-data QType = QType      Typeid     -- int
-           | QConst     QType      -- const int
-           | QConstexpr QType      -- constexpr int
-           | QStatic    QType      -- static int
-           | QVolatile  QType      -- volatile int
-           | QMutable   QType      -- mutable int
-           | Qptr       QType      -- int*
-           | Qconstptr  QType      -- int* const
-           | Qref       QType      -- int&
-           | Qarray     Int QType  -- int[3]
-           | Qbitfield  Int QType  -- int : 3
-           | Qflexarray QType      -- int[]
+data QType = QType      Typeid  -- int
+           | QConst     QType   -- const int
+           | QConstexpr QType   -- constexpr int
+           | QStatic    QType   -- static int
+           | QVolatile  QType   -- volatile int
+           | QMutable   QType   -- mutable int
+           | Qptr       QType   -- int*
+           | Qconstptr  QType   -- int* const
+           | Qref       QType   -- int&
+           | Qarray     Expression QType -- int[3]  (expression is contents of [])
+           | Qbitfield  Expression QType -- int : 3 (expression is whats after :)
+           | Qflexarray QType   -- int[]
+           deriving (Show, Eq)

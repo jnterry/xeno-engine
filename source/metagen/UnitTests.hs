@@ -18,6 +18,8 @@ main = hspec $ do
   suite_literal
   suite_declvar
   suite_expression
+  suite_typeid
+  suite_qtype
 
 --------------------------------------------------------------------------------
 --                                Helpers                                     --
@@ -362,3 +364,125 @@ suite_declvar = describe "declVariable" $ do
   where
     pass input output = itShouldParse (declVariable <* eof) input output
     fail input        = itShouldFail  (declVariable <* eof) input
+
+suite_typeid = describe "typeid" $ do
+  pass "int"                 (Type "int")
+  pass "float"               (Type "float")
+  pass "unsigned int"        (Type "unsigned int")
+  pass "signed"              (Type "signed")
+  pass "unsigned long long"  (Type "unsigned long long")
+  pass "unsignedint"         (Type "unsignedint") -- technically a valid typename
+
+  pass "xen::Window"         (Tmem (Type "xen") (Type "Window"))
+  fail "xen.Window"
+  fail "xen->Window"
+
+  pass "Vec3<float>"     (Tinst (Type "Vec3") [TParamType (QType (Type "float"))])
+  pass "Vec<3, float>"   (Tinst (Type "Vec") [TParamExpr (ExprLiteral (LiteralInt 3))
+                                             , TParamType (QType (Type "float"))
+                                             ]
+                         )
+
+  pass "T<U<X>>"         (Tinst
+                          (Type "T")
+                          [ TParamType
+                            (QType (Tinst
+                                    (Type "U")
+                                    [TParamType (QType (Type "X"))]
+                                   )
+                            )
+                          ]
+                         )
+
+  pass "T<U::A<X>>"    (Tinst
+                         (Type "T")
+                         [ TParamType
+                           (QType (Tmem
+                                    (Type "U")
+                                    (Tinst
+                                      (Type "A")
+                                      [TParamType (QType (Type "X"))]
+                                    )
+                                  )
+                           )
+                         ]
+                       )
+
+  pass "Vec<x+y, float>" (Tinst (Type "Vec") [TParamExpr (ExprBinary
+                                                          (ExprIdentifier "x")
+                                                           OpAdd
+                                                           (ExprIdentifier "y")
+                                                         )
+                                             , TParamType (QType (Type "float"))
+                                             ]
+                         )
+
+  -- Broken since parser things closing > is part of expression
+  -- GCC can handle:
+  -- template <bool T>
+  -- struct Test { int elems[T]; };
+  -- Test<(A > B)> test;
+  -- But it does fail without the () around A > B
+  --
+  --pass "Vec<float, x+y>" (Tinst (Type "Vec") [ TParamType (QType (Type "float"))
+  --                                           , TParamExpr (ExprBinary
+  --                                                         (ExprIdentifier "x")
+  --                                                          OpAdd
+  --                                                          (ExprIdentifier "y")
+  --                                                        )
+  --                                           ]
+  --                       )
+  where
+    pass input output = itShouldParse (typeid <* eof) input output
+    fail input        = itShouldFail  (typeid <* eof) input
+
+suite_qtype = describe "qtype" $ do
+  pass "int"                (        (           (QType (Type "int"))))
+  pass "const A"            (        (QConst     (QType (Type "A"  ))))
+  pass "static A"           (        (QStatic    (QType (Type "A"  ))))
+  pass "const static A"     (QConst  (QStatic    (QType (Type "A"  ))))
+  pass "static constexpr A" (QStatic (QConstexpr (QType (Type "A"  ))))
+
+  pass "A[3]" (Qarray     (ExprLiteral (LiteralInt 3)) (QType (Type "A")))
+  pass "A:3"  (Qbitfield  (ExprLiteral (LiteralInt 3)) (QType (Type "A")))
+  pass "A[]"  (Qflexarray (QType (Type "A")))
+
+  pass "A[3][x]" (Qarray
+                   (ExprLiteral (LiteralInt 3))
+                   (Qarray (ExprIdentifier "x") (QType (Type "A")))
+                 )
+
+  pass "int*"       (Qptr      (QType (Type "int")))
+  pass "int* const" (Qconstptr (QType (Type "int")))
+  pass "int&"       (Qref      (QType (Type "int")))
+
+  pass "const unsigned int** const[5]" (
+    Qarray
+      (ExprLiteral (LiteralInt 5))
+      (Qconstptr (Qptr (QConst (QType (Type "unsigned int")))))
+    )
+
+  pass "static xen::Array<const Type<U>::Name*>&"
+    (Qref
+      (QStatic
+        (QType
+         (Tmem
+          (Type "xen")
+          (Tinst
+            (Type "Array")
+            [TParamType
+              (Qptr (
+                  QConst (
+                      QType (Tmem (Tinst (Type "Type") [TParamType (QType (Type "U"))]) (Type "Name")))
+                  )
+              )
+            ]
+          )
+         )
+        )
+      )
+    )
+
+  where
+    pass input output = itShouldParse (qtype <* eof) input output
+    fail input        = itShouldFail  (qtype <* eof) input
