@@ -94,44 +94,43 @@ namespace xen {
 	inline void printType(const void* object, FILE* file = stdout){
 		printType(xen::meta_type<T>::type, object, file);
 	}
+
+	//////////////////////////////////////////////////////////////////////////
+	// * Primitive meta_type specialisations
+	//////////////////////////////////////////////////////////////////////////
+	template<> struct meta_type<u08> {
+		constexpr static const MetaType type = MetaType{ "u08", sizeof(u08), 0 };
+	};
+	template<> struct meta_type<s08> {
+		constexpr static const MetaType type = MetaType{ "s08", sizeof(s08), 0 };
+	};
+	template<> struct meta_type<u16> {
+		constexpr static const MetaType type = MetaType{ "u16", sizeof(u16), 0 };
+	};
+	template<> struct meta_type<s16> {
+		constexpr static const MetaType type = MetaType{ "s16", sizeof(s16), 0 };
+	};
+	template<> struct meta_type<u32> {
+		constexpr static const MetaType type = MetaType{ "u32", sizeof(u32), 0 };
+	};
+	template<> struct meta_type<s32> {
+		constexpr static const MetaType type = MetaType{ "s32", sizeof(s32), 0 };
+	};
+	template<> struct meta_type<u64> {
+		constexpr static const MetaType type = MetaType{ "u64", sizeof(u64), 0 };
+	};
+	template<> struct meta_type<s64> {
+		constexpr static const MetaType type = MetaType{ "s64", sizeof(s64), 0 };
+	};
+	template<> struct meta_type<float> {
+		constexpr static const MetaType type = MetaType{ "float", sizeof(float), 0 };
+	};
+	template<> struct meta_type<double> {
+		constexpr static const MetaType type = MetaType{ "double", sizeof(double), 0 };
+	};
+	template<> struct meta_type<bool> {
+		constexpr static const MetaType type = MetaType{ "bool", sizeof(bool), 0 };
+	};
 }
-
-//////////////////////////////////////////////////////////////////////////
-// * Primitive meta_type specialisations
-//////////////////////////////////////////////////////////////////////////
-
-template<> struct xen::meta_type<u08> {
-	constexpr static const xen::MetaType type = xen::MetaType{ "u08", sizeof(u08), 0 };
-};
-template<> struct xen::meta_type<s08> {
-	constexpr static const xen::MetaType type = xen::MetaType{ "s08", sizeof(s08), 0 };
-};
-template<> struct xen::meta_type<u16> {
-	constexpr static const xen::MetaType type = xen::MetaType{ "u16", sizeof(u16), 0 };
-};
-template<> struct xen::meta_type<s16> {
-	constexpr static const xen::MetaType type = xen::MetaType{ "s16", sizeof(s16), 0 };
-};
-template<> struct xen::meta_type<u32> {
-	constexpr static const xen::MetaType type = xen::MetaType{ "u32", sizeof(u32), 0 };
-};
-template<> struct xen::meta_type<s32> {
-	constexpr static const xen::MetaType type = xen::MetaType{ "s32", sizeof(s32), 0 };
-};
-template<> struct xen::meta_type<u64> {
-	constexpr static const xen::MetaType type = xen::MetaType{ "u64", sizeof(u64), 0 };
-};
-template<> struct xen::meta_type<s64> {
-	constexpr static const xen::MetaType type = xen::MetaType{ "s64", sizeof(s64), 0 };
-};
-template<> struct xen::meta_type<float> {
-	constexpr static const xen::MetaType type = xen::MetaType{ "float", sizeof(float), 0 };
-};
-template<> struct xen::meta_type<double> {
-	constexpr static const xen::MetaType type = xen::MetaType{ "double", sizeof(double), 0 };
-};
-template<> struct xen::meta_type<bool> {
-	constexpr static const xen::MetaType type = xen::MetaType{ "bool", sizeof(bool), 0 };
-};
 
 #endif
