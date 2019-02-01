@@ -583,9 +583,10 @@ suite_qtype = describe "qtype" $ do
                    (Qarray (ExprIdentifier "x") (QType (Type "A")))
                  )
 
-  pass "int*"       (Qptr      (QType (Type "int")))
-  pass "int* const" (Qconstptr (QType (Type "int")))
-  pass "int&"       (Qref      (QType (Type "int")))
+  pass "int*"       (Qptr      (QType (Type "int" )))
+  pass "int* const" (Qconstptr (QType (Type "int" )))
+  pass "int&"       (Qref      (QType (Type "int" )))
+  pass "void*"      (Qptr      (QType (Type "void")))
 
   pass "const unsigned int** const[5]" (
     Qarray

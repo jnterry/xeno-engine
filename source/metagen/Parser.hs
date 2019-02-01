@@ -139,22 +139,13 @@ postop =  Postdecrement <$ symbol "--"
 --------------------------------------------------------------------------------
 
 _keywords :: [String]
--- :TODO: reintroduce primitive type keywords once typeparsing is done
---_keywords = [
---  "asm", "auto", "bool", "break", "case", "catch", "class", "const",
---  "const_cast", "continue", "default", "delete", "do", "double", "dynamic_cast",
---  "else", "enum", "explicit", "extern", "float", "for", "goto", "inline", "int",
---  "namespace", "new", "operator", "private", "public", "reinterpret_cast",
---  "signed", "sizeof", "static_cast", "struct", "template", "throw", "try",
---  "typeid", "union", "unsigned", "virtual", "volatile", "while"
---  ]
 _keywords = [
-  "asm", "auto", "break", "case", "catch", "class", "const",
-  "const_cast", "continue", "default", "delete", "do", "dynamic_cast",
-  "else", "enum", "explicit", "extern", "for", "goto", "inline",
+  "asm", "auto", "bool", "break", "case", "catch", "class", "const",
+  "const_cast", "continue", "default", "delete", "do", "double", "dynamic_cast",
+  "else", "enum", "explicit", "extern", "float", "for", "goto", "inline", "int",
   "namespace", "new", "operator", "private", "public", "reinterpret_cast",
-  "sizeof", "static_cast", "struct", "template", "throw", "try",
-  "typeid", "union", "virtual", "volatile", "while"
+  "signed", "sizeof", "static_cast", "struct", "template", "throw", "try",
+  "typeid", "union", "unsigned", "virtual", "void", "volatile", "while"
   ]
 
 keyword :: String -> Parser String
@@ -411,6 +402,7 @@ _typeid_guarded =  try (Type <$> integral)
                <|> try (Type <$> keyword "bool")
                <|> try (Type <$> keyword "float")
                <|> try (Type <$> keyword "double")
+               <|> try (Type <$> keyword "void")
                <|> try (buildTinst <$> identifier <*> tparamlist)
   where
     integral :: Parser String
