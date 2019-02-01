@@ -475,39 +475,54 @@ qtype_indirection = ((foldr (.) id) . reverse) <$>
                 ]
        )
 
--- Parses parts of a qualified type that come before the variable name
--- IE: const int x* thing[3];
---     ------------
--- This hence ignores Qarray, Qflexarray and Qbitfield
--- since these specifiers must all follow the variable name
-_qtypeBeforeName :: Parser QType
-_qtypeBeforeName = do
-  -- Eg, for ~const static int*~
+-- Parses an array specifier for a qualified type
+-- For example, would parse the ~[4][4]~ in ~int x[4][4]~
+--
+-- Yields a function which, given a QType, wraps it in the array
+-- specifier to construct the full QType
+--
+-- Note that this parser will return the function "id" and consume
+-- no tokens if there is no array specifier at the current location
+qtype_array :: Parser (QType -> QType)
+qtype_array = (foldr (.) id) <$>
+  many (choice [ try (Qflexarray <$ symbol "[]")
+               , Qarray <$> withinBrackets expression
+               ]
+       )
+
+-- Parses a bitfield specifier, IE: ~: 3~ in ~int x : 3~
+-- Parser will fail if there is no bitfield specifier at
+-- the current location
+--
+-- Yields a function which, given a QType, wraps it in the Qbitfield
+-- specifier to construct the full QType
+qtype_bitfield :: Parser (QType -> QType)
+qtype_bitfield = Qbitfield <$ symbol ":" <*> expression
+
+-- Parses qualified type storage specification, IE: either an array
+-- specifier or bitfield specifier
+-- Both of these follow the typename (eg, int x[3], int x : 3)
+--
+-- Yields a function which, given a QType, wraps it in the qualifiers
+-- to construct the full QType
+--
+-- This parser will return id if there is no specifier at the current location
+qtype_storage :: Parser (QType -> QType)
+qtype_storage = qtype_bitfield <|> qtype_array
+
+-- Parses a bare qualfied type without a variable name
+-- where the type is refering to an object (IE: any type
+-- except a function pointer)
+qtype_object :: Parser QType
+-- EG, for ~const static int*[3]~
+qtype_object = do
   quals    <- qtype_qualifiers    --- const static
   typename <- (QType <$> typeid)  --- int
   indirect <- qtype_indirection   --- *
-  return ((indirect . quals) typename)
+  storage  <- qtype_storage       --- [3]
+  return ((storage . indirect . quals) typename)
 
--- Parses parts of a qualified type that come after the variable name
--- IE: const int x* thing[3];
---                       ---
--- Takes as input the portion before the variable name in order to
--- construct the full QType
-_qtypeAfterName :: QType -> Parser QType
-_qtypeAfterName qt = foldr ($) qt
-  <$> choice [ (:[]) <$> (Qbitfield <$ symbol ":" <*> expression)
-             , many (choice [ try (Qflexarray <$ symbol "[]")
-                            , Qarray <$> withinBrackets expression
-                            ]
-                    )
-             ]
-
-qtypeWithName :: Parser (QType, Identifier)
-qtypeWithName = do
-  prename <- _qtypeBeforeName
-  name    <- identifier
-  qt      <- _qtypeAfterName prename
-  return (qt, name)
-
+-- Parses a bare qualified type without a variable name
+-- For example, a type argument to a template
 qtype :: Parser QType
-qtype = _qtypeBeforeName >>= _qtypeAfterName
+qtype = qtype_object -- :TODO: Also parse function pointers...
