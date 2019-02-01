@@ -127,6 +127,12 @@ postop =  Postdecrement <$ symbol "--"
       <|> Postincrement <$ symbol "++"
       <|> Call          <$> withinParens   (expression `sepBy` comma)
       <|> ArrayAccess   <$> withinBrackets expression
+      <|> MemberAccess  <$> some members
+  where
+    members :: Parser Member
+    members =  Mdot    <$ (char   '.' ) <*> identifier
+           <|> Mptr    <$ (string "->") <*> identifier
+           <|> Mstatic <$ (string "::") <*> identifier
 
 --------------------------------------------------------------------------------
 --                              Identifiers                                   --
@@ -161,12 +167,17 @@ identifier :: Parser String
 identifier  = lexeme identifierWord
 
 -- Parses optionally fully qualified typename, for example, xen::Window
-typename :: Parser Type
+typename :: Parser String
 typename = lexeme p
   where
     p = ((++) <$> segment <*> (p <|> produce ""))
     segment :: Parser String
     segment  = (++) <$> (string "::" <|> produce "") <*> identifierWord
+
+typeid :: Parser Type
+typeid = typename
+  -- :TODO: templates
+  -- :TODO: function pointers
 
 --------------------------------------------------------------------------------
 --                             Declerations                                   --

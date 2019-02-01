@@ -70,9 +70,15 @@ data PrefixOperator = Predecrement | Preincrement -- --x  ++x
                     | CCast Type                  -- (type)x
                     deriving (Show, Eq)
 
+data Member = Mstatic Identifier -- ::x
+            | Mptr    Identifier -- ->x
+            | Mdot    Identifier --  .x
+            deriving (Show, Eq)
+
 data PostfixOperator = Postdecrement | Postincrement -- x--  x++
                      | Call        [Expression]      -- x(a,b)
                      | ArrayAccess Expression        -- x[1]
+                     | MemberAccess [Member]         -- a->b, a.b, A::B
                      deriving (Show, Eq)
 
 data Expression = ExprLiteral    Literal

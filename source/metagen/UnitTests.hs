@@ -168,6 +168,37 @@ suite_expr_postfix = describe "postfix" $ do
                   (ArrayAccess (ExprLiteral (LiteralInt 0)))
                  )
 
+  pass "a.b"      (ExprPostfix (ExprIdentifier "a") (MemberAccess [Mdot    "b"]))
+  pass "a->b"     (ExprPostfix (ExprIdentifier "a") (MemberAccess [Mptr    "b"]))
+  pass "A::B"     (ExprPostfix (ExprIdentifier "A") (MemberAccess [Mstatic "B"]))
+
+  pass "a(x).elems[0]" (ExprPostfix
+                         (ExprPostfix
+                          (ExprPostfix
+                           (ExprIdentifier "a")
+                           (Call [ExprIdentifier "x"])
+                          )
+                          (MemberAccess [Mdot "elems"])
+                         )
+                         (ArrayAccess (ExprLiteral (LiteralInt 0)))
+                       )
+
+  pass "a(vec->x).hi.person[X::Y.z]"
+    (ExprPostfix
+      (ExprPostfix
+        (ExprPostfix
+          (ExprIdentifier "a")
+          (Call [(ExprPostfix (ExprIdentifier "vec") (MemberAccess [Mptr "x"]))])
+        )
+        (MemberAccess [Mdot "hi", Mdot "person"])
+      )
+      (ArrayAccess (ExprPostfix (ExprIdentifier "X")
+                    (MemberAccess [Mstatic "Y", Mdot "z"])
+                   )
+      )
+    )
+
+
   where
     pass input output = itShouldParse (expression <* eof) input output
     fail input        = itShouldFail  (expression <* eof) input
