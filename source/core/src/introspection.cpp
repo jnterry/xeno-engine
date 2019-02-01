@@ -14,17 +14,19 @@
 #include <cstdio>
 #include <cstring>
 
-constexpr const xen::MetaType xen::meta_type<u08>::type;
-constexpr const xen::MetaType xen::meta_type<s08>::type;
-constexpr const xen::MetaType xen::meta_type<u16>::type;
-constexpr const xen::MetaType xen::meta_type<s16>::type;
-constexpr const xen::MetaType xen::meta_type<u32>::type;
-constexpr const xen::MetaType xen::meta_type<s32>::type;
-constexpr const xen::MetaType xen::meta_type<u64>::type;
-constexpr const xen::MetaType xen::meta_type<s64>::type;
-constexpr const xen::MetaType xen::meta_type<float>::type;
-constexpr const xen::MetaType xen::meta_type<double>::type;
-constexpr const xen::MetaType xen::meta_type<bool>::type;
+namespace xen {
+	constexpr const MetaType meta_type<   u08>::type;
+	constexpr const MetaType meta_type<   s08>::type;
+	constexpr const MetaType meta_type<   u16>::type;
+	constexpr const MetaType meta_type<   s16>::type;
+	constexpr const MetaType meta_type<   u32>::type;
+	constexpr const MetaType meta_type<   s32>::type;
+	constexpr const MetaType meta_type<   u64>::type;
+	constexpr const MetaType meta_type<   s64>::type;
+	constexpr const MetaType meta_type< float>::type;
+	constexpr const MetaType meta_type<double>::type;
+	constexpr const MetaType meta_type<  bool>::type;
+}
 
 void doPrintType(const xen::MetaType& type, const void* object, FILE* file, uint indent);
 
