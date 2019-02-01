@@ -66,33 +66,33 @@ suite_binop = describe "binop" $ do
 suite_literal = describe "literal" $ do
   fail   ""
 
-  pass "nullptr" LiteralNullptr
+  pass "nullptr" LNullptr
 
-  pass "'a'"    (LiteralChar   ("a"    ))
-  pass "'ab'"   (LiteralChar   ("ab"   ))
-  pass "'\\\''" (LiteralChar   ("\\\'" ))
-  pass "'\\0'"  (LiteralChar   ("\\0"  ))
+  pass "'a'"    (LChar   ("a"    ))
+  pass "'ab'"   (LChar   ("ab"   ))
+  pass "'\\\''" (LChar   ("\\\'" ))
+  pass "'\\0'"  (LChar   ("\\0"  ))
   fail   "'"
   fail   "'''"
   fail   "''"
 
-  pass "\"HELLO\""    (LiteralString   ("HELLO"))
-  pass "\"\""         (LiteralString   (""))
-  pass "\"'\""        (LiteralString   ("'"))
-  pass "\"\\\"\""     (LiteralString   ("\\\""))
+  pass "\"HELLO\""    (LString   ("HELLO"))
+  pass "\"\""         (LString   (""))
+  pass "\"'\""        (LString   ("'"))
+  pass "\"\\\"\""     (LString   ("\\\""))
   fail   "\"\"\""
   fail   "\"hi\"\""
 
-  pass "123"  (LiteralInt    (  123 ))
-  pass "0.5"  (LiteralDouble (   0.5))
-  pass "0.5f" (LiteralFloat  (   0.5))
-  pass "0.5d" (LiteralDouble (   0.5))
-  pass "5."   (LiteralDouble (   5.0))
-  pass "5.f"  (LiteralFloat  (   5.0))
-  pass "5.d"  (LiteralDouble (   5.0))
-  pass ".5"   (LiteralDouble (   0.5))
-  pass ".5f"  (LiteralFloat  (   0.5))
-  pass ".5d"  (LiteralDouble (   0.5))
+  pass "123"  (LInt    (  123 ))
+  pass "0.5"  (LDouble (   0.5))
+  pass "0.5f" (LFloat  (   0.5))
+  pass "0.5d" (LDouble (   0.5))
+  pass "5."   (LDouble (   5.0))
+  pass "5.f"  (LFloat  (   5.0))
+  pass "5.d"  (LDouble (   5.0))
+  pass ".5"   (LDouble (   0.5))
+  pass ".5f"  (LFloat  (   0.5))
+  pass ".5d"  (LDouble (   0.5))
 
   -- This handled by unary plus/minus expression
   fail  "-5"
@@ -112,18 +112,18 @@ suite_expression = describe "expression" $ do
 
 suite_expr_simple = describe "simple" $ do
   fail ""
-  pass "5"      (ExprLiteral    (LiteralInt 5))
+  pass "5"      (ExprLiteral    (LInt 5))
   pass "hello"  (ExprIdentifier "hello")
-  pass "5 + 6"  (ExprBinary  (ExprLiteral (LiteralInt 5)) OpAdd    (ExprLiteral (LiteralInt 6)))
-  pass "5 & 6"  (ExprBinary  (ExprLiteral (LiteralInt 5)) OpBitAnd (ExprLiteral (LiteralInt 6)))
-  pass "5 == 6" (ExprBinary  (ExprLiteral (LiteralInt 5)) OpEq    (ExprLiteral (LiteralInt 6)))
+  pass "5 + 6"  (ExprBinary  (ExprLiteral (LInt 5)) OpAdd    (ExprLiteral (LInt 6)))
+  pass "5 & 6"  (ExprBinary  (ExprLiteral (LInt 5)) OpBitAnd (ExprLiteral (LInt 6)))
+  pass "5 == 6" (ExprBinary  (ExprLiteral (LInt 5)) OpEq     (ExprLiteral (LInt 6)))
   where
     pass input output = itShouldParse (expression <* eof) input output
     fail input        = itShouldFail  (expression <* eof) input
 
 suite_expr_prefix = describe "prefix" $ do
-  pass "-2"            (ExprPrefix UnaryMinus  (ExprLiteral (LiteralInt   2  )))
-  pass "+1.0f"         (ExprPrefix UnaryPlus   (ExprLiteral (LiteralFloat 1.0)))
+  pass "-2"            (ExprPrefix UnaryMinus  (ExprLiteral (LInt   2  )))
+  pass "+1.0f"         (ExprPrefix UnaryPlus   (ExprLiteral (LFloat 1.0)))
   pass "*a"            (ExprPrefix Dereference (ExprIdentifier "a"))
   pass "&a"            (ExprPrefix AddressOf   (ExprIdentifier "a"))
   pass "!a"            (ExprPrefix Not         (ExprIdentifier "a"))
@@ -162,7 +162,7 @@ suite_expr_postfix = describe "postfix" $ do
   pass "a(b,c)"         (ExprPostfix (ExprIdentifier "a")
                          (Call [ExprIdentifier "b", ExprIdentifier "c"]))
   pass "a(1+b, (int)x)" (ExprPostfix (ExprIdentifier "a")
-                         (Call [ ExprBinary (ExprLiteral (LiteralInt 1)) OpAdd (ExprIdentifier "b")
+                         (Call [ ExprBinary (ExprLiteral (LInt 1)) OpAdd (ExprIdentifier "b")
                                , ExprPrefix (CCast (QType (Type "int"))) (ExprIdentifier "x")
                                ]
                          ))
@@ -170,7 +170,7 @@ suite_expr_postfix = describe "postfix" $ do
   pass "a[i]"    (ExprPostfix (ExprIdentifier "a") (ArrayAccess (ExprIdentifier "i")))
   pass "a(b)[0]" (ExprPostfix
                   (ExprPostfix (ExprIdentifier "a") (Call [(ExprIdentifier "b")]))
-                  (ArrayAccess (ExprLiteral (LiteralInt 0)))
+                  (ArrayAccess (ExprLiteral (LInt 0)))
                  )
 
   pass "a.b"      (ExprPostfix (ExprIdentifier "a") (MemberAccess [Mdot    "b"]))
@@ -185,7 +185,7 @@ suite_expr_postfix = describe "postfix" $ do
                           )
                           (MemberAccess [Mdot "elems"])
                          )
-                         (ArrayAccess (ExprLiteral (LiteralInt 0)))
+                         (ArrayAccess (ExprLiteral (LInt 0)))
                        )
 
   pass "a(vec->x).hi.person[X::Y.z]"
@@ -221,24 +221,24 @@ suite_expr_precedence = describe "precedence" $ do
 
   -- Arithmetic precedence
   pass "1 + 2 + 3" (ExprBinary
-                     (ExprBinary (ExprLiteral (LiteralInt 1)) OpAdd (ExprLiteral (LiteralInt 2)))
+                     (ExprBinary (ExprLiteral (LInt 1)) OpAdd (ExprLiteral (LInt 2)))
                      OpAdd
-                     (ExprLiteral (LiteralInt 3))
+                     (ExprLiteral (LInt 3))
                    )
   pass "1 * 2 + 3" (ExprBinary
-                     (ExprBinary (ExprLiteral (LiteralInt 1)) OpMul (ExprLiteral (LiteralInt 2)))
+                     (ExprBinary (ExprLiteral (LInt 1)) OpMul (ExprLiteral (LInt 2)))
                      OpAdd
-                     (ExprLiteral (LiteralInt 3))
+                     (ExprLiteral (LInt 3))
                    )
   pass "1 - 2 / 3" (ExprBinary
-                     (ExprLiteral (LiteralInt 1))
+                     (ExprLiteral (LInt 1))
                      OpSub
-                     (ExprBinary (ExprLiteral (LiteralInt 2)) OpDiv (ExprLiteral (LiteralInt 3)))
+                     (ExprBinary (ExprLiteral (LInt 2)) OpDiv (ExprLiteral (LInt 3)))
                    )
   pass "(1 - 2) / 3" (ExprBinary
-                      (ExprBinary (ExprLiteral (LiteralInt 1)) OpSub (ExprLiteral (LiteralInt 2)))
+                      (ExprBinary (ExprLiteral (LInt 1)) OpSub (ExprLiteral (LInt 2)))
                       OpDiv
-                      (ExprLiteral (LiteralInt 3))
+                      (ExprLiteral (LInt 3))
                    )
   -- Logical precedence
   pass "a || b || c" (ExprBinary
@@ -336,11 +336,11 @@ suite_declvar = describe "declVariable" $ do
 
   describe "storage types" $ do
     pass "int x[3]"         [DeclVar
-                             (Qarray (ExprLiteral (LiteralInt 3)) (QType (Type "int")))
+                             (Qarray (ExprLiteral (LInt 3)) (QType (Type "int")))
                              "x" Nothing
                             ]
     pass "int x : 3"        [DeclVar
-                             (Qbitfield (ExprLiteral (LiteralInt 3)) (QType (Type "int")))
+                             (Qbitfield (ExprLiteral (LInt 3)) (QType (Type "int")))
                              "x" Nothing
                             ]
     pass "unsigned int x[]" [DeclVar
@@ -349,22 +349,22 @@ suite_declvar = describe "declVariable" $ do
                             ]
     pass "int x[3][5]"      [DeclVar
                              (Qarray
-                              (ExprLiteral (LiteralInt 3))
-                              (Qarray (ExprLiteral (LiteralInt 5)) (QType (Type "int")))
+                              (ExprLiteral (LInt 3))
+                              (Qarray (ExprLiteral (LInt 5)) (QType (Type "int")))
                              )
                              "x" Nothing
                             ]
 
   describe "initializers" $ do
     pass "int x = 5" [DeclVar (QType (Type "int")) "x"
-                      (Just (ExprLiteral (LiteralInt 5)))
+                      (Just (ExprLiteral (LInt 5)))
                      ]
 
     pass "int x[] = [1,2,3]" [DeclVar (Qflexarray (QType (Type "int"))) "x"
-                              (Just (ExprLiteral (LiteralArray [ (ExprLiteral (LiteralInt 1))
-                                                               , (ExprLiteral (LiteralInt 2))
-                                                               , (ExprLiteral (LiteralInt 3))
-                                                               ]
+                              (Just (ExprLiteral (LArray [ (ExprLiteral (LInt 1))
+                                                         , (ExprLiteral (LInt 2))
+                                                         , (ExprLiteral (LInt 3))
+                                                         ]
                                                  )))
                              ]
     pass "xen::Vec2<const int> v = {5,6}" [ (DeclVar
@@ -377,9 +377,9 @@ suite_declvar = describe "declVariable" $ do
                                              "v"
                                              (Just
                                                (ExprLiteral
-                                                (LiteralInitList [ ExprLiteral (LiteralInt 5)
-                                                                 , ExprLiteral (LiteralInt 6)
-                                                                 ]
+                                                (LInitList [ ExprLiteral (LInt 5)
+                                                           , ExprLiteral (LInt 6)
+                                                           ]
                                                 )))
                                             )
                                           ]
@@ -399,11 +399,11 @@ suite_declvar = describe "declVariable" $ do
                             , DeclVar (Qref   (QType (Type "int"))) "y" Nothing ]
 
     pass "int x : 1, y : 2" [ DeclVar (Qbitfield
-                                       (ExprLiteral (LiteralInt 1))
+                                       (ExprLiteral (LInt 1))
                                         (QType (Type "int"))
                                       ) "x" Nothing
                             , DeclVar (Qbitfield
-                                       (ExprLiteral (LiteralInt 2))
+                                       (ExprLiteral (LInt 2))
                                         (QType (Type "int"))
                                       ) "y" Nothing
                             ]
@@ -412,11 +412,11 @@ suite_declvar = describe "declVariable" $ do
     -- (at least inside a struct, since bitfields only work in structs)
     pass "int& ref, *const ptr = nullptr, **ptr2, fix[5], bit : 3, flag:1, flex[]"
       [ DeclVar (Qref       (QType (Type "int" ))) "ref"  Nothing
-      , DeclVar (Qconstptr  (QType (Type "int" ))) "ptr"  (Just (ExprLiteral LiteralNullptr))
+      , DeclVar (Qconstptr  (QType (Type "int" ))) "ptr"  (Just (ExprLiteral LNullptr))
       , DeclVar (Qptr (Qptr (QType (Type "int")))) "ptr2" Nothing
-      , DeclVar (Qarray     (ExprLiteral (LiteralInt 5)) (QType (Type "int"))) "fix"  Nothing
-      , DeclVar (Qbitfield  (ExprLiteral (LiteralInt 3)) (QType (Type "int"))) "bit"  Nothing
-      , DeclVar (Qbitfield  (ExprLiteral (LiteralInt 1)) (QType (Type "int"))) "flag" Nothing
+      , DeclVar (Qarray     (ExprLiteral (LInt 5)) (QType (Type "int"))) "fix"  Nothing
+      , DeclVar (Qbitfield  (ExprLiteral (LInt 3)) (QType (Type "int"))) "bit"  Nothing
+      , DeclVar (Qbitfield  (ExprLiteral (LInt 1)) (QType (Type "int"))) "flag" Nothing
       , DeclVar (Qflexarray (QType (Type "int" ))) "flex" Nothing
       ]
 
@@ -434,7 +434,7 @@ suite_declvar = describe "declVariable" $ do
                 , ExprPrefix AddressOf (ExprIdentifier "width")
                 , ExprPrefix AddressOf (ExprIdentifier "height")
                 , ExprPrefix AddressOf (ExprIdentifier "components")
-                , ExprLiteral (LiteralInt 4)
+                , ExprLiteral (LInt 4)
                 ]
           )))
        )
@@ -456,7 +456,7 @@ suite_typeid = describe "typeid" $ do
   fail "xen->Window"
 
   pass "Vec3<float>"     (Tinst (Type "Vec3") [TParamType (QType (Type "float"))])
-  pass "Vec<3, float>"   (Tinst (Type "Vec") [TParamExpr (ExprLiteral (LiteralInt 3))
+  pass "Vec<3, float>"   (Tinst (Type "Vec") [TParamExpr (ExprLiteral (LInt 3))
                                              , TParamType (QType (Type "float"))
                                              ]
                          )
@@ -521,12 +521,12 @@ suite_qtype = describe "qtype" $ do
   pass "const static A"     (QConst  (QStatic    (QType (Type "A"  ))))
   pass "static constexpr A" (QStatic (QConstexpr (QType (Type "A"  ))))
 
-  pass "A[3]" (Qarray     (ExprLiteral (LiteralInt 3)) (QType (Type "A")))
-  pass "A:3"  (Qbitfield  (ExprLiteral (LiteralInt 3)) (QType (Type "A")))
+  pass "A[3]" (Qarray     (ExprLiteral (LInt 3)) (QType (Type "A")))
+  pass "A:3"  (Qbitfield  (ExprLiteral (LInt 3)) (QType (Type "A")))
   pass "A[]"  (Qflexarray (QType (Type "A")))
 
   pass "A[3][x]" (Qarray
-                   (ExprLiteral (LiteralInt 3))
+                   (ExprLiteral (LInt 3))
                    (Qarray (ExprIdentifier "x") (QType (Type "A")))
                  )
 
@@ -536,7 +536,7 @@ suite_qtype = describe "qtype" $ do
 
   pass "const unsigned int** const[5]" (
     Qarray
-      (ExprLiteral (LiteralInt 5))
+      (ExprLiteral (LInt 5))
       (Qconstptr (Qptr (QConst (QType (Type "unsigned int")))))
     )
 

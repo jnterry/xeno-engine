@@ -1,23 +1,17 @@
 module Ast where
 
-type Type       = String
-type Identifier = String
+--------------------------------------------------------------------------------
+--                              Expression                                    --
+--------------------------------------------------------------------------------
 
-type VariableName = String
-
-data Declaration =
-  --      Type  Varname      Optional Initializer
-  DeclVar QType VariableName (Maybe Expression)
-  deriving (Show, Eq)
-
-data Literal = LiteralInt      Int
-             | LiteralChar     String -- string since could be, eg, '\0'
-             | LiteralString   String
-             | LiteralFloat    Float
-             | LiteralDouble   Double
-             | LiteralNullptr
-             | LiteralArray    [Expression]
-             | LiteralInitList [Expression]
+data Literal = LInt      Int
+             | LChar     String -- string since could be, eg, '\0'
+             | LString   String
+             | LFloat    Float
+             | LDouble   Double
+             | LNullptr
+             | LArray    [Expression]
+             | LInitList [Expression]
              deriving (Show, Eq)
 --data FunctionParam = FunctionParam Type VariableName (Maybe Literal)
 
@@ -108,3 +102,14 @@ data QType = QType      Typeid  -- int
            | Qbitfield  Expression QType -- int : 3 (expression is whats after :)
            | Qflexarray QType   -- int[]
            deriving (Show, Eq)
+
+--------------------------------------------------------------------------------
+--                             Declerations                                   --
+--------------------------------------------------------------------------------
+
+type Identifier = String
+
+data Declaration =
+  --      Type  Varname     Optional Initializer
+  DeclVar QType Identifier (Maybe Expression)
+  deriving (Show, Eq)

@@ -228,13 +228,13 @@ _quotedSeq c repeat =
     nonCloser = (:) <$> satisfy (/=c) <*> produce []
 
 literalString :: Parser Literal
-literalString = LiteralString <$> _quotedSeq '"' many
+literalString = LString <$> _quotedSeq '"' many
 
 literalChar :: Parser Literal
-literalChar = LiteralChar <$> _quotedSeq '\'' some
+literalChar = LChar <$> _quotedSeq '\'' some
 
 literalInt :: Parser Literal
-literalInt = LiteralInt <$> L.decimal
+literalInt = LInt <$> L.decimal
 
 
 -- _literalFloating :: (a -> Literal) -> Char -> Parser Float
@@ -249,18 +249,18 @@ _literalFloating litType c =
     end = (() <$ lexeme (char c)) <|> notFollowedBy letterChar
 
 literalDouble :: Parser Literal
-literalDouble = _literalFloating LiteralDouble 'd'
+literalDouble = _literalFloating LDouble 'd'
 literalFloat  :: Parser Literal
-literalFloat  = _literalFloating LiteralFloat 'f'
+literalFloat  = _literalFloating LFloat 'f'
 
 literalArray :: Parser Literal
-literalArray = LiteralArray <$> withinBrackets (sepBy1 expression comma)
+literalArray = LArray <$> withinBrackets (sepBy1 expression comma)
 
 literalInitList :: Parser Literal
-literalInitList = LiteralInitList <$> withinBraces (sepBy1 expression comma)
+literalInitList = LInitList <$> withinBraces (sepBy1 expression comma)
 
 literalNullptr :: Parser Literal
-literalNullptr = LiteralNullptr <$ keyword "nullptr"
+literalNullptr = LNullptr <$ keyword "nullptr"
 
 literal :: Parser Literal
 literal  =  lexeme (choice [ literalNullptr
@@ -353,10 +353,6 @@ expression = (genout . (fullCollapse _exprOpPrecedence)) <$> plist
 --------------------------------------------------------------------------------
 --                            Type System                                     --
 --------------------------------------------------------------------------------
-
--- data Typeid = Type  String          -- Base type,         eg, int
---             | Tmem  Typeid Typeid   -- Type member,       eg, xen::Window
---             | Tinst Typeid [TParam] -- Template instance, eg, Vec<3,float>
 
 _typeid_guarded :: Parser Typeid
 _typeid_guarded =  try (Type <$> integral)
