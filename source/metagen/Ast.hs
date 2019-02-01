@@ -28,8 +28,8 @@ data VariableStorage =
 type VariableName = String
 
 data Declaration =
-  --       qualifiers Type     Pointer?    Varname      Array?          Initializer
-  DeclVar [Qualifier] Type Indirection VariableName VariableStorage (Maybe Expression)
+  --      Type  Varname      Optional Initializer
+  DeclVar QType VariableName (Maybe Expression)
   deriving (Show, Eq)
 
 data Literal = LiteralInt      Int
@@ -38,8 +38,8 @@ data Literal = LiteralInt      Int
              | LiteralFloat    Float
              | LiteralDouble   Double
              | LiteralNullptr
-             | LiteralArray    [Literal]
-             | LiteralInitList [Literal]
+             | LiteralArray    [Expression]
+             | LiteralInitList [Expression]
              deriving (Show, Eq)
 --data FunctionParam = FunctionParam Type VariableName (Maybe Literal)
 

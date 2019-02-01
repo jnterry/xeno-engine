@@ -14,12 +14,12 @@ import Ast
 
 main :: IO ()
 main = hspec $ do
-  suite_binop
-  suite_literal
+  --suite_binop
+  --suite_literal
   suite_declvar
-  suite_expression
-  suite_typeid
-  suite_qtype
+  --suite_expression
+  --suite_typeid
+  --suite_qtype
 
 --------------------------------------------------------------------------------
 --                                Helpers                                     --
@@ -314,56 +314,131 @@ suite_expr_precedence = describe "precedence" $ do
 --------------------------------------------------------------------------------
 
 suite_declvar = describe "declVariable" $ do
-  pass "int x"        [(DeclVar [      ] "int" Direct "x" Standalone)      Nothing]
-  pass "int x[3]"     [(DeclVar [      ] "int" Direct "x" (FixedArray 3))  Nothing]
-  pass "int x[]"      [(DeclVar [      ] "int" Direct "x" (FlexibleArray)) Nothing]
-  pass "int x : 3"    [(DeclVar [      ] "int" Direct "x" (Bitfield 3))    Nothing]
-  pass "const int x"  [(DeclVar [Const ] "int" Direct "x" Standalone)      Nothing]
-  pass "static int x" [(DeclVar [Static] "int" Direct "x" Standalone)      Nothing]
-  pass "int x = 5"    [(DeclVar [      ] "int" Direct "x" Standalone)
-                        (Just (ExprLiteral (LiteralInt 5)))
-                      ]
-  pass "static constexpr bool thing" [(DeclVar
-                                        [Static, Constexpr]
-                                        "bool" Direct "thing" Standalone Nothing)
-                                     ]
-  pass "xen::Aabb2r x"               [(DeclVar
-                                        [] "xen::Aabb2r" Direct "x" Standalone Nothing)
-                                     ]
-  pass "u64* z"                      [(DeclVar
-                                        [] "u64" (Pointer 1 False) "z" Standalone Nothing)
-                                     ]
-  pass "u64** z"                     [(DeclVar
-                                        [] "u64" (Pointer 2 False) "z" Standalone Nothing)
-                                     ]
-  pass "u64** const z"               [(DeclVar
-                                        [] "u64" (Pointer 2 True) "z" Standalone Nothing)
-                                     ]
-  pass "int x, y"         [(DeclVar [] "int" Direct "x" Standalone Nothing)
-                          ,(DeclVar [] "int" Direct "y" Standalone Nothing)]
-  pass "const int x, y"   [(DeclVar [Const] "int" Direct "x" Standalone Nothing)
-                          ,(DeclVar [Const] "int" Direct "y" Standalone Nothing)]
-  pass "const int x, *y"  [(DeclVar [Const] "int" Direct "x" Standalone Nothing)
-                          ,(DeclVar [Const] "int" (Pointer 1 False) "y" Standalone Nothing)]
+  describe "failures" $ do
+    fail ""
+    fail "x"
+    fail "int*"
+    fail "int x*"
+    fail "int x x"
+    fail "int x const"
 
-  -- Yes, the following is valid c++, grim, but valid
-  -- (at least inside a struct, since bitfields only work in structs)
-  pass "const static int& ref, *const ptr = nullptr, **ptr2, fix[5], bit : 3, flag:1, flex[]"
-    [ (DeclVar [Const, Static] "int" Reference         "ref"  Standalone Nothing)
-    , (DeclVar [Const, Static] "int" (Pointer 1 True ) "ptr"  Standalone
-        (Just (ExprLiteral LiteralNullptr)))
-    , (DeclVar [Const, Static] "int" (Pointer 2 False) "ptr2" Standalone Nothing)
-    , (DeclVar [Const, Static] "int" Direct            "fix"  (FixedArray 5) Nothing)
-    , (DeclVar [Const, Static] "int" Direct            "bit"  (Bitfield 3) Nothing)
-    , (DeclVar [Const, Static] "int" Direct            "flag" (Bitfield 1) Nothing)
-    , (DeclVar [Const, Static] "int" Direct            "flex" (FlexibleArray) Nothing)
-    ]
+  describe "indirection" $ do
+    pass "int  x"       [DeclVar (            QType (Type "int")  ) "x" Nothing]
+    pass "int& x"       [DeclVar (Qref       (QType (Type "int")) ) "x" Nothing]
+    pass "int* x"       [DeclVar (Qptr       (QType (Type "int")) ) "x" Nothing]
+    pass "int* const x" [DeclVar (Qconstptr  (QType (Type "int")) ) "x" Nothing]
+    pass "int** x"      [DeclVar (Qptr (Qptr (QType (Type "int")))) "x" Nothing]
 
+  describe "qualifiers" $ do
+    pass "const int x"        [DeclVar (        QConst  (QType (Type "int")) ) "x" Nothing]
+    pass "static int x"       [DeclVar (        QStatic (QType (Type "int")) ) "x" Nothing]
+    pass "const static int x" [DeclVar (QConst (QStatic (QType (Type "int")))) "x" Nothing]
 
-  -- :TODO: this fails since CCast cant take a qualified type!
-  -- We need better type parsing/AST
-  --pass "xen::Color* pixel_data = (xen::Color*)stbi_load(file_path, &width, &height, &components, 4)"
-  --  [DeclVar [] "xen::Color" (Pointer 1 False) "pixel_data" Standalone  Nothing]
+  describe "storage types" $ do
+    pass "int x[3]"         [DeclVar
+                             (Qarray (ExprLiteral (LiteralInt 3)) (QType (Type "int")))
+                             "x" Nothing
+                            ]
+    pass "int x : 3"        [DeclVar
+                             (Qbitfield (ExprLiteral (LiteralInt 3)) (QType (Type "int")))
+                             "x" Nothing
+                            ]
+    pass "unsigned int x[]" [DeclVar
+                             (Qflexarray (QType (Type "unsigned int")))
+                             "x" Nothing
+                            ]
+    pass "int x[3][5]"      [DeclVar
+                             (Qarray
+                              (ExprLiteral (LiteralInt 3))
+                              (Qarray (ExprLiteral (LiteralInt 5)) (QType (Type "int")))
+                             )
+                             "x" Nothing
+                            ]
+
+  describe "initializers" $ do
+    pass "int x = 5" [DeclVar (QType (Type "int")) "x"
+                      (Just (ExprLiteral (LiteralInt 5)))
+                     ]
+
+    pass "int x[] = [1,2,3]" [DeclVar (Qflexarray (QType (Type "int"))) "x"
+                              (Just (ExprLiteral (LiteralArray [ (ExprLiteral (LiteralInt 1))
+                                                               , (ExprLiteral (LiteralInt 2))
+                                                               , (ExprLiteral (LiteralInt 3))
+                                                               ]
+                                                 )))
+                             ]
+    pass "xen::Vec2<const int> v = {5,6}" [ (DeclVar
+                                             (QType (Tmem
+                                                     (Type "xen")
+                                                     (Tinst
+                                                      (Type "Vec2")
+                                                      [TParamType (QConst (QType (Type "int")))]
+                                                     )))
+                                             "v"
+                                             (Just
+                                               (ExprLiteral
+                                                (LiteralInitList [ ExprLiteral (LiteralInt 5)
+                                                                 , ExprLiteral (LiteralInt 6)
+                                                                 ]
+                                                )))
+                                            )
+                                          ]
+
+  describe "multiple" $ do
+    pass "int x, y"         [ DeclVar (        QType (Type "int") ) "x" Nothing
+                            , DeclVar (        QType (Type "int") ) "y" Nothing ]
+    pass "const int x, y"   [ DeclVar (QConst (QType (Type "int"))) "x" Nothing
+                            , DeclVar (QConst (QType (Type "int"))) "y" Nothing ]
+    pass "int* x, y"        [ DeclVar (Qptr   (QType (Type "int"))) "x" Nothing
+                            , DeclVar (       (QType (Type "int"))) "y" Nothing ]
+    pass "int *x, y"        [ DeclVar (Qptr   (QType (Type "int"))) "x" Nothing
+                            , DeclVar (       (QType (Type "int"))) "y" Nothing ]
+    pass "int x, *y"        [ DeclVar (       (QType (Type "int"))) "x" Nothing
+                            , DeclVar (Qptr   (QType (Type "int"))) "y" Nothing ]
+    pass "int *x, &y"       [ DeclVar (Qptr   (QType (Type "int"))) "x" Nothing
+                            , DeclVar (Qref   (QType (Type "int"))) "y" Nothing ]
+
+    pass "int x : 1, y : 2" [ DeclVar (Qbitfield
+                                       (ExprLiteral (LiteralInt 1))
+                                        (QType (Type "int"))
+                                      ) "x" Nothing
+                            , DeclVar (Qbitfield
+                                       (ExprLiteral (LiteralInt 2))
+                                        (QType (Type "int"))
+                                      ) "y" Nothing
+                            ]
+
+    -- Yes, the following is valid c++, grim, but valid
+    -- (at least inside a struct, since bitfields only work in structs)
+    pass "int& ref, *const ptr = nullptr, **ptr2, fix[5], bit : 3, flag:1, flex[]"
+      [ DeclVar (Qref       (QType (Type "int" ))) "ref"  Nothing
+      , DeclVar (Qconstptr  (QType (Type "int" ))) "ptr"  (Just (ExprLiteral LiteralNullptr))
+      , DeclVar (Qptr (Qptr (QType (Type "int")))) "ptr2" Nothing
+      , DeclVar (Qarray     (ExprLiteral (LiteralInt 5)) (QType (Type "int"))) "fix"  Nothing
+      , DeclVar (Qbitfield  (ExprLiteral (LiteralInt 3)) (QType (Type "int"))) "bit"  Nothing
+      , DeclVar (Qbitfield  (ExprLiteral (LiteralInt 1)) (QType (Type "int"))) "flag" Nothing
+      , DeclVar (Qflexarray (QType (Type "int" ))) "flex" Nothing
+      ]
+
+  describe "realworld" $ do
+    pass "xen::Color* pixel_data = (xen::Color*)stbi_load(file_path, &width, &height, &components, 4)"
+      [DeclVar
+       (Qptr (QType (Tmem (Type "xen") (Type "Color"))))
+       "pixel_data"
+       (Just
+        (ExprPrefix
+         (CCast (Qptr (QType (Tmem (Type "xen") (Type "Color")))))
+         (ExprPostfix
+          (ExprIdentifier "stbi_load")
+          (Call [ ExprIdentifier "file_path"
+                , ExprPrefix AddressOf (ExprIdentifier "width")
+                , ExprPrefix AddressOf (ExprIdentifier "height")
+                , ExprPrefix AddressOf (ExprIdentifier "components")
+                , ExprLiteral (LiteralInt 4)
+                ]
+          )))
+       )
+      ]
   where
     pass input output = itShouldParse (declVariable <* eof) input output
     fail input        = itShouldFail  (declVariable <* eof) input

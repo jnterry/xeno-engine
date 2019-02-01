@@ -177,12 +177,12 @@ identifier :: Parser String
 identifier  = lexeme identifierWord
 
 -- Parses optionally fully qualified typename, for example, xen::Window
-typename :: Parser String
-typename = lexeme p
-  where
-    p = ((++) <$> segment <*> (p <|> produce ""))
-    segment :: Parser String
-    segment  = (++) <$> (string "::" <|> produce "") <*> identifierWord
+--typename :: Parser String
+--typename = lexeme p
+--  where
+--    p = ((++) <$> segment <*> (p <|> produce ""))
+--    segment :: Parser String
+--    segment  = (++) <$> (string "::" <|> produce "") <*> identifierWord
 
 --------------------------------------------------------------------------------
 --                             Declerations                                   --
@@ -216,34 +216,32 @@ _varInitializer =  Nothing <$ notFollowedBy (char '=')
 
 -- Parses a single "line" of struct field definitions
 --
--- In the simple case this may just be "int x;"
+-- In the simple case this may just be "int x"
 --
 -- "Indirection" is used to represent pointers and references, such as:
--- "int** const x;
+-- "int** const x
 --
 -- This also supports multiple field definitions, eg:
--- int x, *ptr;
+-- int x, *ptr
 --
 -- Note that the following is valid (but extreamly ugly) c++:
 -- int& thing, * const test, array[5];
 declVariable :: Parser [Declaration]
 declVariable = do
   -- Parse the "common" prefix, IE: qualifiers and typename
-  qualifiers <- many _qualifier
-  tname      <- typename
+  qualifiers <- qtype_qualifiers
+  tid        <- (QType <$> typeid)
   -- Parse the set of fields, seperated by ','
-  vardecls <- (sepBy (vardecl qualifiers tname) comma)
+  vardecls <- (sepBy1 (vardecl (qualifiers tid)) comma)
   return vardecls
   where
-    vardecl :: [Qualifier] -> Type -> Parser Declaration
-    vardecl q t = (DeclVar q t) <$> _indirection <*> identifier <*> _varStorage <*> _varInitializer
-
---declFuncPointer :: Parser [Decleration]
---declFuncPointer = do
---  qualifiers <- many qualifier
---  tname      <- typename
---  varname    <- withinParens (symbol "*" *> identifier)
---  params     <- parameterList
+    vardecl :: QType -> Parser Declaration
+    vardecl base_type = do
+      indir       <- qtype_indirection
+      varname     <- identifier
+      storage     <- qtype_storage
+      initializer <- _varInitializer
+      return (DeclVar ((storage . indir) base_type) varname initializer)
 
 --------------------------------------------------------------------------------
 --                                 Literals                                   --
@@ -284,14 +282,19 @@ literalDouble = _literalFloating LiteralDouble 'd'
 literalFloat  :: Parser Literal
 literalFloat  = _literalFloating LiteralFloat 'f'
 
---literalArray :: Parser Literal
---literalArray = withinBrackets (many expression)
+literalArray :: Parser Literal
+literalArray = LiteralArray <$> withinBrackets (sepBy1 expression comma)
+
+literalInitList :: Parser Literal
+literalInitList = LiteralInitList <$> withinBraces (sepBy1 expression comma)
 
 literalNullptr :: Parser Literal
 literalNullptr = LiteralNullptr <$ keyword "nullptr"
 
 literal :: Parser Literal
 literal  =  lexeme (choice [ literalNullptr
+                           , literalArray
+                           , literalInitList
                            , literalString
                            , literalChar
                            , literalDouble
