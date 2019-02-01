@@ -174,11 +174,6 @@ typename = lexeme p
     segment :: Parser String
     segment  = (++) <$> (string "::" <|> produce "") <*> identifierWord
 
-typeid :: Parser Type
-typeid = typename
-  -- :TODO: templates
-  -- :TODO: function pointers
-
 --------------------------------------------------------------------------------
 --                             Declerations                                   --
 --------------------------------------------------------------------------------

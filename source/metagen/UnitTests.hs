@@ -198,7 +198,6 @@ suite_expr_postfix = describe "postfix" $ do
       )
     )
 
-
   where
     pass input output = itShouldParse (expression <* eof) input output
     fail input        = itShouldFail  (expression <* eof) input
@@ -354,6 +353,12 @@ suite_declvar = describe "declVariable" $ do
     , (DeclVar [Const, Static] "int" Direct            "flag" (Bitfield 1) Nothing)
     , (DeclVar [Const, Static] "int" Direct            "flex" (FlexibleArray) Nothing)
     ]
+
+
+  -- :TODO: this fails since CCast cant take a qualified type!
+  -- We need better type parsing/AST
+  --pass "xen::Color* pixel_data = (xen::Color*)stbi_load(file_path, &width, &height, &components, 4)"
+  --  [DeclVar [] "xen::Color" (Pointer 1 False) "pixel_data" Standalone  Nothing]
   where
     pass input output = itShouldParse (declVariable <* eof) input output
     fail input        = itShouldFail  (declVariable <* eof) input

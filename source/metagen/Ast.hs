@@ -87,3 +87,43 @@ data Expression = ExprLiteral    Literal
                 | ExprPrefix     PrefixOperator Expression
                 | ExprPostfix    Expression PostfixOperator
                 deriving (Show, Eq)
+
+--------------------------------------------------------------------------------
+--                              Type System                                   --
+--------------------------------------------------------------------------------
+
+-- Template parameter
+-- May be either a type OR an expression
+-- Eg, Vec<3, float>
+data TParam = TParamType QType
+            | TParamExpr Expression
+
+-- Represents some base type identifier
+-- Eg: int
+--     unsigned int
+--     xen::Window
+--     xen::Mat<4, 4, float>
+data Typeid = Type  String          -- Base type,         eg, int
+            | Tmem  Typeid Typeid   -- Type member,       eg, xen::Window
+            | Tinst Typeid [TParam] -- Template instance, eg, Vec<3,float>
+
+
+-- Represents a type with additional qualifiers, for example
+-- the Typeid "int" may be qualified to represent:
+-- const int
+-- int*
+-- int**const *const
+-- int[5]
+-- int : 3
+data QType = QType      Typeid     -- int
+           | QConst     QType      -- const int
+           | QConstexpr QType      -- constexpr int
+           | QStatic    QType      -- static int
+           | QVolatile  QType      -- volatile int
+           | QMutable   QType      -- mutable int
+           | Qptr       QType      -- int*
+           | Qconstptr  QType      -- int* const
+           | Qref       QType      -- int&
+           | Qarray     Int QType  -- int[3]
+           | Qbitfield  Int QType  -- int : 3
+           | Qflexarray QType      -- int[]
