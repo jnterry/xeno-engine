@@ -20,6 +20,7 @@ main = hspec $ do
   suite_typeid
   suite_qtype
   suite_declvar
+  suite_declunion
   suite_decltype
 
 --------------------------------------------------------------------------------
@@ -445,6 +446,12 @@ suite_declvar = describe "declVariable" $ do
     fail input        = itShouldFail  (declVariable <* eof) input
 
 --------------------------------------------------------------------------------
+
+suite_declunion = describe "declUnion" $ do
+  pass "union X { }" (DeclUnion "X" [])
+  where
+    pass input output = itShouldParse (declUnion <* eof) input output
+    fail input        = itShouldFail  (declUnion <* eof) input
 
 suite_decltype = describe "declType" $ do
   pass "struct A             { }" (DeclType "A" [] [])

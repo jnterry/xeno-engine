@@ -233,13 +233,14 @@ declType = do
     bodyBlock :: Parser [TypeMember]
     bodyBlock = (accessModifier <* symbol ":") >>= bodyStmts
 
-    -- Parses a single statement in the body
+    -- Parses a set of body statements all belonging to the same
+    -- access modifier ~am~
     bodyStmts :: AccessModifier -> Parser [TypeMember]
-    bodyStmts default_am = concat <$> many
+    bodyStmts am = concat <$> many
       ((choice
-         [ ((:[]) . ((,) default_am)) <$> declType
-         , ((:[]) . ((,) default_am)) <$> declUnion
-         , map ((,) default_am)       <$> declVariable
+         [ ((:[]) .     ((,) am)) <$> declType
+         , ((:[]) .     ((,) am)) <$> declUnion
+         , (        map ((,) am)) <$> declVariable
            -- :TOOD: declFunction
          ]
        ) <* symbol ";")
