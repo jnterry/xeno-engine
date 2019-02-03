@@ -130,7 +130,7 @@ xen::Color3f xsr::computeLightInfluenceSimple(xen::Color4f light_color,
 } // end of computeLightInfluenceSimple
 
 void xsr::setPerCommandFragmentUniforms(xsr::FragmentUniforms& uniforms,
-                                          const xen::Material&   material,
+                                          const xen::MaterialParams&   material,
                                           const Mat4r&      m_mat,
                                           const Mat4r&      vp_mat){
 	uniforms.m_matrix           = m_mat;

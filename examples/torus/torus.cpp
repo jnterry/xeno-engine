@@ -105,7 +105,7 @@ void initRenderCommands(){
 		state->render_commands[CMD_IDX_LIGHT+i].emissive_color = state->render_commands[CMD_IDX_LIGHT+i].color;
 		state->render_commands[CMD_IDX_LIGHT+i].model_matrix   = Mat4r::Identity;
 		state->render_commands[CMD_IDX_LIGHT+i].mesh           = state->mesh_cube;
-		state->render_commands[CMD_IDX_LIGHT+i].flags          = xen::Material::Flags::DisableShadowCast;
+		state->render_commands[CMD_IDX_LIGHT+i].flags          = xen::RenderCommand3d::DisableShadowCast;
 	}
 }
 

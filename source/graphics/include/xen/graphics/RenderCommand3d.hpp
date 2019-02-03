@@ -46,7 +46,7 @@ namespace xen{
 		// TRIANGLE_STRIP
 	};
 
-	struct Material {
+	struct MaterialParams {
 		/// \brief The diffuse color to use
 		Color4f color;
 
@@ -60,31 +60,6 @@ namespace xen{
 
 		/// \brief Multiplier that affects the intensity of specular highlights
 		real specular_intensity;
-
-		/// \brief Enumeration of "extra" misc flags that may be set for a command
-		struct Flags : public xen::BitField<u08, 1> {
-			using BitField::BitField; // use constructors of parent
-			enum Values {
-
-				/// \brief If set then the geometry rendered by this command
-				/// will not block light, and hence will not cast shadows
-				///
-				/// \note Flag is to disable rather than enable since geometry should
-				/// cast shadows by default and we want the struct to have sensible
-				/// defaults if zero initialised
-				DisableShadowCast = 1,
-
-				// :TODO:
-				// CullBackFace,
-				// CullFrontFace,
-			};
-		};
-
-		/// \brief Extra flags for the command
-		Flags flags;
-
-		/// \brief The type of primitive to draw the mesh as
-		PrimitiveType primitive_type;
 	};
 
 	/////////////////////////////////////////////////////////////////////
@@ -122,7 +97,7 @@ namespace xen{
 	/// pointer address only (if switching materials has a cost, eg in opengl when
 	/// changing shader uniforms...)
 	/////////////////////////////////////////////////////////////////////
-	struct RenderCommand3d : public Material{
+	struct RenderCommand3d : public MaterialParams{
 		/// \brief Matrix to transform from world space to model space
 		Mat4r model_matrix;
 
@@ -137,6 +112,28 @@ namespace xen{
 		///
 		/// Set to a null handle to use the engine's default shader
 		Shader shader;
+
+		/// \brief Enumeration of "extra" misc flags that may be set for a command
+		enum Flags : u08 {
+
+			/// \brief If set then the geometry rendered by this command
+			/// will not block light, and hence will not cast shadows
+			///
+			/// \note Flag is to disable rather than enable since geometry should
+			/// cast shadows by default and we want the struct to have sensible
+			/// defaults if zero initialised
+			DisableShadowCast = 1,
+
+			// :TODO:
+			// CullBackFace,
+			// CullFrontFace,
+		};
+
+		/// \brief Extra flags for the command
+		Flags flags;
+
+		/// \brief The type of primitive to draw the mesh as
+		PrimitiveType primitive_type;
 	};
 }
 

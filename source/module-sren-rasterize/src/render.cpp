@@ -61,7 +61,7 @@ void xsr::render(xen::RenderTarget target_handle,
 			context.fragment_shader = xsr::FragmentShader_Default;
 		}
 		setPerCommandFragmentUniforms(context,
-		                              (xen::Material&)cmd,
+		                              (xen::MaterialParams&)cmd,
 		                              cmd.model_matrix,
 		                              vp_matrix
 		                              );
