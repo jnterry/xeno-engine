@@ -76,5 +76,6 @@ add_subdirectory(post-processing)
 add_subdirectory(torus)
 add_subdirectory(texture-test)
 add_subdirectory(dynamic-reload)
+add_subdirectory(introspection)
 
 xen_add_example(run-example ${CMAKE_CURRENT_LIST_DIR}/example-main.cpp)
