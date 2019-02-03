@@ -51,7 +51,9 @@ namespace {
 
 		////////////////////////////////////////////////////
 		// Query Shader Interface
-		// :TODO: all this is temp debug code, want to actually store this data somehow...
+		// :TODO: We should probably store the vertex layout as well as the uniform
+		// data, but that requires supporting arbitrary vertex layouts in the public
+		// api...
 		GLint attrib_count;
 
 		char tmp[256];
@@ -91,8 +93,8 @@ namespace {
 
 		result->uniform_locations = (GLint*)data_block;
 		xen::ptrAdvance(&data_block, sizeof(GLint) * result->uniform_count);
-		result->uniform_types = (xen::MetaType*)data_block;
-		xen::ptrAdvance(&data_block, sizeof(xen::MetaType) * result->uniform_count);
+		result->uniform_types = (const xen::MetaType**)data_block;
+		xen::ptrAdvance(&data_block, sizeof(xen::MetaType*) * result->uniform_count);
 		result->uniform_name_hashes = (xen::StringHash*)data_block;
 		//////////////////////////////////////////////////////
 
@@ -119,67 +121,67 @@ namespace {
 			switch(type){
 			case GL_FLOAT:
 				XenLogInfo("  - %2i : float       : %s", i, tmp_name_buffer);
-				result->uniform_types[i] = xen::meta_type<float>::type;
+				result->uniform_types[i] = &xen::meta_type<float>::type;
 				break;
 			case GL_FLOAT_VEC2:
 				XenLogInfo("  - %2i : Vec2f       : %s", i, tmp_name_buffer);
-				result->uniform_types[i] = xen::meta_type<Vec2f>::type;
+				result->uniform_types[i] = &xen::meta_type<Vec2f>::type;
 				break;
 			case GL_FLOAT_VEC3:
 				XenLogInfo("  - %2i : Vec3f       : %s", i, tmp_name_buffer);
-				result->uniform_types[i] = xen::meta_type<Vec3f>::type;
+				result->uniform_types[i] = &xen::meta_type<Vec3f>::type;
 				break;
 			case GL_FLOAT_VEC4:
 				XenLogInfo("  - %2i : Vec4f       : %s", i, tmp_name_buffer);
-				result->uniform_types[i] = xen::meta_type<Vec4f>::type;
+				result->uniform_types[i] = &xen::meta_type<Vec4f>::type;
 				break;
 			case GL_DOUBLE:
 				XenLogInfo("  - %2i : double      : %s", i, tmp_name_buffer);
-				result->uniform_types[i] = xen::meta_type<double>::type;
+				result->uniform_types[i] = &xen::meta_type<double>::type;
 				break;
 			case GL_DOUBLE_VEC2:
 				XenLogInfo("  - %2i : Vec2d       : %s", i, tmp_name_buffer);
-				result->uniform_types[i] = xen::meta_type<Vec2d>::type;
+				result->uniform_types[i] = &xen::meta_type<Vec2d>::type;
 				break;
 			case GL_DOUBLE_VEC3:
 				XenLogInfo("  - %2i : Vec3d       : %s", i, tmp_name_buffer);
-				result->uniform_types[i] = xen::meta_type<Vec3d>::type;
+				result->uniform_types[i] = &xen::meta_type<Vec3d>::type;
 				break;
 			case GL_DOUBLE_VEC4:
 				XenLogInfo("  - %2i : Vec4d       : %s", i, tmp_name_buffer);
-				result->uniform_types[i] = xen::meta_type<Vec4d>::type;
+				result->uniform_types[i] = &xen::meta_type<Vec4d>::type;
 				break;
 			case GL_INT:
 				XenLogInfo("  - %2i : double      : %s", i, tmp_name_buffer);
-				result->uniform_types[i] = xen::meta_type<int>::type;
+				result->uniform_types[i] = &xen::meta_type<int>::type;
 				break;
 			case GL_INT_VEC2:
 				XenLogInfo("  - %2i : Vec2s       : %s", i, tmp_name_buffer);
-				result->uniform_types[i] = xen::meta_type<Vec2s>::type;
+				result->uniform_types[i] = &xen::meta_type<Vec2s>::type;
 				break;
 			case GL_INT_VEC3:
 				XenLogInfo("  - %2i : Vec3s       : %s", i, tmp_name_buffer);
-				result->uniform_types[i] = xen::meta_type<Vec3s>::type;
+				result->uniform_types[i] = &xen::meta_type<Vec3s>::type;
 				break;
 			case GL_INT_VEC4:
 				XenLogInfo("  - %2i : Vec4s       : %s", i, tmp_name_buffer);
-				result->uniform_types[i] = xen::meta_type<Vec4s>::type;
+				result->uniform_types[i] = &xen::meta_type<Vec4s>::type;
 				break;
 			case GL_BOOL:
 				XenLogInfo("  - %2i : bool        : %s", i, tmp_name_buffer);
-				result->uniform_types[i] = xen::meta_type<bool>::type;
+				result->uniform_types[i] = &xen::meta_type<bool>::type;
 				break;
 			case GL_FLOAT_MAT4:
 				XenLogInfo("  - %2i : Mat4<float> : %s", i, tmp_name_buffer);
-				result->uniform_types[i] = xen::meta_type<xen::Matrix<4,4,float>>::type;
+				result->uniform_types[i] = &xen::meta_type<xen::Matrix<4,4,float>>::type;
 				break;
 			case GL_DOUBLE_MAT4:
 				XenLogInfo("  - %2i : Mat4<double> %s", i, tmp_name_buffer);
-				result->uniform_types[i] = xen::meta_type<xen::Matrix<4,4,double>>::type;
+				result->uniform_types[i] = &xen::meta_type<xen::Matrix<4,4,double>>::type;
 				break;
 			case GL_SAMPLER_2D:
 				XenLogInfo("  - %2i : Sampler2d %s", i, tmp_name_buffer);
-				result->uniform_types[i] = xen::meta_type<xen::Texture>::type;
+				result->uniform_types[i] = &xen::meta_type<xen::Texture>::type;
 				break;
 			default:
 				XenLogError("ShaderProgram contained uniform '%s' which has an unsupported type: %i",
@@ -282,7 +284,6 @@ void xgl::setUniform(int location, Mat4d data){
 	XEN_CHECK_GL(glUniformMatrix4dv(location, 1, GL_TRUE, data.elements));
 }
 
-
 xen::Shader xgl::createShader(const xen::ShaderSource& source){
 	if(source.glsl_vertex_path == nullptr ||
 	   source.glsl_fragment_path == nullptr){
@@ -334,11 +335,101 @@ xgl::ShaderProgram* xgl::getShaderImpl(xen::Shader shader){
 	return &xgl::gl_state->pool_shader.slots[shader._id].item;
 }
 
-const xen::Material* createMaterial(const xen::ShaderSource& source,
-                                    const xen::Array<xen::MaterialParameterSource>& params){
-	return nullptr;
+const xen::Material* xgl::createMaterial(const xen::ShaderSource& source,
+                                         const xen::MaterialParameterSource* params,
+                                         u64 param_count){
+
+	////////////////////////////////////////////////////////////////////
+	// Create Shader and Material instance
+	//
+	// :TODO: we should reuse existing shaders created from the same source
+	// wherever possible...
+	xen::Shader shader = xgl::createShader(source);
+	xgl::ShaderProgram* sprog = xgl::getShaderImpl(shader);
+
+	xgl::Material* result = xen::reserveType<xgl::Material>(xgl::gl_state->pool_material);
+	result->program = sprog;
+
+	result->uniform_sources = xen::reserveTypeArray<xen::MaterialParameterSource::Kind>(
+		xgl::gl_state->primary_arena, sprog->uniform_count
+	);
+	////////////////////////////////////////////////////////////////////
+
+
+	////////////////////////////////////////////////////////////////////
+	// Warn on ignored parameters
+	for(u64 i = 0; i < param_count; ++i){
+		xen::StringHash hash = xen::hash(params[i].name);
+		bool found = false;
+		for(int j = 0; j < sprog->uniform_count && !found; ++j){
+			found |= sprog->uniform_name_hashes[j] == hash;
+		}
+		if(!found){
+			XenLogWarn("Ignoring material parameter source '%s' since no corresponding variable found in shader",
+			           params[i].name);
+		}
+	}
+	////////////////////////////////////////////////////////////////////
+
+	////////////////////////////////////////////////////////////////////
+	// Build array in material instance that maps from uniform index to
+	// MaterialParameterSource
+	u16 variable_count = 0;
+	for(GLint i = 0; i < sprog->uniform_count; ++i){
+		result->uniform_sources[i] = xen::MaterialParameterSource::Variable;
+
+		for(u64 j = 0; j < param_count; ++j){
+			if(sprog->uniform_name_hashes[i] == xen::hash(params[j].name)){
+				XenAssert(result->uniform_sources[i] == xen::MaterialParameterSource::Variable,
+				          "Program contains multiple variables with same hash!"
+				);
+				result->uniform_sources[i] = params[j].kind;
+			}
+		}
+
+		if(result->uniform_sources[i] == xen::MaterialParameterSource::Variable) {
+			++variable_count;
+		}
+	}
+	////////////////////////////////////////////////////////////////////
+
+
+	////////////////////////////////////////////////////////////////////
+	// Build the meta type describing any free parameters
+	unsigned meta_type_size = (sizeof(xen::MetaType) +
+	                           sizeof(xen::MetaTypeField) * variable_count);
+	result->parameters = (xen::MetaType*)(
+		xen::reserveBytes(xgl::gl_state->primary_arena, meta_type_size)
+	);
+	xen::clearToZero(result->parameters, meta_type_size);
+
+	result->parameters->name = "GlShaderParameterPack";
+	result->parameters->field_count = variable_count;
+
+	int param_index = 0;
+	for(GLint i = 0; i < sprog->uniform_count; ++i){
+		if(result->uniform_sources[i] != xen::MaterialParameterSource::Variable){
+			continue;
+		}
+
+		xen::MetaTypeField* field = &result->parameters->fields[param_index++];
+
+		field->type.base = sprog->uniform_types[i];
+		field->offset    = result->parameters->size;
+		field->name_hash = sprog->uniform_name_hashes[i];
+
+		result->parameters->size += sprog->uniform_types[i]->size;
+
+		int align = result->parameters->size % alignof(int);
+		if(align != 0){
+			result->parameters->size += alignof(int) - align;
+		}
+	}
+	////////////////////////////////////////////////////////////////////
+
+	return result;
 }
-void destroyMaterial(const xen::Material*){
+void xgl::destroyMaterial(const xen::Material*){
 
 }
 

@@ -32,26 +32,21 @@ namespace xgl {
 	  GLint*         uniform_locations;
 
 	  /// \brief Array of corresponding CPU types for each GLSL uniform
-	  /// \note These pointers should not be freed as they will point to
+	  /// \note While the array memory is owned by this object, this actual
+	  /// meta types being pointed at should not be freed as they will point to
 	  /// static program wide data (eg: xen::meta_type<float>::type)
-	  xen::MetaType* uniform_types;
+	  const xen::MetaType** uniform_types;
 
 	  /// \brief Array of hashes of the name of each uniform
 	  xen::StringHash* uniform_name_hashes;
   };
 
-	struct Material {
+	struct Material : xen::Material{
 		/// \brief The ShaderProgram used to render this material
-		ShaderProgram* shader;
+		ShaderProgram* program;
 
-
-		/// \brief MetaType which describes the layout of the block of client
-		/// supplied data to be used for dynamically settable uniforms
-		/// \note This object owns the memory pointed at here!
-		xen::MetaType* parameter_data_type;
-
-		/// \brief The sources to be used for each uniform
-		xen::MaterialParameterSource* uniform_source;
+		/// \brief Array of the sources to be used for each uniform
+		xen::MaterialParameterSource::Kind* uniform_sources;
 	};
 
 	/// \brief Determines is specified shader program compiled successfully
@@ -83,10 +78,13 @@ namespace xgl {
 	// functions for module interface
 	xen::Shader    createShader(const xen::ShaderSource& source);
 	void           destroyShader(xen::Shader shader);
-	ShaderProgram* getShaderImpl(xen::Shader shader);
+
+
+	ShaderProgram* getShaderImpl  (xen::Shader shader);
 
 	const xen::Material* createMaterial(const xen::ShaderSource& source,
-	                                    const xen::Array<xen::MaterialParameterSource>& params);
+	                                    const xen::MaterialParameterSource* params,
+	                                    u64 param_count);
 	void destroyMaterial(const xen::Material*);
 }
 

@@ -135,7 +135,8 @@ namespace xen {
 		/// makes reference to a variable name which does not exist in the shader
 		/// it will be ignored
 		const Material* (*createMaterial)(const ShaderSource& source,
-		                           xen::Array<MaterialParameterSource>& params);
+		                                  const xen::MaterialParameterSource* params,
+		                                  u64 params_length);
 		void            (*destroyMaterial)(const Material* material);
 
 		/// \brief Pushes some rendering operation

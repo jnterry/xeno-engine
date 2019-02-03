@@ -84,14 +84,14 @@ namespace xen {
 		Kind kind;
 	};
 
-	/// \brief Type
+	/// \brief Represents some material registered with the graphics API  which
+	// may be used to render geometry
 	struct Material {
 		/// \brief MetaType which describes the expected set of parameters to be
 		/// passed to the rendering backend when using this material
-		const MetaType* parameters;
-
-		/// \brief Internal graphics API ID of this material
-		u64 id;
+		/// Will be nullptr if there are zero parameters to be passed to the
+		/// backend
+		MetaType* parameters;
 	};
 }
 

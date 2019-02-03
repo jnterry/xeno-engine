@@ -45,6 +45,8 @@ struct State {
 	xen::Texture  texture_debug_img;
 	xen::Shader   shader_phong;
 
+	const xen::Material* material_phong;
+
 	xen::FixedArray<xen::RenderCommand3d , 6> render_cmds;
 };
 
@@ -83,7 +85,22 @@ void* init(const void* params){
 	state->vertex_spec[2] = xen::VertexAttribute::Color4b;
 	state->vertex_spec[3] = xen::VertexAttribute::TexCoord2f;
 
+	xen::MaterialParameterSource mat_sources[] = {
+		{ "mvp_mat",                 xen::MaterialParameterSource::MvpMatrix             },
+		{ "model_mat",               xen::MaterialParameterSource::ModelMatrix           },
+		{ "ambient_light",           xen::MaterialParameterSource::AmbientLightColor     },
+		{ "camera_position",         xen::MaterialParameterSource::CameraWorldPosition   },
+		{ "point_light_pos",         xen::MaterialParameterSource::PointLightPosition    },
+		{ "point_light_color",       xen::MaterialParameterSource::PointLightColor       },
+		{ "point_light_attenuation", xen::MaterialParameterSource::PointLightAttenuation },
+		{ "diffuse_map",             xen::MaterialParameterSource::TextureChannel0       },
+	};
+
 	state->shader_phong      = mod_ren->createShader({ (void*)&FragmentShader_Phong, nullptr, nullptr });
+	state->material_phong    = mod_ren->createMaterial(
+		{ (void*)&FragmentShader_Phong, nullptr, nullptr },
+		mat_sources, XenArrayLength(mat_sources)
+	);
 
 	xen::RawImage test_image = xen::loadImage(arena, "test.bmp");
 	state->texture_debug_img = mod_ren->createTexture(&test_image);
