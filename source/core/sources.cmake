@@ -13,6 +13,8 @@ set(XEN_HEADERS_CORE
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/core/RingBuffer.hpp
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/core/String.hpp
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/core/StringBuffer.hpp
+	${CMAKE_CURRENT_LIST_DIR}/include/xen/core/introspection_types.hpp
+	${CMAKE_CURRENT_LIST_DIR}/include/xen/core/introspection.hpp
 )
 
 set(XEN_SOURCES_CORE
@@ -25,4 +27,5 @@ set(XEN_SOURCES_CORE
 	${CMAKE_CURRENT_LIST_DIR}/src/File.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/String.cpp
 	${CMAKE_CURRENT_LIST_DIR}/src/StringBuffer.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/introspection.cpp
 )
