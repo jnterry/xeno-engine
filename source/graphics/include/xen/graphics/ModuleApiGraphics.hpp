@@ -13,6 +13,7 @@
 #include <xen/graphics/GraphicsHandles.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/Mesh_types.hpp>
+#include <xen/graphics/Material_types.hpp>
 #include <xen/math/geometry_types.hpp>
 #include <xen/core/array.hpp>
 
@@ -124,6 +125,18 @@ namespace xen {
 
 		Shader  (*createShader  )(const ShaderSource& source);
 		void    (*destroyShader )(Shader shader     );
+
+		/// \brief Creates a material which may later be used for rendering geometry
+		/// \param source -> How to create the shader which will be used for
+		/// rendering
+		/// \param params -> Sources to use as parameters for the shader. Any
+		/// parameter for which a source is not picked will be added to the
+		/// dynamically assignable parameter set for the material. If a source
+		/// makes reference to a variable name which does not exist in the shader
+		/// it will be ignored
+		const Material* (*createMaterial)(const ShaderSource& source,
+		                           xen::Array<MaterialParameterSource>& params);
+		void            (*destroyMaterial)(const Material* material);
 
 		/// \brief Pushes some rendering operation
 		/// Depending on the operation and graphics api in use, this may cause

@@ -78,6 +78,7 @@ void* init( const void* params){
 	xgl::gl_state->pool_mesh          = xen::createArenaPool<xgl::MeshGlData>(xgl::gl_state->primary_arena, 128);
 	xgl::gl_state->pool_texture       = xen::createArenaPool<xgl::TextureImpl>(xgl::gl_state->primary_arena, 128);
 	xgl::gl_state->pool_shader        = xen::createArenaPool<xgl::ShaderProgram>(xgl::gl_state->primary_arena, 128);
+	xgl::gl_state->pool_material      = xen::createArenaPool<xgl::Material>(xgl::gl_state->primary_arena, 128);
 	xgl::gl_state->pool_render_target = xen::createArenaPool<xgl::RenderTargetImpl*>(xgl::gl_state->primary_arena, 128);
 
 	return xgl::gl_state;

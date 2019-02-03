@@ -3,15 +3,13 @@
 ////////////////////////////////////////////////////////////////////////////////
 /// \brief Contains functions for creating and using shaders
 ///
-/// \todo :TODO: Eventually we dont want user code to directly be getting uniform
-/// locations and setting them - this should be done though some "Material" helper
-///
 /// \ingroup gl
 ////////////////////////////////////////////////////////////////////////////////
 
 #ifndef XEN_GL_SHADER_HPP
 #define XEN_GL_SHADER_HPP
 
+#include <xen/core/introspection_types.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/math/matrix_types.hpp>
 #include "gl_header.hxx"
@@ -26,7 +24,35 @@ namespace xgl {
 	  GLuint vertex_shader; ///< Handle for the vertex stage
 	  GLuint pixel_shader;  ///< Handle for the pixel stage
 	  GLuint program;       ///< Handle for the program object
+
+	  ///\brief  Number of uniforms in the program
+	  GLint uniform_count;
+
+	  /// \brief Array of GLSL location of each uniform
+	  GLint*         uniform_locations;
+
+	  /// \brief Array of corresponding CPU types for each GLSL uniform
+	  /// \note These pointers should not be freed as they will point to
+	  /// static program wide data (eg: xen::meta_type<float>::type)
+	  xen::MetaType* uniform_types;
+
+	  /// \brief Array of hashes of the name of each uniform
+	  xen::StringHash* uniform_name_hashes;
   };
+
+	struct Material {
+		/// \brief The ShaderProgram used to render this material
+		ShaderProgram* shader;
+
+
+		/// \brief MetaType which describes the layout of the block of client
+		/// supplied data to be used for dynamically settable uniforms
+		/// \note This object owns the memory pointed at here!
+		xen::MetaType* parameter_data_type;
+
+		/// \brief The sources to be used for each uniform
+		xen::MaterialParameterSource* uniform_source;
+	};
 
 	/// \brief Determines is specified shader program compiled successfully
 	bool isOkay(ShaderProgram*);
@@ -58,6 +84,10 @@ namespace xgl {
 	xen::Shader    createShader(const xen::ShaderSource& source);
 	void           destroyShader(xen::Shader shader);
 	ShaderProgram* getShaderImpl(xen::Shader shader);
+
+	const xen::Material* createMaterial(const xen::ShaderSource& source,
+	                                    const xen::Array<xen::MaterialParameterSource>& params);
+	void destroyMaterial(const xen::Material*);
 }
 
 #endif

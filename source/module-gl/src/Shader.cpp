@@ -74,16 +74,125 @@ namespace {
 			XenLogInfo("  - %2i: %24s, size: %i, type: %6i, location: %2i",
 			           i, tmp, attrib_size, attrib_type, attrib_location);
 		}
-
-		GLint uniform_count;
-		XEN_CHECK_GL(glGetProgramiv(result->program, GL_ACTIVE_UNIFORMS, &uniform_count));
-		XenLogInfo("- Program has %i uniforms", uniform_count);
-		for(int i = 0; i < uniform_count; ++i){
-			XEN_CHECK_GL(glGetActiveUniformName(result->program, i, XenArrayLength(tmp), NULL, tmp));
-		  XenLogInfo("  - %2i: %24s", i, tmp);
-		}
 		////////////////////////////////////////////////////
 
+		XEN_CHECK_GL(glGetProgramiv(result->program, GL_ACTIVE_UNIFORMS, &result->uniform_count));
+
+		GLchar tmp_name_buffer[512];
+
+		xen::MemoryTransaction transaction(xgl::gl_state->primary_arena);
+
+		//////////////////////////////////////////////////////
+		// Allocate dynamic sized memory for the ShaderProgram
+		u64 data_block_size = result->uniform_count * (
+			sizeof(xen::StringHash) + sizeof(xen::MetaType*) + sizeof(GLint)
+		);
+		void* data_block = xen::reserveBytes(xgl::gl_state->primary_arena, data_block_size);
+
+		result->uniform_locations = (GLint*)data_block;
+		xen::ptrAdvance(&data_block, sizeof(GLint) * result->uniform_count);
+		result->uniform_types = (xen::MetaType*)data_block;
+		xen::ptrAdvance(&data_block, sizeof(xen::MetaType) * result->uniform_count);
+		result->uniform_name_hashes = (xen::StringHash*)data_block;
+		//////////////////////////////////////////////////////
+
+
+		//////////////////////////////////////////////////////
+		// Retrieve information regarding program uniforms
+		XenLogInfo("- Program has %i uniforms", result->uniform_count);
+		for(GLint i = 0; i < result->uniform_count; ++i){
+			GLint   array_length;
+			GLint   name_bytes_written;
+			GLenum  type;
+
+			XEN_CHECK_GL(
+				glGetActiveUniform(result->program, i,
+				                   XenArrayLength(tmp_name_buffer), &name_bytes_written,
+				                   &array_length, &type, tmp_name_buffer)
+			);
+
+			result->uniform_name_hashes[i] = xen::hash(tmp_name_buffer);
+			result->uniform_locations[i] = XEN_CHECK_GL_RETURN(
+				glGetUniformLocation(result->program, tmp_name_buffer)
+			);
+
+			switch(type){
+			case GL_FLOAT:
+				XenLogInfo("  - %2i : float       : %s", i, tmp_name_buffer);
+				result->uniform_types[i] = xen::meta_type<float>::type;
+				break;
+			case GL_FLOAT_VEC2:
+				XenLogInfo("  - %2i : Vec2f       : %s", i, tmp_name_buffer);
+				result->uniform_types[i] = xen::meta_type<Vec2f>::type;
+				break;
+			case GL_FLOAT_VEC3:
+				XenLogInfo("  - %2i : Vec3f       : %s", i, tmp_name_buffer);
+				result->uniform_types[i] = xen::meta_type<Vec3f>::type;
+				break;
+			case GL_FLOAT_VEC4:
+				XenLogInfo("  - %2i : Vec4f       : %s", i, tmp_name_buffer);
+				result->uniform_types[i] = xen::meta_type<Vec4f>::type;
+				break;
+			case GL_DOUBLE:
+				XenLogInfo("  - %2i : double      : %s", i, tmp_name_buffer);
+				result->uniform_types[i] = xen::meta_type<double>::type;
+				break;
+			case GL_DOUBLE_VEC2:
+				XenLogInfo("  - %2i : Vec2d       : %s", i, tmp_name_buffer);
+				result->uniform_types[i] = xen::meta_type<Vec2d>::type;
+				break;
+			case GL_DOUBLE_VEC3:
+				XenLogInfo("  - %2i : Vec3d       : %s", i, tmp_name_buffer);
+				result->uniform_types[i] = xen::meta_type<Vec3d>::type;
+				break;
+			case GL_DOUBLE_VEC4:
+				XenLogInfo("  - %2i : Vec4d       : %s", i, tmp_name_buffer);
+				result->uniform_types[i] = xen::meta_type<Vec4d>::type;
+				break;
+			case GL_INT:
+				XenLogInfo("  - %2i : double      : %s", i, tmp_name_buffer);
+				result->uniform_types[i] = xen::meta_type<int>::type;
+				break;
+			case GL_INT_VEC2:
+				XenLogInfo("  - %2i : Vec2s       : %s", i, tmp_name_buffer);
+				result->uniform_types[i] = xen::meta_type<Vec2s>::type;
+				break;
+			case GL_INT_VEC3:
+				XenLogInfo("  - %2i : Vec3s       : %s", i, tmp_name_buffer);
+				result->uniform_types[i] = xen::meta_type<Vec3s>::type;
+				break;
+			case GL_INT_VEC4:
+				XenLogInfo("  - %2i : Vec4s       : %s", i, tmp_name_buffer);
+				result->uniform_types[i] = xen::meta_type<Vec4s>::type;
+				break;
+			case GL_BOOL:
+				XenLogInfo("  - %2i : bool        : %s", i, tmp_name_buffer);
+				result->uniform_types[i] = xen::meta_type<bool>::type;
+				break;
+			case GL_FLOAT_MAT4:
+				XenLogInfo("  - %2i : Mat4<float> : %s", i, tmp_name_buffer);
+				result->uniform_types[i] = xen::meta_type<xen::Matrix<4,4,float>>::type;
+				break;
+			case GL_DOUBLE_MAT4:
+				XenLogInfo("  - %2i : Mat4<double> %s", i, tmp_name_buffer);
+				result->uniform_types[i] = xen::meta_type<xen::Matrix<4,4,double>>::type;
+				break;
+			case GL_SAMPLER_2D:
+				XenLogInfo("  - %2i : Sampler2d %s", i, tmp_name_buffer);
+				result->uniform_types[i] = xen::meta_type<xen::Texture>::type;
+				break;
+			default:
+				XenLogError("ShaderProgram contained uniform '%s' which has an unsupported type: %i",
+				            tmp_name_buffer, type);
+					XEN_CHECK_GL(glDeleteShader (result->vertex_shader));
+					XEN_CHECK_GL(glDeleteShader (result->pixel_shader ));
+					XEN_CHECK_GL(glDeleteProgram(result->program      ));
+				return nullptr;
+			}
+		}
+
+
+		transaction.commit();
 		return result;
 	}
 }
@@ -223,6 +332,14 @@ void xgl::destroyShader(xen::Shader shader){
 
 xgl::ShaderProgram* xgl::getShaderImpl(xen::Shader shader){
 	return &xgl::gl_state->pool_shader.slots[shader._id].item;
+}
+
+const xen::Material* createMaterial(const xen::ShaderSource& source,
+                                    const xen::Array<xen::MaterialParameterSource>& params){
+	return nullptr;
+}
+void destroyMaterial(const xen::Material*){
+
 }
 
 #endif
