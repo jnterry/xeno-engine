@@ -456,11 +456,13 @@ const void* getUniformDataSource(const xen::RenderCommand3d&    cmd,
 	case xen::MaterialParameterSource::AmbientLightColor:
 		return &params.ambient_light;
 	case xen::MaterialParameterSource::PointLightPosition:
-		if(&params.lights.size == 0){ return &all_zeros; }
+		if(params.lights.size == 0){ return &all_zeros; }
 		return &params.lights[0].point.position;
 	case xen::MaterialParameterSource::PointLightColor:
+		if(params.lights.size == 0){ return &all_zeros; }
 		return &params.lights[0].color;
 	case xen::MaterialParameterSource::PointLightAttenuation:
+		if(params.lights.size == 0){ return &all_zeros; }
 	  return &params.lights[0].attenuation;
 	case xen::MaterialParameterSource::TextureChannel0: {
 		static const int ZERO = 0; return &ZERO;

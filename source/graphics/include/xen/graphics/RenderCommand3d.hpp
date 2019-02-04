@@ -47,22 +47,6 @@ namespace xen{
 		// TRIANGLE_STRIP
 	};
 
-	struct MaterialParams {
-		/// \brief The diffuse color to use
-		Color4f color;
-
-		/// \brief The emissive color of the surface, a/w component is interpreted
-		/// as a brightness modifier
-		Color4f emissive_color;
-
-		/// \brief Value controlling how "shiny" the material appears
-		/// Higher values decrease the size of specular highlights
-		real specular_exponent;
-
-		/// \brief Multiplier that affects the intensity of specular highlights
-		real specular_intensity;
-	};
-
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Extra parameters required to render a scene. These vary per
 	/// frame rather than per object
@@ -93,12 +77,8 @@ namespace xen{
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents a single rendering operation which will draw
 	/// some object to the screen
-	/// \todo :TODO: Should this refer to a material rather than inheriting from
-	/// one? This means we can batch all commands with same material by comparing
-	/// pointer address only (if switching materials has a cost, eg in opengl when
-	/// changing shader uniforms...)
 	/////////////////////////////////////////////////////////////////////
-	struct RenderCommand3d : public MaterialParams{
+	struct RenderCommand3d {
 		/// \brief Matrix to transform from world space to model space
 		Mat4r model_matrix;
 
@@ -110,11 +90,6 @@ namespace xen{
 
 		/// \brief Array of texture channels to be used by this rendering operation
 		xen::Texture textures[4];
-
-		/// \brief Shader used to compute per pixel colors.
-		///
-		/// Set to a null handle to use the engine's default shader
-		Shader shader;
 
 		/// \brief The material to be used to render the geometry
 		const xen::Material* material;
@@ -147,7 +122,7 @@ namespace xen{
 	};
 
 	template<typename T>
-	inline void setMaterialParam(RenderCommand3d& cmd, const char* param_name, T& value){
+	inline void setMaterialParam(RenderCommand3d& cmd, const char* param_name, const T& value){
 		xen::setField(cmd.material->parameters,
 		              param_name,
 		              cmd.material_params,

@@ -11,6 +11,7 @@
 #include <xen/math/utilities.hpp>
 #include <xen/math/quaternion.hpp>
 #include <xen/core/memory/utilities.hpp>
+#include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/String.hpp>
 
 #define STAR_COUNT 1024
@@ -18,6 +19,8 @@
 #include "../utilities.hpp"
 
 struct StarfieldState {
+	xen::ArenaLinear arena;
+
 	Vec3r       star_positions[STAR_COUNT];
 	xen::Color  star_colors   [STAR_COUNT];
 
@@ -26,12 +29,14 @@ struct StarfieldState {
 	xen::Mesh mesh_axes;
 	xen::Mesh mesh_cube_lines;
 
+	const xen::Material* material;
+
 	xen::Window*                             window;
 	xen::RenderTarget                        window_target;
 
 	xen::RenderParameters3d                  render_params;
 	xen::Camera3dCylinder                    camera;
-	xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
+	xen::FixedArray<xen::RenderCommand3d, 3> render_cmds;
 };
 
 StarfieldState* star_state;
@@ -42,7 +47,11 @@ void* init(const void* params){
 	XenAssert(mod_ren != nullptr, "Graphics module must be loaded before cornell-box");
 	XenAssert(mod_win != nullptr, "Window module must be loaded before cornell-box");
 
-	StarfieldState* ss = (StarfieldState*)xen::kernelAlloc(sizeof(StarfieldState));
+
+	StarfieldState* ss = (StarfieldState*)xen::kernelAlloc(sizeof(StarfieldState) + xen::kilobytes(1));
+	ss->arena.start     = xen::ptrGetAdvanced(ss, sizeof(StarfieldState));
+	ss->arena.end       = xen::ptrGetAdvanced(ss->arena.start, xen::kilobytes(1));
+	ss->arena.next_byte = ss->arena.start;
 
 	ss->window        = mod_win->createWindow({600, 600}, "starfield");
 	ss->window_target = mod_ren->createWindowRenderTarget(ss->window);
@@ -78,24 +87,36 @@ void* init(const void* params){
 	ss->mesh_axes       = mod_ren->createMesh(ss->vertex_spec, xen::TestMeshGeometry_Axes);
 	ss->mesh_cube_lines = mod_ren->createMesh(ss->vertex_spec, xen::TestMeshGeometry_UnitCubeLines);
 
-	xen::clearToZero(ss->render_commands);
+	ss->material        = mod_ren->createMaterial(
+		{ nullptr, "vertex.glsl", "pixel.glsl" },
+		phong_material_sources, XenArrayLength(phong_material_sources)
+	);
 
-	ss->render_commands[0].primitive_type         = xen::PrimitiveType::LINES;
-	ss->render_commands[0].color                  = xen::Color::WHITE4f;
-	ss->render_commands[0].model_matrix           = xen::Scale3d(100_r);
-	ss->render_commands[0].mesh                   = ss->mesh_axes;
+	xen::clearToZero(ss->render_cmds);
 
-	ss->render_commands[1].primitive_type         = xen::PrimitiveType::POINTS;
-	ss->render_commands[1].color                  = xen::Color::WHITE4f;
-	ss->render_commands[1].model_matrix           = Mat4r::Identity;
-	ss->render_commands[1].mesh                   = ss->mesh_stars;
+	for(u64 i = 0; i < ss->render_cmds.size; ++i){
+		ss->render_cmds[i].material = ss->material;
+		ss->render_cmds[i].material_params = xen::reserveBytes(
+			ss->arena, ss->material->parameters->size
+		);
+		xen::setMaterialParam(ss->render_cmds[i], "emissive_color", xen::Color::BLACK4f);
+		xen::setMaterialParam(ss->render_cmds[i], "diffuse_color",  xen::Color::WHITE4f);
+	}
 
-	ss->render_commands[2].primitive_type         = xen::PrimitiveType::LINES;
-	ss->render_commands[2].color                  = xen::Color::CYAN4f;
-	ss->render_commands[2].model_matrix           = (xen::Scale3d(200_r) *
-	                                                 xen::Translation3d(-100.0_r, -100.0_r, -100.0_r)
-	                                                 );
-	ss->render_commands[2].mesh                   = ss->mesh_cube_lines;
+	ss->render_cmds[0].primitive_type         = xen::PrimitiveType::LINES;
+	ss->render_cmds[0].model_matrix           = xen::Scale3d(100_r);
+	ss->render_cmds[0].mesh                   = ss->mesh_axes;
+
+	ss->render_cmds[1].primitive_type         = xen::PrimitiveType::POINTS;
+	ss->render_cmds[1].model_matrix           = Mat4r::Identity;
+	ss->render_cmds[1].mesh                   = ss->mesh_stars;
+
+	ss->render_cmds[2].primitive_type         = xen::PrimitiveType::LINES;
+	ss->render_cmds[2].model_matrix           = (
+		xen::Scale3d(200_r) * xen::Translation3d(-100.0_r, -100.0_r, -100.0_r)
+	);
+	ss->render_cmds[2].mesh                   = ss->mesh_cube_lines;
+	xen::setMaterialParam(ss->render_cmds[2], "diffuse_color", xen::Color::CYAN4f);
 
 	return ss;
 }
@@ -135,7 +156,7 @@ void tick( const xen::TickContext& cntx){
 
 	mod_ren->clear      (star_state->window_target, xen::Color{20,20,20,255});
 	mod_ren->render     (star_state->window_target, viewport,
-	                     star_state->render_params, star_state->render_commands);
+	                     star_state->render_params, star_state->render_cmds);
 	mod_ren->swapBuffers(star_state->window_target);
 }
 

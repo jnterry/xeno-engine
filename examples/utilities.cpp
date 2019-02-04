@@ -14,6 +14,17 @@
 #include <xen/math/quaternion.hpp>
 #include <xen/math/utilities.hpp>
 
+xen::MaterialParameterSource phong_material_sources[8] = {
+	{ "mvp_mat",                 xen::MaterialParameterSource::MvpMatrix             },
+	{ "model_mat",               xen::MaterialParameterSource::ModelMatrix           },
+	{ "ambient_light",           xen::MaterialParameterSource::AmbientLightColor     },
+	{ "camera_position",         xen::MaterialParameterSource::CameraWorldPosition   },
+	{ "point_light_pos",         xen::MaterialParameterSource::PointLightPosition    },
+	{ "point_light_color",       xen::MaterialParameterSource::PointLightColor       },
+	{ "point_light_attenuation", xen::MaterialParameterSource::PointLightAttenuation },
+	{ "diffuse_map",             xen::MaterialParameterSource::TextureChannel0       },
+};
+
 void handleCameraInputCylinder(xen::ModuleApiWindow* mod_win, xen::Window* win, xen::Camera3dCylinder& camera, real dt, real max_radius){
 	if(!mod_win->hasFocus(win)){ return; }
 
