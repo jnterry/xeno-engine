@@ -16,9 +16,4 @@ set(XEN_SOURCES_SREN
 	${CMAKE_CURRENT_LIST_DIR}/src/rasterizer3d.cpp
 	${CMAKE_CURRENT_LIST_DIR}/impl/xen/sren/render-debug.hxx
 	${CMAKE_CURRENT_LIST_DIR}/src/render-debug.cpp
-
-	${CMAKE_CURRENT_LIST_DIR}/src/post_processors/InvertColors.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/post_processors/DisplayDepthBuffer.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/post_processors/Antialias.cpp
-	${CMAKE_CURRENT_LIST_DIR}/src/post_processors/DepthFog.cpp
 )
