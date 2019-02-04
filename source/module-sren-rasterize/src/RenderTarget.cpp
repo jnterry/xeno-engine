@@ -14,7 +14,6 @@
 #include <xen/window/Window.hxx>
 #include <xen/graphics/GraphicsHandles.hpp>
 #include <xen/sren/RenderTarget.hxx>
-#include <xen/sren/PostProcessor.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/bits.hpp>
 
@@ -83,12 +82,6 @@ void xsr::swapBuffers(xen::RenderTarget handle) {
 	xen::Window* window = target.window;
 
 	if(window == nullptr || !(window->state & xen::Window::IS_OPEN)){ return; }
-
-	for(u32 i = 0; i < xsr::state->post_processors.size; ++i){
-		if(xsr::state->post_processors[i]->disabled){ continue; }
-
-		xsr::state->post_processors[i]->process(target);
-	}
 
 	xsr::presentRenderTarget(window, target);
 }
