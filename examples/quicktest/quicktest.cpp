@@ -20,7 +20,7 @@
 #include <xen/window/Window.hpp>
 
 #include "../utilities.hpp"
-#include "../fragment_shaders.cpp"
+//#include "../fragment_shaders.cpp"
 
 const int CMD_BUNNY  = 0;
 const int CMD_FLOOR  = 1;
@@ -96,9 +96,8 @@ void* init(const void* params){
 		{ "diffuse_map",             xen::MaterialParameterSource::TextureChannel0       },
 	};
 
-	state->shader_phong      = mod_ren->createShader({ (void*)&FragmentShader_Phong, nullptr, nullptr });
 	state->material_phong    = mod_ren->createMaterial(
-		{ (void*)&FragmentShader_Phong, nullptr, nullptr },
+		{ nullptr, "vertex.glsl", "pixel.glsl" },
 		mat_sources, XenArrayLength(mat_sources)
 	);
 

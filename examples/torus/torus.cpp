@@ -1,8 +1,9 @@
 #include <stdio.h>
 
 #include "../utilities.hpp"
-#include "../fragment_shaders.cpp"
+//#include "../fragment_shaders.cpp"
 
+#include <xen/math/quaternion.hpp>
 #include <xen/graphics/TestMeshes.hpp>
 #include <xen/graphics/Mesh.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
@@ -164,9 +165,9 @@ void initMeshes(xen::ModuleApiGraphics* mod_ren){
 	                                       xen::TestMeshGeometry_UnitXzPlaneCentered
 	                                      );
 
-	state->shader_phong     = mod_ren->createShader({(void*)&FragmentShader_Phong    , nullptr, nullptr});
-	state->shader_normals   = mod_ren->createShader({(void*)&FragmentShader_Normals  , nullptr, nullptr});
-	state->shader_positions = mod_ren->createShader({(void*)&FragmentShader_Positions, nullptr, nullptr});
+	//state->shader_phong     = mod_ren->createShader({(void*)&FragmentShader_Phong    , nullptr, nullptr});
+	//state->shader_normals   = mod_ren->createShader({(void*)&FragmentShader_Normals  , nullptr, nullptr});
+	//state->shader_positions = mod_ren->createShader({(void*)&FragmentShader_Positions, nullptr, nullptr});
 }
 
 void* init( const void* params){
