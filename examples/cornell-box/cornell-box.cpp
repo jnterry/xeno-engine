@@ -34,7 +34,7 @@ State* state = nullptr;
 
 void initRenderCommands(xen::ModuleApiGraphics* mod_ren, xen::ArenaLinear& arena){
 	state->material = mod_ren->createMaterial(
-		{ nullptr, "vertex.glsl", "pixel.glsl" },
+		{ nullptr, "resource/material/phong_vertex.glsl", "resource/material/phong_pixel.glsl" },
 		phong_material_sources, XenArrayLength(phong_material_sources)
 	);
 

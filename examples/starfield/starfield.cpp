@@ -88,7 +88,7 @@ void* init(const void* params){
 	ss->mesh_cube_lines = mod_ren->createMesh(ss->vertex_spec, xen::TestMeshGeometry_UnitCubeLines);
 
 	ss->material        = mod_ren->createMaterial(
-		{ nullptr, "vertex.glsl", "pixel.glsl" },
+		{ nullptr, "resource/material/phong_vertex.glsl", "resource/material/phong_pixel.glsl" },
 		phong_material_sources, XenArrayLength(phong_material_sources)
 	);
 

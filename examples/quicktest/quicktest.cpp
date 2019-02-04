@@ -85,17 +85,17 @@ void* init(const void* params){
 	state->vertex_spec[3] = xen::VertexAttribute::TexCoord2f;
 
 	state->material_phong    = mod_ren->createMaterial(
-		{ nullptr, "vertex.glsl", "pixel.glsl" },
+	  { nullptr, "resource/material/phong_vertex.glsl", "resource/material/phong_pixel.glsl" },
 		phong_material_sources, XenArrayLength(phong_material_sources)
 	);
 
-	xen::RawImage test_image = xen::loadImage(arena, "test.bmp");
+	xen::RawImage test_image = xen::loadImage(arena, "resource/texture/test.bmp");
 	state->texture_debug_img = mod_ren->createTexture(&test_image);
 
 	state->mesh_cube         = mod_ren->createMesh(state->vertex_spec, xen::TestMeshGeometry_UnitCube);
 
 	xen::MeshData* mesh_data_bunny = xen::createEmptyMeshData(arena, state->vertex_spec);
-	xen::loadMeshFile(mesh_data_bunny, arena, "bunny.obj", xen::MeshLoadFlags::CENTER_ORIGIN);
+	xen::loadMeshFile(mesh_data_bunny, arena, "resource/mesh/bunny.obj", xen::MeshLoadFlags::CENTER_ORIGIN);
 	state->mesh_bunny = mod_ren->createMesh(mesh_data_bunny);
 
 	for(u64 i = 0; i < state->render_cmds.size; ++i){

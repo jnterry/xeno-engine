@@ -84,10 +84,10 @@ void initMeshes(xen::ModuleApiGraphics* mod_ren){
 	                                       xen::TestMeshGeometry_UnitXzPlaneCentered
 	                                      );
 
-	xen::RawImage image_bricks_diffuse = xen::loadImage(arena, "bricks-diffuse.jpg");
-	xen::RawImage image_bricks_normal  = xen::loadImage(arena, "bricks-normal.jpg");
-	xen::RawImage image_metal_diffuse  = xen::loadImage(arena, "metal-plate-diffuse.jpg");
-	xen::RawImage image_metal_normal   = xen::loadImage(arena, "metal-plate-normal.jpg");
+	xen::RawImage image_bricks_diffuse = xen::loadImage(arena, "resource/texture/bricks-diffuse.jpg");
+	xen::RawImage image_bricks_normal  = xen::loadImage(arena, "resource/texture/bricks-normal.jpg");
+	xen::RawImage image_metal_diffuse  = xen::loadImage(arena, "resource/texture/metal-plate-diffuse.jpg");
+	xen::RawImage image_metal_normal   = xen::loadImage(arena, "resource/texture/metal-plate-normal.jpg");
 
 	state->texture_bricks_diffuse = mod_ren->createTexture(&image_bricks_diffuse);
 	state->texture_bricks_normal  = mod_ren->createTexture(&image_bricks_normal);

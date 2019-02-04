@@ -145,7 +145,7 @@ void initMeshes(xen::ModuleApiGraphics* mod_ren){
 
 	xen::MemoryTransaction transaction(arena);
 	xen::MeshData* mesh_data_torus = xen::createEmptyMeshData(arena, state->vertex_spec);
-	xen::loadMeshFile(mesh_data_torus, arena, "torus.obj",
+	xen::loadMeshFile(mesh_data_torus, arena, "resource/mesh/torus.obj",
 	                  xen::MeshLoadFlags::CENTER_ORIGIN   |
 	                  xen::MeshLoadFlags::SCALE_UNIT_SIZE
 	                 );
