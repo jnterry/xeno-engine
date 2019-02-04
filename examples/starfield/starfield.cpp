@@ -24,7 +24,7 @@ struct StarfieldState {
 	Vec3r       star_positions[STAR_COUNT];
 	xen::Color  star_colors   [STAR_COUNT];
 
-	xen::FixedArray<xen::VertexAttribute::Type, 2> vertex_spec;
+	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
 	xen::Mesh mesh_stars;
 	xen::Mesh mesh_axes;
 	xen::Mesh mesh_cube_lines;
@@ -81,9 +81,11 @@ void* init(const void* params){
 	ss->render_params.ambient_light = xen::Color3f(1.0f, 1.0f, 1.0f);
 
 	ss->vertex_spec[0] = xen::VertexAttribute::Position3r;
-	ss->vertex_spec[1] = xen::VertexAttribute::Color4b;
+	ss->vertex_spec[1] = xen::VertexAttribute::Normal3r;
+	ss->vertex_spec[2] = xen::VertexAttribute::Color4b;
 
-	ss->mesh_stars      = mod_ren->createMesh(ss->vertex_spec, STAR_COUNT, ss->star_positions, ss->star_colors);
+	ss->mesh_stars      = mod_ren->createMesh(ss->vertex_spec, STAR_COUNT,
+	                                          ss->star_positions, nullptr, ss->star_colors);
 	ss->mesh_axes       = mod_ren->createMesh(ss->vertex_spec, xen::TestMeshGeometry_Axes);
 	ss->mesh_cube_lines = mod_ren->createMesh(ss->vertex_spec, xen::TestMeshGeometry_UnitCubeLines);
 

@@ -60,7 +60,7 @@ void main(){
 	vec3 normal_col = (normalize(normal) + vec3(1,1,1)) / 2.0;
 
 
-	vec3 pixel_diffuse_color = diffuse_color.rgb * texture(diffuse_map, model_position.xz).rgb;
+	vec3 pixel_diffuse_color = color.rgb * diffuse_color.rgb * texture(diffuse_map, model_position.xz).rgb;
 
 	//out_color = vec4(normal_col,1);
 	out_color = vec4(pixel_diffuse_color * total_light, 1);
