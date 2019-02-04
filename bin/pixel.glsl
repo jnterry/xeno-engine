@@ -15,6 +15,7 @@ uniform vec4 point_light_color       = vec4(1,0,0,1); // xyz is rgb, w is intens
 uniform vec3 point_light_attenuation = vec3(0.0,0.3,0);
 uniform vec4 emissive_color = vec4(0,0,0,0);
 
+uniform vec4      diffuse_color = vec4(1,1,1,1);
 uniform sampler2D diffuse_map;
 
 vec3 calcLight(vec4 light_color, vec3 dir){
@@ -59,10 +60,10 @@ void main(){
 	vec3 normal_col = (normalize(normal) + vec3(1,1,1)) / 2.0;
 
 
-	vec3 diffuse_color = texture(diffuse_map, model_position.xz).rgb;
+	vec3 pixel_diffuse_color = diffuse_color.rgb * texture(diffuse_map, model_position.xz).rgb;
 
 	//out_color = vec4(normal_col,1);
-	out_color = vec4(diffuse_color * total_light, 1);
-	//out_color = vec4(color,1);
+	out_color = vec4(pixel_diffuse_color * total_light, 1);
+	//out_color = vec4(pixel_diffuse_color,1);
 	//out_color = vec4(1,0,0,1);
 }

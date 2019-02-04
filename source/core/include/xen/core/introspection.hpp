@@ -44,12 +44,12 @@ namespace xen {
 	// For example:
 	// ~setField(MetaType<Vec3<int>>, "x", &obj, 3);~
 	template<typename T>
-  void setField(const MetaType& type, const char* name, void* object, T value){
+  void setField(const MetaType* type, const char* name, void* object, T value){
 		StringHash field_hash = xen::hash(name);
-		for(int i = 0; i < type.field_count; ++i){
-			if(type.fields[i].name_hash != field_hash){ continue; }
+		for(int i = 0; i < type->field_count; ++i){
+			if(type->fields[i].name_hash != field_hash){ continue; }
 
-			(*((T*)(&((u08*)object)[type.fields[i].offset])) = value);
+			(*((T*)(&((u08*)object)[type->fields[i].offset])) = value);
 			return;
 		}
 	}
@@ -59,11 +59,11 @@ namespace xen {
 	}
 
 	template<typename T>
-	T* getField(const MetaType& type, const char* name, void* object){
+	T* getField(const MetaType* type, const char* name, void* object){
 		StringHash field_hash = xen::hash(name);
-		for(int i = 0; i < type.field_count; ++i){
-			if(type.fields[i].name_hash != field_hash){ continue; }
-			return ((T*)(&((u08*)object)[type.fields[i].offset]));
+		for(int i = 0; i < type->field_count; ++i){
+			if(type->fields[i].name_hash != field_hash){ continue; }
+			return ((T*)(&((u08*)object)[type->fields[i].offset]));
 		}
 		return nullptr;
 	}

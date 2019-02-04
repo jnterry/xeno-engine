@@ -145,6 +145,14 @@ namespace xen{
 		/// \brief Extra flags for the command
 		Flags flags;
 	};
+
+	template<typename T>
+	inline void setMaterialParam(RenderCommand3d& cmd, const char* param_name, T& value){
+		xen::setField(cmd.material->parameters,
+		              param_name,
+		              cmd.material_params,
+		              value);
+	}
 }
 
 #endif

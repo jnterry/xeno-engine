@@ -50,6 +50,10 @@ namespace xgl {
 
 		/// \brief Array of the sources to be used for each uniform
 		xen::MaterialParameterSource::Kind* uniform_sources;
+
+		/// \brief Offset in bytes into the material parameter struct
+		/// that the value of each uniform can be found at
+		u32* uniform_param_offsets;
 	};
 
 	/// \brief Determines is specified shader program compiled successfully

@@ -318,6 +318,9 @@ const xen::Material* xgl::createMaterial(const xen::ShaderSource& source,
 	result->uniform_sources = xen::reserveTypeArray<xen::MaterialParameterSource::Kind>(
 		xgl::gl_state->primary_arena, sprog->uniform_count
 	);
+	result->uniform_param_offsets = xen::reserveTypeArray<u32>(
+		xgl::gl_state->primary_arena, sprog->uniform_count
+	);
 	////////////////////////////////////////////////////////////////////
 
 
@@ -383,6 +386,8 @@ const xen::Material* xgl::createMaterial(const xen::ShaderSource& source,
 		field->offset    = result->parameters->size;
 		field->name_hash = sprog->uniform_name_hashes[i];
 
+		result->uniform_param_offsets[i] = field->offset;
+
 		result->parameters->size += sprog->uniform_types[i]->size;
 
 		int align = result->parameters->size % alignof(int);
@@ -412,13 +417,11 @@ const void* getUniformDataSource(const xen::RenderCommand3d&    cmd,
 
 	const xgl::Material* material = (const xgl::Material*)cmd.material;
 
-
-
 	switch(material->uniform_sources[uniform_index]){
 	case xen::MaterialParameterSource::Variable: {
 		u08* data = (u08*)cmd.material_params;
 		if(data == nullptr){ return &all_zeros; };
-		return &data[cmd.material->parameters->fields[uniform_index].offset];
+		return &data[material->uniform_param_offsets[uniform_index]];
 	}
 	case xen::MaterialParameterSource::ModelMatrix:
 		return &cmd.model_matrix;
@@ -472,14 +475,13 @@ const void* getUniformDataSource(const xen::RenderCommand3d&    cmd,
 		static const int THREE = 3; return &THREE;
 	}
 	}
-	XenInvalidCodePath("Should hit a switch statement!");
+	XenInvalidCodePath("Should hit a switch case!");
 	return nullptr;
 }
 
 void xgl::applyMaterial(const xen::RenderCommand3d& cmd,
                         const xen::RenderParameters3d& params,
                         const xen::Aabb2u& viewport){
-
 	const xgl::Material* mat  = (xgl::Material*)cmd.material;
 	xgl::ShaderProgram* sprog = mat->program;
 
