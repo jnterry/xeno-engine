@@ -225,6 +225,14 @@ bool attachShaderSources(GLint program,
 	return success;
 }
 
+void destroyShaderProgram(xgl::ShaderProgram* sprog){
+	// :TODO: we should also delete attached shaders (but probably want ref counting
+	// in order to reuse shaders from same source files)
+	XEN_CHECK_GL(glDeleteProgram(sprog->program));
+
+	xen::freeType(xgl::gl_state->pool_shader, sprog);
+}
+
 xgl::ShaderProgram* createShaderProgram(const xen::MaterialCreationParameters& params){
 	xgl::ShaderProgram* result = xen::reserveType(xgl::gl_state->pool_shader);
 
@@ -254,27 +262,16 @@ xgl::ShaderProgram* createShaderProgram(const xen::MaterialCreationParameters& p
 		XEN_CHECK_GL(glGetProgramInfoLog(result->program, xen::getBytesRemaining(scratch),
 		                                 nullptr, (GLchar*)scratch.next_byte));
 		XenLogError("Failed to link shader:\n%s", (const char*)scratch.next_byte);
-		goto cleanup;
+	  destroyShaderProgram(result);
+	  return nullptr;
 	}
 
 	if(!fillShaderProgramMetaData(result)){
-		goto cleanup;
+		destroyShaderProgram(result);
+		return nullptr;
 	}
 
 	return result;
-
-	cleanup:
-	// :TODO: we should also glDeleteShader the shaders currently attached!
-	// (but when we implement shader reuse maybe they are linked into some other shader...)
-	glDeleteProgram(result->program);
-	xen::freeType(xgl::gl_state->pool_shader, result);
-	return nullptr;
-}
-
-void destroyShaderProgram(xgl::ShaderProgram* sprog){
-	XEN_CHECK_GL(glDeleteProgram(sprog->program      ));
-
-	xen::freeType(xgl::gl_state->pool_shader, sprog);
 }
 
 const xen::Material* xgl::createMaterial(const xen::MaterialCreationParameters& data){
