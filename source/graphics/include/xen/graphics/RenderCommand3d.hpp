@@ -15,6 +15,7 @@
 #include <xen/math/vector_types.hpp>
 #include <xen/math/matrix_types.hpp>
 #include <xen/graphics/Color.hpp>
+#include <xen/graphics/Material_types.hpp>
 #include <xen/graphics/Light3d.hpp>
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/Mesh.hpp>
@@ -101,11 +102,13 @@ namespace xen{
 		/// \brief Matrix to transform from world space to model space
 		Mat4r model_matrix;
 
-		/// \brief A handle to a mesh to be drawn, used if source is Mesh
+		/// \brief A handle to a mesh to be drawn
 		xen::Mesh mesh;
 
+		/// \brief The type of primitive to draw the mesh as
+		PrimitiveType primitive_type;
 
-		/// \brief Array of textures to be used by this rendering operation
+		/// \brief Array of texture channels to be used by this rendering operation
 		xen::Texture textures[4];
 
 		/// \brief Shader used to compute per pixel colors.
@@ -113,7 +116,17 @@ namespace xen{
 		/// Set to a null handle to use the engine's default shader
 		Shader shader;
 
-		/// \brief Enumeration of "extra" misc flags that may be set for a command
+		/// \brief The material to be used to render the geometry
+		const xen::Material* material;
+
+		/// \brief Block of data to be used as source of parameters for the material
+		/// Layout of the data should be that described by ~material->parameters~.
+		/// May be set to nullptr if the material has no parameters, or if there is
+		/// a default value for all parameters that do exist, and you are happy to
+		/// use the defaults
+		void* material_params;
+
+		/// \brief Enumeration of extra misc flags that may be set for a command
 		enum Flags : u08 {
 
 			/// \brief If set then the geometry rendered by this command
@@ -131,9 +144,6 @@ namespace xen{
 
 		/// \brief Extra flags for the command
 		Flags flags;
-
-		/// \brief The type of primitive to draw the mesh as
-		PrimitiveType primitive_type;
 	};
 }
 

@@ -74,7 +74,7 @@ namespace xen {
 
 		  /// \brief Floating parameter representing number of seconds since kernel
 		  /// creation
-		  Runtime,
+		  //Runtime, :TODO: impl
 		};
 
 		/// \brief The name of the parameter in question

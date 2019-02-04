@@ -87,7 +87,7 @@ namespace {
 		//////////////////////////////////////////////////////
 		// Allocate dynamic sized memory for the ShaderProgram
 		u64 data_block_size = result->uniform_count * (
-			sizeof(xen::StringHash) + sizeof(xen::MetaType*) + sizeof(GLint)
+			sizeof(xen::StringHash) + sizeof(xen::MetaType*) + sizeof(GLint) + sizeof(GLenum)
 		);
 		void* data_block = xen::reserveBytes(xgl::gl_state->primary_arena, data_block_size);
 
@@ -95,6 +95,8 @@ namespace {
 		xen::ptrAdvance(&data_block, sizeof(GLint) * result->uniform_count);
 		result->uniform_types = (const xen::MetaType**)data_block;
 		xen::ptrAdvance(&data_block, sizeof(xen::MetaType*) * result->uniform_count);
+		result->uniform_gl_types = (GLenum*)data_block;
+		xen::ptrAdvance(&data_block, sizeof(GLenum) * result->uniform_count);
 		result->uniform_name_hashes = (xen::StringHash*)data_block;
 		//////////////////////////////////////////////////////
 
@@ -114,11 +116,15 @@ namespace {
 			);
 
 			result->uniform_name_hashes[i] = xen::hash(tmp_name_buffer);
-			result->uniform_locations[i] = XEN_CHECK_GL_RETURN(
+			result->uniform_gl_types[i]    = type;
+			result->uniform_locations[i]   = XEN_CHECK_GL_RETURN(
 				glGetUniformLocation(result->program, tmp_name_buffer)
 			);
 
 			switch(type){
+				// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+				// This switch must have same cases as that in ~applyMaterial()~
+				// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			case GL_FLOAT:
 				XenLogInfo("  - %2i : float       : %s", i, tmp_name_buffer);
 				result->uniform_types[i] = &xen::meta_type<float>::type;
@@ -241,47 +247,6 @@ void xgl::useShader(xgl::ShaderProgram* shader){
 	} else {
 		glUseProgram(shader->program);
 	}
-}
-
-int xgl::getUniformLocation(xgl::ShaderProgram* shader, const char* name){
-	return glGetUniformLocation(shader->program, name);
-}
-
-void xgl::setUniform(int location, Vec3f data){
-	XEN_CHECK_GL(glUniform3f(location, data.x, data.y, data.z));
-}
-void xgl::setUniform(int location, Vec3d data){
-	XEN_CHECK_GL(glUniform3d(location, data.x, data.y, data.z));
-}
-void xgl::setUniform(int location, Vec3u data){
-	XEN_CHECK_GL(glUniform3ui(location, data.x, data.y, data.z));
-}
-void xgl::setUniform(int location, Vec3s data){
-	XEN_CHECK_GL(glUniform3i(location, data.x, data.y, data.z));
-}
-void xgl::setUniform(int location, Vec4f data){
-	XEN_CHECK_GL(glUniform4f(location, data.x, data.y, data.z, data.w));
-}
-void xgl::setUniform(int location, Vec4d data){
-	XEN_CHECK_GL(glUniform4d(location, data.x, data.y, data.z, data.w));
-}
-void xgl::setUniform(int location, Vec4u data){
-	XEN_CHECK_GL(glUniform4ui(location, data.x, data.y, data.z, data.w));
-}
-void xgl::setUniform(int location, Vec4s data){
-	XEN_CHECK_GL(glUniform4i(location, data.x, data.y, data.z, data.w));
-}
-void xgl::setUniform(int location, Mat3f data){
-	XEN_CHECK_GL(glUniformMatrix3fv(location, 1, GL_TRUE, data.elements));
-}
-void xgl::setUniform(int location, Mat3d data){
-	XEN_CHECK_GL(glUniformMatrix3dv(location, 1, GL_TRUE, data.elements));
-}
-void xgl::setUniform(int location, Mat4f data){
-	XEN_CHECK_GL(glUniformMatrix4fv(location, 1, GL_TRUE, data.elements));
-}
-void xgl::setUniform(int location, Mat4d data){
-	XEN_CHECK_GL(glUniformMatrix4dv(location, 1, GL_TRUE, data.elements));
 }
 
 xen::Shader xgl::createShader(const xen::ShaderSource& source){
@@ -430,7 +395,136 @@ const xen::Material* xgl::createMaterial(const xen::ShaderSource& source,
 	return result;
 }
 void xgl::destroyMaterial(const xen::Material*){
-
 }
+
+// Used as dummy uniform source by applyMaterial
+u64 all_zeros[16] = { 0 };
+
+const void* getUniformDataSource(const xen::RenderCommand3d&    cmd,
+                                 const xen::RenderParameters3d& params,
+                                 const xen::Aabb2u& viewport,
+                                 int uniform_index){
+
+	// :TODO: rather than doing all the calculations here we should instead
+	// delay rendering until we have all commands, and then precompute all of
+	// these once, then do rendering step
+	// This would remove all of the pushing to thread scratch
+
+	const xgl::Material* material = (const xgl::Material*)cmd.material;
+
+
+
+	switch(material->uniform_sources[uniform_index]){
+	case xen::MaterialParameterSource::Variable: {
+		u08* data = (u08*)cmd.material_params;
+		if(data == nullptr){ return &all_zeros; };
+		return &data[cmd.material->parameters->fields[uniform_index].offset];
+	}
+	case xen::MaterialParameterSource::ModelMatrix:
+		return &cmd.model_matrix;
+	case xen::MaterialParameterSource::ViewMatrix: {
+	  Mat4r* vmat = xen::reserveType<Mat4r>(xen::getThreadScratchSpace());
+		// opengl has (0,0) at bottom left, we expect it to be at top left so flip y
+		*vmat = (getViewMatrix(params.camera) * xen::Scale3d(1, -1, 1));
+		return vmat;
+	}
+	case xen::MaterialParameterSource::ProjectionMatrix: {
+		Mat4r* pmat = xen::reserveType<Mat4r>(xen::getThreadScratchSpace());
+		*pmat = (getProjectionMatrix(params.camera,
+		                             (Vec2r)(viewport.max - viewport.min)));
+		return pmat;
+	}
+	case xen::MaterialParameterSource::MvpMatrix: {
+		Mat4r* mvp = xen::reserveType<Mat4r>(xen::getThreadScratchSpace());
+		*mvp = (
+			cmd.model_matrix *
+			getViewMatrix(params.camera) *
+			xen::Scale3d(1, -1, 1) *
+			getProjectionMatrix(params.camera, (Vec2r)(viewport.max - viewport.min))
+		);
+		return mvp;
+	}
+	case xen::MaterialParameterSource::CameraWorldPosition:
+		return &params.camera.position;
+	case xen::MaterialParameterSource::CameraLookDirection:
+	  return &params.camera.look_dir;
+	case xen::MaterialParameterSource::CameraUpDir:
+		return &params.camera.up_dir;
+	case xen::MaterialParameterSource::AmbientLightColor:
+		return &params.ambient_light;
+	case xen::MaterialParameterSource::PointLightPosition:
+		if(&params.lights.size == 0){ return &all_zeros; }
+		return &params.lights[0].point.position;
+	case xen::MaterialParameterSource::PointLightColor:
+		return &params.lights[0].color;
+	case xen::MaterialParameterSource::PointLightAttenuation:
+	  return &params.lights[0].attenuation;
+	case xen::MaterialParameterSource::TextureChannel0: {
+		static const int ZERO = 0; return &ZERO;
+	}
+	case xen::MaterialParameterSource::TextureChannel1: {
+		static const int ONE = 1; return &ONE;
+	}
+	case xen::MaterialParameterSource::TextureChannel2: {
+		static const int TWO = 2; return &TWO;
+	}
+	case xen::MaterialParameterSource::TextureChannel3: {
+		static const int THREE = 3; return &THREE;
+	}
+	}
+	XenInvalidCodePath("Should hit a switch statement!");
+	return nullptr;
+}
+
+void xgl::applyMaterial(const xen::RenderCommand3d& cmd,
+                        const xen::RenderParameters3d& params,
+                        const xen::Aabb2u& viewport){
+
+	const xgl::Material* mat  = (xgl::Material*)cmd.material;
+	xgl::ShaderProgram* sprog = mat->program;
+
+	XEN_CHECK_GL(glUseProgram(sprog->program));
+
+	for(GLint i = 0; i < sprog->uniform_count; ++i){
+		int loc = sprog->uniform_locations[i];
+
+		const void* data = getUniformDataSource(cmd, params, viewport, i);
+		switch(sprog->uniform_gl_types[i]){
+			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			// This switch must have same cases as that in ~applyMaterial()~
+			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		case GL_FLOAT       : XGL_CHECK(glUniform1fv(loc, 1, ( GLfloat*)data)); break;
+		case GL_FLOAT_VEC2  : XGL_CHECK(glUniform2fv(loc, 1, ( GLfloat*)data)); break;
+		case GL_FLOAT_VEC3  : XGL_CHECK(glUniform3fv(loc, 1, ( GLfloat*)data)); break;
+		case GL_FLOAT_VEC4  : XGL_CHECK(glUniform4fv(loc, 1, ( GLfloat*)data)); break;
+		case GL_DOUBLE      : XGL_CHECK(glUniform1dv(loc, 1, (GLdouble*)data)); break;
+		case GL_DOUBLE_VEC2 : XGL_CHECK(glUniform2dv(loc, 1, (GLdouble*)data)); break;
+		case GL_DOUBLE_VEC3 : XGL_CHECK(glUniform3dv(loc, 1, (GLdouble*)data)); break;
+		case GL_DOUBLE_VEC4 : XGL_CHECK(glUniform4dv(loc, 1, (GLdouble*)data)); break;
+		case GL_INT         : XGL_CHECK(glUniform1iv(loc, 1, (   GLint*)data)); break;
+		case GL_INT_VEC2    : XGL_CHECK(glUniform2iv(loc, 1, (   GLint*)data)); break;
+		case GL_INT_VEC3    : XGL_CHECK(glUniform3iv(loc, 1, (   GLint*)data)); break;
+		case GL_INT_VEC4    : XGL_CHECK(glUniform4iv(loc, 1, (   GLint*)data)); break;
+		case GL_BOOL        : XGL_CHECK(glUniform1iv(loc, 1, (   GLint*)data)); break;
+		case GL_FLOAT_MAT4  :
+			XEN_CHECK_GL(glUniformMatrix4fv(loc, 1, GL_TRUE, (GLfloat*)data));
+			break;
+		case GL_DOUBLE_MAT4 :
+			XEN_CHECK_GL(glUniformMatrix4dv(loc, 1, GL_TRUE, (GLdouble*)data));
+			break;
+		case GL_SAMPLER_2D:
+			XEN_CHECK_GL(glUniform1i(loc, *(GLint*)data)); break;
+			break;
+		}
+	}
+
+	for(u64 i = 0; i < XenArrayLength(cmd.textures); ++i){
+		XEN_CHECK_GL(glActiveTexture(GL_TEXTURE0 + i));
+		XEN_CHECK_GL(glBindTexture(GL_TEXTURE_2D, xgl::getTextureImpl(cmd.textures[i])->id));
+	}
+}
+
+
+
 
 #endif

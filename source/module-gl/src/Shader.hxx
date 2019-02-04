@@ -37,6 +37,9 @@ namespace xgl {
 	  /// static program wide data (eg: xen::meta_type<float>::type)
 	  const xen::MetaType** uniform_types;
 
+	  /// \brief GL type for each uniform
+	  GLenum* uniform_gl_types;
+
 	  /// \brief Array of hashes of the name of each uniform
 	  xen::StringHash* uniform_name_hashes;
   };
@@ -58,23 +61,6 @@ namespace xgl {
 	/// \brief Makes specified ShaderProgram the active one
 	void useShader(ShaderProgram*);
 
-	/// \brief Gets location of specified uniform variable
-	int getUniformLocation(ShaderProgram* program, const char* name);
-
-	/// \brief Sets uniform variable at the specified location on active program
-	void setUniform(int location, Vec3f data);
-	void setUniform(int location, Vec3d data);
-	void setUniform(int location, Vec3u data);
-	void setUniform(int location, Vec3s data);
-	void setUniform(int location, Vec4f data);
-	void setUniform(int location, Vec4d data);
-	void setUniform(int location, Vec4u data);
-	void setUniform(int location, Vec4s data);
-	void setUniform(int location, Mat3f data);
-	void setUniform(int location, Mat3d data);
-	void setUniform(int location, Mat4f data);
-	void setUniform(int location, Mat4d data);
-
 	// functions for module interface
 	xen::Shader    createShader(const xen::ShaderSource& source);
 	void           destroyShader(xen::Shader shader);
@@ -86,6 +72,10 @@ namespace xgl {
 	                                    const xen::MaterialParameterSource* params,
 	                                    u64 param_count);
 	void destroyMaterial(const xen::Material*);
+
+	void applyMaterial(const xen::RenderCommand3d& cmd,
+	                   const xen::RenderParameters3d& params,
+	                   const xen::Aabb2u& viewport);
 }
 
 #endif

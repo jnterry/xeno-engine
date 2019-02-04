@@ -43,6 +43,10 @@
 	//#define XEN_CHECK_GL(call) (call)
 //#endif
 
+// :TODO: replace above with these shorter versions...
+#define XGL_CHECK(call)    XEN_CHECK_GL(call)
+#define XGL_CHECKRET(call) XEN_CHECK_GL_RETURN(call)
+
 namespace xen{
 	namespace impl{
 
