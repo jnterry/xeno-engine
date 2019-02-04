@@ -60,25 +60,19 @@ namespace xen {
 		static RenderOp SwapBuffers(xen::RenderTarget target);
 	};
 
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Bundle of arguments used to create a shader. This includes
-	/// parameters for all rendering backends, and combination of which may
-	/// be supplied. Rendering backends should attempt to construct a shader
-	/// from that which is not nullptr, and if that is not possible (eg, only
-	/// sren shader is specified but we are using opengl) then the backend should
-	/// fall back to using its default shader
-	///
-	/// \todo Something better for creating shaders in a backend agnostic way...
-	/////////////////////////////////////////////////////////////////////
-	struct ShaderSource {
-		/// \brief Pointer to a FragmentShader for sren backends
-		void* sren;
+	/// \brief Bundle of arguments that describe to the rendering backend how to
+	/// create a material
+	struct MaterialCreationParameters {
+		/// \brief Array of shader source file paths to be compiled to form
+		/// the vertex stage of the shader program associated with this material
+		xen::Array<const char*> vertex_sources;
 
-		/// \brief Path of glsl code for vertex shader
-		const char* glsl_vertex_path;
+		/// \brief Array of files to be compiled as the pixel shader
+		xen::Array<const char*> pixel_sources;
 
-		/// \brief Path of glsl code for fragment shader
-		const char* glsl_fragment_path;
+		/// \brief List of sources from which shader parameter values
+		/// will be derived
+		xen::Array<xen::MaterialParameterSource> parameter_sources;
 	};
 
 	/////////////////////////////////////////////////////////////////////
@@ -124,16 +118,7 @@ namespace xen {
 		void    (*destroyTexture)(Texture texture);
 
 		/// \brief Creates a material which may later be used for rendering geometry
-		/// \param source -> How to create the shader which will be used for
-		/// rendering
-		/// \param params -> Sources to use as parameters for the shader. Any
-		/// parameter for which a source is not picked will be added to the
-		/// dynamically assignable parameter set for the material. If a source
-		/// makes reference to a variable name which does not exist in the shader
-		/// it will be ignored
-		const Material* (*createMaterial)(const ShaderSource& source,
-		                                  const xen::MaterialParameterSource* params,
-		                                  u64 params_length);
+		const Material* (*createMaterial)(const MaterialCreationParameters& params);
 		void            (*destroyMaterial)(const Material* material);
 
 		/// \brief Pushes some rendering operation

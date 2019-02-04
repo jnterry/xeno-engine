@@ -20,36 +20,9 @@
 #include "Material.hxx"
 #include "gl_header.hxx"
 
-GLuint compileShader(GLenum stage, const char* source){
-	// create shader
-	GLuint result = XEN_CHECK_GL_RETURN(glCreateShader(stage));
-
-	// load source and compile
-	XEN_CHECK_GL(glShaderSource(result, 1, &source, NULL));
-	XEN_CHECK_GL(glCompileShader(result));
-
-	return result;
-}
-
-xgl::ShaderProgram* initShaderProgram(xgl::ShaderProgram* result,
-                                      const char* vertex_source,
-                                      const char* pixel_source
-){
-	result->vertex_shader = compileShader(GL_VERTEX_SHADER,   vertex_source);
-	result->pixel_shader  = compileShader(GL_FRAGMENT_SHADER, pixel_source);
-
-	result->program = XEN_CHECK_GL_RETURN(glCreateProgram());
-
-	XEN_CHECK_GL(glAttachShader(result->program, result->vertex_shader  ));
-	XEN_CHECK_GL(glAttachShader(result->program, result->pixel_shader));
-
-	XEN_CHECK_GL(glLinkProgram(result->program));
-
-	XEN_CHECK_GL(glDetachShader(result->program, result->vertex_shader  ));
-	XEN_CHECK_GL(glDetachShader(result->program, result->pixel_shader));
-
+bool fillShaderProgramMetaData(xgl::ShaderProgram* result){
 	////////////////////////////////////////////////////
-	// Query Shader Interface
+	// Vertex attributes
 	// :TODO: We should probably store the vertex layout as well as the uniform
 	// data, but that requires supporting arbitrary vertex layouts in the public
 	// api...
@@ -191,94 +164,124 @@ xgl::ShaderProgram* initShaderProgram(xgl::ShaderProgram* result,
 		default:
 			XenLogError("ShaderProgram contained uniform '%s' which has an unsupported type: %i",
 			            tmp_name_buffer, type);
-			XEN_CHECK_GL(glDeleteShader (result->vertex_shader));
-			XEN_CHECK_GL(glDeleteShader (result->pixel_shader ));
-			XEN_CHECK_GL(glDeleteProgram(result->program      ));
-			return nullptr;
+			return false;
 		}
 	}
 
-
 	transaction.commit();
+	return true;
+}
+
+GLuint compileShader(GLenum stage, const char* source, const char* filename){
+	// create shader
+	GLuint result = XGL_CHECKRET(glCreateShader(stage));
+
+	// load source and compile
+	XGL_CHECK(glShaderSource(result, 1, &source, NULL));
+	XGL_CHECK(glCompileShader(result));
+
+	GLint status;
+  XGL_CHECK(glGetShaderiv(result, GL_COMPILE_STATUS, &status));
+
+  if(status != GL_TRUE){
+	  xen::ArenaLinear& scratch = xen::getThreadScratchSpace();
+	  xen::MemoryTransaction trans(scratch);
+	  XEN_CHECK_GL(glGetShaderInfoLog(result,
+	                                  xen::getBytesRemaining(scratch),
+	                                  nullptr,
+	                                  (GLchar*)scratch.next_byte));
+	  XenLogError("Errors occurred compiling shader '%s':\n%s",
+	              filename, (char*)scratch.next_byte);
+  }
+
 	return result;
 }
 
-bool isOkay(xgl::ShaderProgram* shader){
-	GLint status_vert, status_pixel, status_prog;
+bool attachShaderSources(GLint program,
+                                   xen::Array<const char*> sources,
+                                   GLint stage){
 
-	XEN_CHECK_GL(glGetShaderiv (shader->vertex_shader, GL_COMPILE_STATUS, &status_vert ));
-	XEN_CHECK_GL(glGetShaderiv (shader->pixel_shader,  GL_COMPILE_STATUS, &status_pixel));
-	XEN_CHECK_GL(glGetProgramiv(shader->program,       GL_LINK_STATUS,    &status_prog ));
+	xen::ArenaLinear& scratch = xen::getThreadScratchSpace();
+	xen::MemoryTransaction transaction_scratch(scratch); // do not commit this!
 
-	return status_vert == GL_TRUE && status_pixel == GL_TRUE && status_prog == GL_TRUE;
-}
+	// :TODO: should has file names and reuse existing shaders where possible
 
-char* getErrors(xgl::ShaderProgram* shader, xen::ArenaLinear& arena){
-	if(isOkay(shader)){
-		return pushString(arena, "No errors");
+	bool success = true;
+	for(unsigned i = 0; i < sources.size; ++i){
+		transaction_scratch.rollback();
+		xen::FileData source_code = xen::loadFileAndNullTerminate(scratch, sources[i]);
+
+		if(source_code.size == 0){
+			XenLogError("Failed to load shader source file: %s\n", sources[i]);
+			success = false;
+			continue;
+		}
+
+		GLuint shader = compileShader(stage, (const char*)&source_code[0], sources[i]);
+
+		XGL_CHECK(glAttachShader(program, shader));
 	}
 
-	char* result = (char*)arena.next_byte;
-	GLint bytes_written;
-
-	xen::pushStringNoTerminate(arena, "Vertex Shader:\n");
-	XEN_CHECK_GL(glGetShaderInfoLog(shader->vertex_shader, xen::getBytesRemaining(arena),
-			                                &bytes_written, (GLchar*)arena.next_byte));
-	xen::ptrAdvance(&arena.next_byte, bytes_written);
-
-	xen::pushStringNoTerminate(arena, "Pixel Shader:\n");
-	XEN_CHECK_GL(glGetShaderInfoLog(shader->pixel_shader, xen::getBytesRemaining(arena),
-	                                &bytes_written, (GLchar*)arena.next_byte));
-	xen::ptrAdvance(&arena.next_byte, bytes_written);
-
-	xen::pushStringNoTerminate(arena, "Program:\n");
-	XEN_CHECK_GL(glGetProgramInfoLog(shader->program, xen::getBytesRemaining(arena),
-	                                 &bytes_written, (GLchar*)arena.next_byte));
-	xen::ptrAdvance(&arena.next_byte, bytes_written);
-
-	return result;
+	return success;
 }
 
-xgl::ShaderProgram* createShader(const xen::ShaderSource& source){
-	xgl::ShaderProgram* sprog = xen::reserveType(xgl::gl_state->pool_shader);
+xgl::ShaderProgram* createShaderProgram(const xen::MaterialCreationParameters& params){
+	xgl::ShaderProgram* result = xen::reserveType(xgl::gl_state->pool_shader);
 
-	XenTempArena(scratch, 8196);
 
-	xen::FileData vertex_src = loadFileAndNullTerminate(scratch, source.glsl_vertex_path);
-	xen::FileData pixel_src  = loadFileAndNullTerminate(scratch, source.glsl_fragment_path);
+	// :TODO: reuse an existing shader program if one exists with same source files
+	result->program = XEN_CHECK_GL_RETURN(glCreateProgram());
 
-	initShaderProgram(sprog, (char*)&vertex_src[0], (char*)&pixel_src[0]);
+	bool success = true;
 
-	if(!isOkay(sprog)){
-		resetArena(scratch);
-		const char* errors = getErrors(sprog, scratch);
-		XenLogError("Shader Errors:\n%s", errors);
-		XenBreak();
+	success &= attachShaderSources(result->program, params.vertex_sources, GL_VERTEX_SHADER);
+	success &= attachShaderSources(result->program, params.pixel_sources,  GL_FRAGMENT_SHADER);
+
+	if(!success){
+		XenLogWarn("Errors occurred while compiling shaders, attempting to link...");
+	}
+
+	XEN_CHECK_GL(glLinkProgram(result->program));
+
+	GLint link_status;
+	XEN_CHECK_GL(glGetProgramiv(result->program, GL_LINK_STATUS, &link_status ));
+
+	if(link_status == GL_TRUE){
+		XenLogDone("Successfully linked shader program");
 	} else {
-		XenLogDone("Shader compiled successfully");
+		xen::ArenaLinear& scratch = xen::getThreadScratchSpace();
+		xen::MemoryTransaction scratch_transaction(scratch);
+		XEN_CHECK_GL(glGetProgramInfoLog(result->program, xen::getBytesRemaining(scratch),
+		                                 nullptr, (GLchar*)scratch.next_byte));
+		XenLogError("Failed to link shader:\n%s", (const char*)scratch.next_byte);
+		goto cleanup;
 	}
 
-	return sprog;
+	if(!fillShaderProgramMetaData(result)){
+		goto cleanup;
+	}
+
+	return result;
+
+	cleanup:
+	// :TODO: we should also glDeleteShader the shaders currently attached!
+	// (but when we implement shader reuse maybe they are linked into some other shader...)
+	glDeleteProgram(result->program);
+	xen::freeType(xgl::gl_state->pool_shader, result);
+	return nullptr;
 }
 
-void destroyShader(xgl::ShaderProgram* sprog){
-	XEN_CHECK_GL(glDeleteShader (sprog->vertex_shader));
-	XEN_CHECK_GL(glDeleteShader (sprog->pixel_shader ));
+void destroyShaderProgram(xgl::ShaderProgram* sprog){
 	XEN_CHECK_GL(glDeleteProgram(sprog->program      ));
 
 	xen::freeType(xgl::gl_state->pool_shader, sprog);
 }
 
-const xen::Material* xgl::createMaterial(const xen::ShaderSource& source,
-                                         const xen::MaterialParameterSource* params,
-                                         u64 param_count){
-
+const xen::Material* xgl::createMaterial(const xen::MaterialCreationParameters& data){
 	////////////////////////////////////////////////////////////////////
 	// Create Shader and Material instance
-	//
-	// :TODO: we should reuse existing shaders created from the same source
-	// wherever possible...
-	xgl::ShaderProgram* sprog = createShader(source);
+	xgl::ShaderProgram* sprog = createShaderProgram(data);
+	if(sprog == nullptr){ return nullptr; }
 
 	xgl::Material* result = xen::reserveType<xgl::Material>(xgl::gl_state->pool_material);
 	result->program = sprog;
@@ -294,15 +297,15 @@ const xen::Material* xgl::createMaterial(const xen::ShaderSource& source,
 
 	////////////////////////////////////////////////////////////////////
 	// Warn on ignored parameters
-	for(u64 i = 0; i < param_count; ++i){
-		xen::StringHash hash = xen::hash(params[i].name);
+	for(u64 i = 0; i < data.parameter_sources.size; ++i){
+		xen::StringHash hash = xen::hash(data.parameter_sources[i].name);
 		bool found = false;
 		for(int j = 0; j < sprog->uniform_count && !found; ++j){
 			found |= sprog->uniform_name_hashes[j] == hash;
 		}
 		if(!found){
 			XenLogWarn("Ignoring material parameter source '%s' since no corresponding variable found in shader",
-			           params[i].name);
+			           data.parameter_sources[i].name);
 		}
 	}
 	////////////////////////////////////////////////////////////////////
@@ -314,12 +317,12 @@ const xen::Material* xgl::createMaterial(const xen::ShaderSource& source,
 	for(GLint i = 0; i < sprog->uniform_count; ++i){
 		result->uniform_sources[i] = xen::MaterialParameterSource::Variable;
 
-		for(u64 j = 0; j < param_count; ++j){
-			if(sprog->uniform_name_hashes[i] == xen::hash(params[j].name)){
+		for(u64 j = 0; j < data.parameter_sources.size; ++j){
+			if(sprog->uniform_name_hashes[i] == xen::hash(data.parameter_sources[j].name)){
 				XenAssert(result->uniform_sources[i] == xen::MaterialParameterSource::Variable,
 				          "Program contains multiple variables with same hash!"
 				);
-				result->uniform_sources[i] = params[j].kind;
+				result->uniform_sources[i] = data.parameter_sources[j].kind;
 			}
 		}
 
@@ -369,7 +372,7 @@ const xen::Material* xgl::createMaterial(const xen::ShaderSource& source,
 }
 void xgl::destroyMaterial(const xen::Material* mat){
 	// :TODO: reuse shaders between multiple materials where applicable
-	destroyShader(((xgl::Material*)mat)->program);
+	destroyShaderProgram(((xgl::Material*)mat)->program);
 
 	// :TODO: we want to free dynamic storage used for material, but its all
 	// in the primary arena which we don't want to reset.

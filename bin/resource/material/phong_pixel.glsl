@@ -18,43 +18,29 @@ uniform vec4 emissive_color = vec4(0,0,0,0);
 uniform vec4      diffuse_color = vec4(1,1,1,1);
 uniform sampler2D diffuse_map;
 
-vec3 calcLight(vec4 light_color, vec3 dir){
-	vec3 result = vec3(0,0,0);
 
-	float diffuse_factor = dot(normal, dir);
-	if(diffuse_factor > 0){
-		result += light_color.xyz * diffuse_factor;
-
-		//closer these are the more specular you get as eye is closer to the reflected beam
-		vec3 dir_to_cam = normalize(camera_position - world_position);
-		vec3 reflection_dir = normalize(reflect(dir, normal)); // expected specular reflection dir
-		float specular_factor = dot(dir_to_cam,reflection_dir); //cosine of the angle between directions, 1 when angle is 0, gets less as angle increases
-		specular_factor = pow(specular_factor, 2); //raise to specified power
-		if(specular_factor > 0){
-			result += light_color.xyz * specular_factor;
-		}
-	}
-
-	return result * light_color.w;
-}
-
-vec3 calcPointLight(vec4 light_col, vec3 light_pos, vec3 light_attenuation){
-	vec3  light_dir  = (world_position - light_pos);
-	float light_dist = length(light_dir);
-	light_dir /= light_dist;
-
-	float attenuation = light_attenuation.z
-		              + light_attenuation.y * light_dist
-		              + light_attenuation.x * light_dist * light_dist
-		              + 0.00001; // don't div by 0
-
-	return calcLight(light_col, light_dir) / attenuation;
-}
+vec3 calcPointLight(vec3 camera_position,
+                    vec3 surface_position,
+                    vec3 surface_normal,
+                    vec3 light_pos,
+                    vec4 light_col,
+                    vec3 light_attenuation);
+vec3 calcDirectionLight(vec3 camera_position,
+                        vec3 surface_position,
+                        vec3 surface_normal,
+                        vec4 light_color,
+                        vec3 light_dir);
 
 void main(){
 	vec3 total_light = ambient_light;
-	total_light += calcPointLight(point_light_color, point_light_pos, point_light_attenuation);
-	total_light += calcLight(vec4(1,1,1,0.3), normalize(vec3(0,-1,-1)));
+	total_light += calcPointLight(camera_position,
+	                              world_position, normal,
+	                              point_light_pos, point_light_color,
+	                              point_light_attenuation);
+	total_light += calcDirectionLight(camera_position,
+	                                  world_position, normal,
+	                                  vec4(1,1,1,0.3),
+	                                  normalize(vec3(0,-1,-1)));
 	total_light += emissive_color.xyz * emissive_color.w;
 
 	vec3 normal_col = (normalize(normal) + vec3(1,1,1)) / 2.0;

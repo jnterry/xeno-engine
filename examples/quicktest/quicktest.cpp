@@ -84,10 +84,7 @@ void* init(const void* params){
 	state->vertex_spec[2] = xen::VertexAttribute::Color4b;
 	state->vertex_spec[3] = xen::VertexAttribute::TexCoord2f;
 
-	state->material_phong    = mod_ren->createMaterial(
-	  { nullptr, "resource/material/phong_vertex.glsl", "resource/material/phong_pixel.glsl" },
-		phong_material_sources, XenArrayLength(phong_material_sources)
-	);
+	state->material_phong    = mod_ren->createMaterial(material_creation_params_phong);
 
 	xen::RawImage test_image = xen::loadImage(arena, "resource/texture/test.bmp");
 	state->texture_debug_img = mod_ren->createTexture(&test_image);

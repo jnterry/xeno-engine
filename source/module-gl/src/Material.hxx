@@ -18,15 +18,13 @@
 
 namespace xgl {
   struct ShaderProgram {
-	  GLuint vertex_shader; ///< Handle for the vertex stage
-	  GLuint pixel_shader;  ///< Handle for the pixel stage
 	  GLuint program;       ///< Handle for the program object
 
 	  ///\brief  Number of uniforms in the program
 	  GLint uniform_count;
 
 	  /// \brief Array of GLSL location of each uniform
-	  GLint*         uniform_locations;
+	  GLint*  uniform_locations;
 
 	  /// \brief Array of corresponding CPU types for each GLSL uniform
 	  /// \note While the array memory is owned by this object, this actual
@@ -53,9 +51,7 @@ namespace xgl {
 		u32* uniform_param_offsets;
 	};
 
-	const xen::Material* createMaterial(const xen::ShaderSource& source,
-	                                    const xen::MaterialParameterSource* params,
-	                                    u64 param_count);
+	const xen::Material* createMaterial(const xen::MaterialCreationParameters& params);
 	void destroyMaterial(const xen::Material*);
 
 	void applyMaterial(const xen::RenderCommand3d& cmd,

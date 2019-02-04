@@ -34,6 +34,6 @@ void handleCameraInputCylinder(xen::ModuleApiWindow* mod_win, xen::Window* win, 
 /////////////////////////////////////////////////////////////////////
 void handleCameraInputPlane   (xen::ModuleApiWindow* mod_win, xen::Window* win, xen::Camera3d& camera, real dt);
 
-extern xen::MaterialParameterSource phong_material_sources[8];
+extern xen::MaterialCreationParameters material_creation_params_phong;
 
 #endif

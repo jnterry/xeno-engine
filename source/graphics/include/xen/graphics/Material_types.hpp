@@ -85,13 +85,26 @@ namespace xen {
 	};
 
 	/// \brief Represents some material registered with the graphics API  which
-	// may be used to render geometry
+	/// may be used to render geometry
+	///
+	/// For those familiar with OpenGL, a Material is simply a shader program with
+	/// associated state representing how to fill in the values of uniform
+	/// variables. Note however that Xeno Engine does not expose the concept
+	/// of "Shader Programs" publicly since other rendering backends may be
+	/// implemented differently
 	struct Material {
 		/// \brief MetaType which describes the expected set of parameters to be
 		/// passed to the rendering backend when using this material
 		/// Will be nullptr if there are zero parameters to be passed to the
 		/// backend
 		MetaType* parameters;
+
+		// :TODO: mapping for VertexSpec? Currently we rely on user supplied
+		// vertex spec when creating meshes and just hope this matches that
+		// expected by the shader. If we said which var names mapped to which
+		// aspects we could generate the vertex spec automatically for each
+		// material as part of the creation process
+		//VertexSpec vertex_spec;
 	};
 }
 
