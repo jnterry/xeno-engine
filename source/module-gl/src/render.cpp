@@ -9,7 +9,7 @@
 #ifndef XEN_GL_RENDER_CPP
 #define XEN_GL_RENDER_CPP
 
-#include "Shader.hxx"
+#include "Material.hxx"
 #include "Mesh.hxx"
 #include "gl_header.hxx"
 #include "RenderTarget.hxx"

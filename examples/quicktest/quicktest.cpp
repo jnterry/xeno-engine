@@ -43,7 +43,6 @@ struct State {
 	xen::Mesh     mesh_cube;
 	xen::Mesh     mesh_bunny;
 	xen::Texture  texture_debug_img;
-	xen::Shader   shader_phong;
 
 	const xen::Material* material_phong;
 

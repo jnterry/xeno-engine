@@ -1,7 +1,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                        Part of Xeno Engine                                 //
 ////////////////////////////////////////////////////////////////////////////////
-/// \brief Contains functions for creating and using shaders
+/// \brief Contains interface provided to rest of module for interacting with
+/// Materials
 ///
 /// \ingroup gl
 ////////////////////////////////////////////////////////////////////////////////
@@ -14,10 +15,6 @@
 #include <xen/math/matrix_types.hpp>
 #include "gl_header.hxx"
 #include <xen/graphics/ModuleApiGraphics.hpp>
-
-namespace xen{
-	struct ArenaLinear;
-}
 
 namespace xgl {
   struct ShaderProgram {
@@ -55,22 +52,6 @@ namespace xgl {
 		/// that the value of each uniform can be found at
 		u32* uniform_param_offsets;
 	};
-
-	/// \brief Determines is specified shader program compiled successfully
-	bool isOkay(ShaderProgram*);
-
-	/// \brief Pushes a string representing the errors for some program to some arena
-	char* getErrors(ShaderProgram*, xen::ArenaLinear& arena);
-
-	/// \brief Makes specified ShaderProgram the active one
-	void useShader(ShaderProgram*);
-
-	// functions for module interface
-	xen::Shader    createShader(const xen::ShaderSource& source);
-	void           destroyShader(xen::Shader shader);
-
-
-	ShaderProgram* getShaderImpl  (xen::Shader shader);
 
 	const xen::Material* createMaterial(const xen::ShaderSource& source,
 	                                    const xen::MaterialParameterSource* params,

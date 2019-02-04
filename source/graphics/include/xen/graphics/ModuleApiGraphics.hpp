@@ -123,9 +123,6 @@ namespace xen {
 		Texture (*createTexture )(const RawImage* image);
 		void    (*destroyTexture)(Texture texture);
 
-		Shader  (*createShader  )(const ShaderSource& source);
-		void    (*destroyShader )(Shader shader     );
-
 		/// \brief Creates a material which may later be used for rendering geometry
 		/// \param source -> How to create the shader which will be used for
 		/// rendering

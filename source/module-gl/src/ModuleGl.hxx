@@ -10,7 +10,7 @@
 #define XEN_GL_MODULE_HXX
 
 #include "Mesh.hxx"
-#include "Shader.hxx"
+#include "Material.hxx"
 #include "Texture.hxx"
 
 #include <xen/graphics/ModuleApiGraphics.hpp>

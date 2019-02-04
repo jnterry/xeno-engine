@@ -116,9 +116,6 @@ void* load( void* data, const void* params){
 	xgl::gl_state->api.createTexture           = &xgl::createTexture;
 	xgl::gl_state->api.destroyTexture          = &xgl::destroyTexture;
 
-	xgl::gl_state->api.createShader            = &xgl::createShader;
-	xgl::gl_state->api.destroyShader           = &xgl::destroyShader;
-
 	xgl::gl_state->api.createMaterial          = &xgl::createMaterial;
 	xgl::gl_state->api.destroyMaterial         = &xgl::destroyMaterial;
 

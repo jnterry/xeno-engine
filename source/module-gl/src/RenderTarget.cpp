@@ -71,12 +71,6 @@ namespace xgl {
 		// A context should be created in module init(), then we share all resources
 		// with that
 
-		// :TODO: something better with shaders -> ideally expose them to user of xenogin
-		// but how do "programable pipeline" in software / other devices?
-
-		// ensure shader 0 is the default shader
-		xgl::createShader({ nullptr, "vertex.glsl", "pixel.glsl" });
-
 		// Ensure texture 0 is single pixel white
 		xen::RawImage image;
 		image.size.x = 1;
