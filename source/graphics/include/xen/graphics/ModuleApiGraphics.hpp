@@ -67,6 +67,8 @@ namespace xen {
 		/// the vertex stage of the shader program associated with this material
 		xen::Array<const char*> vertex_sources;
 
+		xen::Array<const char*> geometry_sources;
+
 		/// \brief Array of files to be compiled as the pixel shader
 		xen::Array<const char*> pixel_sources;
 

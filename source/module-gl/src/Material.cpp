@@ -242,8 +242,9 @@ xgl::ShaderProgram* createShaderProgram(const xen::MaterialCreationParameters& p
 
 	bool success = true;
 
-	success &= attachShaderSources(result->program, params.vertex_sources, GL_VERTEX_SHADER);
-	success &= attachShaderSources(result->program, params.pixel_sources,  GL_FRAGMENT_SHADER);
+	success &= attachShaderSources(result->program, params.vertex_sources,   GL_VERTEX_SHADER);
+	success &= attachShaderSources(result->program, params.geometry_sources, GL_GEOMETRY_SHADER);
+	success &= attachShaderSources(result->program, params.pixel_sources,    GL_FRAGMENT_SHADER);
 
 	if(!success){
 		XenLogWarn("Errors occurred while compiling shaders, attempting to link...");

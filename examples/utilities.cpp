@@ -33,9 +33,35 @@ const char* phong_pixel_files[]  = {
 
 xen::MaterialCreationParameters material_creation_params_phong = {
 	{ XenArrayLength(phong_vertex_files     ), phong_vertex_files },
+	{ 0, nullptr },
 	{ XenArrayLength(phong_pixel_files      ), phong_pixel_files  },
 	{ XenArrayLength(phong_parameter_sources), phong_parameter_sources },
 };
+
+////////////////////////////////////////////////////////////////////////////////
+
+xen::MaterialParameterSource normal_lines_parameter_sources[] = {
+	{ "mvp_mat",                 xen::MaterialParameterSource::MvpMatrix             },
+	{ "model_mat",               xen::MaterialParameterSource::ModelMatrix           },
+};
+const char* normal_lines_vertex_files[] = {
+	"resource/material/normal_lines_vertex.glsl",
+};
+const char* normal_lines_geometry_files[]  = {
+	"resource/material/normal_lines_geometry.glsl",
+};
+const char* normal_lines_pixel_files[]  = {
+	"resource/material/normal_lines_pixel.glsl",
+};
+
+xen::MaterialCreationParameters material_creation_params_normal_lines = {
+	{ XenArrayLength(normal_lines_vertex_files     ), normal_lines_vertex_files   },
+  { XenArrayLength(normal_lines_geometry_files   ), normal_lines_geometry_files },
+	{ XenArrayLength(normal_lines_pixel_files      ), normal_lines_pixel_files    },
+	{ XenArrayLength(normal_lines_parameter_sources), normal_lines_parameter_sources },
+};
+
+////////////////////////////////////////////////////////////////////////////////
 
 void handleCameraInputCylinder(xen::ModuleApiWindow* mod_win, xen::Window* win, xen::Camera3dCylinder& camera, real dt, real max_radius){
 	if(!mod_win->hasFocus(win)){ return; }

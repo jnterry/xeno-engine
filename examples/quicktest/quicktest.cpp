@@ -45,8 +45,9 @@ struct State {
 	xen::Texture  texture_debug_img;
 
 	const xen::Material* material_phong;
+	const xen::Material* material_normal_lines;
 
-	xen::FixedArray<xen::RenderCommand3d , 6> render_cmds;
+	xen::FixedArray<xen::RenderCommand3d, 6> render_cmds;
 };
 
 State* state = nullptr;
@@ -84,7 +85,8 @@ void* init(const void* params){
 	state->vertex_spec[2] = xen::VertexAttribute::Color4b;
 	state->vertex_spec[3] = xen::VertexAttribute::TexCoord2f;
 
-	state->material_phong    = mod_ren->createMaterial(material_creation_params_phong);
+	state->material_phong        = mod_ren->createMaterial(material_creation_params_phong);
+	state->material_normal_lines = mod_ren->createMaterial(material_creation_params_normal_lines);
 
 	xen::RawImage test_image = xen::loadImage(arena, "resource/texture/test.bmp");
 	state->texture_debug_img = mod_ren->createTexture(&test_image);
@@ -184,6 +186,14 @@ void tick( const xen::TickContext& cntx){
 			case xen::Key::W:
 				state->point_light_color.rgb = xen::Color3f(1,1,1);
 				break;
+			case xen::Key::N:
+				state->render_cmds[CMD_BUNNY].material = state->material_normal_lines;
+				state->render_cmds[CMD_FLOOR].material = state->material_normal_lines;
+				break;
+			case xen::Key::M:
+				state->render_cmds[CMD_BUNNY].material = state->material_phong;
+				state->render_cmds[CMD_FLOOR].material = state->material_phong;
+				break;
 			default: break;
 			}
 			break;
@@ -219,15 +229,25 @@ void tick( const xen::TickContext& cntx){
 	////////////////////////////////////////////
 	// Draw Bunny
 	model_mat = Mat4r::Identity;
-	model_mat *= xen::Scale3d(20);
-	model_mat *= xen::Translation3d(0, 1, 0);
-	model_mat *= xen::Rotation3dy(67_deg * time);
+	model_mat *= xen::Translation3d(0, 0.07, 0);
+	model_mat *= xen::Scale3d(50);
+	//model_mat *= xen::Rotation3dy(67_deg * time);
 	state->render_cmds[CMD_BUNNY].model_matrix = model_mat;
 
 	////////////////////////////////////////////
 	// Do rendering
 	mod_ren->clear      (state->window_target, xen::Color::BLACK);
+
+
+	for(u64 i = 0; i < state->render_cmds.size; ++i){
+		state->render_cmds[i].material = state->material_phong;
+	}
 	mod_ren->render     (state->window_target, viewport, state->render_params, state->render_cmds);
+	for(u64 i = 0; i < state->render_cmds.size; ++i){
+		state->render_cmds[i].material = state->material_normal_lines;
+	}
+	mod_ren->render     (state->window_target, viewport, state->render_params, state->render_cmds);
+
 	mod_ren->swapBuffers(state->window_target);
 }
 

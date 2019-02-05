@@ -17,7 +17,8 @@ void main(){
 
 	vec4 vert_normal_4 = model_mat * vec4(vert_normal, 1);
 	vert_normal_4 /= vert_normal_4.w;
-	normal = normalize(vert_normal_4.xyz);
+	//normal = normalize(vert_normal_4.xyz);
+	normal = vert_normal;
 
 	gl_Position = vec4(vert_pos,1) * mvp_mat;
 
