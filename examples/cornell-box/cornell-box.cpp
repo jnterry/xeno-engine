@@ -108,7 +108,7 @@ void initCamera(){
 
 void initSceneLights(){
 	state->scene_lights[0].type           = xen::LightSource3d::POINT;
-	state->scene_lights[0].point.position = Vec3r{0.0_r, 1.0_r, 0.0_r};
+	state->scene_lights[0].point.position = Vec3r{0.0_r, 0.99_r, 0.0_r};
 	state->scene_lights[0].color          = xen::Color::WHITE4f;
 	state->scene_lights[0].color.a        = 0.4f;
 	state->scene_lights[0].attenuation    = {0.0f, 0.0f, 2.0f};

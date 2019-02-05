@@ -29,9 +29,8 @@ vec3 calcDirectionLight(vec3 camera_position,
 		float specular_factor = dot(dir_to_cam,reflection_dir);
 
 		//raise to specified power (this is specular_exponent, IE: how shiny material is)
-		specular_factor = pow(specular_factor, 2);
-
 		if(specular_factor > 0){
+			specular_factor = pow(specular_factor, 2);
 			result += light_color.xyz * specular_factor;
 		}
 	}

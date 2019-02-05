@@ -39,11 +39,11 @@ void main(){
 	                              point_light_attenuation);
 	total_light += calcDirectionLight(camera_position,
 	                                  world_position, normal,
-	                                  vec4(1,1,1,0.3),
+	                                  vec4(1,1,1,0.1),
 	                                  normalize(vec3(0,-1,-1)));
 	total_light += emissive_color.xyz * emissive_color.w;
 
-	vec3 normal_col = (normalize(normal) + vec3(1,1,1)) / 2.0;
+	vec3 normal_col = (normal + vec3(1,1,1)) / 2.0;
 
 
 	vec3 pixel_diffuse_color = color.rgb * diffuse_color.rgb * texture(diffuse_map, model_position.xz).rgb;
