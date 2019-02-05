@@ -212,7 +212,7 @@ bool attachShaderSources(GLint program,
 		xen::FileData source_code = xen::loadFileAndNullTerminate(scratch, sources[i]);
 
 		if(source_code.size == 0){
-			XenLogError("Failed to load shader source file: %s\n", sources[i]);
+			XenLogError("Failed to load shader source file: %s", sources[i]);
 			success = false;
 			continue;
 		}
