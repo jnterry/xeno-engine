@@ -73,7 +73,7 @@ add_subdirectory(cornell-box)
 #add_subdirectory(triangle-test)
 # add_subdirectory(line-test)
 # add_subdirectory(torus)
-# add_subdirectory(texture-test)
+add_subdirectory(texture-test)
 add_subdirectory(dynamic-reload)
 
 xen_add_example(run-example ${CMAKE_CURRENT_LIST_DIR}/example-main.cpp)
