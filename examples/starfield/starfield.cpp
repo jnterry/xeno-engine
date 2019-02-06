@@ -29,8 +29,6 @@ struct StarfieldState {
 	xen::Mesh mesh_axes;
 	xen::Mesh mesh_cube_lines;
 
-	const xen::Material* material;
-
 	xen::Window*                             window;
 	xen::RenderTarget                        window_target;
 
@@ -88,19 +86,7 @@ void* init(const void* params){
 	                                          ss->star_positions, nullptr, ss->star_colors);
 	ss->mesh_axes       = mod_ren->createMesh(ss->vertex_spec, xen::TestMeshGeometry_Axes);
 	ss->mesh_cube_lines = mod_ren->createMesh(ss->vertex_spec, xen::TestMeshGeometry_UnitCubeLines);
-
-	ss->material        = mod_ren->createMaterial(material_creation_params_phong);
-
 	xen::clearToZero(ss->render_cmds);
-
-	for(u64 i = 0; i < ss->render_cmds.size; ++i){
-		ss->render_cmds[i].material = ss->material;
-		ss->render_cmds[i].material_params = xen::reserveBytes(
-			ss->arena, ss->material->parameters->size
-		);
-		xen::setMaterialParam(ss->render_cmds[i], "emissive_color", xen::Color::BLACK4f);
-		xen::setMaterialParam(ss->render_cmds[i], "diffuse_color",  xen::Color::WHITE4f);
-	}
 
 	ss->render_cmds[0].primitive_type         = xen::PrimitiveType::LINES;
 	ss->render_cmds[0].model_matrix           = xen::Scale3d(100_r);
@@ -115,7 +101,6 @@ void* init(const void* params){
 		xen::Scale3d(200_r) * xen::Translation3d(-100.0_r, -100.0_r, -100.0_r)
 	);
 	ss->render_cmds[2].mesh                   = ss->mesh_cube_lines;
-	xen::setMaterialParam(ss->render_cmds[2], "diffuse_color", xen::Color::CYAN4f);
 
 	return ss;
 }

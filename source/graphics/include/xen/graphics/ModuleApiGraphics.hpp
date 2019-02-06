@@ -120,7 +120,7 @@ namespace xen {
 		void    (*destroyTexture)(Texture texture);
 
 		/// \brief Creates a material which may later be used for rendering geometry
-		const Material* (*createMaterial)(const MaterialCreationParameters& params);
+		const Material* (*createMaterial )(const MaterialCreationParameters& params);
 		void            (*destroyMaterial)(const Material* material);
 
 		/// \brief Pushes some rendering operation

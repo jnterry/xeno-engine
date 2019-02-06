@@ -79,6 +79,13 @@ namespace xgl {
 		image.pixels = &color;
 		xgl::createTexture(&image);
 
+		XenAssert(xgl::gl_state->default_material == nullptr,
+		          "We don't want to be recreating the default material!");
+		xgl::gl_state->default_material = xgl::initDefaultMaterial();
+		if(xgl::gl_state->default_material == nullptr){
+			XenLogWarn("Failed to initialize default material. Segfault will occur if you attempt to render geometry with nullptr for the material");
+		}
+
 		XEN_CHECK_GL(glEnable   (GL_DEPTH_TEST));
 		XEN_CHECK_GL(glDepthFunc(GL_LESS      ));
 

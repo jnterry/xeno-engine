@@ -198,8 +198,8 @@ GLuint compileShader(GLenum stage, const char* source, const char* filename){
 }
 
 bool attachShaderSources(GLint program,
-                                   xen::Array<const char*> sources,
-                                   GLint stage){
+                         xen::Array<const char*> sources,
+                         GLint stage){
 
 	xen::ArenaLinear& scratch = xen::getThreadScratchSpace();
 	xen::MemoryTransaction transaction_scratch(scratch); // do not commit this!
@@ -233,6 +233,26 @@ void destroyShaderProgram(xgl::ShaderProgram* sprog){
 	xen::freeType(xgl::gl_state->pool_shader, sprog);
 }
 
+bool linkShaderProgram(GLint program){
+	XEN_CHECK_GL(glLinkProgram(program));
+
+	GLint link_status;
+	XEN_CHECK_GL(glGetProgramiv(program, GL_LINK_STATUS, &link_status ));
+
+	if(link_status == GL_TRUE){
+		XenLogDone("Successfully linked shader program");
+		return true;
+	}
+
+	xen::ArenaLinear& scratch = xen::getThreadScratchSpace();
+	xen::MemoryTransaction scratch_transaction(scratch);
+	XEN_CHECK_GL(glGetProgramInfoLog(program, xen::getBytesRemaining(scratch),
+	                                 nullptr, (GLchar*)scratch.next_byte));
+	XenLogError("Failed to link shader:\n%s", (const char*)scratch.next_byte);
+	return false;
+
+}
+
 xgl::ShaderProgram* createShaderProgram(const xen::MaterialCreationParameters& params){
 	xgl::ShaderProgram* result = xen::reserveType(xgl::gl_state->pool_shader);
 
@@ -250,21 +270,9 @@ xgl::ShaderProgram* createShaderProgram(const xen::MaterialCreationParameters& p
 		XenLogWarn("Errors occurred while compiling shaders, attempting to link...");
 	}
 
-	XEN_CHECK_GL(glLinkProgram(result->program));
-
-	GLint link_status;
-	XEN_CHECK_GL(glGetProgramiv(result->program, GL_LINK_STATUS, &link_status ));
-
-	if(link_status == GL_TRUE){
-		XenLogDone("Successfully linked shader program");
-	} else {
-		xen::ArenaLinear& scratch = xen::getThreadScratchSpace();
-		xen::MemoryTransaction scratch_transaction(scratch);
-		XEN_CHECK_GL(glGetProgramInfoLog(result->program, xen::getBytesRemaining(scratch),
-		                                 nullptr, (GLchar*)scratch.next_byte));
-		XenLogError("Failed to link shader:\n%s", (const char*)scratch.next_byte);
-	  destroyShaderProgram(result);
-	  return nullptr;
+	if(!linkShaderProgram(result->program)){
+		destroyShaderProgram(result);
+		return nullptr;
 	}
 
 	if(!fillShaderProgramMetaData(result)){
@@ -382,7 +390,8 @@ void xgl::destroyMaterial(const xen::Material* mat){
 // Used as dummy uniform source by applyMaterial
 u64 all_zeros[16] = { 0 };
 
-const void* getUniformDataSource(const xen::RenderCommand3d&    cmd,
+const void* getUniformDataSource(const xgl::Material* material,
+                                 const xen::RenderCommand3d&    cmd,
                                  const xen::RenderParameters3d& params,
                                  const xen::Aabb2u& viewport,
                                  int uniform_index){
@@ -391,8 +400,6 @@ const void* getUniformDataSource(const xen::RenderCommand3d&    cmd,
 	// delay rendering until we have all commands, and then precompute all of
 	// these once, then do rendering step
 	// This would remove all of the pushing to thread scratch
-
-	const xgl::Material* material = (const xgl::Material*)cmd.material;
 
 	switch(material->uniform_sources[uniform_index]){
 	case xen::MaterialParameterSource::Variable: {
@@ -467,10 +474,11 @@ const void* getUniformDataSource(const xen::RenderCommand3d&    cmd,
 	return nullptr;
 }
 
-void xgl::applyMaterial(const xen::RenderCommand3d& cmd,
+void xgl::applyMaterial(const xgl::Material* mat,
+                        const xen::RenderCommand3d& cmd,
                         const xen::RenderParameters3d& params,
                         const xen::Aabb2u& viewport){
-	const xgl::Material* mat  = (xgl::Material*)cmd.material;
+
 	xgl::ShaderProgram* sprog = mat->program;
 
 	XEN_CHECK_GL(glUseProgram(sprog->program));
@@ -478,7 +486,7 @@ void xgl::applyMaterial(const xen::RenderCommand3d& cmd,
 	for(GLint i = 0; i < sprog->uniform_count; ++i){
 		int loc = sprog->uniform_locations[i];
 
-		const void* data = getUniformDataSource(cmd, params, viewport, i);
+		const void* data = getUniformDataSource(mat, cmd, params, viewport, i);
 		switch(sprog->uniform_gl_types[i]){
 			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			// This switch must have same cases as that in ~applyMaterial()~
@@ -514,6 +522,74 @@ void xgl::applyMaterial(const xen::RenderCommand3d& cmd,
 	}
 }
 
+const char* _default_material_vertex = (
+	"#version 430\n" \
+	"\n" \
+	"layout(location = 0) in vec3 vert_pos;\n" \
+	"layout(location = 1) in vec3 vert_normal;\n" \
+	"layout(location = 2) in vec4 vert_color;\n" \
+	"\n" \
+	"uniform mat4 mvp_mat;\n" \
+	"\n" \
+	"smooth out vec4 color;\n"\
+	"\n"\
+	"void main(){\n" \
+	"	 gl_Position = vec4(vert_pos,1) * mvp_mat;\n" \
+	"	 color       = vert_color;\n" \
+	"}\n" \
+);
+
+const char* _default_material_fragment = (
+	"#version 430\n" \
+	"\n" \
+	"smooth in vec4 color;\n" \
+	"\n" \
+	"out vec4 out_color;\n" \
+	"\n" \
+	"void main() {\n" \
+	"  out_color = color;\n" \
+	"}\n" \
+);
+
+
+/// \brief Should be called once at startup to create the default material
+/// to be used by the engine if no other is specified
+const xgl::Material* xgl::initDefaultMaterial(){
+	////////////////////////////////////////////////////////////////////
+	// Create shader program
+	xgl::ShaderProgram* sprog = xen::reserveType<xgl::ShaderProgram>(xgl::gl_state->pool_shader);
+	sprog->program = glCreateProgram();
+
+	GLuint shader_vertex = compileShader(
+		GL_VERTEX_SHADER, _default_material_vertex, "_default_material_vertex"
+	);
+	GLuint shader_fragment = compileShader(
+		GL_FRAGMENT_SHADER, _default_material_fragment, "_default_material_fragment"
+	);
+
+	XGL_CHECK(glAttachShader(sprog->program, shader_vertex));
+	XGL_CHECK(glAttachShader(sprog->program, shader_fragment));
+
+	if(!linkShaderProgram(sprog->program))      { return nullptr; }
+	if(!fillShaderProgramMetaData(sprog)){ return nullptr; }
+	////////////////////////////////////////////////////////////////////
+
+
+	////////////////////////////////////////////////////////////////////
+	// Create material
+	xgl::Material* mat = xen::reserveType<xgl::Material>(xgl::gl_state->pool_material);
+	mat->program = sprog;
+
+	mat->uniform_sources = xen::reserveTypeArray<xen::MaterialParameterSource::Kind>(
+		xgl::gl_state->primary_arena, sprog->uniform_count
+	);
+	XenAssert(sprog->uniform_count == 1, "Expected default program to have single uniform (mvp)");
+	mat->uniform_sources[0] = xen::MaterialParameterSource::MvpMatrix;
+	mat->uniform_param_offsets = nullptr;
+	////////////////////////////////////////////////////////////////////
+
+	return mat;
+}
 
 
 

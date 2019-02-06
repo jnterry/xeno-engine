@@ -34,6 +34,10 @@ namespace xgl {
 		xen::ArenaPool<xgl::ShaderProgram>     pool_shader;
 		xen::ArenaPool<xgl::Material>          pool_material;
 		xen::ArenaPool<xgl::RenderTargetImpl*> pool_render_target;
+
+		/// \brief Default rendering material to be used if render command
+		/// specifies nullptr for material
+		const xgl::Material* default_material;
 	};
 
 	extern GlState* gl_state;

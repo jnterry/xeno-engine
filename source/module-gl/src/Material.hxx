@@ -54,9 +54,19 @@ namespace xgl {
 	const xen::Material* createMaterial(const xen::MaterialCreationParameters& params);
 	void destroyMaterial(const xen::Material*);
 
-	void applyMaterial(const xen::RenderCommand3d& cmd,
+	/// \brief Uses appropriate shader program and sets uniforms in order to begin
+	/// using some material. Note that cmd.material is ignored, instead material
+	/// is specified separately (this allows overriding the material for module
+	/// internal rendering commands, eg, redirecting nullptr to the default
+	// material)
+	void applyMaterial(const xgl::Material* material,
+	                   const xen::RenderCommand3d& cmd,
 	                   const xen::RenderParameters3d& params,
 	                   const xen::Aabb2u& viewport);
+
+	/// \brief Should be called once at startup to create the default material
+	/// to be used by the engine if no other is specified
+	const xgl::Material*  initDefaultMaterial();
 }
 
 #endif

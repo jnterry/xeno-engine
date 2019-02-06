@@ -126,7 +126,11 @@ namespace xgl {
 		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 			const xen::RenderCommand3d* cmd = &commands[cmd_index];
 
-			xgl::applyMaterial(*cmd, params, viewport);
+			if(cmd->material == nullptr){
+				xgl::applyMaterial(xgl::gl_state->default_material, *cmd, params, viewport);
+			} else {
+				xgl::applyMaterial((xgl::Material*)cmd->material, *cmd, params, viewport);
+			}
 
 			switch(cmd->draw_mode){
 			case xen::RenderCommand3d::Filled:
