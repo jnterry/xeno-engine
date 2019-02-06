@@ -197,7 +197,12 @@ namespace xen {
 		}
 
 		void clear(xen::RenderTarget target, xen::Color color);
-		void render(xen::RenderTarget, xen::Aabb2u viewport, xen::RenderParameters3d& params, xen::Array<RenderCommand3d> commands);
+		void render(xen::RenderTarget, xen::Aabb2u viewport,
+		            xen::RenderParameters3d& params,
+		            xen::Array<RenderCommand3d> commands);
+		void render(xen::RenderTarget, xen::Aabb2u viewport,
+		            xen::RenderParameters3d& params,
+		            xen::RenderCommand3d& cmd);
 		void swapBuffers(xen::RenderTarget window);
 	};
 }

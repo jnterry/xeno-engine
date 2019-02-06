@@ -136,6 +136,14 @@ void xen::ModuleApiGraphics::render(xen::RenderTarget target,
 	this->pushOp(xen::RenderOp::Draw(target, viewport, params, commands));
 }
 
+void xen::ModuleApiGraphics::render(xen::RenderTarget target,
+                                    xen::Aabb2u viewport,
+                                    xen::RenderParameters3d& params,
+                                    xen::RenderCommand3d& cmd){
+	xen::Array<xen::RenderCommand3d> cmd_list = { 1, &cmd };
+	this->pushOp(xen::RenderOp::Draw(target, viewport, params, cmd_list));
+}
+
 void xen::ModuleApiGraphics::swapBuffers(xen::RenderTarget target){
 	this->pushOp(xen::RenderOp::SwapBuffers(target));
 }
