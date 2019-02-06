@@ -10,8 +10,10 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/options/double_precision.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/options/simd.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/options/build_type.cmake")
 
-set(XEN_LIB_DIR "${CMAKE_CURRENT_LIST_DIR}/lib")
-set(XEN_BIN_DIR "${CMAKE_CURRENT_LIST_DIR}/bin")
+set(XEN_LIB_DIR "${CMAKE_CURRENT_LIST_DIR}/lib" CACHE "string"
+	"Where to output built static libraries")
+set(XEN_BIN_DIR "${CMAKE_CURRENT_LIST_DIR}/bin" CACHE "string"
+	"Where to output built binaries and dynamic link libraries")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -62,5 +64,12 @@ endif()
 
 add_subdirectory(extlibs)
 add_subdirectory(source)
-add_subdirectory(tests)
+
+set(XEN_BUILD_UNIT_TESTS TRUE CACHE BOOL "If set then unit test application will be built")
+if(${XEN_BUILD_UNIT_TESTS})
+	add_subdirectory(tests)
+endif()
+
+
+
 add_subdirectory(examples)
