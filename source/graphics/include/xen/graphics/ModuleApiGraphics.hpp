@@ -77,6 +77,9 @@ namespace xen {
 		xen::Array<xen::MaterialParameterSource> parameter_sources;
 	};
 
+	/// \brief The vertex spec for the engine's internal default material
+	extern VertexSpec DefaultVertexSpec;
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Type representing the Api that a graphics module is expected
 	/// to expose

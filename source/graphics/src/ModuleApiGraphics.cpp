@@ -17,6 +17,15 @@
 
 #include <cstdarg>
 
+xen::VertexAttribute::Type _default_spec_elems[] = {
+	xen::VertexAttribute::Position3r,
+	xen::VertexAttribute::Normal3r,
+	xen::VertexAttribute::Color4b,
+};
+xen::VertexSpec xen::DefaultVertexSpec = {
+	XenArrayLength(_default_spec_elems), _default_spec_elems
+};
+
 xen::RenderOp xen::RenderOp::Clear(xen::RenderTarget target, xen::Color color){
 	xen::RenderOp result;
 	result.type         = xen::RenderOp::CLEAR;
