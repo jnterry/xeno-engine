@@ -424,6 +424,15 @@ const void* getUniformDataSource(const xen::RenderCommand3d&    cmd,
 		);
 		return mvp;
 	}
+	case xen::MaterialParameterSource::VpMatrix: {
+		Mat4r* vp = xen::reserveType<Mat4r>(xen::getThreadScratchSpace());
+		*vp = (
+			getViewMatrix(params.camera) *
+			xen::Scale3d(1, -1, 1) *
+			getProjectionMatrix(params.camera, (Vec2r)(viewport.max - viewport.min))
+		);
+		return vp;
+	}
 	case xen::MaterialParameterSource::CameraWorldPosition:
 		return &params.camera.position;
 	case xen::MaterialParameterSource::CameraLookDirection:
