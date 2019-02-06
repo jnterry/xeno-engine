@@ -125,7 +125,7 @@ void* load( void* data, const void* params){
 }
 
 void tick(const xen::TickContext& tick){
-	// no-op
+	xgl::gl_state->kernel_time = xen::asSeconds<real>(tick.time);
 }
 
 XenDeclareModule("graphics", &init, &shutdown, &load, nullptr, &tick)

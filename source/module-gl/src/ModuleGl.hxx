@@ -15,6 +15,7 @@
 
 #include <xen/graphics/ModuleApiGraphics.hpp>
 #include <xen/core/memory/ArenaPool.hpp>
+#include <xen/core/time.hpp>
 
 namespace xgl {
 	struct RenderTargetImpl;
@@ -38,6 +39,8 @@ namespace xgl {
 		/// \brief Default rendering material to be used if render command
 		/// specifies nullptr for material
 		const xgl::Material* default_material;
+
+	  real kernel_time;
 	};
 
 	extern GlState* gl_state;

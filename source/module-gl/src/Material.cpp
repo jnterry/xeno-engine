@@ -469,6 +469,9 @@ const void* getUniformDataSource(const xgl::Material* material,
 	case xen::MaterialParameterSource::TextureChannel3: {
 		static const int THREE = 3; return &THREE;
 	}
+	case xen::MaterialParameterSource::Runtime: {
+		return &xgl::gl_state->kernel_time;
+	}
 	}
 	XenInvalidCodePath("Should hit a switch case!");
 	return nullptr;

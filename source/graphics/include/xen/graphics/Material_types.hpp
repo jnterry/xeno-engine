@@ -12,7 +12,6 @@
 
 #include <xen/core/introspection.hpp>
 
-
 namespace xen {
 
 	struct MaterialParameterSource {
@@ -78,7 +77,7 @@ namespace xen {
 
 		  /// \brief Floating parameter representing number of seconds since kernel
 		  /// creation
-		  //Runtime, :TODO: impl
+		  Runtime,
 		};
 
 		/// \brief The name of the parameter in question
