@@ -53,7 +53,7 @@ void initRenderCommands(xen::ModuleApiGraphics* mod_ren, xen::ArenaLinear& arena
 	                                            );
 	state->render_cmds[0].mesh            = state->mesh_cornell_walls;
 	// There is nothing outside of the cornell box, don't cast shadows for speed
-	state->render_cmds[0].flags           = xen::RenderCommand3d::Flags::DisableShadowCast;
+	state->render_cmds[0].disable_shadow_cast = true;
 
 	state->render_cmds[1].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	state->render_cmds[1].model_matrix    = (xen::Translation3d(-0.5_r, 0.0001_r, -0.5_r) *
@@ -89,7 +89,7 @@ void initRenderCommands(xen::ModuleApiGraphics* mod_ren, xen::ArenaLinear& arena
 	state->render_cmds[4].model_matrix    = Mat4r::Identity;
 	state->render_cmds[4].mesh            = state->mesh_cube;
   // This is geometry around a light source - don't block the emitted light!
-	state->render_cmds[4].flags           = xen::RenderCommand3d::Flags::DisableShadowCast;
+	state->render_cmds[4].disable_shadow_cast = true;
 	xen::setMaterialParam(state->render_cmds[4], "diffuse_color",  xen::Color::RED4f);
 	xen::setMaterialParam(state->render_cmds[4], "emissive_color", xen::Color::RED4f);
 }

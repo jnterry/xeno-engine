@@ -127,6 +127,33 @@ namespace xgl {
 			const xen::RenderCommand3d* cmd = &commands[cmd_index];
 
 			xgl::applyMaterial(*cmd, params, viewport);
+
+			switch(cmd->draw_mode){
+			case xen::RenderCommand3d::Filled:
+				XGL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+				break;
+			case xen::RenderCommand3d::Wireframe:
+				XGL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+				break;
+			case xen::RenderCommand3d::PointCloud:
+				XGL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, GL_POINT));
+				break;
+			}
+
+			switch(cmd->cull_mode){
+			case xen::RenderCommand3d::CullBack:
+				XGL_CHECK(glEnable  (GL_CULL_FACE ));
+				XGL_CHECK(glCullFace(GL_BACK      ));
+				break;
+			case xen::RenderCommand3d::CullFront:
+				XGL_CHECK(glEnable  (GL_CULL_FACE ));
+				XGL_CHECK(glCullFace(GL_FRONT     ));
+				break;
+			case xen::RenderCommand3d::CullNone:
+				XGL_CHECK(glDisable (GL_CULL_FACE ));
+				break;
+			}
+
 			renderMesh(cmd->primitive_type, xgl::getMeshGlData(cmd->mesh));
 		}
 	}

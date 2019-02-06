@@ -101,24 +101,33 @@ namespace xen{
 		/// use the defaults
 		void* material_params;
 
-		/// \brief Enumeration of extra misc flags that may be set for a command
-		enum Flags : u08 {
+		/// \brief If set then the geometry rendered by this command
+		/// will not block light, and hence will not cast shadows
+		///
+		/// \note This flag is to disable rather than to enable, since we assume
+		/// that geometry should cast shadows by default, and we want defaults to be
+		/// sensible when this struct is zero initialised
+		u08 disable_shadow_cast : 1;
 
-			/// \brief If set then the geometry rendered by this command
-			/// will not block light, and hence will not cast shadows
-			///
-			/// \note Flag is to disable rather than enable since geometry should
-			/// cast shadows by default and we want the struct to have sensible
-			/// defaults if zero initialised
-			DisableShadowCast = 1,
-
-			// :TODO:
-			// CullBackFace,
-			// CullFrontFace,
+		/// \brief The drawing mode to use for this geometry. Defaults to Filled.
+		/// Note that mode will be "downgraded" depending on primitive type, for
+		/// example if drawing lines as filled, then lines will be used.
+		u08 draw_mode : 2;
+		enum DrawMode {
+			Filled     = 0x00,
+			Wireframe  = 0x01,
+			PointCloud = 0x02,
 		};
 
-		/// \brief Extra flags for the command
-		Flags flags;
+		/// \brief Selects which faces should be culled. By definition in Xenogin
+		/// polygons wound clockwise are back faces (this is the OpenGL convention).
+		/// Zero-initialises to CullBack
+		u08 cull_mode : 2;
+		enum CullMode {
+			CullBack  = 0x00,
+		  CullFront = 0x01,
+			CullNone  = 0x02,
+		};
 	};
 
 	template<typename T>
