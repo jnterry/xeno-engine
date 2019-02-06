@@ -92,6 +92,10 @@ inline xen::Angle operator*(const xen::Angle& lhs, real              rhs){ retur
 inline xen::Angle operator*(real              lhs, const xen::Angle& rhs){ return {lhs * rhs.radians}; }
 inline xen::Angle operator/(const xen::Angle& lhs, real              rhs){ return {lhs.radians / rhs}; }
 
+inline real operator/(const xen::Angle& lhs, const xen::Angle& rhs){
+	return lhs.radians / rhs.radians;
+}
+
 inline xen::Angle operator+(const xen::Angle& lhs, const xen::Angle& rhs){ return {lhs.radians + rhs.radians}; }
 inline xen::Angle operator-(const xen::Angle& lhs, const xen::Angle& rhs){ return {lhs.radians - rhs.radians}; }
 
