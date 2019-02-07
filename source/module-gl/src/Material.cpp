@@ -526,7 +526,7 @@ void xgl::applyMaterial(const xgl::Material* mat,
 }
 
 const char* _default_material_vertex = (
-	"#version 430\n" \
+	"#version 330\n" \
 	"\n" \
 	"layout(location = 0) in vec3 vert_pos;\n" \
 	"layout(location = 1) in vec3 vert_normal;\n" \
@@ -543,7 +543,7 @@ const char* _default_material_vertex = (
 );
 
 const char* _default_material_fragment = (
-	"#version 430\n" \
+	"#version 330\n" \
 	"\n" \
 	"smooth in vec4 color;\n" \
 	"\n" \
