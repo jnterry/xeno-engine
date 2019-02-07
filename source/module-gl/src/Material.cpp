@@ -54,14 +54,14 @@ bool fillShaderProgramMetaData(xgl::ShaderProgram* result){
 
 	GLchar tmp_name_buffer[512];
 
-	xen::MemoryTransaction transaction(xgl::gl_state->primary_arena);
+	xen::MemoryTransaction transaction(xgl::state->primary_arena);
 
 	//////////////////////////////////////////////////////
 	// Allocate dynamic sized memory for the ShaderProgram
 	u64 data_block_size = result->uniform_count * (
 		sizeof(xen::StringHash) + sizeof(xen::MetaType*) + sizeof(GLint) + sizeof(GLenum)
 	);
-	void* data_block = xen::reserveBytes(xgl::gl_state->primary_arena, data_block_size);
+	void* data_block = xen::reserveBytes(xgl::state->primary_arena, data_block_size);
 
 	result->uniform_locations = (GLint*)data_block;
 	xen::ptrAdvance(&data_block, sizeof(GLint) * result->uniform_count);
@@ -230,7 +230,7 @@ void destroyShaderProgram(xgl::ShaderProgram* sprog){
 	// in order to reuse shaders from same source files)
 	XEN_CHECK_GL(glDeleteProgram(sprog->program));
 
-	xen::freeType(xgl::gl_state->pool_shader, sprog);
+	xen::freeType(xgl::state->pool_shader, sprog);
 }
 
 bool linkShaderProgram(GLint program){
@@ -254,7 +254,7 @@ bool linkShaderProgram(GLint program){
 }
 
 xgl::ShaderProgram* createShaderProgram(const xen::MaterialCreationParameters& params){
-	xgl::ShaderProgram* result = xen::reserveType(xgl::gl_state->pool_shader);
+	xgl::ShaderProgram* result = xen::reserveType(xgl::state->pool_shader);
 
 
 	// :TODO: reuse an existing shader program if one exists with same source files
@@ -289,14 +289,14 @@ const xen::Material* xgl::createMaterial(const xen::MaterialCreationParameters& 
 	xgl::ShaderProgram* sprog = createShaderProgram(data);
 	if(sprog == nullptr){ return nullptr; }
 
-	xgl::Material* result = xen::reserveType<xgl::Material>(xgl::gl_state->pool_material);
+	xgl::Material* result = xen::reserveType<xgl::Material>(xgl::state->pool_material);
 	result->program = sprog;
 
 	result->uniform_sources = xen::reserveTypeArray<xen::MaterialParameterSource::Kind>(
-		xgl::gl_state->primary_arena, sprog->uniform_count
+		xgl::state->primary_arena, sprog->uniform_count
 	);
 	result->uniform_param_offsets = xen::reserveTypeArray<u32>(
-		xgl::gl_state->primary_arena, sprog->uniform_count
+		xgl::state->primary_arena, sprog->uniform_count
 	);
 	////////////////////////////////////////////////////////////////////
 
@@ -344,7 +344,7 @@ const xen::Material* xgl::createMaterial(const xen::MaterialCreationParameters& 
 	unsigned meta_type_size = (sizeof(xen::MetaType) +
 	                           sizeof(xen::MetaTypeField) * variable_count);
 	result->parameters = (xen::MetaType*)(
-		xen::reserveBytes(xgl::gl_state->primary_arena, meta_type_size)
+		xen::reserveBytes(xgl::state->primary_arena, meta_type_size)
 	);
 	xen::clearToZero(result->parameters, meta_type_size);
 
@@ -383,7 +383,7 @@ void xgl::destroyMaterial(const xen::Material* mat){
 	// :TODO: we want to free dynamic storage used for material, but its all
 	// in the primary arena which we don't want to reset.
 
-	xen::freeType(xgl::gl_state->pool_material, ((xgl::Material*)mat));
+	xen::freeType(xgl::state->pool_material, ((xgl::Material*)mat));
 
 }
 
@@ -470,7 +470,7 @@ const void* getUniformDataSource(const xgl::Material* material,
 		static const int THREE = 3; return &THREE;
 	}
 	case xen::MaterialParameterSource::Runtime: {
-		return &xgl::gl_state->kernel_time;
+		return &xgl::state->kernel_time;
 	}
 	}
 	XenInvalidCodePath("Should hit a switch case!");
@@ -560,7 +560,7 @@ const char* _default_material_fragment = (
 const xgl::Material* xgl::initDefaultMaterial(){
 	////////////////////////////////////////////////////////////////////
 	// Create shader program
-	xgl::ShaderProgram* sprog = xen::reserveType<xgl::ShaderProgram>(xgl::gl_state->pool_shader);
+	xgl::ShaderProgram* sprog = xen::reserveType<xgl::ShaderProgram>(xgl::state->pool_shader);
 	sprog->program = glCreateProgram();
 
 	GLuint shader_vertex = compileShader(
@@ -580,11 +580,11 @@ const xgl::Material* xgl::initDefaultMaterial(){
 
 	////////////////////////////////////////////////////////////////////
 	// Create material
-	xgl::Material* mat = xen::reserveType<xgl::Material>(xgl::gl_state->pool_material);
+	xgl::Material* mat = xen::reserveType<xgl::Material>(xgl::state->pool_material);
 	mat->program = sprog;
 
 	mat->uniform_sources = xen::reserveTypeArray<xen::MaterialParameterSource::Kind>(
-		xgl::gl_state->primary_arena, sprog->uniform_count
+		xgl::state->primary_arena, sprog->uniform_count
 	);
 	XenAssert(sprog->uniform_count == 1, "Expected default program to have single uniform (mvp)");
 	mat->uniform_sources[0] = xen::MaterialParameterSource::MvpMatrix;

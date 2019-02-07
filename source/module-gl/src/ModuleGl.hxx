@@ -43,7 +43,7 @@ namespace xgl {
 	  real kernel_time;
 	};
 
-	extern GlState* gl_state;
+	extern GlState* state;
 }
 
 

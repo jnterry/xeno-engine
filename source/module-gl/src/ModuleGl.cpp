@@ -61,7 +61,7 @@
 		  }*/
 
 
-xgl::GlState* xgl::gl_state = nullptr;
+xgl::GlState* xgl::state = nullptr;
 
 void* init( const void* params){
 
@@ -69,24 +69,24 @@ void* init( const void* params){
 
 	void* memory_block = xen::kernelAlloc(BLK_SIZE, alignof(xgl::GlState));
 
-	xgl::gl_state = (xgl::GlState*)(memory_block);
+	xgl::state = (xgl::GlState*)(memory_block);
 
-	xgl::gl_state->primary_arena.start     = xen::ptrGetAdvanced(xgl::gl_state, sizeof(xgl::GlState));
-	xgl::gl_state->primary_arena.next_byte = xgl::gl_state->primary_arena.start;
-	xgl::gl_state->primary_arena.end       = xen::ptrGetAdvanced(xgl::gl_state, BLK_SIZE);
+	xgl::state->primary_arena.start     = xen::ptrGetAdvanced(xgl::state, sizeof(xgl::GlState));
+	xgl::state->primary_arena.next_byte = xgl::state->primary_arena.start;
+	xgl::state->primary_arena.end       = xen::ptrGetAdvanced(xgl::state, BLK_SIZE);
 
-	xgl::gl_state->pool_mesh          = xen::createArenaPool<xgl::MeshGlData>(xgl::gl_state->primary_arena, 128);
-	xgl::gl_state->pool_texture       = xen::createArenaPool<xgl::TextureImpl>(xgl::gl_state->primary_arena, 128);
-	xgl::gl_state->pool_shader        = xen::createArenaPool<xgl::ShaderProgram>(xgl::gl_state->primary_arena, 128);
-	xgl::gl_state->pool_material      = xen::createArenaPool<xgl::Material>(xgl::gl_state->primary_arena, 128);
-	xgl::gl_state->pool_render_target = xen::createArenaPool<xgl::RenderTargetImpl*>(xgl::gl_state->primary_arena, 128);
+	xgl::state->pool_mesh          = xen::createArenaPool<xgl::MeshGlData>(xgl::state->primary_arena, 128);
+	xgl::state->pool_texture       = xen::createArenaPool<xgl::TextureImpl>(xgl::state->primary_arena, 128);
+	xgl::state->pool_shader        = xen::createArenaPool<xgl::ShaderProgram>(xgl::state->primary_arena, 128);
+	xgl::state->pool_material      = xen::createArenaPool<xgl::Material>(xgl::state->primary_arena, 128);
+	xgl::state->pool_render_target = xen::createArenaPool<xgl::RenderTargetImpl*>(xgl::state->primary_arena, 128);
 
-	return xgl::gl_state;
+	return xgl::state;
 }
 
 void shutdown(void* data, const void* params){
 	// :TODO: should also free gl resources
-	xen::kernelFree(xgl::gl_state);
+	xen::kernelFree(xgl::state);
 }
 
 void pushOp(const xen::RenderOp& op){
@@ -104,28 +104,28 @@ void pushOp(const xen::RenderOp& op){
 }
 
 void* load( void* data, const void* params){
-	xgl::gl_state = (xgl::GlState*)data;
+	xgl::state = (xgl::GlState*)data;
 
-	xgl::gl_state->api.createWindowRenderTarget = &xgl::createWindowRenderTarget;
-	xgl::gl_state->api.destroyRenderTarget      = &xgl::destroyRenderTarget;
+	xgl::state->api.createWindowRenderTarget = &xgl::createWindowRenderTarget;
+	xgl::state->api.destroyRenderTarget      = &xgl::destroyRenderTarget;
 
-	xgl::gl_state->api._createMeshFromMeshData = &xgl::createMesh;
-	xgl::gl_state->api.destroyMesh             = &xgl::destroyMesh;
-	xgl::gl_state->api._updateMeshVertexData   = &xgl::updateMeshVertexData;
+	xgl::state->api._createMeshFromMeshData = &xgl::createMesh;
+	xgl::state->api.destroyMesh             = &xgl::destroyMesh;
+	xgl::state->api._updateMeshVertexData   = &xgl::updateMeshVertexData;
 
-	xgl::gl_state->api.createTexture           = &xgl::createTexture;
-	xgl::gl_state->api.destroyTexture          = &xgl::destroyTexture;
+	xgl::state->api.createTexture           = &xgl::createTexture;
+	xgl::state->api.destroyTexture          = &xgl::destroyTexture;
 
-	xgl::gl_state->api.createMaterial          = &xgl::createMaterial;
-	xgl::gl_state->api.destroyMaterial         = &xgl::destroyMaterial;
+	xgl::state->api.createMaterial          = &xgl::createMaterial;
+	xgl::state->api.destroyMaterial         = &xgl::destroyMaterial;
 
-	xgl::gl_state->api.pushOp                  = &pushOp;
+	xgl::state->api.pushOp                  = &pushOp;
 
-	return &xgl::gl_state->api;
+	return &xgl::state->api;
 }
 
 void tick(const xen::TickContext& tick){
-	xgl::gl_state->kernel_time = xen::asSeconds<real>(tick.time);
+	xgl::state->kernel_time = xen::asSeconds<real>(tick.time);
 }
 
 XenDeclareModule("graphics", &init, &shutdown, &load, nullptr, &tick)

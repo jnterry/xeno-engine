@@ -57,14 +57,14 @@ namespace{
 }
 
 xen::Mesh xgl::createMesh(const xen::MeshData* md){
-	u32 slot = xen::reserveSlot(gl_state->pool_mesh);
-	XenAssert(slot != decltype(gl_state->pool_mesh)::BAD_SLOT_INDEX, "Mesh store full");
+	u32 slot = xen::reserveSlot(state->pool_mesh);
+	XenAssert(slot != decltype(state->pool_mesh)::BAD_SLOT_INDEX, "Mesh store full");
 
-	xen::ArenaLinear& arena = gl_state->primary_arena;
+	xen::ArenaLinear& arena = state->primary_arena;
 
 	xen::MemoryTransaction transaction(arena);
 
-	xgl::MeshGlData* result = &gl_state->pool_mesh.slots[slot].item;
+	xgl::MeshGlData* result = &state->pool_mesh.slots[slot].item;
 
 	result->vertex_spec.size     = md->vertex_spec.size;
 	result->vertex_spec.elements = xen::reserveTypeArray<xen::VertexAttribute::Type>(arena, md->vertex_spec.size);
@@ -72,7 +72,7 @@ xen::Mesh xgl::createMesh(const xen::MeshData* md){
 	result->vertex_count         = md->vertex_count;
 
 	if(result->vertex_spec.elements == nullptr || result->vertex_data == nullptr){
-		xen::freeSlot(gl_state->pool_mesh, slot);
+		xen::freeSlot(state->pool_mesh, slot);
 		return xen::makeNullGraphicsHandle<xen::Mesh>();
 	}
 
@@ -207,12 +207,12 @@ void xgl::updateMeshVertexData(xen::Mesh mesh_handle,
 
 namespace xgl {
 	xgl::MeshGlData* getMeshGlData(xen::Mesh mesh){
-		return &gl_state->pool_mesh.slots[mesh._id].item;
+		return &state->pool_mesh.slots[mesh._id].item;
 	}
 
 	void destroyMesh(xen::Mesh mesh){
 		// :TODO: IMPLEMENT - currently resource link, GPU buffers needs destroying
-		xen::freeSlot(xgl::gl_state->pool_mesh, mesh._id);
+		xen::freeSlot(xgl::state->pool_mesh, mesh._id);
 	}
 }
 

@@ -127,7 +127,7 @@ namespace xgl {
 			const xen::RenderCommand3d* cmd = &commands[cmd_index];
 
 			if(cmd->material == nullptr){
-				xgl::applyMaterial(xgl::gl_state->default_material, *cmd, params, viewport);
+				xgl::applyMaterial(xgl::state->default_material, *cmd, params, viewport);
 			} else {
 				xgl::applyMaterial((xgl::Material*)cmd->material, *cmd, params, viewport);
 			}
