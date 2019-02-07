@@ -1,41 +1,8 @@
 language: cpp
 
-# By default travis uses gcc 4.8.4 which doesn't fully support c++11
-# Lets manually install the correct versions (and also test against multiple
-# versions)
-# See: https://docs.travis-ci.com/user/languages/cpp/#gcc-on-linux
 matrix:
   include:
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-4.9
-      env:
-         - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
-
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-5
-      env:
-         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
-
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-6
-      env:
-        - MATRIX_EVAL="CC=gcc-6 && CXX=g++-6"
-
+    # We need c++ 17 support, travis defaults to gcc 4.8. We want gcc 7 (or newer)
     - os: linux
       addons:
         apt:
@@ -45,14 +12,15 @@ matrix:
             - g++-7
       env:
         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+      script:
 
+    # We can also test on windows with VS 2017
     - os: windows
 
 before_install:
   - eval "${MATRIX_EVAL}"
 
 script:
-  - g++ --version
   - mkdir -p $TRAVIS_BUILD_DIR/build
   - cd $TRAVIS_BUILD_DIR/build
   - cmake ..
