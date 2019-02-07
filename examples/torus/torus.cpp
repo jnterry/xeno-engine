@@ -9,6 +9,8 @@
 #include <xen/core/memory/ArenaLinear.hpp>
 
 struct State {
+	xen::ArenaLinear arena;
+
 	xen::Camera3dCylinder                  camera;
 	xen::RenderParameters3d                render_params;
 	xen::FixedArray<xen::LightSource3d, 3> scene_lights;
@@ -18,17 +20,15 @@ struct State {
 	xen::Window*      window;
 	xen::RenderTarget window_target;
 
-	xen::Mesh    mesh_torus_smooth;
-	xen::Mesh    mesh_torus_flat;
-	xen::Mesh    mesh_cube;
-	xen::Mesh    mesh_axes;
-	xen::Mesh    mesh_xzplane;
+	xen::Mesh     mesh_torus_smooth;
+	xen::Mesh     mesh_torus_flat;
+	xen::Mesh     mesh_cube;
+	xen::Mesh     mesh_axes;
+	xen::Mesh     mesh_xzplane;
 
-	xen::Shader  shader_phong;
-	xen::Shader  shader_normals;
-	xen::Shader  shader_positions;
+	const xen::Material* mat_phong;
 
-	xen::FixedArray<xen::RenderCommand3d, 10> render_commands;
+	xen::FixedArray<xen::RenderCommand3d, 10> render_cmds;
 };
 
 State* state = nullptr;
@@ -39,35 +39,43 @@ State* state = nullptr;
 #define CMD_IDX_STUDS  3
 #define CMD_IDX_LIGHT  7
 
-void initRenderCommands(){
-	xen::clearToZero(state->render_commands);
+void initRenderCommands(xen::ModuleApiGraphics* mod_ren){
+	state->mat_phong = mod_ren->createMaterial(material_creation_params_phong);
 
-	state->render_commands[0].primitive_type     = xen::PrimitiveType::TRIANGLES;
-	state->render_commands[0].color              = xen::Color::WHITE4f;
-	state->render_commands[0].model_matrix       = (xen::Translation3dx( 0.2_r) *
-	                                                Mat4r::Identity
-	                                               );
-	state->render_commands[0].mesh               = state->mesh_torus_smooth;
-	state->render_commands[0].shader             = state->shader_phong;
-	state->render_commands[0].specular_exponent  = 30_r;
-	state->render_commands[0].specular_intensity = 2_r;
+	xen::clearToZero(state->render_cmds);
 
-	state->render_commands[1].primitive_type     = xen::PrimitiveType::TRIANGLES;
-	state->render_commands[1].color              = xen::Color::WHITE4f;
-	state->render_commands[1].model_matrix       = (xen::Rotation3dx(90_deg) *
+	for(unsigned i = 0; i < state->render_cmds.size; ++i){
+		state->render_cmds[i].material_params = xen::reserveBytes(
+			state->arena, state->mat_phong->parameters->size
+		);
+		xen::clearToZero(
+			state->render_cmds[i].material_params, state->mat_phong->parameters->size
+		);
+
+		state->render_cmds[i].material = state->mat_phong;
+	  xen::setMaterialParam(state->render_cmds[i], "diffuse_color", xen::Color::WHITE4f);
+	}
+
+	state->render_cmds[0].primitive_type     = xen::PrimitiveType::TRIANGLES;
+	state->render_cmds[0].model_matrix       = (xen::Translation3dx( 0.2_r) *
+	                                            Mat4r::Identity);
+	state->render_cmds[0].mesh               = state->mesh_torus_smooth;
+	xen::setMaterialParam(state->render_cmds[0], "specular_exponent",  30_r);
+	xen::setMaterialParam(state->render_cmds[0], "specular_intensity",  2_r);
+
+	state->render_cmds[1].primitive_type     = xen::PrimitiveType::TRIANGLES;
+	state->render_cmds[1].model_matrix       = (xen::Rotation3dx(90_deg) *
 	                                                xen::Translation3dx(-0.2_r) *
 	                                                Mat4r::Identity
 	                                               );
-	state->render_commands[1].mesh               = state->mesh_torus_flat;
-	state->render_commands[1].shader             = state->shader_phong;
-	state->render_commands[1].specular_exponent  = 30_r;
-	state->render_commands[1].specular_intensity = 2_r;
+	state->render_cmds[1].mesh               = state->mesh_torus_flat;
+	xen::setMaterialParam(state->render_cmds[1], "specular_exponent",  30_r);
+	xen::setMaterialParam(state->render_cmds[1], "specular_intensity",  2_r);
 
-	state->render_commands[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	state->render_commands[2].color           = xen::Color::WHITE4f;
-	state->render_commands[2].model_matrix    = (xen::Scale3d      (5, 5, 5) *
-	                                             xen::Translation3d(0, -0.5_r, 0));
-	state->render_commands[2].mesh            = state->mesh_xzplane;
+	state->render_cmds[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
+	state->render_cmds[2].model_matrix    = (xen::Scale3d      (5, 5, 5) *
+	                                         xen::Translation3d(0, -0.5_r, 0));
+	state->render_cmds[2].mesh            = state->mesh_xzplane;
 
 	for(u32 i = 0; i < 4; ++i){
 		xen::Color4f color = xen::Color::WHITE4f;
@@ -87,26 +95,27 @@ void initRenderCommands(){
 		pos   *= 2.0_r;
 		pos.y += -0.499999_r;
 
-		state->render_commands[CMD_IDX_STUDS+i].primitive_type  = xen::PrimitiveType::TRIANGLES;
-		state->render_commands[CMD_IDX_STUDS+i].color           = color;
-		state->render_commands[CMD_IDX_STUDS+i].emissive_color  = color;
-		state->render_commands[CMD_IDX_STUDS+i].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
-		                                                           xen::Scale3d      (0.1_r) *
-		                                                           xen::Translation3d(pos)
+		state->render_cmds[CMD_IDX_STUDS+i].primitive_type  = xen::PrimitiveType::TRIANGLES;
+		state->render_cmds[CMD_IDX_STUDS+i].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
+		                                                       xen::Scale3d      (0.1_r) *
+		                                                       xen::Translation3d(pos)
 		                                                          );
-		state->render_commands[CMD_IDX_STUDS+i].mesh            = state->mesh_cube;
-
-
+		state->render_cmds[CMD_IDX_STUDS+i].mesh            = state->mesh_cube;
+		xen::setMaterialParam(state->render_cmds[CMD_IDX_STUDS+i], "diffuse_color",  color);
+		xen::setMaterialParam(state->render_cmds[CMD_IDX_STUDS+i], "emissive_color", color);
 	}
 
 	for(u32 i = 0; i < 3; ++i){
-		state->render_commands[CMD_IDX_LIGHT+i].primitive_type = xen::PrimitiveType::TRIANGLES;
-		state->render_commands[CMD_IDX_LIGHT+i].color          = xen::Color::BLACK4f;
-		state->render_commands[CMD_IDX_LIGHT+i].color[i]       = 1.0f;
-		state->render_commands[CMD_IDX_LIGHT+i].emissive_color = state->render_commands[CMD_IDX_LIGHT+i].color;
-		state->render_commands[CMD_IDX_LIGHT+i].model_matrix   = Mat4r::Identity;
-		state->render_commands[CMD_IDX_LIGHT+i].mesh           = state->mesh_cube;
-		state->render_commands[CMD_IDX_LIGHT+i].flags          = xen::RenderCommand3d::DisableShadowCast;
+		state->render_cmds[CMD_IDX_LIGHT+i].primitive_type = xen::PrimitiveType::TRIANGLES;;
+		state->render_cmds[CMD_IDX_LIGHT+i].model_matrix   = Mat4r::Identity;
+		state->render_cmds[CMD_IDX_LIGHT+i].mesh           = state->mesh_cube;
+		state->render_cmds[CMD_IDX_LIGHT+i].disable_shadow_cast = true;
+
+		xen::Color4f color = xen::Color::BLACK4f;
+		color[i] = 1.0f;
+
+		xen::setMaterialParam(state->render_cmds[CMD_IDX_STUDS+i], "diffuse_color",  color);
+		xen::setMaterialParam(state->render_cmds[CMD_IDX_STUDS+i], "emissive_color", color);
 	}
 }
 
@@ -164,10 +173,6 @@ void initMeshes(xen::ModuleApiGraphics* mod_ren){
 	state->mesh_xzplane = mod_ren->createMesh(state->vertex_spec,
 	                                       xen::TestMeshGeometry_UnitXzPlaneCentered
 	                                      );
-
-	//state->shader_phong     = mod_ren->createShader({(void*)&FragmentShader_Phong    , nullptr, nullptr});
-	//state->shader_normals   = mod_ren->createShader({(void*)&FragmentShader_Normals  , nullptr, nullptr});
-	//state->shader_positions = mod_ren->createShader({(void*)&FragmentShader_Positions, nullptr, nullptr});
 }
 
 void* init( const void* params){
@@ -176,7 +181,10 @@ void* init( const void* params){
 	XenAssert(mod_ren != nullptr, "Graphics module must be loaded before cornell-box");
 	XenAssert(mod_win != nullptr, "Window module must be loaded before cornell-box");
 
-	state = (State*)xen::kernelAlloc(sizeof(State));
+	state = (State*)xen::kernelAlloc(sizeof(State) + xen::kilobytes(1));
+	state->arena.start = xen::ptrGetAdvanced(state, sizeof(State));
+	state->arena.end   = xen::ptrGetAdvanced(state->arena.start, xen::kilobytes(1));
+	state->arena.next_byte = state->arena.start;
 
 	state->window        = mod_win->createWindow({600, 600}, "torus");
 	state->window_target = mod_ren->createWindowRenderTarget(state->window);
@@ -184,7 +192,7 @@ void* init( const void* params){
 	initCamera();
 	initSceneLights();
 	initMeshes(mod_ren);
-	initRenderCommands();
+	initRenderCommands(mod_ren);
 
 	return state;
 }
@@ -210,29 +218,13 @@ void tick( const xen::TickContext& cntx){
 		case xen::WindowEvent::KeyPressed:
 			switch(event->key){
 			case xen::Key::Num1: // points
-				state->render_commands[0].primitive_type = xen::PrimitiveType::POINTS;
+				state->render_cmds[0].draw_mode = xen::RenderCommand3d::PointCloud;
 				break;
 			case xen::Key::Num2: // lines
-				state->render_commands[0].primitive_type = xen::PrimitiveType::LINES;
+				state->render_cmds[0].draw_mode = xen::RenderCommand3d::Wireframe;
 				break;
 			case xen::Key::Num3: // triangles
-				state->render_commands[0].primitive_type = xen::PrimitiveType::TRIANGLES;
-				break;
-			case xen::Key::Num4: // normals
-				state->render_commands[0].shader = state->shader_normals;
-				state->render_commands[1].shader = state->shader_normals;
-				break;
-			case xen::Key::Num5: // world positions
-				state->render_commands[0].shader = state->shader_positions;
-				state->render_commands[1].shader = state->shader_positions;
-				break;
-			case xen::Key::Num6: // Shaded
-				state->render_commands[0].shader = state->shader_phong;
-				state->render_commands[1].shader = state->shader_phong;
-				break;
-			case xen::Key::Num7: // Basic Shaded
-				state->render_commands[0].shader = xen::makeNullGraphicsHandle<xen::Shader>();
-				state->render_commands[1].shader = xen::makeNullGraphicsHandle<xen::Shader>();
+				state->render_cmds[0].draw_mode = xen::RenderCommand3d::Filled;
 				break;
 			default: break;
 			}
@@ -252,14 +244,14 @@ void tick( const xen::TickContext& cntx){
 
 		pos.y += xen::sin(cycle + (120_deg*i)) * 0.5_r;
 		state->scene_lights[i].point.position = pos;
-		state->render_commands[CMD_IDX_LIGHT+i].model_matrix = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
+		state->render_cmds[CMD_IDX_LIGHT+i].model_matrix = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
 		                                                        xen::Scale3d(0.05_r) *
 		                                                        xen::Translation3d(pos)
 		                                                       );
 	}
 
 	mod_ren->clear      (state->window_target, xen::Color{20, 20, 20, 255});
-	mod_ren->render     (state->window_target, viewport, state->render_params, state->render_commands);
+	mod_ren->render     (state->window_target, viewport, state->render_params, state->render_cmds);
 	mod_ren->swapBuffers(state->window_target);
 }
 

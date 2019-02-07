@@ -10,8 +10,11 @@
 #define XEN_EXAMPLES_UTILITIES_HPP
 
 #include <xen/core/intrinsics.hpp>
+#include <xen/core/memory/utilities.hpp>
+#include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/window/Window.hpp>
 #include <xen/graphics/ModuleApiGraphics.hpp>
+#include <xen/graphics/Material_types.hpp>
 #include <xen/kernel/Kernel.hpp>
 #include <xen/kernel/Module.hpp>
 #include <xen/kernel/threads.hpp>
