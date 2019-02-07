@@ -1,4 +1,4 @@
-use_cxx11()
+use_cxx17()
 
 # Don't rebuild extlibs if we change compiler options...
 # This is to prevent rebuilds if we change settings such as

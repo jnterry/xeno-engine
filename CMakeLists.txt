@@ -42,19 +42,19 @@ set(XEN_INCLUDE_DIRS
 	${CMAKE_CURRENT_LIST_DIR}/source/module-sren-atom/include/
 )
 
-# Force c++ 11 standard
-macro(use_cxx11)
+# Force c++ 17 standard
+macro(use_cxx17)
   if (CMAKE_VERSION VERSION_LESS "3.1")
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
       set (CMAKE_CXX_FLAGS "-std=gnu++17 ${CMAKE_CXX_FLAGS}")
  		else ()
- 			message(FATAL_ERROR "Unable to enable c++11 support on this platform!")
+ 			message(FATAL_ERROR "Unable to enable c++17 support on this platform!")
     endif ()
   else ()
     set (CMAKE_CXX_STANDARD 17)
   endif ()
-endmacro(use_cxx11)
-use_cxx11()
+endmacro(use_cxx17)
+use_cxx17()
 
 
 # Include function names in backtrace()
