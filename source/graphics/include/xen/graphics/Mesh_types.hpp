@@ -19,38 +19,6 @@
 
 namespace xen{
 	struct ArenaLinear;
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Container for pointers to in memory arrays of attribute data
-	/// for some mesh
-	///
-	/// This struct is designed to represent a mesh with a fixed format - IE:
-	/// the number and type of vertex attributes cannot be changed. Use the
-	/// other types in this file for more flexibility - but more complexity
-	/////////////////////////////////////////////////////////////////////
-	struct MeshAttribArrays {
-		/// \brief The positions of each vertex
-		Vec3r* position;
-
-		/// \brief The normals of each vertex
-		Vec3r* normal;
-
-		/// \brief The colors of each vertex
-		Color* color;
-
-		/// \brief The uv coordinates of each vertex
-		Vec2f* uvs;
-
-		/// \brief Number of vertices in this mesh. Length of any non nullptr
-		/// attrib arrays above are equal to this count.
-		u32 vertex_count;
-
-		inline MeshAttribArrays(u32 vertex_count, Vec3r* p, Vec3r* n, Color* c, Vec2f* uvs)
-			: position(p), normal(n), color(c), uvs(uvs), vertex_count(vertex_count){
-			// no-op
-		}
-	};
-
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents meta-data about the type of a Mesh vertex attribute.
 	///

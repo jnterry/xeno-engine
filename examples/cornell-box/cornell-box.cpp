@@ -127,9 +127,7 @@ void initMeshes(xen::ModuleApiGraphics* mod_ren){
 	state->vertex_spec[1] = xen::VertexAttribute::Normal3r;
 	state->vertex_spec[2] = xen::VertexAttribute::Color4b;
 
-	state->mesh_cornell_walls = mod_ren->createMesh(
-		state->vertex_spec, MeshGeometry_CornellBoxWalls
-	);
+	state->mesh_cornell_walls = mod_ren->createMesh(MeshData_CornellBoxWalls);
 	state->mesh_cube = mod_ren->createMesh(xen::TestMeshData_UnitCube);
 	state->mesh_axes = mod_ren->createMesh(xen::TestMeshData_Axes);
 }

@@ -154,23 +154,6 @@ namespace xen {
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Uploads mesh data to the graphics device
 		///
-		/// \param vertex_spec The vertex spec for the created mesh. The created
-		/// mesh may rely on this memory, do not free while the mesh exists.
-		///
-		/// \param mesh_geom   The mesh's geometry
-		///
-	  /// \return Mesh Handle to the created mesh, this handle may be used
-		/// in future with this GraphicsDevice to render the mesh
-		///
-		/// \todo :TODO: -> remove the limitation of created mesh relying on
-		/// vertex_spec. This is in software devices which don't make deep copy
-		/// (not sure about gl device?)
-		/////////////////////////////////////////////////////////////////////
-		Mesh createMesh(const VertexSpec& vertex_spec, const MeshAttribArrays& mesh_geom);
-
-		/////////////////////////////////////////////////////////////////////
-		/// \brief Uploads mesh data to the graphics device
-		///
 	  /// \param vertex_spec The vertex spec for the created mesh. The created
 		/// mesh may rely on this memory, do not free while the mesh exists.
 		///
