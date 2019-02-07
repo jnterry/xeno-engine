@@ -207,37 +207,37 @@ namespace {
 }
 
 namespace xen {
-	const MeshAttribArrays TestMeshGeometry_UnitCubeLines = MeshAttribArrays
-		( XenArrayLength(UnitCubeLines_Positions),
-		  UnitCubeLines_Positions,
-		  nullptr,
-		  UnitCubeLines_Colors,
-		  nullptr
-		);
+	const MeshAttribArrays TestMeshGeometry_UnitCubeLines = {
+		XenArrayLength(UnitCubeLines_Positions),
+		UnitCubeLines_Positions,
+		nullptr,
+		UnitCubeLines_Colors,
+		nullptr
+	};
 
-	const MeshAttribArrays TestMeshGeometry_UnitCube = MeshAttribArrays
-		( XenArrayLength(UnitCube_Positions),
-		  UnitCube_Positions,
-		  UnitCube_Normals,
-		  UnitCube_Colors,
-		  UnitCube_Uvs
-		);
+	const MeshAttribArrays TestMeshGeometry_UnitCube = {
+		XenArrayLength(UnitCube_Positions),
+		UnitCube_Positions,
+		UnitCube_Normals,
+		UnitCube_Colors,
+		UnitCube_Uvs
+	};
 
-	const MeshAttribArrays TestMeshGeometry_Axes = MeshAttribArrays
-		( XenArrayLength(Axes_Positions),
-		  Axes_Positions,
-		  nullptr,
-		  Axes_Colors,
-		  nullptr
-		);
+	const MeshAttribArrays TestMeshGeometry_Axes = {
+		XenArrayLength(Axes_Positions),
+		Axes_Positions,
+		nullptr,
+		Axes_Colors,
+		nullptr
+	};
 
-	const MeshAttribArrays TestMeshGeometry_UnitXzPlaneCentered = MeshAttribArrays
-		( XenArrayLength(XzSquare_Positions),
-		  XzSquare_Positions,
-		  XzSquare_Normals,
-		  UnitCube_Colors, // cheat and use same block of white colors
-		  XzSquare_Uvs
-		);
+	const MeshAttribArrays TestMeshGeometry_UnitXzPlaneCentered = {
+		XenArrayLength(XzSquare_Positions),
+		XzSquare_Positions,
+		XzSquare_Normals,
+		UnitCube_Colors, // cheat and use same block of white colors
+		XzSquare_Uvs
+	};
 }
 
 #endif

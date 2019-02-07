@@ -1,8 +1,9 @@
 #include <stdio.h>
 
 #include "../utilities.hpp"
-#include "../fragment_shaders.cpp"
+//#include "../fragment_shaders.cpp"
 
+#include <xen/math/quaternion.hpp>
 #include <xen/graphics/TestMeshes.hpp>
 #include <xen/graphics/Mesh.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
@@ -105,7 +106,7 @@ void initRenderCommands(){
 		state->render_commands[CMD_IDX_LIGHT+i].emissive_color = state->render_commands[CMD_IDX_LIGHT+i].color;
 		state->render_commands[CMD_IDX_LIGHT+i].model_matrix   = Mat4r::Identity;
 		state->render_commands[CMD_IDX_LIGHT+i].mesh           = state->mesh_cube;
-		state->render_commands[CMD_IDX_LIGHT+i].flags          = xen::Material::Flags::DisableShadowCast;
+		state->render_commands[CMD_IDX_LIGHT+i].flags          = xen::RenderCommand3d::DisableShadowCast;
 	}
 }
 
@@ -144,7 +145,7 @@ void initMeshes(xen::ModuleApiGraphics* mod_ren){
 
 	xen::MemoryTransaction transaction(arena);
 	xen::MeshData* mesh_data_torus = xen::createEmptyMeshData(arena, state->vertex_spec);
-	xen::loadMeshFile(mesh_data_torus, arena, "torus.obj",
+	xen::loadMeshFile(mesh_data_torus, arena, "resource/mesh/torus.obj",
 	                  xen::MeshLoadFlags::CENTER_ORIGIN   |
 	                  xen::MeshLoadFlags::SCALE_UNIT_SIZE
 	                 );
@@ -164,9 +165,9 @@ void initMeshes(xen::ModuleApiGraphics* mod_ren){
 	                                       xen::TestMeshGeometry_UnitXzPlaneCentered
 	                                      );
 
-	state->shader_phong     = mod_ren->createShader({(void*)&FragmentShader_Phong    , nullptr, nullptr});
-	state->shader_normals   = mod_ren->createShader({(void*)&FragmentShader_Normals  , nullptr, nullptr});
-	state->shader_positions = mod_ren->createShader({(void*)&FragmentShader_Positions, nullptr, nullptr});
+	//state->shader_phong     = mod_ren->createShader({(void*)&FragmentShader_Phong    , nullptr, nullptr});
+	//state->shader_normals   = mod_ren->createShader({(void*)&FragmentShader_Normals  , nullptr, nullptr});
+	//state->shader_positions = mod_ren->createShader({(void*)&FragmentShader_Positions, nullptr, nullptr});
 }
 
 void* init( const void* params){

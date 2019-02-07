@@ -17,6 +17,15 @@
 
 #include <cstdarg>
 
+xen::VertexAttribute::Type _default_spec_elems[] = {
+	xen::VertexAttribute::Position3r,
+	xen::VertexAttribute::Normal3r,
+	xen::VertexAttribute::Color4b,
+};
+xen::VertexSpec xen::DefaultVertexSpec = {
+	XenArrayLength(_default_spec_elems), _default_spec_elems
+};
+
 xen::RenderOp xen::RenderOp::Clear(xen::RenderTarget target, xen::Color color){
 	xen::RenderOp result;
 	result.type         = xen::RenderOp::CLEAR;
@@ -134,6 +143,14 @@ void xen::ModuleApiGraphics::render(xen::RenderTarget target,
                                     xen::Array<RenderCommand3d> commands
                                    ){
 	this->pushOp(xen::RenderOp::Draw(target, viewport, params, commands));
+}
+
+void xen::ModuleApiGraphics::render(xen::RenderTarget target,
+                                    xen::Aabb2u viewport,
+                                    xen::RenderParameters3d& params,
+                                    xen::RenderCommand3d& cmd){
+	xen::Array<xen::RenderCommand3d> cmd_list = { 1, &cmd };
+	this->pushOp(xen::RenderOp::Draw(target, viewport, params, cmd_list));
 }
 
 void xen::ModuleApiGraphics::swapBuffers(xen::RenderTarget target){

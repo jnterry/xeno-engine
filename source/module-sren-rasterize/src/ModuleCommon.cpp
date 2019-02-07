@@ -94,6 +94,8 @@ namespace {
 		api.destroyTexture           = &xsr::destroyTexture;
 		api.createShader             = &xsr::createShader;
 		api.destroyShader            = &xsr::destroyShader;
+		api.createMaterial           = &xsr::createMaterial;
+		api.destroyMaterial          = &xsr::destroyMaterial;
 		api.pushOp                   = &pushOp;
 
 		return &api;

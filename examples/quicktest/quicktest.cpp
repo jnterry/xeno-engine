@@ -20,7 +20,7 @@
 #include <xen/window/Window.hpp>
 
 #include "../utilities.hpp"
-#include "../fragment_shaders.cpp"
+//#include "../fragment_shaders.cpp"
 
 const int CMD_BUNNY  = 0;
 const int CMD_FLOOR  = 1;
@@ -43,9 +43,11 @@ struct State {
 	xen::Mesh     mesh_cube;
 	xen::Mesh     mesh_bunny;
 	xen::Texture  texture_debug_img;
-	xen::Shader   shader_phong;
 
-	xen::FixedArray<xen::RenderCommand3d , 6> render_cmds;
+	const xen::Material* material_phong;
+	const xen::Material* material_normal_lines;
+
+	xen::FixedArray<xen::RenderCommand3d, 6> render_cmds;
 };
 
 State* state = nullptr;
@@ -83,56 +85,62 @@ void* init(const void* params){
 	state->vertex_spec[2] = xen::VertexAttribute::Color4b;
 	state->vertex_spec[3] = xen::VertexAttribute::TexCoord2f;
 
-	state->shader_phong      = mod_ren->createShader({ (void*)&FragmentShader_Phong, nullptr, nullptr });
+	state->material_phong        = mod_ren->createMaterial(material_creation_params_phong);
+	state->material_normal_lines = mod_ren->createMaterial(material_creation_params_normal_lines);
 
-	xen::RawImage test_image = xen::loadImage(arena, "test.bmp");
+	xen::RawImage test_image = xen::loadImage(arena, "resource/texture/test.bmp");
 	state->texture_debug_img = mod_ren->createTexture(&test_image);
 
 	state->mesh_cube         = mod_ren->createMesh(state->vertex_spec, xen::TestMeshGeometry_UnitCube);
 
 	xen::MeshData* mesh_data_bunny = xen::createEmptyMeshData(arena, state->vertex_spec);
-	xen::loadMeshFile(mesh_data_bunny, arena, "bunny.obj", xen::MeshLoadFlags::CENTER_ORIGIN);
+	xen::loadMeshFile(mesh_data_bunny, arena, "resource/mesh/bunny.obj", xen::MeshLoadFlags::CENTER_ORIGIN);
 	state->mesh_bunny = mod_ren->createMesh(mesh_data_bunny);
 
+	for(u64 i = 0; i < state->render_cmds.size; ++i){
+		state->render_cmds[i].material = state->material_phong;
+		state->render_cmds[i].material_params = xen::reserveBytes(
+			arena, state->material_phong->parameters->size
+		);
+		xen::setMaterialParam(state->render_cmds[i], "emissive_color", xen::Color::BLACK4f);
+		xen::setMaterialParam(state->render_cmds[i], "diffuse_color",  xen::Color::WHITE4f);
+	}
+
 	state->render_cmds[CMD_BUNNY ].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	state->render_cmds[CMD_BUNNY ].color           = xen::Color::RED4f;
 	state->render_cmds[CMD_BUNNY ].model_matrix    = Mat4r::Identity;
 	state->render_cmds[CMD_BUNNY ].mesh            = state->mesh_bunny;
-	state->render_cmds[CMD_BUNNY ].shader          = state->shader_phong;
 
 	state->render_cmds[CMD_FLOOR ].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	state->render_cmds[CMD_FLOOR ].color           = xen::Color::WHITE4f;
 	state->render_cmds[CMD_FLOOR ].model_matrix    = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
 	                                                  xen::Scale3d(60, 0.5, 60) *
 	                                                  xen::Translation3d(0, -0.5_r, 0)
 	                                                 );
 	state->render_cmds[CMD_FLOOR ].mesh            = state->mesh_cube;
 	state->render_cmds[CMD_FLOOR ].textures[0]     = state->texture_debug_img;
-	state->render_cmds[CMD_FLOOR ].shader          = state->shader_phong;
 
 	state->render_cmds[CMD_LIGHT ].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	state->render_cmds[CMD_LIGHT ].color           = xen::Color::RED4f;
-	state->render_cmds[CMD_LIGHT ].emissive_color  = xen::Color::RED4f;
 	state->render_cmds[CMD_LIGHT ].model_matrix    = Mat4r::Identity;
 	state->render_cmds[CMD_LIGHT ].mesh            = state->mesh_cube;
+	xen::setMaterialParam(state->render_cmds[CMD_LIGHT], "emissive_color", xen::Color::RED4f);
+	xen::setMaterialParam(state->render_cmds[CMD_LIGHT], "diffuse_color",  xen::Color::RED4f);
 
 	state->render_cmds[CMD_AXIS_X].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	state->render_cmds[CMD_AXIS_X].color           = xen::Color::RED4f;
-	state->render_cmds[CMD_AXIS_X].emissive_color  = xen::Color::RED4f;
 	state->render_cmds[CMD_AXIS_X].model_matrix    = xen::Scale3d(15, 0.1, 0.1);
 	state->render_cmds[CMD_AXIS_X].mesh            = state->mesh_cube;
+	xen::setMaterialParam(state->render_cmds[CMD_AXIS_X], "emissive_color", xen::Color::RED4f);
+	xen::setMaterialParam(state->render_cmds[CMD_AXIS_X], "diffuse_color",  xen::Color::RED4f);
 
 	state->render_cmds[CMD_AXIS_Y].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	state->render_cmds[CMD_AXIS_Y].color           = xen::Color::GREEN4f;
-	state->render_cmds[CMD_AXIS_Y].emissive_color  = xen::Color::GREEN4f;
 	state->render_cmds[CMD_AXIS_Y].model_matrix    = xen::Scale3d(0.1, 15, 0.1);
 	state->render_cmds[CMD_AXIS_Y].mesh            = state->mesh_cube;
+  xen::setMaterialParam(state->render_cmds[CMD_AXIS_Y], "emissive_color", xen::Color::GREEN4f);
+	xen::setMaterialParam(state->render_cmds[CMD_AXIS_Y], "diffuse_color",  xen::Color::GREEN4f);
 
 	state->render_cmds[CMD_AXIS_Z].primitive_type  = xen::PrimitiveType::TRIANGLES;
-	state->render_cmds[CMD_AXIS_Z].color           = xen::Color::BLUE4f;
-	state->render_cmds[CMD_AXIS_Z].emissive_color  = xen::Color::BLUE4f;
 	state->render_cmds[CMD_AXIS_Z].model_matrix    = xen::Scale3d(0.1, 0.1, 15);
 	state->render_cmds[CMD_AXIS_Z].mesh            = state->mesh_cube;
+	xen::setMaterialParam(state->render_cmds[CMD_AXIS_Z], "emissive_color", xen::Color::BLUE4f);
+	xen::setMaterialParam(state->render_cmds[CMD_AXIS_Z], "diffuse_color",  xen::Color::BLUE4f);
 
 	return state;
 }
@@ -178,6 +186,14 @@ void tick( const xen::TickContext& cntx){
 			case xen::Key::W:
 				state->point_light_color.rgb = xen::Color3f(1,1,1);
 				break;
+			case xen::Key::N:
+				state->render_cmds[CMD_BUNNY].material = state->material_normal_lines;
+				state->render_cmds[CMD_FLOOR].material = state->material_normal_lines;
+				break;
+			case xen::Key::M:
+				state->render_cmds[CMD_BUNNY].material = state->material_phong;
+				state->render_cmds[CMD_FLOOR].material = state->material_phong;
+				break;
 			default: break;
 			}
 			break;
@@ -207,20 +223,31 @@ void tick( const xen::TickContext& cntx){
 	                          0.3 + sin(time*15 + 0.5*xen::PI)*0.03);
 	model_mat *= xen::Translation3d(light_pos);
 	state->render_cmds[CMD_LIGHT].model_matrix   = model_mat;
-	state->render_cmds[CMD_LIGHT].emissive_color = state->point_light_color;
+	xen::setMaterialParam(state->render_cmds[CMD_LIGHT], "emissive_color", state->point_light_color);
+	xen::setMaterialParam(state->render_cmds[CMD_LIGHT], "diffuse_color",  state->point_light_color);
 
 	////////////////////////////////////////////
 	// Draw Bunny
 	model_mat = Mat4r::Identity;
-	model_mat *= xen::Scale3d(20);
-	model_mat *= xen::Translation3d(0, 1, 0);
-	model_mat *= xen::Rotation3dy(67_deg * time);
+	model_mat *= xen::Translation3d(0, 0.07, 0);
+	model_mat *= xen::Scale3d(50);
+	//model_mat *= xen::Rotation3dy(67_deg * time);
 	state->render_cmds[CMD_BUNNY].model_matrix = model_mat;
 
 	////////////////////////////////////////////
 	// Do rendering
 	mod_ren->clear      (state->window_target, xen::Color::BLACK);
+
+
+	for(u64 i = 0; i < state->render_cmds.size; ++i){
+		state->render_cmds[i].material = state->material_phong;
+	}
 	mod_ren->render     (state->window_target, viewport, state->render_params, state->render_cmds);
+	for(u64 i = 0; i < state->render_cmds.size; ++i){
+		state->render_cmds[i].material = state->material_normal_lines;
+	}
+	mod_ren->render     (state->window_target, viewport, state->render_params, state->render_cmds);
+
 	mod_ren->swapBuffers(state->window_target);
 }
 

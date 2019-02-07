@@ -32,5 +32,14 @@ void xsr::destroyShader(xen::Shader shader){
 	xen::freeSlot(xsr::state->shader_pool, shader._id);
 }
 
+const xen::Material* xsr::createMaterial(const xen::ShaderSource& source,
+                                         const xen::MaterialParameterSource* params,
+                                         u64 param_count){
+	return nullptr;
+}
+void xsr::destroyMaterial(const xen::Material* material){
+	return;
+}
+
 
 #endif

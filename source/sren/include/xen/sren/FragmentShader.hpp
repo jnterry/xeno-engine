@@ -16,7 +16,7 @@
 #include <xen/sren/Texture.hpp>
 
 namespace xen {
-  struct Material;
+  struct MaterialParams;
 }
 
 namespace xsr {
@@ -49,7 +49,7 @@ namespace xsr {
 	/// based on specified parameters
 	/////////////////////////////////////////////////////////////////////
 	void setPerCommandFragmentUniforms(FragmentUniforms& uniforms,
-	                                   const xen::Material&   material,
+	                                   const xen::MaterialParams&   material,
 	                                   const Mat4r&      m_mat,
 	                                   const Mat4r&      vp_mat
 	                                  );

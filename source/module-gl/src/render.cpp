@@ -9,7 +9,7 @@
 #ifndef XEN_GL_RENDER_CPP
 #define XEN_GL_RENDER_CPP
 
-#include "Shader.hxx"
+#include "Material.hxx"
 #include "Mesh.hxx"
 #include "gl_header.hxx"
 #include "RenderTarget.hxx"
@@ -109,7 +109,6 @@ void renderMesh(xen::PrimitiveType primitive_type,
 	                          mesh->vertex_count));
 }
 
-
 namespace xgl {
 	void render(xen::RenderTarget render_target,
 	            const xen::Aabb2u& viewport,
@@ -123,49 +122,42 @@ namespace xgl {
 		Vec2u viewport_size = viewport.max - viewport.min;
 		glViewport(viewport.min.x, viewport.min.y, viewport_size.x, viewport_size.y);
 
-		// :TODO: use shader specified by command, this means repeatedly setting
-		// uniforms, and handling case where uniforms of expected names don't exist
-		// in the shader
-		xgl::ShaderProgram* prog = &xgl::gl_state->pool_shader.slots[0].item;
-		xgl::useShader(prog);
-
-		int mvp_mat_loc           = xgl::getUniformLocation(prog, "mvp_mat"          );
-		int model_mat_loc         = xgl::getUniformLocation(prog, "model_mat"        );
-		int point_light_pos_loc   = xgl::getUniformLocation(prog, "point_light_pos"  );
-		int point_light_color_loc = xgl::getUniformLocation(prog, "point_light_color");
-		int emissive_color_loc    = xgl::getUniformLocation(prog, "emissive_color"   );
-		int camera_pos_loc        = xgl::getUniformLocation(prog, "camera_position"  );
-
-		if(xen::size(params.lights) && params.lights.elements != nullptr){
-			// :TODO: support multiple lights
-			xgl::setUniform(point_light_pos_loc,   params.lights[0].point.position);
-			xgl::setUniform(point_light_color_loc, params.lights[0].color);
-
-			xgl::setUniform(emissive_color_loc,    Vec4f::Origin);
-		} else {
-			xgl::setUniform(point_light_pos_loc,   Vec3r::Origin);
-			xgl::setUniform(point_light_color_loc, Vec4f::Origin);
-			xgl::setUniform(emissive_color_loc,    xen::Color::WHITE4f);
-		}
-
-		xgl::setUniform(camera_pos_loc, xen::getCameraPosition(params.camera));
-
-		Mat4r vp_mat = (getViewMatrix(params.camera) *
-
-		                // opengl has (0,0) at bottom left, we expect it to be at top left so flip
-		                xen::Scale3d(1, -1, 1)       *
-		                getProjectionMatrix(params.camera, (Vec2r)(viewport.max - viewport.min))
-		                );
-
 		xen::impl::checkGl(__LINE__, __FILE__);
 		for(u32 cmd_index = 0; cmd_index < commands.size; ++cmd_index){
 			const xen::RenderCommand3d* cmd = &commands[cmd_index];
 
-			XEN_CHECK_GL(glBindTexture(GL_TEXTURE_2D, xgl::getTextureImpl(cmd->textures[0])->id));
+			if(cmd->material == nullptr){
+				xgl::applyMaterial(xgl::state->default_material, *cmd, params, viewport);
+			} else {
+				xgl::applyMaterial((xgl::Material*)cmd->material, *cmd, params, viewport);
+			}
 
-			xgl::setUniform(mvp_mat_loc,        cmd->model_matrix * vp_mat);
-			xgl::setUniform(model_mat_loc,      cmd->model_matrix);
-			xgl::setUniform(emissive_color_loc, cmd->emissive_color);
+			switch(cmd->draw_mode){
+			case xen::RenderCommand3d::Filled:
+				XGL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, GL_FILL));
+				break;
+			case xen::RenderCommand3d::Wireframe:
+				XGL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, GL_LINE));
+				break;
+			case xen::RenderCommand3d::PointCloud:
+				XGL_CHECK(glPolygonMode(GL_FRONT_AND_BACK, GL_POINT));
+				break;
+			}
+
+			switch(cmd->cull_mode){
+			case xen::RenderCommand3d::CullBack:
+				XGL_CHECK(glEnable  (GL_CULL_FACE ));
+				XGL_CHECK(glCullFace(GL_BACK      ));
+				break;
+			case xen::RenderCommand3d::CullFront:
+				XGL_CHECK(glEnable  (GL_CULL_FACE ));
+				XGL_CHECK(glCullFace(GL_FRONT     ));
+				break;
+			case xen::RenderCommand3d::CullNone:
+				XGL_CHECK(glDisable (GL_CULL_FACE ));
+				break;
+			}
+
 			renderMesh(cmd->primitive_type, xgl::getMeshGlData(cmd->mesh));
 		}
 	}

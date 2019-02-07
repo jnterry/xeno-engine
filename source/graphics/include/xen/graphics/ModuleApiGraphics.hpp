@@ -13,6 +13,7 @@
 #include <xen/graphics/GraphicsHandles.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/Mesh_types.hpp>
+#include <xen/graphics/Material_types.hpp>
 #include <xen/math/geometry_types.hpp>
 #include <xen/core/array.hpp>
 
@@ -59,26 +60,25 @@ namespace xen {
 		static RenderOp SwapBuffers(xen::RenderTarget target);
 	};
 
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Bundle of arguments used to create a shader. This includes
-	/// parameters for all rendering backends, and combination of which may
-	/// be supplied. Rendering backends should attempt to construct a shader
-	/// from that which is not nullptr, and if that is not possible (eg, only
-	/// sren shader is specified but we are using opengl) then the backend should
-	/// fall back to using its default shader
-	///
-	/// \todo Something better for creating shaders in a backend agnostic way...
-	/////////////////////////////////////////////////////////////////////
-	struct ShaderSource {
-		/// \brief Pointer to a FragmentShader for sren backends
-		void* sren;
+	/// \brief Bundle of arguments that describe to the rendering backend how to
+	/// create a material
+	struct MaterialCreationParameters {
+		/// \brief Array of shader source file paths to be compiled to form
+		/// the vertex stage of the shader program associated with this material
+		xen::Array<const char*> vertex_sources;
 
-		/// \brief Path of glsl code for vertex shader
-		const char* glsl_vertex_path;
+		xen::Array<const char*> geometry_sources;
 
-		/// \brief Path of glsl code for fragment shader
-		const char* glsl_fragment_path;
+		/// \brief Array of files to be compiled as the pixel shader
+		xen::Array<const char*> pixel_sources;
+
+		/// \brief List of sources from which shader parameter values
+		/// will be derived
+		xen::Array<xen::MaterialParameterSource> parameter_sources;
 	};
+
+	/// \brief The vertex spec for the engine's internal default material
+	extern VertexSpec DefaultVertexSpec;
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Type representing the Api that a graphics module is expected
@@ -122,8 +122,9 @@ namespace xen {
 		Texture (*createTexture )(const RawImage* image);
 		void    (*destroyTexture)(Texture texture);
 
-		Shader  (*createShader  )(const ShaderSource& source);
-		void    (*destroyShader )(Shader shader     );
+		/// \brief Creates a material which may later be used for rendering geometry
+		const Material* (*createMaterial )(const MaterialCreationParameters& params);
+		void            (*destroyMaterial)(const Material* material);
 
 		/// \brief Pushes some rendering operation
 		/// Depending on the operation and graphics api in use, this may cause
@@ -199,7 +200,12 @@ namespace xen {
 		}
 
 		void clear(xen::RenderTarget target, xen::Color color);
-		void render(xen::RenderTarget, xen::Aabb2u viewport, xen::RenderParameters3d& params, xen::Array<RenderCommand3d> commands);
+		void render(xen::RenderTarget, xen::Aabb2u viewport,
+		            xen::RenderParameters3d& params,
+		            xen::Array<RenderCommand3d> commands);
+		void render(xen::RenderTarget, xen::Aabb2u viewport,
+		            xen::RenderParameters3d& params,
+		            xen::RenderCommand3d& cmd);
 		void swapBuffers(xen::RenderTarget window);
 	};
 }

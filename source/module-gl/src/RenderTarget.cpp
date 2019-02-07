@@ -18,7 +18,7 @@
 
 namespace xgl {
 	xgl::RenderTargetImpl* getRenderTargetImpl(xen::RenderTarget target){
-		return xgl::gl_state->pool_render_target.slots[target._id].item;
+		return xgl::state->pool_render_target.slots[target._id].item;
 	}
 
 	void clearTarget(xen::RenderTarget target_handle, xen::Color color){
@@ -31,16 +31,16 @@ namespace xgl {
 	}
 
 	xen::RenderTarget createWindowRenderTarget(xen::Window* window){
-		xen::MemoryTransaction transaction(gl_state->primary_arena);
+		xen::MemoryTransaction transaction(state->primary_arena);
 
 		xgl::RenderTargetImpl* render_target =
-			xgl::createPlatformWindowRenderTarget(gl_state->primary_arena, window);
+			xgl::createPlatformWindowRenderTarget(state->primary_arena, window);
 
-		u32 slot = xen::reserveSlot(gl_state->pool_render_target);
+		u32 slot = xen::reserveSlot(state->pool_render_target);
 		XenAssert(slot != xen::ArenaPool<xgl::RenderTargetImpl*>::BAD_SLOT_INDEX,
 		          "Render target pool full");
 
-		gl_state->pool_render_target.slots[slot].item = render_target;
+		state->pool_render_target.slots[slot].item = render_target;
 		xen::RenderTarget result = xen::makeGraphicsHandle<xen::RenderTarget::HANDLE_ID>(slot, 0);
 
 		XenLogDebug("Making render target current");
@@ -71,12 +71,6 @@ namespace xgl {
 		// A context should be created in module init(), then we share all resources
 		// with that
 
-		// :TODO: something better with shaders -> ideally expose them to user of xenogin
-		// but how do "programable pipeline" in software / other devices?
-
-		// ensure shader 0 is the default shader
-		xgl::createShader({ nullptr, "vertex.glsl", "pixel.glsl" });
-
 		// Ensure texture 0 is single pixel white
 		xen::RawImage image;
 		image.size.x = 1;
@@ -84,6 +78,13 @@ namespace xgl {
 		xen::Color color = xen::Color::WHITE;
 		image.pixels = &color;
 		xgl::createTexture(&image);
+
+		XenAssert(xgl::state->default_material == nullptr,
+		          "We don't want to be recreating the default material!");
+		xgl::state->default_material = xgl::initDefaultMaterial();
+		if(xgl::state->default_material == nullptr){
+			XenLogWarn("Failed to initialize default material. Segfault will occur if you attempt to render geometry with nullptr for the material");
+		}
 
 		XEN_CHECK_GL(glEnable   (GL_DEPTH_TEST));
 		XEN_CHECK_GL(glDepthFunc(GL_LESS      ));
@@ -115,7 +116,7 @@ namespace xgl {
 	void destroyRenderTarget(xen::RenderTarget handle){
 		xgl::RenderTargetImpl* target = getRenderTargetImpl(handle);
 		xgl::destroyPlatformRenderTarget(target);
-		xen::freeType(gl_state->pool_render_target, &target);
+		xen::freeType(state->pool_render_target, &target);
 	}
 }
 

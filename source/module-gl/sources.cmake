@@ -4,8 +4,8 @@ set(XEN_HEADERS_GL
 set(XEN_SOURCES_GL
   ${CMAKE_CURRENT_LIST_DIR}/src/gl_header.hxx
 
-	${CMAKE_CURRENT_LIST_DIR}/src/Shader.hxx
-	${CMAKE_CURRENT_LIST_DIR}/src/Shader.cpp
+	${CMAKE_CURRENT_LIST_DIR}/src/Material.hxx
+	${CMAKE_CURRENT_LIST_DIR}/src/Material.cpp
 
   ${CMAKE_CURRENT_LIST_DIR}/src/Mesh.hxx
   ${CMAKE_CURRENT_LIST_DIR}/src/Mesh.cpp

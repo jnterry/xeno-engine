@@ -29,6 +29,10 @@ namespace xen{
 	/// other types in this file for more flexibility - but more complexity
 	/////////////////////////////////////////////////////////////////////
 	struct MeshAttribArrays {
+		/// \brief Number of vertices in this mesh. Length of any non nullptr
+		/// attrib arrays above are equal to this count.
+		u32 vertex_count;
+
 		/// \brief The positions of each vertex
 		Vec3r* position;
 
@@ -40,15 +44,6 @@ namespace xen{
 
 		/// \brief The uv coordinates of each vertex
 		Vec2f* uvs;
-
-		/// \brief Number of vertices in this mesh. Length of any non nullptr
-		/// attrib arrays above are equal to this count.
-		u32 vertex_count;
-
-		inline MeshAttribArrays(u32 vertex_count, Vec3r* p, Vec3r* n, Color* c, Vec2f* uvs)
-			: position(p), normal(n), color(c), uvs(uvs), vertex_count(vertex_count){
-			// no-op
-		}
 	};
 
 	/////////////////////////////////////////////////////////////////////

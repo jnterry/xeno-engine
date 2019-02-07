@@ -15,6 +15,7 @@
 #include <xen/math/vector_types.hpp>
 #include <xen/math/matrix_types.hpp>
 #include <xen/graphics/Color.hpp>
+#include <xen/graphics/Material_types.hpp>
 #include <xen/graphics/Light3d.hpp>
 #include <xen/graphics/Camera3d.hpp>
 #include <xen/graphics/Mesh.hpp>
@@ -44,47 +45,6 @@ namespace xen{
 
 		// TRIANGLE_FAN
 		// TRIANGLE_STRIP
-	};
-
-	struct Material {
-		/// \brief The diffuse color to use
-		Color4f color;
-
-		/// \brief The emissive color of the surface, a/w component is interpreted
-		/// as a brightness modifier
-		Color4f emissive_color;
-
-		/// \brief Value controlling how "shiny" the material appears
-		/// Higher values decrease the size of specular highlights
-		real specular_exponent;
-
-		/// \brief Multiplier that affects the intensity of specular highlights
-		real specular_intensity;
-
-		/// \brief Enumeration of "extra" misc flags that may be set for a command
-		struct Flags : public xen::BitField<u08, 1> {
-			using BitField::BitField; // use constructors of parent
-			enum Values {
-
-				/// \brief If set then the geometry rendered by this command
-				/// will not block light, and hence will not cast shadows
-				///
-				/// \note Flag is to disable rather than enable since geometry should
-				/// cast shadows by default and we want the struct to have sensible
-				/// defaults if zero initialised
-				DisableShadowCast = 1,
-
-				// :TODO:
-				// CullBackFace,
-				// CullFrontFace,
-			};
-		};
-
-		/// \brief Extra flags for the command
-		Flags flags;
-
-		/// \brief The type of primitive to draw the mesh as
-		PrimitiveType primitive_type;
 	};
 
 	/////////////////////////////////////////////////////////////////////
@@ -117,27 +77,66 @@ namespace xen{
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Represents a single rendering operation which will draw
 	/// some object to the screen
-	/// \todo :TODO: Should this refer to a material rather than inheriting from
-	/// one? This means we can batch all commands with same material by comparing
-	/// pointer address only (if switching materials has a cost, eg in opengl when
-	/// changing shader uniforms...)
 	/////////////////////////////////////////////////////////////////////
-	struct RenderCommand3d : public Material{
+	struct RenderCommand3d {
 		/// \brief Matrix to transform from world space to model space
 		Mat4r model_matrix;
 
-		/// \brief A handle to a mesh to be drawn, used if source is Mesh
+		/// \brief A handle to a mesh to be drawn
 		xen::Mesh mesh;
 
+		/// \brief The type of primitive to draw the mesh as
+		PrimitiveType primitive_type;
 
-		/// \brief Array of textures to be used by this rendering operation
+		/// \brief Array of texture channels to be used by this rendering operation
 		xen::Texture textures[4];
 
-		/// \brief Shader used to compute per pixel colors.
+		/// \brief The material to be used to render the geometry
+		const xen::Material* material;
+
+		/// \brief Block of data to be used as source of parameters for the material
+		/// Layout of the data should be that described by ~material->parameters~.
+		/// May be set to nullptr if the material has no parameters, or if there is
+		/// a default value for all parameters that do exist, and you are happy to
+		/// use the defaults
+		void* material_params;
+
+		/// \brief If set then the geometry rendered by this command
+		/// will not block light, and hence will not cast shadows
 		///
-		/// Set to a null handle to use the engine's default shader
-		Shader shader;
+		/// \note This flag is to disable rather than to enable, since we assume
+		/// that geometry should cast shadows by default, and we want defaults to be
+		/// sensible when this struct is zero initialised
+		u08 disable_shadow_cast : 1;
+
+		/// \brief The drawing mode to use for this geometry. Defaults to Filled.
+		/// Note that mode will be "downgraded" depending on primitive type, for
+		/// example if drawing lines as filled, then lines will be used.
+		u08 draw_mode : 2;
+		enum DrawMode {
+			Filled     = 0x00,
+			Wireframe  = 0x01,
+			PointCloud = 0x02,
+		};
+
+		/// \brief Selects which faces should be culled. By definition in Xenogin
+		/// polygons wound clockwise are back faces (this is the OpenGL convention).
+		/// Zero-initialises to CullBack
+		u08 cull_mode : 2;
+		enum CullMode {
+			CullBack  = 0x00,
+		  CullFront = 0x01,
+			CullNone  = 0x02,
+		};
 	};
+
+	template<typename T>
+	inline void setMaterialParam(RenderCommand3d& cmd, const char* param_name, const T& value){
+		xen::setField(cmd.material->parameters,
+		              param_name,
+		              cmd.material_params,
+		              value);
+	}
 }
 
 #endif

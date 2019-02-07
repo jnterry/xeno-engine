@@ -20,6 +20,11 @@ namespace xsr {
 	xen::Shader createShader(const xen::ShaderSource& source);
 	void        destroyShader(xen::Shader shader);
 
+	const xen::Material*  createMaterial(const xen::ShaderSource& source,
+	                                     const xen::MaterialParameterSource* params,
+	                                     u64 param_count);
+	void destroyMaterial(const xen::Material* material);
+
 	xsr::FragmentShader getShaderImpl(xen::Shader shader);
 }
 

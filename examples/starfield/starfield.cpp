@@ -11,6 +11,7 @@
 #include <xen/math/utilities.hpp>
 #include <xen/math/quaternion.hpp>
 #include <xen/core/memory/utilities.hpp>
+#include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/core/String.hpp>
 
 #define STAR_COUNT 1024
@@ -18,10 +19,12 @@
 #include "../utilities.hpp"
 
 struct StarfieldState {
+	xen::ArenaLinear arena;
+
 	Vec3r       star_positions[STAR_COUNT];
 	xen::Color  star_colors   [STAR_COUNT];
 
-	xen::FixedArray<xen::VertexAttribute::Type, 2> vertex_spec;
+	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
 	xen::Mesh mesh_stars;
 	xen::Mesh mesh_axes;
 	xen::Mesh mesh_cube_lines;
@@ -31,7 +34,7 @@ struct StarfieldState {
 
 	xen::RenderParameters3d                  render_params;
 	xen::Camera3dCylinder                    camera;
-	xen::FixedArray<xen::RenderCommand3d, 3> render_commands;
+	xen::FixedArray<xen::RenderCommand3d, 3> render_cmds;
 };
 
 StarfieldState* star_state;
@@ -42,7 +45,11 @@ void* init(const void* params){
 	XenAssert(mod_ren != nullptr, "Graphics module must be loaded before cornell-box");
 	XenAssert(mod_win != nullptr, "Window module must be loaded before cornell-box");
 
-	StarfieldState* ss = (StarfieldState*)xen::kernelAlloc(sizeof(StarfieldState));
+
+	StarfieldState* ss = (StarfieldState*)xen::kernelAlloc(sizeof(StarfieldState) + xen::kilobytes(1));
+	ss->arena.start     = xen::ptrGetAdvanced(ss, sizeof(StarfieldState));
+	ss->arena.end       = xen::ptrGetAdvanced(ss->arena.start, xen::kilobytes(1));
+	ss->arena.next_byte = ss->arena.start;
 
 	ss->window        = mod_win->createWindow({600, 600}, "starfield");
 	ss->window_target = mod_ren->createWindowRenderTarget(ss->window);
@@ -72,30 +79,28 @@ void* init(const void* params){
 	ss->render_params.ambient_light = xen::Color3f(1.0f, 1.0f, 1.0f);
 
 	ss->vertex_spec[0] = xen::VertexAttribute::Position3r;
-	ss->vertex_spec[1] = xen::VertexAttribute::Color4b;
+	ss->vertex_spec[1] = xen::VertexAttribute::Normal3r;
+	ss->vertex_spec[2] = xen::VertexAttribute::Color4b;
 
-	ss->mesh_stars      = mod_ren->createMesh(ss->vertex_spec, STAR_COUNT, ss->star_positions, ss->star_colors);
+	ss->mesh_stars      = mod_ren->createMesh(ss->vertex_spec, STAR_COUNT,
+	                                          ss->star_positions, nullptr, ss->star_colors);
 	ss->mesh_axes       = mod_ren->createMesh(ss->vertex_spec, xen::TestMeshGeometry_Axes);
 	ss->mesh_cube_lines = mod_ren->createMesh(ss->vertex_spec, xen::TestMeshGeometry_UnitCubeLines);
+	xen::clearToZero(ss->render_cmds);
 
-	xen::clearToZero(ss->render_commands);
+	ss->render_cmds[0].primitive_type         = xen::PrimitiveType::LINES;
+	ss->render_cmds[0].model_matrix           = xen::Scale3d(100_r);
+	ss->render_cmds[0].mesh                   = ss->mesh_axes;
 
-	ss->render_commands[0].primitive_type         = xen::PrimitiveType::LINES;
-	ss->render_commands[0].color                  = xen::Color::WHITE4f;
-	ss->render_commands[0].model_matrix           = xen::Scale3d(100_r);
-	ss->render_commands[0].mesh                   = ss->mesh_axes;
+	ss->render_cmds[1].primitive_type         = xen::PrimitiveType::POINTS;
+	ss->render_cmds[1].model_matrix           = Mat4r::Identity;
+	ss->render_cmds[1].mesh                   = ss->mesh_stars;
 
-	ss->render_commands[1].primitive_type         = xen::PrimitiveType::POINTS;
-	ss->render_commands[1].color                  = xen::Color::WHITE4f;
-	ss->render_commands[1].model_matrix           = Mat4r::Identity;
-	ss->render_commands[1].mesh                   = ss->mesh_stars;
-
-	ss->render_commands[2].primitive_type         = xen::PrimitiveType::LINES;
-	ss->render_commands[2].color                  = xen::Color::CYAN4f;
-	ss->render_commands[2].model_matrix           = (xen::Scale3d(200_r) *
-	                                                 xen::Translation3d(-100.0_r, -100.0_r, -100.0_r)
-	                                                 );
-	ss->render_commands[2].mesh                   = ss->mesh_cube_lines;
+	ss->render_cmds[2].primitive_type         = xen::PrimitiveType::LINES;
+	ss->render_cmds[2].model_matrix           = (
+		xen::Scale3d(200_r) * xen::Translation3d(-100.0_r, -100.0_r, -100.0_r)
+	);
+	ss->render_cmds[2].mesh                   = ss->mesh_cube_lines;
 
 	return ss;
 }
@@ -135,7 +140,7 @@ void tick( const xen::TickContext& cntx){
 
 	mod_ren->clear      (star_state->window_target, xen::Color{20,20,20,255});
 	mod_ren->render     (star_state->window_target, viewport,
-	                     star_state->render_params, star_state->render_commands);
+	                     star_state->render_params, star_state->render_cmds);
 	mod_ren->swapBuffers(star_state->window_target);
 }
 

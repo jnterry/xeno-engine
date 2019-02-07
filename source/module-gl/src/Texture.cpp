@@ -16,12 +16,12 @@
 #include "ModuleGl.hxx"
 
 xgl::TextureImpl* xgl::getTextureImpl(const xen::Texture texture){
-	return &gl_state->pool_texture.slots[texture._id].item;
+	return &state->pool_texture.slots[texture._id].item;
 }
 
 xen::Texture xgl::createTexture(const xen::RawImage* image){
 	// Allocate texture CPU side
-	u32 slot = xen::reserveSlot(gl_state->pool_texture);
+	u32 slot = xen::reserveSlot(state->pool_texture);
 	xen::Texture result = xen::makeGraphicsHandle<xen::Texture::HANDLE_ID>(slot, 0);
 	xgl::TextureImpl* timpl = xgl::getTextureImpl(result);
 
@@ -55,7 +55,7 @@ void xgl::destroyTexture(const xen::Texture texture){
 		XEN_CHECK_GL(glDeleteTextures(1, &timpl->id));
 	}
 
-	xen::freeType(gl_state->pool_texture, timpl);
+	xen::freeType(state->pool_texture, timpl);
 }
 
 #endif

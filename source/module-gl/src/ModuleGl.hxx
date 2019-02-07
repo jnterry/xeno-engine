@@ -10,11 +10,12 @@
 #define XEN_GL_MODULE_HXX
 
 #include "Mesh.hxx"
-#include "Shader.hxx"
+#include "Material.hxx"
 #include "Texture.hxx"
 
 #include <xen/graphics/ModuleApiGraphics.hpp>
 #include <xen/core/memory/ArenaPool.hpp>
+#include <xen/core/time.hpp>
 
 namespace xgl {
 	struct RenderTargetImpl;
@@ -32,10 +33,17 @@ namespace xgl {
 		xen::ArenaPool<xgl::MeshGlData>        pool_mesh;
 		xen::ArenaPool<xgl::TextureImpl>       pool_texture;
 		xen::ArenaPool<xgl::ShaderProgram>     pool_shader;
+		xen::ArenaPool<xgl::Material>          pool_material;
 		xen::ArenaPool<xgl::RenderTargetImpl*> pool_render_target;
+
+		/// \brief Default rendering material to be used if render command
+		/// specifies nullptr for material
+		const xgl::Material* default_material;
+
+	  real kernel_time;
 	};
 
-	extern GlState* gl_state;
+	extern GlState* state;
 }
 
 
