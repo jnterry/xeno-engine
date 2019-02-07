@@ -130,12 +130,8 @@ void initMeshes(xen::ModuleApiGraphics* mod_ren){
 	state->mesh_cornell_walls = mod_ren->createMesh(
 		state->vertex_spec, MeshGeometry_CornellBoxWalls
 	);
-	state->mesh_cube = mod_ren->createMesh(
-		state->vertex_spec, xen::TestMeshGeometry_UnitCube
-	);
-	state->mesh_axes = mod_ren->createMesh(
-		state->vertex_spec, xen::TestMeshGeometry_Axes
-	);
+	state->mesh_cube = mod_ren->createMesh(xen::TestMeshData_UnitCube);
+	state->mesh_axes = mod_ren->createMesh(xen::TestMeshData_Axes);
 }
 
 void* init( const void* params){

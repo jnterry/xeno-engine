@@ -163,16 +163,9 @@ void initMeshes(xen::ModuleApiGraphics* mod_ren){
 	computeFlatNormals(mesh_data_torus);
 	state->mesh_torus_flat = mod_ren->createMesh(mesh_data_torus);
 
-	state->mesh_cube  = mod_ren->createMesh(state->vertex_spec,
-	                                     xen::TestMeshGeometry_UnitCube
-	                                    );
-	state->mesh_axes = mod_ren->createMesh(state->vertex_spec,
-	                                    xen::TestMeshGeometry_Axes
-	                                   );
-
-	state->mesh_xzplane = mod_ren->createMesh(state->vertex_spec,
-	                                       xen::TestMeshGeometry_UnitXzPlaneCentered
-	                                      );
+	state->mesh_cube    = mod_ren->createMesh(xen::TestMeshData_UnitCube);
+	state->mesh_axes    = mod_ren->createMesh(xen::TestMeshData_Axes);
+	state->mesh_xzplane = mod_ren->createMesh(xen::TestMeshData_UnitXzPlaneCentered);
 }
 
 void* init( const void* params){

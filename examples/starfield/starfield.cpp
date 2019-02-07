@@ -84,8 +84,8 @@ void* init(const void* params){
 
 	ss->mesh_stars      = mod_ren->createMesh(ss->vertex_spec, STAR_COUNT,
 	                                          ss->star_positions, nullptr, ss->star_colors);
-	ss->mesh_axes       = mod_ren->createMesh(ss->vertex_spec, xen::TestMeshGeometry_Axes);
-	ss->mesh_cube_lines = mod_ren->createMesh(ss->vertex_spec, xen::TestMeshGeometry_UnitCubeLines);
+	ss->mesh_axes       = mod_ren->createMesh(xen::TestMeshData_Axes);
+	ss->mesh_cube_lines = mod_ren->createMesh(xen::TestMeshData_UnitCubeLines);
 	xen::clearToZero(ss->render_cmds);
 
 	ss->render_cmds[0].primitive_type         = xen::PrimitiveType::LINES;

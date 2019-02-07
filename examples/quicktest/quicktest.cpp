@@ -91,7 +91,7 @@ void* init(const void* params){
 	xen::RawImage test_image = xen::loadImage(arena, "resource/texture/test.bmp");
 	state->texture_debug_img = mod_ren->createTexture(&test_image);
 
-	state->mesh_cube         = mod_ren->createMesh(state->vertex_spec, xen::TestMeshGeometry_UnitCube);
+	state->mesh_cube         = mod_ren->createMesh(xen::TestMeshData_UnitCube);
 
 	xen::MeshData* mesh_data_bunny = xen::createEmptyMeshData(arena, state->vertex_spec);
 	xen::loadMeshFile(mesh_data_bunny, arena, "resource/mesh/bunny.obj", xen::MeshLoadFlags::CENTER_ORIGIN);

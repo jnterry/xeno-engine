@@ -91,9 +91,7 @@ void initMeshes(xen::ModuleApiGraphics* mod_ren){
 	state->vertex_spec[2] = xen::VertexAttribute::Color4b;
 	state->vertex_spec[3] = xen::VertexAttribute::TexCoord2f;
 
-	state->mesh_xzplane = mod_ren->createMesh(state->vertex_spec,
-	                                       xen::TestMeshGeometry_UnitXzPlaneCentered
-	                                      );
+	state->mesh_xzplane = mod_ren->createMesh(xen::TestMeshData_UnitXzPlaneCentered);
 
 	xen::RawImage image_bricks_diffuse = xen::loadImage(arena, "resource/texture/bricks-diffuse.jpg");
 	xen::RawImage image_bricks_normal  = xen::loadImage(arena, "resource/texture/bricks-normal.jpg");
@@ -168,7 +166,6 @@ void tick( const xen::TickContext& cntx){
 				break;
 			default: break;
 			}
-
 		default: break;
 		}
 	}

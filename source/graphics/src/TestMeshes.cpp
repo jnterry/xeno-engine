@@ -206,38 +206,70 @@ namespace {
 	};
 }
 
+#define VERT_SPEC_LEN
+
+xen::VertexAttribute::Type _test_mesh_vertex_spec[VERT_SPEC_LEN] = {
+	xen::VertexAttribute::Position3r,
+	xen::VertexAttribute::Normal3r,
+	xen::VertexAttribute::Color4b,
+	xen::VertexAttribute::TexCoord2f,
+};
+
+
+void* _unit_cube_lines_data_arrays[VERT_SPEC_LEN] = {
+	UnitCubeLines_Positions, nullptr, UnitCubeLines_Colors, nullptr
+};
+
+void* _unit_cube_vert_data_arrays[VERT_SPEC_LEN] = {
+	UnitCube_Positions, UnitCube_Normals, UnitCube_Colors, UnitCube_Uvs
+};
+
+void* _axes_data_arrays[VERT_SPEC_LEN] = {
+	Axes_Positions, nullptr, Axes_Colors, nullptr
+};
+
+void* _xz_square_arrays[VERT_SPEC_LEN] = {
+	// note that we cheat and use cube's block of white colors
+  XzSquare_Positions, XzSquare_Normals, UnitCube_Colors, XzSquare_Uvs
+};
+
+const xen::MeshData _MeshData_UnitCubeLines = {
+	XenArrayLength(UnitCubeLines_Positions),
+	xen::TestMeshVertexSpec,
+	{ { 0.0_r, 0.0_r, 0.0_r }, { 1.0_r, 1.0_r, 1.0_r } },
+	_unit_cube_lines_data_arrays
+};
+
+const xen::MeshData _MeshData_UnitCube = {
+	XenArrayLength(UnitCube_Positions),
+	xen::TestMeshVertexSpec,
+	{ { 0.0_r, 0.0_r, 0.0_r }, { 1.0_r, 1.0_r, 1.0_r } },
+	_unit_cube_vert_data_arrays,
+};
+
+const xen::MeshData _MeshData_Axes = {
+	XenArrayLength(Axes_Positions),
+	xen::TestMeshVertexSpec,
+	{ { 0.0_r, 0.0_r, 0.0_r }, { 1.0_r, 1.0_r, 1.0_r } },
+	_axes_data_arrays,
+};
+
+const xen::MeshData _MeshData_UnitXzPlaneCentered = {
+	XenArrayLength(XzSquare_Positions),
+	xen::TestMeshVertexSpec,
+	{ { -0.5_r, 0.0_r, -0.5_r }, { 0.5_r, 0.0_r, 0.5_r } },
+	_xz_square_arrays,
+};
+
 namespace xen {
-	const MeshAttribArrays TestMeshGeometry_UnitCubeLines = {
-		XenArrayLength(UnitCubeLines_Positions),
-		UnitCubeLines_Positions,
-		nullptr,
-		UnitCubeLines_Colors,
-		nullptr
+	const VertexSpec TestMeshVertexSpec = {
+		XenArrayLength(_test_mesh_vertex_spec), _test_mesh_vertex_spec
 	};
 
-	const MeshAttribArrays TestMeshGeometry_UnitCube = {
-		XenArrayLength(UnitCube_Positions),
-		UnitCube_Positions,
-		UnitCube_Normals,
-		UnitCube_Colors,
-		UnitCube_Uvs
-	};
-
-	const MeshAttribArrays TestMeshGeometry_Axes = {
-		XenArrayLength(Axes_Positions),
-		Axes_Positions,
-		nullptr,
-		Axes_Colors,
-		nullptr
-	};
-
-	const MeshAttribArrays TestMeshGeometry_UnitXzPlaneCentered = {
-		XenArrayLength(XzSquare_Positions),
-		XzSquare_Positions,
-		XzSquare_Normals,
-		UnitCube_Colors, // cheat and use same block of white colors
-		XzSquare_Uvs
-	};
+	const MeshData* TestMeshData_UnitCubeLines       = &_MeshData_UnitCubeLines;
+	const MeshData* TestMeshData_UnitCube            = &_MeshData_UnitCube;
+	const MeshData* TestMeshData_Axes                = &_MeshData_Axes;
+	const MeshData* TestMeshData_UnitXzPlaneCentered = &_MeshData_UnitXzPlaneCentered;
 }
 
 #endif
