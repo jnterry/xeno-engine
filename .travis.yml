@@ -15,9 +15,6 @@ matrix:
 
     # We can also test on windows with VS 2017 15.7 or higher
     - os: windows
-      before_script:
-        - choco install visualstudio2017buildtools
-
 
 before_install:
   - eval "${MATRIX_EVAL}"

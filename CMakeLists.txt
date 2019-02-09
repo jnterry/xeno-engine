@@ -42,7 +42,20 @@ set(XEN_INCLUDE_DIRS
 	${CMAKE_CURRENT_LIST_DIR}/source/module-sren-atom/include/
 )
 
-# Force c++ 17 standard
+# Macros to force use of particular standard
+# Unfortuantely xenogin requires c++17 while assimp requires c++11,
+# hence we need to use different standards for these...
+macro(use_cxx11)
+  if (CMAKE_VERSION VERSION_LESS "3.1")
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+      set (CMAKE_CXX_FLAGS "-std=gnu++11 ${CMAKE_CXX_FLAGS}")
+ 		else ()
+ 			message(FATAL_ERROR "Unable to enable c++11 support on this platform!")
+    endif ()
+  else ()
+    set (CMAKE_CXX_STANDARD 11)
+  endif ()
+endmacro(use_cxx11)
 macro(use_cxx17)
   if (CMAKE_VERSION VERSION_LESS "3.1")
     if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")

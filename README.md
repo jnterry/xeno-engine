@@ -8,6 +8,10 @@
 
 The build is managed by CMake, hence the project can be built from command line or in an IDE of your choice.
 
+Note that Xeno Engine relies on some modern c++ syntax, minimum supported compiler versions are:
+- GCC 7
+- MSVC 15.7
+
 1. Clone Repository
 2. Create a directory `build` in root of repository
 3. Navigate to build directory in terminal
