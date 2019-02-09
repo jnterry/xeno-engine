@@ -58,16 +58,12 @@ namespace xgl {
 				uptr stride;
 			};
 
-			/// \brief Value for 3 component real values when buffer is 0
-			Vec3r   vec3r;
-
-			/// \brief Value for 2 component float vector when buffer is 0
-			Vec2f   vec2f;
-
-			/// \brief Value for 3 component float color values when buffer is 0
+			/// \brief Value to be used for attribute if buffer is 0
+			Vec3d        vec3d;
+			Vec3f        vec3f;
+			Vec2d        vec2d;
+			Vec2f        vec2f;
 			xen::Color3f color3f;
-
-			/// \brief Value for 4 component byte color values when buffer is 0
 			xen::Color   color4b;
 		};
 	};

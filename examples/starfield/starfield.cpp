@@ -24,7 +24,7 @@ struct StarfieldState {
 	Vec3r       star_positions[STAR_COUNT];
 	xen::Color  star_colors   [STAR_COUNT];
 
-	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
+	xen::FixedArray<xen::VertexAttribute, 3> vertex_spec;
 	xen::Mesh mesh_stars;
 	xen::Mesh mesh_axes;
 	xen::Mesh mesh_cube_lines;

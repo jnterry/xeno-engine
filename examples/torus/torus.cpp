@@ -15,7 +15,7 @@ struct State {
 	xen::RenderParameters3d                render_params;
 	xen::FixedArray<xen::LightSource3d, 3> scene_lights;
 
-	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
+	xen::FixedArray<xen::VertexAttribute, 3> vertex_spec;
 
 	xen::Window*      window;
 	xen::RenderTarget window_target;

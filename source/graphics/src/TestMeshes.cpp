@@ -208,7 +208,7 @@ namespace {
 
 #define VERT_SPEC_LEN
 
-xen::VertexAttribute::Type _test_mesh_vertex_spec[VERT_SPEC_LEN] = {
+xen::VertexAttribute _test_mesh_vertex_spec[VERT_SPEC_LEN] = {
 	xen::VertexAttribute::Position3r,
 	xen::VertexAttribute::Normal3r,
 	xen::VertexAttribute::Color4b,

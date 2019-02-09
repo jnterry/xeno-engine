@@ -39,7 +39,7 @@ void xsr::destroyMesh(xen::Mesh mesh) {
 }
 
 void xsr::updateMeshVertexData(xen::MeshAttribArrays* mesh_geom,
-                               const MeshData*   mesh_data,
+                               const MeshData*        mesh_data,
                                xen::Allocator*        allocator,
                                xen::MeshLoadFlags     flags
 ){

@@ -18,7 +18,7 @@ struct State{
 	xen::RenderParameters3d                render_params;
 	xen::FixedArray<xen::LightSource3d, 1> scene_lights;
 
-	xen::FixedArray<xen::VertexAttribute::Type, 4> vertex_spec;
+	xen::FixedArray<xen::VertexAttribute, 4> vertex_spec;
 
 	xen::Mesh    mesh_xzplane;
 

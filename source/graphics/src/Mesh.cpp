@@ -30,8 +30,8 @@ namespace {
 	void processMeshVertexPositionsAndComputeBounds(xen::MeshData* mesh,
 	                                                xen::MeshLoadFlags flags,
 	                                                xen::ArenaLinear& arena){
-		u08 pos_attrib_index = findMeshAttrib(mesh, xen::VertexAttribute::_AspectPosition);
-		u08 nor_attrib_index = findMeshAttrib(mesh, xen::VertexAttribute::_AspectNormal);
+		u08 pos_attrib_index = findMeshAttrib(mesh, xen::VertexAttribute::Aspect::Position);
+		u08 nor_attrib_index = findMeshAttrib(mesh, xen::VertexAttribute::Aspect::Normal);
 		if(pos_attrib_index == xen::MeshData::BAD_ATTRIB_INDEX){ return; }
 
 		Vec3r* pbuf = (Vec3r*)mesh->vertex_data[pos_attrib_index];
@@ -105,27 +105,25 @@ namespace {
 		};
 
 		for(u32 i = 0; i < spec.size; ++i){
-			switch(spec[i] & xen::VertexAttribute::_AspectMask){
-			case xen::VertexAttribute::_AspectPosition:
+			switch(spec[i].aspect){
+			case xen::VertexAttribute::Aspect::Position:
 				XenAssert(result.position == xen::MeshData::BAD_ATTRIB_INDEX,
 				          "We don't support multiple positions per vertex");
 				result.position = i;
 				break;
-			case xen::VertexAttribute::_AspectNormal:
+			case xen::VertexAttribute::Aspect::Normal:
 				XenAssert(result.normal == xen::MeshData::BAD_ATTRIB_INDEX,
 				          "We don't support multiple normals per vertex");
 				result.normal = i;
 				break;
-			case xen::VertexAttribute::_AspectColor:
-				// :TODO: multiple color channels
+			case xen::VertexAttribute::Aspect::Color:
 				XenAssert(result.color == xen::MeshData::BAD_ATTRIB_INDEX,
-				          "We don't support multiple colors per vertex... YET");
+				          "We don't support multiple colors per vertex");
 				result.color = i;
 				break;
-			case xen::VertexAttribute::_AspectTexCoord:
-				// :TODO: multiple texture channels
+			case xen::VertexAttribute::Aspect::TexCoord:
 				XenAssert(result.texcoord == xen::MeshData::BAD_ATTRIB_INDEX,
-				          "We don't support multiple tex coords per vertex... YET");
+				          "We don't support multiple tex coords per vertex");
 				result.texcoord = i;
 				break;
 			default:
@@ -259,19 +257,19 @@ namespace {
 }
 
 namespace xen {
-	u32 getVertexAttributeSize(VertexAttribute::Type type){
+	u32 getVertexAttributeSize(VertexAttribute attrib){
 		u32 result = 0;
 
-		switch(type & VertexAttribute::_TypeMask){
-		case VertexAttribute::_TypeFloat  : result = sizeof(float ); break;
-		case VertexAttribute::_TypeDouble : result = sizeof(double); break;
-		case VertexAttribute::_TypeByte   : result = sizeof(u08   ); break;
+		switch(attrib.type & VertexAttribute::Type::ComponentTypeMask){
+		case VertexAttribute::Type::Float  : result = sizeof(float ); break;
+		case VertexAttribute::Type::Double : result = sizeof(double); break;
+		case VertexAttribute::Type::Byte   : result = sizeof(u08   ); break;
 		default:
 			XenInvalidCodePath("Unhandled type in getVertexAttributeSize");
 			break;
 		}
 
-		result *= type & VertexAttribute::_ComponentCountMask;
+		result *= attrib.type & VertexAttribute::Type::ComponentCountMask;
 
 		return result;
 	}
@@ -285,12 +283,12 @@ namespace xen {
 		if(!xen::isValid(arena)){ return nullptr; }
 
 		result->vertex_spec.size     = spec.size;
-		result->vertex_spec.elements = xen::reserveTypeArray<xen::VertexAttribute::Type>(arena, spec.size);
-		result->vertex_data          = xen::reserveTypeArray<void*                     >(arena, spec.size);
+		result->vertex_spec.elements = xen::reserveTypeArray<xen::VertexAttribute>(arena, spec.size);
+		result->vertex_data          = xen::reserveTypeArray<void*               >(arena, spec.size);
 
 		if(!xen::isValid(arena)){ return nullptr; }
 
-		xen::copyArray<xen::VertexAttribute::Type>(&spec[0], &result->vertex_spec[0], spec.size);
+		xen::copyArray<xen::VertexAttribute>(&spec[0], &result->vertex_spec[0], spec.size);
 		xen::clearToZero(result->vertex_data, spec.size * sizeof(void*));
 
 		transaction.commit();
@@ -323,11 +321,9 @@ namespace xen {
 		return result;
 	}
 
-	u08 findMeshAttrib(const MeshData* mesh_data, VertexAttribute::_Flags aspect){
+	u08 findMeshAttrib(const MeshData* mesh_data, VertexAttribute::Aspect aspect){
 		for(u08 i = 0; i < mesh_data->vertex_spec.size; ++i){
-			if((mesh_data->vertex_spec[i] & VertexAttribute::_AspectMask) == aspect){
-				return i;
-			}
+			if(mesh_data->vertex_spec[i].aspect == aspect){ return i; }
 		}
 		return MeshData::BAD_ATTRIB_INDEX;
 	}

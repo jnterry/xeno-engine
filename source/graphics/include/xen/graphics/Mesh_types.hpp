@@ -20,106 +20,76 @@
 namespace xen{
 	struct ArenaLinear;
 	/////////////////////////////////////////////////////////////////////
-	/// \brief Represents meta-data about the type of a Mesh vertex attribute.
+	/// \brief A Mesh is simply some collection of vertices where we store some
+	/// set of data per vertex, each called a "VertexAttribute". This struct
+	/// represents meta data about a single attribute.
 	///
-	/// These have an associated "aspect" that they attempt to capture, eg,
-	/// "position", "normals", "texture coordinates", etc as well as an
-	/// associated data type (eg, 3 channel floating)
+	/// Each attribute represents a particular "aspect" of the mesh, for example,
+	/// position data, normal data, texture coordinates, etc. Additionally each
+	/// aspect has a known type (for example, 3 channel floating)
 	///
-	/// Each vertex in a mesh will have a value for each attribute - this may
-	/// vary per vertex, or be constant for all vertices of a mesh.
+	/// Letting the engine know which attribute represents which aspect is useful
+	/// as it allows automatic processing to be performed (eg, computing mesh
+	/// bounding box for culling, computing normals from position data, etc),
+	/// however it is also possible to represent arbitrary data using the "Custom"
+	/// aspect - this will be passed unaltered to the Material doing the rendering
+	///
+	/// \note Graphics backends are not required to support all possible
+	/// combinations of aspect and type, for example, storing position data as a
+	/// 1d vector of bytes makes very little sense. As such in order to guarantee
+	/// support users of Xenogin should use the static instances within this
+	/// struct. The exception to this rule is the "Custom" aspect, for which all
+	/// possible type combinations are supported (within reason, for example,
+	/// technically due to bit format of this struct we can represent an attribute
+	/// with up to 7 components in a vector, however most backends (eg, opengl)
+	/// only support up to 4).
 	/////////////////////////////////////////////////////////////////////
   struct VertexAttribute {
-	  // A type is really split into:
-	  // - aspect (position, normal, uv coord, etc)
-	  // - channel type (float, double, int, etc)
-	  // - number of channels
-	  //
-	  // However from an implementation perspective it is easier to only support
-	  // certain combinations, eg, a Position is either a Vec2r or Vec3r, never
-	  // a 4 component vector of bytes (which could be used to represent a color)
-	  //
-	  // However also from implementation perspective it can be helpful to write
-	  // generic code that deals with any Vec3r type, or any position attribute.
-	  //
-	  // Additionally we may want to support arbitary types for arbitary aspects
-	  // at some later type.
-	  //
-	  // Hence we will represent a VertexAttributeType as a named constant
-	  // Position3r from a xeno engine user's perspective, but as a bit field
-	  // from the implementation's perspective.
-	  //
-	  // Using 16 bits the masks are
-	  // - channel_count : 0000 0000 0000 0111 (3 bits,          max:   8)
-	  // - type          : 0000 0000 1111 1000 (5 bits, combinations:  32)
-	  // - aspect        : 1111 1111 0000 0000 (8 bits, combinations: 256)
+	  /// \brief Enumeration of aspects represented by a particular attribute
+	  /// \note If the top bit is set then the attribute is a custom. The user
+	  /// may set the bottom 7 bits to any value to distringuish between different
+	  /// custom attributes
+	  enum Aspect : u08{
+		  Position,
+		  Normal,
+		  Color,
+		  TexCoord,
+		  // Tangent, // :TODO: methods to compute these
+		  // BiTangent,
 
-	  enum _Flags {
-		  _ComponentCountMask = 0x0007,
+		  Custom     = 0b10000000,
+	  };
+	  Aspect aspect;
 
-		  _TypeFloat          = 0x0080,
-		  _TypeDouble         = 0x0090,
-		  _TypeByte           = 0x00A0,
-		  _TypeMax,
-		  _TypeMask           = 0x00F8,
+	  /// \brief Represents the type of attribute. Most significant 5 bits
+	  /// represent the actual type (eg, float, int, byte, etc), with the
+	  /// least significant 3 bits representing the number of channels
+	  enum Type : u08 {
+		  Float         = (u08)1 << 3,
+		  Double        = (u08)2 << 3,
+		  Byte          = (u08)3 << 3,
 
-		  _AspectPosition     = 0x0100,
-		  _AspectNormal       = 0x0200,
-		  _AspectColor        = 0x0300,
-		  //_AspectTangent      = 0x0400,
-		  //_AspectBiTangent      = 0x0800,
-
-
-		  // :TODO: -> if we have multiple textures we may want multiple texture
-		  // coordinates. We could say if top bit of aspect is set then the aspect
-		  // is uv coordinates, and then use the other 7 bits as a mask for which
-		  // texture channels to apply a set of uv coordinates to
-		  // But... what if we want more than 7 texture channels for a mesh?
-		  // bump this to 32 bit?
-		  _AspectTexCoord     = 0x8000,
-		  _AspectMax,
-
-		  _AspectMask = 0xFF00,
-
-			#if XEN_USE_DOUBLE_PRECISION
-		  _TypeReal = _TypeDouble,
+		  #if XEN_USE_DOUBLE_PRECISION
+		  Real = Double,
 		  #else
-		  _TypeReal = _TypeFloat,
+		  Real = Float,
 		  #endif
+
+		  ComponentTypeMask  = 0b11111000,
+		  ComponentCountMask = 0b00000111,
 	  };
-	  static_assert(4 <= _ComponentCountMask,
-	                "ComponentCountMask too small"
-	               );
-	  static_assert(_TypeMax   - 1 <= _TypeMask,
-	                "Too many types to fit in bits allocated"
-	               );
-	  static_assert(_AspectMax - 1 <= _AspectMask,
-	                "Too many aspects to fit in bits allocated"
-	               );
-	  static_assert((_ComponentCountMask ^ _TypeMask ^ _AspectMask) == 0xFFFF,
-	                "Overlapping or incomplete masks"
-	               );
+		u08 type;
 
-	  enum Type {
-		  /// \brief 3 component real vector representing xyz position of vertex
-		  Position3r = _AspectPosition | _TypeReal  | 3,
-
-		  /// \brief 3 component real vector representing normal direction
-		  Normal3r   = _AspectNormal   | _TypeReal  | 3,
-
-		  /// \brief 3 component RGB color with each component between 0 and 1
-		  Color3f    = _AspectColor    | _TypeFloat | 3,
-
-		  /// \brief 4 component RGBA color with each component being a byte
-		  /// between 0 and 255
-		  Color4b    = _AspectColor    | _TypeByte  | 4,
-
-		  /// \brief 2 component floating point texture coordinate between 0 and 1
-		  TexCoord2f = _AspectTexCoord | _TypeFloat | 2,
-	  };
+	  static const VertexAttribute Position3r;
+	  static const VertexAttribute Normal3r;
+	  static const VertexAttribute Color3f;
+	  static const VertexAttribute Color4b;
+	  static const VertexAttribute TexCoord2f;
   };
 
-	typedef xen::Array<xen::VertexAttribute::Type> VertexSpec;
+	/// \brief Represents full specification of the data stored for a single
+	/// Vertex in a mesh
+	typedef xen::Array<xen::VertexAttribute> VertexSpec;
 
 
 	/////////////////////////////////////////////////////////////////////
@@ -162,6 +132,13 @@ namespace xen{
 	// of type specified by vertex_spec[i] storing the data
 	/////////////////////////////////////////////////////////////////////
 	typedef MeshDataSource<void*> MeshData;
+}
+
+inline bool operator==(xen::VertexAttribute a, xen::VertexAttribute b){
+	return a.aspect == b.aspect && a.type == b.type;
+}
+inline bool operator!=(xen::VertexAttribute a, xen::VertexAttribute b){
+	return a.aspect != b.aspect || a.type != b.type;
 }
 
 #endif

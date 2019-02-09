@@ -25,7 +25,7 @@ namespace xen{
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves the size of a VertexAttributeType in bytes
 	/////////////////////////////////////////////////////////////////////
-	u32 getVertexAttributeSize(VertexAttribute::Type type);
+	u32 getVertexAttributeSize(VertexAttribute type);
 
 	/// \brief Additional flags which modify how mesh loading is performed
 	struct MeshLoadFlags : public xen::BitField<u08, 4> {
@@ -102,7 +102,7 @@ namespace xen{
 	/// \return Index of the attribute storing that aspect.
 	/// Returns MeshData::BAD_ATTRIB_INDEX if no such attribute exists
 	/////////////////////////////////////////////////////////////////////
-	u08 findMeshAttrib(const MeshData* mesh_data, VertexAttribute::_Flags aspect);
+	u08 findMeshAttrib(const MeshData* mesh_data, VertexAttribute::Aspect aspect);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Uses the position data of a mesh to compute flat normals by
