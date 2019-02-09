@@ -25,23 +25,13 @@
 #include <assimp/color4.h>
 
 namespace {
-	void doComputeFlatNormals(u32 vertex_count, Vec3r* pbuf, Vec3r* nbuf){
-		for(u32 i = 0; i < vertex_count; i += 3){
-			xen::Triangle3r* ptri = (xen::Triangle3r*)&pbuf[i];
-			Vec3r normal = xen::computeNormal(*ptri);
-			nbuf[i+0] = normal;
-			nbuf[i+1] = normal;
-			nbuf[i+2] = normal;
-		}
-	}
-
 	/// \brief Recenters a mesh such that its local origin is at the center of
 	/// its aabb
 	void processMeshVertexPositionsAndComputeBounds(xen::MeshData* mesh,
 	                                                xen::MeshLoadFlags flags,
 	                                                xen::ArenaLinear& arena){
-		u08 pos_attrib_index = findMeshAttrib(mesh, xen::VertexAttribute::_AspectPosition);
-		u08 nor_attrib_index = findMeshAttrib(mesh, xen::VertexAttribute::_AspectNormal);
+		u08 pos_attrib_index = findMeshAttrib(mesh, xen::VertexAttribute::Aspect::Position);
+		u08 nor_attrib_index = findMeshAttrib(mesh, xen::VertexAttribute::Aspect::Normal);
 		if(pos_attrib_index == xen::MeshData::BAD_ATTRIB_INDEX){ return; }
 
 		Vec3r* pbuf = (Vec3r*)mesh->vertex_data[pos_attrib_index];
@@ -95,7 +85,7 @@ namespace {
 			         );
 			Vec3r* nbuf = xen::reserveTypeArray<Vec3r>(arena, mesh->vertex_count);
 			mesh->vertex_data[nor_attrib_index] = nbuf;
-			doComputeFlatNormals(mesh->vertex_count, pbuf, nbuf);
+			xen::computeFlatNormals(mesh->vertex_count, pbuf, nbuf);
 		}
 	}
 
@@ -115,27 +105,25 @@ namespace {
 		};
 
 		for(u32 i = 0; i < spec.size; ++i){
-			switch(spec[i] & xen::VertexAttribute::_AspectMask){
-			case xen::VertexAttribute::_AspectPosition:
+			switch(spec[i].aspect){
+			case xen::VertexAttribute::Aspect::Position:
 				XenAssert(result.position == xen::MeshData::BAD_ATTRIB_INDEX,
 				          "We don't support multiple positions per vertex");
 				result.position = i;
 				break;
-			case xen::VertexAttribute::_AspectNormal:
+			case xen::VertexAttribute::Aspect::Normal:
 				XenAssert(result.normal == xen::MeshData::BAD_ATTRIB_INDEX,
 				          "We don't support multiple normals per vertex");
 				result.normal = i;
 				break;
-			case xen::VertexAttribute::_AspectColor:
-				// :TODO: multiple color channels
+			case xen::VertexAttribute::Aspect::Color:
 				XenAssert(result.color == xen::MeshData::BAD_ATTRIB_INDEX,
-				          "We don't support multiple colors per vertex... YET");
+				          "We don't support multiple colors per vertex");
 				result.color = i;
 				break;
-			case xen::VertexAttribute::_AspectTexCoord:
-				// :TODO: multiple texture channels
+			case xen::VertexAttribute::Aspect::TexCoord:
 				XenAssert(result.texcoord == xen::MeshData::BAD_ATTRIB_INDEX,
-				          "We don't support multiple tex coords per vertex... YET");
+				          "We don't support multiple tex coords per vertex");
 				result.texcoord = i;
 				break;
 			default:
@@ -162,6 +150,8 @@ namespace {
 
 		XenAssert(mesh->mNumFaces > 0, "Expected mesh to contain some faces");
 		XenAssert(mesh->mPrimitiveTypes == aiPrimitiveType_TRIANGLE, "Expected mesh to be triangulated");
+
+		md->primitive_type = xen::PrimitiveType::Triangles;
 
 		int num_triangles = mesh->mNumFaces;
 
@@ -269,19 +259,19 @@ namespace {
 }
 
 namespace xen {
-	u32 getVertexAttributeSize(VertexAttribute::Type type){
+	u32 getVertexAttributeSize(VertexAttribute attrib){
 		u32 result = 0;
 
-		switch(type & VertexAttribute::_TypeMask){
-		case VertexAttribute::_TypeFloat  : result = sizeof(float ); break;
-		case VertexAttribute::_TypeDouble : result = sizeof(double); break;
-		case VertexAttribute::_TypeByte   : result = sizeof(u08   ); break;
+		switch(attrib.type & VertexAttribute::Type::ComponentTypeMask){
+		case VertexAttribute::Type::Float  : result = sizeof(float ); break;
+		case VertexAttribute::Type::Double : result = sizeof(double); break;
+		case VertexAttribute::Type::Byte   : result = sizeof(u08   ); break;
 		default:
 			XenInvalidCodePath("Unhandled type in getVertexAttributeSize");
 			break;
 		}
 
-		result *= type & VertexAttribute::_ComponentCountMask;
+		result *= attrib.type & VertexAttribute::Type::ComponentCountMask;
 
 		return result;
 	}
@@ -295,12 +285,12 @@ namespace xen {
 		if(!xen::isValid(arena)){ return nullptr; }
 
 		result->vertex_spec.size     = spec.size;
-		result->vertex_spec.elements = xen::reserveTypeArray<xen::VertexAttribute::Type>(arena, spec.size);
-		result->vertex_data          = xen::reserveTypeArray<void*                     >(arena, spec.size);
+		result->vertex_spec.elements = xen::reserveTypeArray<xen::VertexAttribute>(arena, spec.size);
+		result->vertex_data          = xen::reserveTypeArray<void*               >(arena, spec.size);
 
 		if(!xen::isValid(arena)){ return nullptr; }
 
-		xen::copyArray<xen::VertexAttribute::Type>(&spec[0], &result->vertex_spec[0], spec.size);
+		xen::copyArray<xen::VertexAttribute>(&spec[0], &result->vertex_spec[0], spec.size);
 		xen::clearToZero(result->vertex_data, spec.size * sizeof(void*));
 
 		transaction.commit();
@@ -333,201 +323,29 @@ namespace xen {
 		return result;
 	}
 
-	u08 findMeshAttrib(const MeshData* mesh_data, VertexAttribute::_Flags aspect){
+	u08 findMeshAttrib(const MeshData* mesh_data, VertexAttribute::Aspect aspect){
 		for(u08 i = 0; i < mesh_data->vertex_spec.size; ++i){
-			if((mesh_data->vertex_spec[i] & VertexAttribute::_AspectMask) == aspect){
-				return i;
-			}
+			if(mesh_data->vertex_spec[i].aspect == aspect){ return i; }
 		}
 		return MeshData::BAD_ATTRIB_INDEX;
 	}
+}
 
-	void fillMeshAttribArrays(MeshAttribArrays* mesh_geom,
-	                          const MeshData*   mesh_data,
-	                          Allocator*        allocator,
-	                          MeshLoadFlags     flags
-	                         ){
-		xen::clearToZero(mesh_geom);
-		mesh_geom->vertex_count = mesh_data->vertex_count;
-
-		VertexAttributeAspects aspect = findVertexSpecAspectIndices(mesh_data->vertex_spec);
-
-
-		XenAssert(aspect.position != xen::MeshData::BAD_ATTRIB_INDEX,
-		          "Mesh must have position attribute");
-		XenAssert(mesh_data->vertex_data[aspect.position] != nullptr,
-		          "Data source for position attribute must be non-null"
-		         );
-		{
-			XenAssert((mesh_data->vertex_spec[aspect.position] &
-			           xen::VertexAttribute::_TypeMask
-			           ) == xen::VertexAttribute::_TypeReal,
-			          "Expected position components to be reals"
-			          );
-			XenAssert((mesh_data->vertex_spec[aspect.position] &
-			           xen::VertexAttribute::_ComponentCountMask
-			           ) == 3,
-			          "Expected position attribute to have 3 channels"
-			          );
-			u32 byte_count_pos  = sizeof(Vec3r) * mesh_data->vertex_count;
-			mesh_geom->position = (Vec3r*)allocator->allocate(byte_count_pos);
-			memcpy(mesh_geom->position, mesh_data->vertex_data[aspect.position], byte_count_pos);
-		}
-
-		if(aspect.normal != xen::MeshData::BAD_ATTRIB_INDEX &&
-		   mesh_data->vertex_data[aspect.normal] != nullptr
-		  ){
-			XenAssert((mesh_data->vertex_spec[aspect.normal] &
-			           xen::VertexAttribute::_TypeMask
-			          ) == xen::VertexAttribute::_TypeReal,
-			          "Expected normal components to be reals"
-			         );
-			XenAssert((mesh_data->vertex_spec[aspect.normal] &
-			           xen::VertexAttribute::_ComponentCountMask
-			           ) == 3,
-			          "Expected normal attribute to have 3 channels"
-			         );
-			u32 byte_count_nor  = sizeof(Vec3r) * mesh_data->vertex_count;
-			mesh_geom->normal   = (Vec3r*)allocator->allocate(byte_count_nor);
-			memcpy(mesh_geom->normal, mesh_data->vertex_data[aspect.normal], byte_count_nor);
-		}
-
-		if(aspect.texcoord != xen::MeshData::BAD_ATTRIB_INDEX &&
-		   mesh_data->vertex_data[aspect.texcoord] != nullptr
-		  ){
-
-			XenAssert((mesh_data->vertex_spec[aspect.texcoord] &
-			           xen::VertexAttribute::_TypeMask
-			           ) == xen::VertexAttribute::_TypeFloat,
-			          "Expected texcoord components to be reals"
-			         );
-			XenAssert((mesh_data->vertex_spec[aspect.texcoord] &
-			           xen::VertexAttribute::_ComponentCountMask
-			           ) == 2,
-			          "Expected texcoord attribute to have 2 channels"
-			         );
-			u32 byte_count_uvs  = sizeof(Vec2f) * mesh_data->vertex_count;
-			mesh_geom->uvs   = (Vec2f*)allocator->allocate(byte_count_uvs);
-			memcpy(mesh_geom->uvs, mesh_data->vertex_data[aspect.texcoord], byte_count_uvs);
-		}
-
-		if(aspect.color != xen::MeshData::BAD_ATTRIB_INDEX &&
-		    mesh_data->vertex_data[aspect.color] != nullptr
-		  ){
-			u32 byte_count_color  = sizeof(xen::Color) * mesh_data->vertex_count;
-			mesh_geom->color      = (xen::Color*)allocator->allocate(byte_count_color);
-
-			switch(mesh_data->vertex_spec[aspect.color]){
-			case xen::VertexAttribute::Color3f: {
-				xen::Color3f* src_buf = (xen::Color3f*)mesh_data->vertex_data[aspect.color];
-				for(u32 i = 0; i < mesh_data->vertex_count; ++i){
-					mesh_geom->color[i] = xen::makeColor(src_buf[i]);
-				}
-				break;
-			}
-			case xen::VertexAttribute::Color4b: {
-				memcpy(mesh_geom->color, mesh_data->vertex_data[aspect.color], byte_count_color);
-				break;
-			}
-			default:
-				XenInvalidCodePath("Found bad color format in mesh");
-			}
-		}
-
-		XenAssert(flags == 0 || flags == MeshLoadFlags::GENERATE_FLAT_NORMALS,
-		          "Other flags not yet implemented"
-		         );
-
-		if((flags & MeshLoadFlags::GENERATE_FLAT_NORMALS) != 0 &&
-		   mesh_geom->normal == nullptr &&
-		   mesh_geom->vertex_count % 3 == 0){
-			mesh_geom->normal = (Vec3r*)allocator->allocate
-				(sizeof(Vec3r) * mesh_geom->vertex_count);
-			xen::computeFlatNormals(mesh_geom);
-		}
-
+void xen::computeFlatNormals(u64 vertex_count, Vec3r* pbuf, Vec3r* nbuf){
+	for(u32 i = 0; i < vertex_count; i += 3){
+		xen::Triangle3r* ptri = (xen::Triangle3r*)&pbuf[i];
+		Vec3r normal = xen::computeNormal(*ptri);
+		nbuf[i+0] = normal;
+		nbuf[i+1] = normal;
+		nbuf[i+2] = normal;
 	}
-
-	void freeMeshAttribArrays(MeshAttribArrays* mesh,
-	                          Allocator* allocator){
-		if(mesh->position != nullptr){
-			allocator->deallocate(mesh->position);
-			mesh->position = nullptr;
-		}
-
-		if(mesh->normal != nullptr){
-			allocator->deallocate(mesh->normal);
-			mesh->normal = nullptr;
-		}
-
-		if(mesh->color != nullptr){
-			allocator->deallocate(mesh->color);
-			mesh->color = nullptr;
-		}
-
-		if(mesh->uvs != nullptr){
-			allocator->deallocate(mesh->uvs);
-			mesh->uvs = nullptr;
-		}
-	}
-
 }
 
 void xen::computeFlatNormals(xen::MeshData* mesh_data){
 	VertexAttributeAspects aspects = findVertexSpecAspectIndices(mesh_data->vertex_spec);
 	Vec3r* pbuf = (Vec3r*)mesh_data->vertex_data[aspects.position];
 	Vec3r* nbuf = (Vec3r*)mesh_data->vertex_data[aspects.normal ];
-	doComputeFlatNormals(mesh_data->vertex_count, pbuf, nbuf);
-}
-
-void xen::computeFlatNormals(xen::MeshAttribArrays* mesh){
-	doComputeFlatNormals(mesh->vertex_count, mesh->position, mesh->normal);
-}
-
-
-void xen::setMeshAttribArraysData(xen::MeshAttribArrays* mesh,
-                                  xen::Allocator& alloc,
-                                  const xen::VertexSpec& vertex_spec,
-                                  u32 attrib_index,
-                                  void* new_data,
-                                  u32 start_vertex,
-                                  u32 end_vertex
-                                 ){
-
-	end_vertex = xen::min(end_vertex, mesh->vertex_count);
-	if(end_vertex < start_vertex){ return; }
-
-	void** attrib_data = nullptr;
-	switch(vertex_spec[attrib_index]){
-	case xen::VertexAttribute::Position3r:
-		attrib_data = (void**)&mesh->position;
-		break;
-	case xen::VertexAttribute::Normal3r:
-		attrib_data = (void**)&mesh->normal;
-		break;
-	case xen::VertexAttribute::Color4b:
-		attrib_data = (void**)&mesh->color;
-		break;
-	default:
-		XenInvalidCodePath("Attempt to update unsupported mesh attribute type");
-		return;
-	}
-
-	u32 attrib_size = xen::getVertexAttributeSize(vertex_spec[attrib_index]);
-	if(*attrib_data == nullptr){
-		*attrib_data = alloc.allocate(attrib_size * mesh->vertex_count);
-		if(start_vertex != 0 || end_vertex != mesh->vertex_count){
-			// :TODO: log
-			printf("WARN: Updating mesh attrib %i but there is no existing data and "
-			       "the new data set is not complete\n", attrib_index);
-		}
-	}
-
-	memcpy(xen::ptrGetAdvanced(*attrib_data, start_vertex * attrib_size),
-	       new_data,
-	       (end_vertex - start_vertex) * attrib_size
-	       );
-
+	computeFlatNormals(mesh_data->vertex_count, pbuf, nbuf);
 }
 
 #endif

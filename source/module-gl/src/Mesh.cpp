@@ -27,31 +27,37 @@ namespace{
 	/// type. This will be a constant with some sensible value dependent on
 	/// the vertex attribute type's aspect
 	/////////////////////////////////////////////////////////////////////
-	xgl::VertexAttributeSource getDefaultVertexAttributeSource(xen::VertexAttribute::Type type) {
+	xgl::VertexAttributeSource getDefaultVertexAttributeSource(xen::VertexAttribute attrib) {
 		xgl::VertexAttributeSource source;
 		xen::clearToZero(&source, sizeof(source));
 
-		switch(type){
-		case xen::VertexAttribute::Position3r:
-			source.vec3r = {0,0,0};
-			break;
-		case xen::VertexAttribute::Normal3r:
-			source.vec3r = {1,0,0};
-			break;
-		case xen::VertexAttribute::Color3f:
-			source.color3f = xen::Color::WHITE4f.rgb;
-			break;
-		case xen::VertexAttribute::Color4b:
-			source.color4b = xen::Color::WHITE;
-			break;
-		case xen::VertexAttribute::TexCoord2f:
-			source.vec2f   = {0, 0 };
-			break;
-		default:
-			XenInvalidCodePath("Unhandled vertex attribute type while setting default source");
+		u08 component_type  = attrib.type & xen::VertexAttribute::Type::ComponentTypeMask;
+
+		switch(attrib.aspect){
+		case xen::VertexAttribute::Aspect::Position:
+		case xen::VertexAttribute::Aspect::TexCoord:
+		case xen::VertexAttribute::Aspect::Custom:
+			break; // already zero initialised
+		case xen::VertexAttribute::Aspect::Normal: {
+			if(component_type == xen::VertexAttribute::Type::Float){
+				source.vec2f.x = 1.0f;
+			} else if (component_type == xen::VertexAttribute::Type::Double) {
+				source.vec2d.x = 1.0;
+			} else {
+					XenInvalidCodePath("Invalid type for normal data");
+			}
 			break;
 		}
-
+		case xen::VertexAttribute::Aspect::Color:
+			if       (attrib.type == (xen::VertexAttribute::Type::Float | 3)){
+				source.color3f = xen::Color::WHITE4f.rgb;
+			} else if(attrib.type == (xen::VertexAttribute::Type::Byte  | 4)){
+				source.color4b = xen::Color::WHITE;
+			} else {
+				XenInvalidCodePath("Invalid type for color data");
+			}
+			break;
+		}
 		return source;
 	}
 }
@@ -67,7 +73,8 @@ xen::Mesh xgl::createMesh(const xen::MeshData* md){
 	xgl::MeshGlData* result = &state->pool_mesh.slots[slot].item;
 
 	result->vertex_spec.size     = md->vertex_spec.size;
-	result->vertex_spec.elements = xen::reserveTypeArray<xen::VertexAttribute::Type>(arena, md->vertex_spec.size);
+	result->primitive_type       = md->primitive_type;
+	result->vertex_spec.elements = xen::reserveTypeArray<xen::VertexAttribute>(arena, md->vertex_spec.size);
 	result->vertex_data          = xen::reserveTypeArray<xgl::VertexAttributeSource>(arena, md->vertex_spec.size);
 	result->vertex_count         = md->vertex_count;
 
@@ -90,9 +97,8 @@ xen::Mesh xgl::createMesh(const xen::MeshData* md){
 	for(u08 i = 0; i < md->vertex_spec.size; ++i){
 		result->vertex_spec[i] = md->vertex_spec[i];
 
-		if((xen::VertexAttribute::_AspectPosition ==
-		    (md->vertex_spec[i] & xen::VertexAttribute::_AspectMask))){
-			XenAssert(position_index == 255, "Mesh can only have single position attribute");
+		if(xen::VertexAttribute::Aspect::Position == md->vertex_spec[i].aspect){
+			XenAssert(position_index     == 255, "Mesh can only have single position attribute");
 			XenAssert(md->vertex_data[i] != nullptr, "Mesh's position data cannot be inferred");
 			position_index = i;
 		}

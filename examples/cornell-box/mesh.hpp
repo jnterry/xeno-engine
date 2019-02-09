@@ -1,2 +1,2 @@
-const extern xen::MeshAttribArrays MeshGeometry_CornellBoxWalls;
-const extern xen::MeshAttribArrays MeshGeometry_CornellBoxInterior;
+extern const xen::MeshData* MeshData_CornellBoxWalls;
+extern const xen::MeshData* MeshData_CornellBoxInterior;

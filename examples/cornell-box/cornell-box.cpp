@@ -17,10 +17,10 @@ struct State {
 	xen::RenderParameters3d                render_params;
 	xen::FixedArray<xen::LightSource3d, 2> scene_lights;
 
-	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
-	xen::Mesh                                      mesh_cornell_walls;
-	xen::Mesh                                      mesh_cube;
-	xen::Mesh                                      mesh_axes;
+	xen::FixedArray<xen::VertexAttribute, 3> vertex_spec;
+	xen::Mesh                                mesh_cornell_walls;
+	xen::Mesh                                mesh_cube;
+	xen::Mesh                                mesh_axes;
 
 	const xen::Material* material;
 
@@ -47,7 +47,6 @@ void initRenderCommands(xen::ModuleApiGraphics* mod_ren, xen::ArenaLinear& arena
 	}
 
 
-	state->render_cmds[0].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	state->render_cmds[0].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
 	                                             xen::Rotation3dy(180_deg)
 	                                            );
@@ -55,7 +54,6 @@ void initRenderCommands(xen::ModuleApiGraphics* mod_ren, xen::ArenaLinear& arena
 	// There is nothing outside of the cornell box, don't cast shadows for speed
 	state->render_cmds[0].disable_shadow_cast = true;
 
-	state->render_cmds[1].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	state->render_cmds[1].model_matrix    = (xen::Translation3d(-0.5_r, 0.0001_r, -0.5_r) *
 	                                             xen::Scale3d      (0.3_r, 0.6_r, 0.3_r  ) *
 	                                             xen::Rotation3dy  (15_deg               ) *
@@ -65,7 +63,6 @@ void initRenderCommands(xen::ModuleApiGraphics* mod_ren, xen::ArenaLinear& arena
 	xen::setMaterialParam(state->render_cmds[1], "diffuse_color", Vec4f{ 0.15f, 0.15f, 0.75f, 1.0f });
 
 
-	state->render_cmds[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
   state->render_cmds[2].model_matrix    = (xen::Translation3d(-0.5_r, 0.0001_r, -0.5_r) *
                                                xen::Scale3d      (0.3_r, 0.3_r, 0.3_r  ) *
                                                xen::Rotation3dy  (-18_deg              ) *
@@ -74,7 +71,6 @@ void initRenderCommands(xen::ModuleApiGraphics* mod_ren, xen::ArenaLinear& arena
 	state->render_cmds[2].mesh            = state->mesh_cube;
 	xen::setMaterialParam(state->render_cmds[2], "diffuse_color", Vec4f{ 0.75f, 0.15f, 0.15f, 1.0_r });
 
-	state->render_cmds[3].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	state->render_cmds[3].model_matrix    = (xen::Translation3d(-0.5_r, 0.0001_r, -0.5_r  ) *
 	                                             xen::Scale3d      (0.05_r, 0.05_r, 0.05_r ) *
 	                                             xen::Rotation3dy  (18_deg                 ) *
@@ -85,7 +81,6 @@ void initRenderCommands(xen::ModuleApiGraphics* mod_ren, xen::ArenaLinear& arena
 	xen::setMaterialParam(state->render_cmds[3], "emissive_color", xen::Color::YELLOW4f);
 
 	// Light source
-	state->render_cmds[4].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	state->render_cmds[4].model_matrix    = Mat4r::Identity;
 	state->render_cmds[4].mesh            = state->mesh_cube;
   // This is geometry around a light source - don't block the emitted light!
@@ -127,15 +122,9 @@ void initMeshes(xen::ModuleApiGraphics* mod_ren){
 	state->vertex_spec[1] = xen::VertexAttribute::Normal3r;
 	state->vertex_spec[2] = xen::VertexAttribute::Color4b;
 
-	state->mesh_cornell_walls = mod_ren->createMesh(
-		state->vertex_spec, MeshGeometry_CornellBoxWalls
-	);
-	state->mesh_cube = mod_ren->createMesh(
-		state->vertex_spec, xen::TestMeshGeometry_UnitCube
-	);
-	state->mesh_axes = mod_ren->createMesh(
-		state->vertex_spec, xen::TestMeshGeometry_Axes
-	);
+	state->mesh_cornell_walls = mod_ren->createMesh(MeshData_CornellBoxWalls);
+	state->mesh_cube = mod_ren->createMesh(xen::TestMeshData_UnitCube);
+	state->mesh_axes = mod_ren->createMesh(xen::TestMeshData_Axes);
 }
 
 void* init( const void* params){

@@ -15,7 +15,7 @@ struct State {
 	xen::RenderParameters3d                render_params;
 	xen::FixedArray<xen::LightSource3d, 3> scene_lights;
 
-	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
+	xen::FixedArray<xen::VertexAttribute, 3> vertex_spec;
 
 	xen::Window*      window;
 	xen::RenderTarget window_target;
@@ -56,14 +56,12 @@ void initRenderCommands(xen::ModuleApiGraphics* mod_ren){
 	  xen::setMaterialParam(state->render_cmds[i], "diffuse_color", xen::Color::WHITE4f);
 	}
 
-	state->render_cmds[0].primitive_type     = xen::PrimitiveType::TRIANGLES;
 	state->render_cmds[0].model_matrix       = (xen::Translation3dx( 0.2_r) *
 	                                            Mat4r::Identity);
 	state->render_cmds[0].mesh               = state->mesh_torus_smooth;
 	xen::setMaterialParam(state->render_cmds[0], "specular_exponent",  30_r);
 	xen::setMaterialParam(state->render_cmds[0], "specular_intensity",  2_r);
 
-	state->render_cmds[1].primitive_type     = xen::PrimitiveType::TRIANGLES;
 	state->render_cmds[1].model_matrix       = (xen::Rotation3dx(90_deg) *
 	                                                xen::Translation3dx(-0.2_r) *
 	                                                Mat4r::Identity
@@ -72,7 +70,6 @@ void initRenderCommands(xen::ModuleApiGraphics* mod_ren){
 	xen::setMaterialParam(state->render_cmds[1], "specular_exponent",  30_r);
 	xen::setMaterialParam(state->render_cmds[1], "specular_intensity",  2_r);
 
-	state->render_cmds[2].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	state->render_cmds[2].model_matrix    = (xen::Scale3d      (5, 5, 5) *
 	                                         xen::Translation3d(0, -0.5_r, 0));
 	state->render_cmds[2].mesh            = state->mesh_xzplane;
@@ -95,7 +92,6 @@ void initRenderCommands(xen::ModuleApiGraphics* mod_ren){
 		pos   *= 2.0_r;
 		pos.y += -0.499999_r;
 
-		state->render_cmds[CMD_IDX_STUDS+i].primitive_type  = xen::PrimitiveType::TRIANGLES;
 		state->render_cmds[CMD_IDX_STUDS+i].model_matrix    = (xen::Translation3d(-0.5_r, 0.0_r, -0.5_r) *
 		                                                       xen::Scale3d      (0.1_r) *
 		                                                       xen::Translation3d(pos)
@@ -106,7 +102,6 @@ void initRenderCommands(xen::ModuleApiGraphics* mod_ren){
 	}
 
 	for(u32 i = 0; i < 3; ++i){
-		state->render_cmds[CMD_IDX_LIGHT+i].primitive_type = xen::PrimitiveType::TRIANGLES;;
 		state->render_cmds[CMD_IDX_LIGHT+i].model_matrix   = Mat4r::Identity;
 		state->render_cmds[CMD_IDX_LIGHT+i].mesh           = state->mesh_cube;
 		state->render_cmds[CMD_IDX_LIGHT+i].disable_shadow_cast = true;
@@ -163,16 +158,9 @@ void initMeshes(xen::ModuleApiGraphics* mod_ren){
 	computeFlatNormals(mesh_data_torus);
 	state->mesh_torus_flat = mod_ren->createMesh(mesh_data_torus);
 
-	state->mesh_cube  = mod_ren->createMesh(state->vertex_spec,
-	                                     xen::TestMeshGeometry_UnitCube
-	                                    );
-	state->mesh_axes = mod_ren->createMesh(state->vertex_spec,
-	                                    xen::TestMeshGeometry_Axes
-	                                   );
-
-	state->mesh_xzplane = mod_ren->createMesh(state->vertex_spec,
-	                                       xen::TestMeshGeometry_UnitXzPlaneCentered
-	                                      );
+	state->mesh_cube    = mod_ren->createMesh(xen::TestMeshData_UnitCube);
+	state->mesh_axes    = mod_ren->createMesh(xen::TestMeshData_Axes);
+	state->mesh_xzplane = mod_ren->createMesh(xen::TestMeshData_UnitXzPlaneCentered);
 }
 
 void* init( const void* params){

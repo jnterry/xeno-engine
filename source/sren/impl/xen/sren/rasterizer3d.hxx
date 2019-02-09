@@ -28,7 +28,19 @@ namespace xen {
 namespace xsr {
 	struct RenderTarget;
 
-	struct RasterizerMesh : public xen::MeshHeader, xen::MeshAttribArrays {
+	struct RasterizerMesh : public xen::MeshHeader {
+		/// \brief The positions of each vertex
+		Vec3r* position;
+
+		/// \brief The normals of each vertex
+		Vec3r* normal;
+
+		/// \brief The colors of each vertex
+		Color* color;
+
+		/// \brief The uv coordinates of each vertex
+		Vec2f* uvs;
+
 		// Anything else?
 		// - can we sort the geometry to make rendering more efficient somehow?
 		// - anything we can pre-compute?

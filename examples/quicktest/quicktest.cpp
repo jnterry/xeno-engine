@@ -38,7 +38,7 @@ struct State {
 	xen::RenderTarget window_target;
 
 	xen::Color4f point_light_color = xen::Color4f(1,0,0,1);
-	xen::FixedArray<xen::VertexAttribute::Type, 4> vertex_spec;
+	xen::FixedArray<xen::VertexAttribute, 4> vertex_spec;
 
 	xen::Mesh     mesh_cube;
 	xen::Mesh     mesh_bunny;
@@ -91,7 +91,7 @@ void* init(const void* params){
 	xen::RawImage test_image = xen::loadImage(arena, "resource/texture/test.bmp");
 	state->texture_debug_img = mod_ren->createTexture(&test_image);
 
-	state->mesh_cube         = mod_ren->createMesh(state->vertex_spec, xen::TestMeshGeometry_UnitCube);
+	state->mesh_cube         = mod_ren->createMesh(xen::TestMeshData_UnitCube);
 
 	xen::MeshData* mesh_data_bunny = xen::createEmptyMeshData(arena, state->vertex_spec);
 	xen::loadMeshFile(mesh_data_bunny, arena, "resource/mesh/bunny.obj", xen::MeshLoadFlags::CENTER_ORIGIN);
@@ -106,11 +106,9 @@ void* init(const void* params){
 		xen::setMaterialParam(state->render_cmds[i], "diffuse_color",  xen::Color::WHITE4f);
 	}
 
-	state->render_cmds[CMD_BUNNY ].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	state->render_cmds[CMD_BUNNY ].model_matrix    = Mat4r::Identity;
 	state->render_cmds[CMD_BUNNY ].mesh            = state->mesh_bunny;
 
-	state->render_cmds[CMD_FLOOR ].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	state->render_cmds[CMD_FLOOR ].model_matrix    = (xen::Translation3d(-0.5_r, -0.5_r, -0.5_r) *
 	                                                  xen::Scale3d(60, 0.5, 60) *
 	                                                  xen::Translation3d(0, -0.5_r, 0)
@@ -118,25 +116,21 @@ void* init(const void* params){
 	state->render_cmds[CMD_FLOOR ].mesh            = state->mesh_cube;
 	state->render_cmds[CMD_FLOOR ].textures[0]     = state->texture_debug_img;
 
-	state->render_cmds[CMD_LIGHT ].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	state->render_cmds[CMD_LIGHT ].model_matrix    = Mat4r::Identity;
 	state->render_cmds[CMD_LIGHT ].mesh            = state->mesh_cube;
 	xen::setMaterialParam(state->render_cmds[CMD_LIGHT], "emissive_color", xen::Color::RED4f);
 	xen::setMaterialParam(state->render_cmds[CMD_LIGHT], "diffuse_color",  xen::Color::RED4f);
 
-	state->render_cmds[CMD_AXIS_X].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	state->render_cmds[CMD_AXIS_X].model_matrix    = xen::Scale3d(15, 0.1, 0.1);
 	state->render_cmds[CMD_AXIS_X].mesh            = state->mesh_cube;
 	xen::setMaterialParam(state->render_cmds[CMD_AXIS_X], "emissive_color", xen::Color::RED4f);
 	xen::setMaterialParam(state->render_cmds[CMD_AXIS_X], "diffuse_color",  xen::Color::RED4f);
 
-	state->render_cmds[CMD_AXIS_Y].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	state->render_cmds[CMD_AXIS_Y].model_matrix    = xen::Scale3d(0.1, 15, 0.1);
 	state->render_cmds[CMD_AXIS_Y].mesh            = state->mesh_cube;
   xen::setMaterialParam(state->render_cmds[CMD_AXIS_Y], "emissive_color", xen::Color::GREEN4f);
 	xen::setMaterialParam(state->render_cmds[CMD_AXIS_Y], "diffuse_color",  xen::Color::GREEN4f);
 
-	state->render_cmds[CMD_AXIS_Z].primitive_type  = xen::PrimitiveType::TRIANGLES;
 	state->render_cmds[CMD_AXIS_Z].model_matrix    = xen::Scale3d(0.1, 0.1, 15);
 	state->render_cmds[CMD_AXIS_Z].mesh            = state->mesh_cube;
 	xen::setMaterialParam(state->render_cmds[CMD_AXIS_Z], "emissive_color", xen::Color::BLUE4f);

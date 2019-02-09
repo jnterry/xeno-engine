@@ -24,7 +24,7 @@ struct StarfieldState {
 	Vec3r       star_positions[STAR_COUNT];
 	xen::Color  star_colors   [STAR_COUNT];
 
-	xen::FixedArray<xen::VertexAttribute::Type, 3> vertex_spec;
+	xen::FixedArray<xen::VertexAttribute, 3> vertex_spec;
 	xen::Mesh mesh_stars;
 	xen::Mesh mesh_axes;
 	xen::Mesh mesh_cube_lines;
@@ -82,21 +82,19 @@ void* init(const void* params){
 	ss->vertex_spec[1] = xen::VertexAttribute::Normal3r;
 	ss->vertex_spec[2] = xen::VertexAttribute::Color4b;
 
-	ss->mesh_stars      = mod_ren->createMesh(ss->vertex_spec, STAR_COUNT,
+	ss->mesh_stars      = mod_ren->createMesh(ss->vertex_spec, xen::PrimitiveType::Points, STAR_COUNT,
 	                                          ss->star_positions, nullptr, ss->star_colors);
-	ss->mesh_axes       = mod_ren->createMesh(ss->vertex_spec, xen::TestMeshGeometry_Axes);
-	ss->mesh_cube_lines = mod_ren->createMesh(ss->vertex_spec, xen::TestMeshGeometry_UnitCubeLines);
+
+	ss->mesh_axes       = mod_ren->createMesh(xen::TestMeshData_Axes);
+	ss->mesh_cube_lines = mod_ren->createMesh(xen::TestMeshData_UnitCubeLines);
 	xen::clearToZero(ss->render_cmds);
 
-	ss->render_cmds[0].primitive_type         = xen::PrimitiveType::LINES;
 	ss->render_cmds[0].model_matrix           = xen::Scale3d(100_r);
 	ss->render_cmds[0].mesh                   = ss->mesh_axes;
 
-	ss->render_cmds[1].primitive_type         = xen::PrimitiveType::POINTS;
 	ss->render_cmds[1].model_matrix           = Mat4r::Identity;
 	ss->render_cmds[1].mesh                   = ss->mesh_stars;
 
-	ss->render_cmds[2].primitive_type         = xen::PrimitiveType::LINES;
 	ss->render_cmds[2].model_matrix           = (
 		xen::Scale3d(200_r) * xen::Translation3d(-100.0_r, -100.0_r, -100.0_r)
 	);

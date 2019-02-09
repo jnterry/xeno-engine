@@ -1,5 +1,7 @@
 message(STATUS "Generating Xeno Engine Build System")
 
+use_cxx17()
+
 link_directories(${XEN_LIB_DIR})
 
 include(sources.cmake)

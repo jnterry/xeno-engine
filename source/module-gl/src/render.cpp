@@ -23,36 +23,35 @@
 
 GLenum xenPrimitiveTypeToGl(xen::PrimitiveType type){
 	switch(type){
-	case xen::PrimitiveType::POINTS     : return GL_POINTS;
-	case xen::PrimitiveType::LINES      : return GL_LINES;
-	case xen::PrimitiveType::LINE_STRIP : return GL_LINE_STRIP;
-	case xen::PrimitiveType::TRIANGLES  : return GL_TRIANGLES;
+	case xen::PrimitiveType::Points    : return GL_POINTS;
+	case xen::PrimitiveType::Lines     : return GL_LINES;
+	case xen::PrimitiveType::LineStrip : return GL_LINE_STRIP;
+	case xen::PrimitiveType::Triangles : return GL_TRIANGLES;
 	}
 	XenInvalidCodePath("Unhandled xen::PrimtiveType in GlDevice");
 	return 0;
 }
 
-void renderMesh(xen::PrimitiveType primitive_type,
-                const xgl::MeshGlData* mesh){
+void renderMesh(const xgl::MeshGlData* mesh){
 	for(u64 i = 0; i < xen::size(mesh->vertex_spec); ++i){
 		if(mesh->vertex_data[i].buffer){
 			XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_data[i].buffer));
 			XEN_CHECK_GL(glEnableVertexAttribArray(i));
 
-			GLint component_count = (mesh->vertex_spec[i] &
-			                         xen::VertexAttribute::_ComponentCountMask
-			                         );
+			GLint component_count = (
+				mesh->vertex_spec[i].type & xen::VertexAttribute::Type::ComponentCountMask
+			);
 
 			GLenum component_type;
 			GLboolean normalized = GL_FALSE;
-			switch(mesh->vertex_spec[i] & xen::VertexAttribute::_TypeMask){
-			case xen::VertexAttribute::_TypeFloat:
+			switch(mesh->vertex_spec[i].type & xen::VertexAttribute::Type::ComponentTypeMask){
+			case xen::VertexAttribute::Type::Float:
 				component_type = GL_FLOAT;
 				break;
-			case xen::VertexAttribute::_TypeDouble:
+			case xen::VertexAttribute::Type::Double:
 				component_type = GL_DOUBLE;
 				break;
-			case xen::VertexAttribute::_TypeByte:
+			case xen::VertexAttribute::Type::Byte:
 				component_type = GL_UNSIGNED_BYTE;
 				normalized     = GL_TRUE; // map [0-255] to [0-1]
 				break;
@@ -72,22 +71,24 @@ void renderMesh(xen::PrimitiveType primitive_type,
 		} else {
 			XEN_CHECK_GL(glDisableVertexAttribArray(i));
 
-			switch(mesh->vertex_spec[i]){
-			case xen::VertexAttribute::Position3r:
-			case xen::VertexAttribute::Normal3r:
-#if XEN_USE_DOUBLE_PRECISION
-				XEN_CHECK_GL(glVertexAttrib3dv(i, &mesh->vertex_data[i].vec3r[0]));
-#else
-				XEN_CHECK_GL(glVertexAttrib3fv(i, &mesh->vertex_data[i].vec3r[0]));
-#endif
+			switch(mesh->vertex_spec[i].type){
+			case (xen::VertexAttribute::Type::Float | 3):
+				XEN_CHECK_GL(glVertexAttrib3fv(i, &mesh->vertex_data[i].vec3f[0]));
 				break;
-			case xen::VertexAttribute::TexCoord2f:
+			case (xen::VertexAttribute::Type::Double | 3):
+				XEN_CHECK_GL(glVertexAttrib3dv(i, &mesh->vertex_data[i].vec3d[0]));
+				break;
+			case (xen::VertexAttribute::Type::Float | 2):
 				XEN_CHECK_GL(glVertexAttrib2fv(i, &mesh->vertex_data[i].vec2f[0]));
 				break;
-			case xen::VertexAttribute::Color3f:
-				XEN_CHECK_GL(glVertexAttrib3fv(i, &mesh->vertex_data[i].color3f[0]));
+			case (xen::VertexAttribute::Type::Double | 2):
+				XEN_CHECK_GL(glVertexAttrib2dv(i, &mesh->vertex_data[i].vec2d[0]));
 				break;
-			case xen::VertexAttribute::Color4b: {
+			case (xen::VertexAttribute::Type::Byte | 4): {
+				// :TODO: if someone uses custom 4 byte attribute and doesn't want it to
+				// be mapped in this way, then what?
+				XenDebugAssert(mesh->vertex_spec[i].aspect == xen::VertexAttribute::Color,
+				               "Expected 4 component byte vector only supports color aspect");
 				xen::Color color = mesh->vertex_data[i].color4b;
 				XEN_CHECK_GL(glVertexAttrib4f
 				             (i,
@@ -104,7 +105,7 @@ void renderMesh(xen::PrimitiveType primitive_type,
 		}
 	}
 
-	XEN_CHECK_GL(glDrawArrays(xenPrimitiveTypeToGl(primitive_type),
+	XEN_CHECK_GL(glDrawArrays(xenPrimitiveTypeToGl(mesh->primitive_type),
 	                          0,
 	                          mesh->vertex_count));
 }
@@ -158,7 +159,7 @@ namespace xgl {
 				break;
 			}
 
-			renderMesh(cmd->primitive_type, xgl::getMeshGlData(cmd->mesh));
+			renderMesh(xgl::getMeshGlData(cmd->mesh));
 		}
 	}
 }

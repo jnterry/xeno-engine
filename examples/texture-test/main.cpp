@@ -18,7 +18,7 @@ struct State{
 	xen::RenderParameters3d                render_params;
 	xen::FixedArray<xen::LightSource3d, 1> scene_lights;
 
-	xen::FixedArray<xen::VertexAttribute::Type, 4> vertex_spec;
+	xen::FixedArray<xen::VertexAttribute, 4> vertex_spec;
 
 	xen::Mesh    mesh_xzplane;
 
@@ -48,7 +48,6 @@ void initRenderCommands(){
 	state->material_parameters.specular_exponent  = 3.0_r;
 	state->material_parameters.specular_intensity = 0.1_r;
 
-	state->render_commands[0].primitive_type     = xen::PrimitiveType::TRIANGLES;
 	state->render_commands[0].model_matrix       = Mat4r::Identity;
 	state->render_commands[0].mesh               = state->mesh_xzplane;
 	state->render_commands[0].textures[0]        = state->texture_bricks_diffuse;
@@ -91,9 +90,7 @@ void initMeshes(xen::ModuleApiGraphics* mod_ren){
 	state->vertex_spec[2] = xen::VertexAttribute::Color4b;
 	state->vertex_spec[3] = xen::VertexAttribute::TexCoord2f;
 
-	state->mesh_xzplane = mod_ren->createMesh(state->vertex_spec,
-	                                       xen::TestMeshGeometry_UnitXzPlaneCentered
-	                                      );
+	state->mesh_xzplane = mod_ren->createMesh(xen::TestMeshData_UnitXzPlaneCentered);
 
 	xen::RawImage image_bricks_diffuse = xen::loadImage(arena, "resource/texture/bricks-diffuse.jpg");
 	xen::RawImage image_bricks_normal  = xen::loadImage(arena, "resource/texture/bricks-normal.jpg");
@@ -168,7 +165,6 @@ void tick( const xen::TickContext& cntx){
 				break;
 			default: break;
 			}
-
 		default: break;
 		}
 	}

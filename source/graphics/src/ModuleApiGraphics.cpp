@@ -17,15 +17,6 @@
 
 #include <cstdarg>
 
-xen::VertexAttribute::Type _default_spec_elems[] = {
-	xen::VertexAttribute::Position3r,
-	xen::VertexAttribute::Normal3r,
-	xen::VertexAttribute::Color4b,
-};
-xen::VertexSpec xen::DefaultVertexSpec = {
-	XenArrayLength(_default_spec_elems), _default_spec_elems
-};
-
 xen::RenderOp xen::RenderOp::Clear(xen::RenderTarget target, xen::Color color){
 	xen::RenderOp result;
 	result.type         = xen::RenderOp::CLEAR;
@@ -54,52 +45,10 @@ xen::RenderOp xen::RenderOp::SwapBuffers(xen::RenderTarget target){
 }
 
 namespace xen {
-	Mesh ModuleApiGraphics::createMesh(const VertexSpec&         vertex_spec,
-	                                   const MeshAttribArrays& mesh_geom
-	                                  ){
-
-		// max number of vertex attributes is 255, so allocate that much stack space
-		XenAssert(vertex_spec.size < 255, "Can only support up to 255 vertex attributes");
-		void* vertex_data[255];
-
-		/////////////////////////////////////////////////////////////////
-		// Construct attrib data array based on vertex_spec and what we
-		// have available in mesh_geom
-		for(u32 i = 0; i < xen::size(vertex_spec); ++i){
-			switch(vertex_spec[i]){
-			case xen::VertexAttribute::Position3r:
-				vertex_data[i] = mesh_geom.position;
-				break;
-			case xen::VertexAttribute::Normal3r:
-				vertex_data[i] = mesh_geom.normal;
-				break;
-			case xen::VertexAttribute::Color4b:
-				vertex_data[i] = mesh_geom.color;
-				break;
-			case xen::VertexAttribute::TexCoord2f:
-				vertex_data[i] = mesh_geom.uvs;
-			default: break;
-			}
-		}
-
-		/////////////////////////////////////////////////////////////////
-		// Set mesh data fields
-		xen::MeshData mesh_data;
-		mesh_data.vertex_spec  = vertex_spec;
-		mesh_data.vertex_data  = vertex_data;
-		mesh_data.vertex_count = mesh_geom.vertex_count;
-
-		/////////////////////////////////////////////////////////////////
-		// Compute mesh bounding box
-		mesh_data.bounds = xen::computeBoundingBox(mesh_geom.position, mesh_data.vertex_count);
-
-		return this->createMesh(&mesh_data);
-	}
-
 	Mesh ModuleApiGraphics::createMesh(const VertexSpec& vertex_spec,
-	                                   u32               vertex_count,
-	                                   ...
-	                                  ){
+	                                   const xen::PrimitiveType primitive_type,
+	                                   u32 vertex_count,
+	                                   ...){
 
 
 
@@ -107,9 +56,10 @@ namespace xen {
 
 		MeshData md;
 
-		md.vertex_spec  = vertex_spec;
-		md.vertex_count = vertex_count;
-		md.vertex_data  = attrib_data;
+		md.vertex_spec    = vertex_spec;
+		md.primitive_type = primitive_type;
+		md.vertex_count   = vertex_count;
+		md.vertex_data    = attrib_data;
 
 		Vec3r* pbuf = nullptr;
 

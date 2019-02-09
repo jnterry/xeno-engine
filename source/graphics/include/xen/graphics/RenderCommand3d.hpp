@@ -22,31 +22,6 @@
 #include <xen/graphics/GraphicsHandles.hpp>
 
 namespace xen{
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Enumeration of the types of primitive a GraphicsDevice
-	/// is able to draw
-	/////////////////////////////////////////////////////////////////////
-	enum class PrimitiveType {
-		/// \brief Draws geometry as a point cloud
-		POINTS,
-
-		/// \brief Draws geometry by connecting subsequent pairs of points
-	  LINES,
-
-		/// \brief Draws geometry by connecting all adjacent points
-	  LINE_STRIP,
-
-		// LINE_LOOP,
-
-		/// \brief Draws geometry by forming triangles by grouping every 3
-		/// vertices
-	  TRIANGLES,
-
-		// TRIANGLE_FAN
-		// TRIANGLE_STRIP
-	};
-
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Extra parameters required to render a scene. These vary per
 	/// frame rather than per object
@@ -84,9 +59,6 @@ namespace xen{
 
 		/// \brief A handle to a mesh to be drawn
 		xen::Mesh mesh;
-
-		/// \brief The type of primitive to draw the mesh as
-		PrimitiveType primitive_type;
 
 		/// \brief Array of texture channels to be used by this rendering operation
 		xen::Texture textures[4];
