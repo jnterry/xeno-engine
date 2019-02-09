@@ -11,9 +11,9 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-7
-      env:
-        - CC=gcc-7
-        - CXX=g++-7
+      before_script:
+        - export CC=gcc-7
+        - export CXX=g++-7
 
     # Windows requires VS 2017 15.7 or higher, this is installed by default on travis
     - name: "Windows Build"
