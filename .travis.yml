@@ -11,13 +11,17 @@ matrix:
           packages:
             - g++-7
       env:
-        - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+        - CC=gcc-7
+        - CXX=g++-7
 
-    # We can also test on windows with VS 2017 15.7 or higher
+    # Windows requires VS 2017 15.7 or higher, this is installed by default on travis
     - os: windows
 
-before_install:
-  - eval "${MATRIX_EVAL}"
+    # Run linters
+    - os: linux
+      language: bash
+      script:
+        - $TRAVIS_BUILD_DIR/tools/check_code_style.sh
 
 script:
   - mkdir -p $TRAVIS_BUILD_DIR/build
@@ -25,8 +29,6 @@ script:
   - cmake ..
   - cmake --build .
   - $TRAVIS_BUILD_DIR/bin/unit-tests
-  - $TRAVIS_BUILD_DIR/tools/check_code_style.sh
-
 
 notifications:
   email:
