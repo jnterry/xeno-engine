@@ -171,7 +171,10 @@ namespace xen {
 		/// vertex_spec. This is in software devices which don't make deep copy
 		/// (not sure about gl device?)
 		/////////////////////////////////////////////////////////////////////
-		Mesh createMesh(const VertexSpec& vertex_spec, u32 vertex_count, ...);
+		Mesh createMesh(const VertexSpec& vertex_spec,
+		                const xen::PrimitiveType primitive_type,
+		                u32 vertex_count,
+		                ...);
 
 		inline void updateMeshVertexData(Mesh mesh,
 		                                 u32 attrib_index,

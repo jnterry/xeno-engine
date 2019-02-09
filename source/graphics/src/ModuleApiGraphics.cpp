@@ -46,9 +46,9 @@ xen::RenderOp xen::RenderOp::SwapBuffers(xen::RenderTarget target){
 
 namespace xen {
 	Mesh ModuleApiGraphics::createMesh(const VertexSpec& vertex_spec,
-	                                   u32               vertex_count,
-	                                   ...
-	                                  ){
+	                                   const xen::PrimitiveType primitive_type,
+	                                   u32 vertex_count,
+	                                   ...){
 
 
 
@@ -56,9 +56,10 @@ namespace xen {
 
 		MeshData md;
 
-		md.vertex_spec  = vertex_spec;
-		md.vertex_count = vertex_count;
-		md.vertex_data  = attrib_data;
+		md.vertex_spec    = vertex_spec;
+		md.primitive_type = primitive_type;
+		md.vertex_count   = vertex_count;
+		md.vertex_data    = attrib_data;
 
 		Vec3r* pbuf = nullptr;
 

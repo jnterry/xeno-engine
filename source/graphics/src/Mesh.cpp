@@ -151,6 +151,8 @@ namespace {
 		XenAssert(mesh->mNumFaces > 0, "Expected mesh to contain some faces");
 		XenAssert(mesh->mPrimitiveTypes == aiPrimitiveType_TRIANGLE, "Expected mesh to be triangulated");
 
+		md->primitive_type = xen::PrimitiveType::Triangles;
+
 		int num_triangles = mesh->mNumFaces;
 
 		xen::Triangle3r* buffer_position = nullptr;

@@ -73,6 +73,7 @@ xen::Mesh xgl::createMesh(const xen::MeshData* md){
 	xgl::MeshGlData* result = &state->pool_mesh.slots[slot].item;
 
 	result->vertex_spec.size     = md->vertex_spec.size;
+	result->primitive_type       = md->primitive_type;
 	result->vertex_spec.elements = xen::reserveTypeArray<xen::VertexAttribute>(arena, md->vertex_spec.size);
 	result->vertex_data          = xen::reserveTypeArray<xgl::VertexAttributeSource>(arena, md->vertex_spec.size);
 	result->vertex_count         = md->vertex_count;

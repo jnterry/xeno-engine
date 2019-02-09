@@ -235,6 +235,7 @@ void* _xz_square_arrays[VERT_SPEC_LEN] = {
 
 const xen::MeshData _MeshData_UnitCubeLines = {
 	XenArrayLength(UnitCubeLines_Positions),
+	xen::PrimitiveType::Lines,
 	xen::TestMeshVertexSpec,
 	{ { 0.0_r, 0.0_r, 0.0_r }, { 1.0_r, 1.0_r, 1.0_r } },
 	_unit_cube_lines_data_arrays
@@ -242,6 +243,7 @@ const xen::MeshData _MeshData_UnitCubeLines = {
 
 const xen::MeshData _MeshData_UnitCube = {
 	XenArrayLength(UnitCube_Positions),
+	xen::PrimitiveType::Triangles,
 	xen::TestMeshVertexSpec,
 	{ { 0.0_r, 0.0_r, 0.0_r }, { 1.0_r, 1.0_r, 1.0_r } },
 	_unit_cube_vert_data_arrays,
@@ -249,6 +251,7 @@ const xen::MeshData _MeshData_UnitCube = {
 
 const xen::MeshData _MeshData_Axes = {
 	XenArrayLength(Axes_Positions),
+	xen::PrimitiveType::Lines,
 	xen::TestMeshVertexSpec,
 	{ { 0.0_r, 0.0_r, 0.0_r }, { 1.0_r, 1.0_r, 1.0_r } },
 	_axes_data_arrays,
@@ -256,6 +259,7 @@ const xen::MeshData _MeshData_Axes = {
 
 const xen::MeshData _MeshData_UnitXzPlaneCentered = {
 	XenArrayLength(XzSquare_Positions),
+	xen::PrimitiveType::Triangles,
 	xen::TestMeshVertexSpec,
 	{ { -0.5_r, 0.0_r, -0.5_r }, { 0.5_r, 0.0_r, 0.5_r } },
 	_xz_square_arrays,

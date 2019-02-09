@@ -103,6 +103,7 @@ void* _walls_arrays[4] = {
 
 const xen::MeshData _MeshData_CornellBoxWalls = {
 	XenArrayLength(positions_walls),
+	xen::PrimitiveType::Triangles,
 	xen::TestMeshVertexSpec,
 	{ { 0.0_r, 0.0_r, 0.0_r }, { 1.0_r, 1.0_r, 1.0_r } },
 	_walls_arrays

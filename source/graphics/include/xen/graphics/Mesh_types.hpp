@@ -18,7 +18,6 @@
 #include <xen/graphics/Color.hpp>
 
 namespace xen{
-	struct ArenaLinear;
 	/////////////////////////////////////////////////////////////////////
 	/// \brief A Mesh is simply some collection of vertices where we store some
 	/// set of data per vertex, each called a "VertexAttribute". This struct
@@ -93,6 +92,32 @@ namespace xen{
 
 
 	/////////////////////////////////////////////////////////////////////
+	/// \brief Enumeration of the types of primitive a GraphicsDevice
+	/// is able to draw
+	/////////////////////////////////////////////////////////////////////
+	enum class PrimitiveType {
+		/// \brief Draws geometry as a point cloud
+		Points,
+
+		/// \brief Draws geometry by connecting subsequent pairs of points
+		Lines,
+
+		/// \brief Draws geometry by connecting all adjacent points
+	  LineStrip,
+
+		// LineLoop,
+
+		/// \brief Draws geometry by forming triangles by grouping every 3
+		/// vertices
+	  Triangles,
+
+		// TriangleFan,
+		// TriangleStrip,
+
+		// Patch,
+	};
+
+	/////////////////////////////////////////////////////////////////////
 	/// \brief Meta data about some Mesh
 	/////////////////////////////////////////////////////////////////////
 	struct MeshHeader {
@@ -101,6 +126,8 @@ namespace xen{
 
 		/// \brief Number of vertices in the mesh
 		u32 vertex_count;
+
+		PrimitiveType primitive_type;
 
 		/// \brief The number of and type of attributes in this mesh
 		VertexSpec  vertex_spec;

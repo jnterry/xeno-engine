@@ -48,7 +48,6 @@ void initRenderCommands(){
 	state->material_parameters.specular_exponent  = 3.0_r;
 	state->material_parameters.specular_intensity = 0.1_r;
 
-	state->render_commands[0].primitive_type     = xen::PrimitiveType::TRIANGLES;
 	state->render_commands[0].model_matrix       = Mat4r::Identity;
 	state->render_commands[0].mesh               = state->mesh_xzplane;
 	state->render_commands[0].textures[0]        = state->texture_bricks_diffuse;
