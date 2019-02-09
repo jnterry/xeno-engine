@@ -3,7 +3,8 @@ language: cpp
 matrix:
   include:
     # We need c++ 17 support, travis defaults to gcc 4.8. We want gcc 7 (or newer)
-    - os: linux
+    - name: "Linux Build"
+      os: linux
       addons:
         apt:
           sources:
@@ -15,10 +16,13 @@ matrix:
         - CXX=g++-7
 
     # Windows requires VS 2017 15.7 or higher, this is installed by default on travis
-    - os: windows
+    - name: "Windows Build"
+      os: windows
+
 
     # Run linters
-    - os: linux
+    - name: "Code Style"
+      os: linux
       language: bash
       script:
         - $TRAVIS_BUILD_DIR/tools/check_code_style.sh
