@@ -209,6 +209,7 @@ bool attachShaderSources(GLint program,
 	bool success = true;
 	for(unsigned i = 0; i < sources.size; ++i){
 		transaction_scratch.rollback();
+		XenLogDebug("Loading shader source from '%s'", sources[i]);
 		xen::FileData source_code = xen::loadFileAndNullTerminate(scratch, sources[i]);
 
 		if(source_code.size == 0){
@@ -234,8 +235,10 @@ void destroyShaderProgram(xgl::ShaderProgram* sprog){
 }
 
 bool linkShaderProgram(GLint program){
+	XenLogDebug("About to link shader program...");
 	XEN_CHECK_GL(glLinkProgram(program));
 
+	XenLogDebug("Link done, getting status...");
 	GLint link_status;
 	XEN_CHECK_GL(glGetProgramiv(program, GL_LINK_STATUS, &link_status ));
 
@@ -262,9 +265,11 @@ xgl::ShaderProgram* createShaderProgram(const xen::MaterialCreationParameters& p
 
 	bool success = true;
 
-	success &= attachShaderSources(result->program, params.vertex_sources,   GL_VERTEX_SHADER);
-	success &= attachShaderSources(result->program, params.geometry_sources, GL_GEOMETRY_SHADER);
-	success &= attachShaderSources(result->program, params.pixel_sources,    GL_FRAGMENT_SHADER);
+	success &= attachShaderSources(result->program, params.vertex_sources,    GL_VERTEX_SHADER);
+	success &= attachShaderSources(result->program, params.tess_ctrl_sources, GL_TESS_CONTROL_SHADER);
+	success &= attachShaderSources(result->program, params.tess_eval_sources, GL_TESS_EVALUATION_SHADER);
+	success &= attachShaderSources(result->program, params.geometry_sources,  GL_GEOMETRY_SHADER);
+	success &= attachShaderSources(result->program, params.pixel_sources,     GL_FRAGMENT_SHADER);
 
 	if(!success){
 		XenLogWarn("Errors occurred while compiling shaders, attempting to link...");

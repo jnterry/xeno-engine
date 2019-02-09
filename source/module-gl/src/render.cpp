@@ -20,18 +20,6 @@
 #include <xen/core/array.hpp>
 #include <xen/math/utilities.hpp>
 
-
-GLenum xenPrimitiveTypeToGl(xen::PrimitiveType type){
-	switch(type){
-	case xen::PrimitiveType::Points    : return GL_POINTS;
-	case xen::PrimitiveType::Lines     : return GL_LINES;
-	case xen::PrimitiveType::LineStrip : return GL_LINE_STRIP;
-	case xen::PrimitiveType::Triangles : return GL_TRIANGLES;
-	}
-	XenInvalidCodePath("Unhandled xen::PrimtiveType in GlDevice");
-	return 0;
-}
-
 void renderMesh(const xgl::MeshGlData* mesh){
 	for(u64 i = 0; i < xen::size(mesh->vertex_spec); ++i){
 		if(mesh->vertex_data[i].buffer){
@@ -105,9 +93,23 @@ void renderMesh(const xgl::MeshGlData* mesh){
 		}
 	}
 
-	XEN_CHECK_GL(glDrawArrays(xenPrimitiveTypeToGl(mesh->primitive_type),
-	                          0,
-	                          mesh->vertex_count));
+	GLenum prim_type;
+	switch(mesh->primitive_type & xen::PrimitiveType::TypeMask){
+	case xen::PrimitiveType::Points    : prim_type = GL_POINTS;     break;
+	case xen::PrimitiveType::Lines     : prim_type = GL_LINES;      break;
+	case xen::PrimitiveType::LineStrip : prim_type = GL_LINE_STRIP; break;
+	case xen::PrimitiveType::Triangles : prim_type = GL_TRIANGLES;  break;
+	case xen::PrimitiveType::Patch:
+		prim_type = GL_PATCHES;
+		glPatchParameteri(GL_PATCH_VERTICES,
+		                  mesh->primitive_type & xen::PrimitiveType::PatchCountMask);
+		break;
+	default:
+		XenBreak("Unknown primitive type requested");
+		break;
+	}
+
+	XEN_CHECK_GL(glDrawArrays(prim_type, 0, mesh->vertex_count));
 }
 
 namespace xgl {

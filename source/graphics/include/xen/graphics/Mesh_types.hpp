@@ -94,27 +94,26 @@ namespace xen{
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Enumeration of the types of primitive a GraphicsDevice
 	/// is able to draw
+	/// \brief Bottom 10 bits represents arbitrary integer to be used
+	/// to store number of vertices when "Patch" type is used. These bits
+	/// are ignored when any other primitive type is used.
 	/////////////////////////////////////////////////////////////////////
-	enum class PrimitiveType {
-		/// \brief Draws geometry as a point cloud
-		Points,
-
-		/// \brief Draws geometry by connecting subsequent pairs of points
-		Lines,
-
-		/// \brief Draws geometry by connecting all adjacent points
-	  LineStrip,
+	enum PrimitiveType : u16 {
+		Points    = 1 << 10, // Each vertex an independent point
+		Lines     = 2 << 10, // Every group of 2 vertices are connected
+		LineStrip = 3 << 10, // All adjacent vertices are connected
 
 		// LineLoop,
 
-		/// \brief Draws geometry by forming triangles by grouping every 3
-		/// vertices
-	  Triangles,
+		Triangles = 4 << 10, // Every group of 3 vertices are connected
 
 		// TriangleFan,
 		// TriangleStrip,
 
-		// Patch,
+		Patch = 5 << 10, // Arbitrary number of vertices to be fed to Tessellation control
+
+		TypeMask       = 0b1111110000000000,
+		PatchCountMask = 0b0000001111111111,
 	};
 
 	/////////////////////////////////////////////////////////////////////
@@ -127,7 +126,8 @@ namespace xen{
 		/// \brief Number of vertices in the mesh
 		u32 vertex_count;
 
-		PrimitiveType primitive_type;
+		/// \brief Type of primitive making up the mesh, see xen::PrimitiveType
+	  u16 primitive_type;
 
 		/// \brief The number of and type of attributes in this mesh
 		VertexSpec  vertex_spec;
