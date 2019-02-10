@@ -88,12 +88,14 @@ xen::Mesh xgl::createMesh(const xen::MeshData* md){
 
 	///////////////////////////////////////////////
 	// Create the GPU buffer
+	XenLogDebug("Creating mesh GPU buffer");
 	GLuint gpu_buffer;
 	XEN_CHECK_GL(glGenBuffers(1, &gpu_buffer));
 	XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, gpu_buffer));
 
 	///////////////////////////////////////////////
 	// Set up mesh attributes, work out where to store data in gpu buffer
+	XenLogDebug("Computing locations for mesh attribute data within GPU buffer");
 	for(u08 i = 0; i < md->vertex_spec.size; ++i){
 		result->vertex_spec[i] = md->vertex_spec[i];
 
@@ -115,7 +117,7 @@ xen::Mesh xgl::createMesh(const xen::MeshData* md){
 	}
 
 	///////////////////////////////////////////////
-	// Calculate Mesh Bounds
+	XenLogDebug("Computing mesh bounding box");
 	XenAssert(position_index != 255,
 	          "Mesh's does not contain position attribute - and it cannot be inferred");
 	const Vec3r* positions = (const Vec3r*)md->vertex_data[position_index];
@@ -127,7 +129,7 @@ xen::Mesh xgl::createMesh(const xen::MeshData* md){
 	}
 
 	///////////////////////////////////////////////
-	// reserve space
+	XenLogDebug("Reserving GPU memory for mesh attribute data");
 	XEN_CHECK_GL(glBufferData(GL_ARRAY_BUFFER, gpu_buffer_size, nullptr, GL_STATIC_DRAW));
 
 	XenLogInfo("Reserved mesh space, gpu_buf: %i, num verts: %i\n Bounds: (%f, %f, %f) -> (%f, %f, %f)",
@@ -138,7 +140,7 @@ xen::Mesh xgl::createMesh(const xen::MeshData* md){
 	          );
 
 	///////////////////////////////////////////////
-	// Upload vertex attrib data to GPU buffer
+	XenLogDebug("Uploading mesh attribute data to GPU");
 	for(u08 i = 0; i < md->vertex_spec.size; ++i){
 		if(md->vertex_data[i] == nullptr) {
 			// Then its a constant attribute, there is nothing to buffer
