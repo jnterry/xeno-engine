@@ -62,15 +62,15 @@ namespace{
 	}
 }
 
-xen::Mesh xgl::createMesh(const xen::MeshData* md){
-	u32 slot = xen::reserveSlot(state->pool_mesh);
-	XenAssert(slot != decltype(state->pool_mesh)::BAD_SLOT_INDEX, "Mesh store full");
+const xen::Mesh* xgl::createMesh(const xen::MeshData* md){
+	xgl::MeshGlData* result = xen::reserveType(state->pool_mesh);
+	if(result == nullptr){
+		XenLogError("Cannot create mesh as maximum number reached");
+		return nullptr;
+	}
 
 	xen::ArenaLinear& arena = state->primary_arena;
-
 	xen::MemoryTransaction transaction(arena);
-
-	xgl::MeshGlData* result = &state->pool_mesh.slots[slot].item;
 
 	result->vertex_spec.size     = md->vertex_spec.size;
 	result->primitive_type       = md->primitive_type;
@@ -79,22 +79,21 @@ xen::Mesh xgl::createMesh(const xen::MeshData* md){
 	result->vertex_count         = md->vertex_count;
 
 	if(result->vertex_spec.elements == nullptr || result->vertex_data == nullptr){
-		xen::freeSlot(state->pool_mesh, slot);
-		return xen::makeNullGraphicsHandle<xen::Mesh>();
+		XenLogError("Cannot create mesh as out of memory to store CPU side meta data");
+		xen::freeType(state->pool_mesh, result);
+		return nullptr;
 	}
 
 	u32 gpu_buffer_size =   0;
-	u08 position_index  = 255; // index of attrib representing position
+	u08 position_index  = xen::MeshData::BAD_ATTRIB_INDEX;
 
 	///////////////////////////////////////////////
-	// Create the GPU buffer
 	XenLogDebug("Creating mesh GPU buffer");
 	GLuint gpu_buffer;
 	XEN_CHECK_GL(glGenBuffers(1, &gpu_buffer));
 	XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, gpu_buffer));
 
 	///////////////////////////////////////////////
-	// Set up mesh attributes, work out where to store data in gpu buffer
 	XenLogDebug("Computing locations for mesh attribute data within GPU buffer");
 	for(u08 i = 0; i < md->vertex_spec.size; ++i){
 		result->vertex_spec[i] = md->vertex_spec[i];
@@ -117,27 +116,34 @@ xen::Mesh xgl::createMesh(const xen::MeshData* md){
 	}
 
 	///////////////////////////////////////////////
-	XenLogDebug("Computing mesh bounding box");
-	XenAssert(position_index != 255,
-	          "Mesh's does not contain position attribute - and it cannot be inferred");
-	const Vec3r* positions = (const Vec3r*)md->vertex_data[position_index];
-	result->bounds.min = positions[0];
-	result->bounds.max = positions[0];
-	for(u32 i = 1; i < md->vertex_count; ++i){
-		result->bounds.min = xen::min(result->bounds.min, positions[i]);
-		result->bounds.max = xen::max(result->bounds.max, positions[i]);
+	if(position_index == xen::MeshData::BAD_ATTRIB_INDEX){
+		if(md->bounds != xen::Aabb3r::MaxMinBox && md->bounds != xen::Aabb3r{}){
+			XenLogDebug("No known position attribute, using supplied bounds");
+		} else {
+			XenLogWarn("Mesh has no known position attribute and bounds were not supplied, using MaxMin box as bounds - this may effect culling efficiency");
+			result->bounds = xen::Aabb3r::MaxMinBox;
+		}
+	} else {
+		XenLogDebug("Computing mesh bounding box");
+		const Vec3r* positions = (const Vec3r*)md->vertex_data[position_index];
+		result->bounds.min = positions[0];
+		result->bounds.max = positions[0];
+		for(u32 i = 1; i < md->vertex_count; ++i){
+			result->bounds.min = xen::min(result->bounds.min, positions[i]);
+			result->bounds.max = xen::max(result->bounds.max, positions[i]);
+		}
 	}
 
 	///////////////////////////////////////////////
 	XenLogDebug("Reserving GPU memory for mesh attribute data");
 	XEN_CHECK_GL(glBufferData(GL_ARRAY_BUFFER, gpu_buffer_size, nullptr, GL_STATIC_DRAW));
 
-	XenLogInfo("Reserved mesh space, gpu_buf: %i, num verts: %i\n Bounds: (%f, %f, %f) -> (%f, %f, %f)",
+	XenLogDone("Reserved mesh space, gpu_buf: %i, num verts: %i\n Bounds: (%f, %f, %f) -> (%f, %f, %f)",
 	           gpu_buffer,
 	           result->vertex_count,
 	           result->bounds.min.x, result->bounds.min.y, result->bounds.min.z,
 	           result->bounds.max.x, result->bounds.max.y, result->bounds.max.z
-	          );
+	);
 
 	///////////////////////////////////////////////
 	XenLogDebug("Uploading mesh attribute data to GPU");
@@ -160,18 +166,18 @@ xen::Mesh xgl::createMesh(const xen::MeshData* md){
 	}
 
 	///////////////////////////////////////////////
-	// Return Result
+  XenLogDebug("Finished mesh vertex attribute upload, returning");
 	transaction.commit();
-	return xen::makeGraphicsHandle<xen::Mesh::HANDLE_ID>(slot, 0);
+	return result;
 }
 
-void xgl::updateMeshVertexData(xen::Mesh mesh_handle,
-                               u32                  attrib_index,
-                               void*                new_data,
-                               u32                  start_vertex,
-                               u32                  end_vertex
+void xgl::updateMeshVertexData(const xen::Mesh* handle,
+                               u32              attrib_index,
+                               void*            new_data,
+                               u32              start_vertex,
+                               u32              end_vertex
                               ){
-	xgl::MeshGlData* mesh = xgl::getMeshGlData(mesh_handle);
+	xgl::MeshGlData* mesh = (xgl::MeshGlData*)handle;
 
 	end_vertex = xen::min(end_vertex, mesh->vertex_count);
 	if(end_vertex < start_vertex){ return; }
@@ -213,15 +219,10 @@ void xgl::updateMeshVertexData(xen::Mesh mesh_handle,
 	            );
 }
 
-namespace xgl {
-	xgl::MeshGlData* getMeshGlData(xen::Mesh mesh){
-		return &state->pool_mesh.slots[mesh._id].item;
-	}
-
-	void destroyMesh(xen::Mesh mesh){
-		// :TODO: IMPLEMENT - currently resource link, GPU buffers needs destroying
-		xen::freeSlot(xgl::state->pool_mesh, mesh._id);
-	}
+void xgl::destroyMesh(const xen::Mesh* mesh){
+	// :TODO: IMPLEMENT - currently resource link, GPU buffers needs destroying
+	xen::freeType(xgl::state->pool_mesh, (xgl::MeshGlData*)mesh);
 }
+
 
 #endif

@@ -48,14 +48,6 @@ namespace xen {
 		return result;
 	}
 
-	/// \brief Handle to a Mesh which may be drawn by some GraphicsDevice.
-	///
-	/// A Mesh is the fundamental unit of geometry that may be rendered
-	/// by a GraphicsDevice. Meshes consist of some number vertices each
-	/// with a position and optionally some other associated attributes,
-	/// such as color, normal, uv coordiates, etc
-	typedef _GraphicsHandle<__LINE__> Mesh;
-
 	/// \brief Handle to some surface which may be drawn to by a GraphicsDevice.
 	///
 	/// A RenderTarget will have a color surface representing the colors of pixels

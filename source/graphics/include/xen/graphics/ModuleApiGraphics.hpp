@@ -101,8 +101,8 @@ namespace xen {
 		//RenderTarget* createRenderTarget(Vec2u size, int depth_bits);
 		//void resizeRenderTarget(RenderTarget* render_target);
 
-		Mesh    (*_createMeshFromMeshData)(const MeshData* mesh_data);
-		void    (*destroyMesh           )(Mesh mesh);
+		const Mesh* (*_createMeshFromMeshData)(const MeshData* mesh_data);
+		void        (*destroyMesh           )(const Mesh* mesh);
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Updates the mesh vertex data for a particular attribute
@@ -119,12 +119,11 @@ namespace xen {
 		/// \note new_data should contain data for at least (end_vertex - start_vertex)
 		/// vertices
 		/////////////////////////////////////////////////////////////////////
-		void    (*_updateMeshVertexData  )(Mesh mesh,
-		                                  u32 attrib_index,
-		                                  void* new_data,
-		                                  u32 start_vertex,
-		                                  u32 end_vertex
-		                                 );
+		void    (*_updateMeshVertexData  )(const Mesh* mesh,
+		                                   u32 attrib_index,
+		                                   void* new_data,
+		                                   u32 start_vertex,
+		                                   u32 end_vertex);
 
 		Texture (*createTexture )(const RawImage* image);
 		void    (*destroyTexture)(Texture texture);
@@ -154,7 +153,7 @@ namespace xen {
 		/// \return Mesh Handle to the created mesh, this handle may be used
 		/// in future with this GraphicsDevice to render the mesh
 		/////////////////////////////////////////////////////////////////////
-		inline Mesh createMesh(const MeshData* mesh_data){
+		inline const xen::Mesh* createMesh(const MeshData* mesh_data){
 			return this->_createMeshFromMeshData(mesh_data);
 		}
 
@@ -178,12 +177,12 @@ namespace xen {
 		/// vertex_spec. This is in software devices which don't make deep copy
 		/// (not sure about gl device?)
 		/////////////////////////////////////////////////////////////////////
-		Mesh createMesh(const VertexSpec& vertex_spec,
-		                const xen::PrimitiveType primitive_type,
-		                u32 vertex_count,
-		                ...);
+		const Mesh* createMesh(const VertexSpec& vertex_spec,
+		                       const xen::PrimitiveType primitive_type,
+		                       u32 vertex_count,
+		                       ...);
 
-		inline void updateMeshVertexData(Mesh mesh,
+		inline void updateMeshVertexData(const Mesh* mesh,
 		                                 u32 attrib_index,
 		                                 void* new_data,
 		                                 u32 start_vertex = 0,

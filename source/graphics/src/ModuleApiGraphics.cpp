@@ -44,43 +44,39 @@ xen::RenderOp xen::RenderOp::SwapBuffers(xen::RenderTarget target){
 	return result;
 }
 
-namespace xen {
-	Mesh ModuleApiGraphics::createMesh(const VertexSpec& vertex_spec,
-	                                   const xen::PrimitiveType primitive_type,
-	                                   u32 vertex_count,
-	                                   ...){
+const xen::Mesh* xen::ModuleApiGraphics::createMesh(const xen::VertexSpec& vertex_spec,
+                                                    const xen::PrimitiveType primitive_type,
+                                                    u32 vertex_count,
+                                                    ...){
 
+	void* attrib_data[255]; // Can only have up to 255 attributes in mesh
 
+	xen::MeshData md;
 
-		void* attrib_data[255]; // Can only have up to 255 attributes in mesh
+	md.vertex_spec    = vertex_spec;
+	md.primitive_type = primitive_type;
+	md.vertex_count   = vertex_count;
+	md.vertex_data    = attrib_data;
 
-		MeshData md;
+	Vec3r* pbuf = nullptr;
 
-		md.vertex_spec    = vertex_spec;
-		md.primitive_type = primitive_type;
-		md.vertex_count   = vertex_count;
-		md.vertex_data    = attrib_data;
-
-		Vec3r* pbuf = nullptr;
-
-		va_list args;
-		va_start(args, vertex_count);
-		for(u32 i = 0; i < xen::size(vertex_spec); ++i){
-			attrib_data[i] = va_arg(args, void*);
-			if(vertex_spec[i] == xen::VertexAttribute::Position3r){
-				pbuf = (Vec3r*)attrib_data[i];
-			}
+	va_list args;
+	va_start(args, vertex_count);
+	for(u32 i = 0; i < xen::size(vertex_spec); ++i){
+		attrib_data[i] = va_arg(args, void*);
+		if(vertex_spec[i] == xen::VertexAttribute::Position3r){
+			pbuf = (Vec3r*)attrib_data[i];
 		}
-		va_end(args);
-
-		XenAssert(pbuf != nullptr, "Expected mesh to have position data");
-
-		md.bounds = xen::computeBoundingBox(pbuf, vertex_count);
-
-		/////////////////////////////////////////////////////////////////
-
-		return this->createMesh(&md);
 	}
+	va_end(args);
+
+	XenAssert(pbuf != nullptr, "Expected mesh to have position data");
+
+	md.bounds = xen::computeBoundingBox(pbuf, vertex_count);
+
+	/////////////////////////////////////////////////////////////////
+
+	return this->createMesh(&md);
 }
 
 void xen::ModuleApiGraphics::clear(xen::RenderTarget target, xen::Color color){

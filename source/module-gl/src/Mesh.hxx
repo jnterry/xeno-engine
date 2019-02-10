@@ -74,19 +74,18 @@ namespace xgl {
 	/// \brief Type representing a mesh stored in some set of GpuBuffers which
 	/// can be rendered by OpenGL
 	/////////////////////////////////////////////////////////////////////
-	typedef xen::MeshDataSource<VertexAttributeSource> MeshGlData;
+	struct MeshGlData : public xen::Mesh {
+		/// \brief Array of meta data about which GL buffer contains the mesh data
+		xgl::VertexAttributeSource* vertex_data;
+	};
 }
 
 namespace xgl {
-	xgl::MeshGlData* getMeshGlData(xen::Mesh mesh);
-	xen::Mesh createMesh (const xen::MeshData* mesh_data);
-	void      destroyMesh(xen::Mesh mesh);
-	void      updateMeshVertexData(xen::Mesh mesh,
-	                               u32 attrib_index,
-	                               void* new_data,
-	                               u32 start_vertex,
-	                               u32 end_vertex
-	                              );
+	const xen::Mesh* createMesh (const xen::MeshData* mesh_data);
+	void destroyMesh(const xen::Mesh* mesh);
+	void updateMeshVertexData(const xen::Mesh* handle,
+	                          u32 attrib_index, void* new_data,
+	                          u32 start_vertex, u32 end_vertex);
 }
 
 #endif

@@ -18,9 +18,9 @@ struct State {
 	xen::FixedArray<xen::LightSource3d, 2> scene_lights;
 
 	xen::FixedArray<xen::VertexAttribute, 3> vertex_spec;
-	xen::Mesh                                mesh_cornell_walls;
-	xen::Mesh                                mesh_cube;
-	xen::Mesh                                mesh_axes;
+	const xen::Mesh*                         mesh_cornell_walls;
+	const xen::Mesh*                         mesh_cube;
+	const xen::Mesh*                         mesh_axes;
 
 	const xen::Material* material;
 
