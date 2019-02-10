@@ -104,6 +104,31 @@ namespace xen {
 		const Mesh* (*_createMeshFromMeshData)(const MeshData* mesh_data);
 		void        (*destroyMesh           )(const Mesh* mesh);
 
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Creates a dynamic mesh which is stored in such a way that
+		/// subsequent calls to updateMeshVertexData are fast(er than otherwise),
+		/// and additionally such that the number of vertices in the Mesh can vary
+		/// (up to some specified maximum). Note that updateMeshVertexData MUST
+		/// be called before rendering the mesh for each attribute - otherwise
+		/// whatever random data is currently in the graphic's devices memory will
+		/// be used!
+		/////////////////////////////////////////////////////////////////////
+		const Mesh*(*createDynamicMesh)(const VertexSpec& vertex_spec,
+		                                const u16 primitive_type,
+		                                u32 max_vertex_count);
+
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Updates the vertex count of a dynamic mesh. Returns false
+		/// if vertex_count exceeds the max_vertex_count which the mesh was
+		/// created with, or if the mesh was not created as a dynamic mesh
+		/// \note Existing vertex data will not be modified - if the vertex count
+		/// is shrunk then the first "vertex_count" elements will be kept, if
+		/// instead the vertex count is increased then all existing data will
+		/// be kept and new uninitialised vertices will be appended on the end
+		/////////////////////////////////////////////////////////////////////
+		bool (*setDynamicMeshVertexCount)(const Mesh* mesh, u32 vertex_count);
+
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Updates the mesh vertex data for a particular attribute
 		/// of some mesh

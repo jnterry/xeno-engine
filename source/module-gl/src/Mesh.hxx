@@ -77,6 +77,10 @@ namespace xgl {
 	struct MeshGlData : public xen::Mesh {
 		/// \brief Array of meta data about which GL buffer contains the mesh data
 		xgl::VertexAttributeSource* vertex_data;
+
+		/// \brief GPU buffer capacity for vertex data - will be set to 0 unless
+		/// mesh was created using createDynamicMesh method
+		u32 vertex_capacity;
 	};
 }
 
@@ -86,6 +90,10 @@ namespace xgl {
 	void updateMeshVertexData(const xen::Mesh* handle,
 	                          u32 attrib_index, void* new_data,
 	                          u32 start_vertex, u32 end_vertex);
+	const xen::Mesh* createDynamicMesh(const xen::VertexSpec& vertex_spec,
+	                                   const u16 primitive_type,
+	                                   u32 max_vertex_count);
+	bool setDynamicMeshVertexCount(const xen::Mesh* handle, u32 vertex_count);
 }
 
 #endif

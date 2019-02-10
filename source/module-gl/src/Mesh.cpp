@@ -62,30 +62,34 @@ namespace{
 	}
 }
 
-const xen::Mesh* xgl::createMesh(const xen::MeshData* md){
-	xgl::MeshGlData* result = xen::reserveType(state->pool_mesh);
+xgl::MeshGlData* doCreateMesh(const xen::VertexSpec& vertex_spec,
+                              u16                    primitive_type,
+                              bool*                  attrib_is_varying,
+                              u32                    vertex_count,
+                              GLenum                 buffer_usage){
+	xgl::MeshGlData* result = xen::reserveType(xgl::state->pool_mesh);
 	if(result == nullptr){
 		XenLogError("Cannot create mesh as maximum number reached");
 		return nullptr;
 	}
+	xen::clearToZero(result);
 
-	xen::ArenaLinear& arena = state->primary_arena;
+	xen::ArenaLinear& arena = xgl::state->primary_arena;
 	xen::MemoryTransaction transaction(arena);
 
-	result->vertex_spec.size     = md->vertex_spec.size;
-	result->primitive_type       = md->primitive_type;
-	result->vertex_spec.elements = xen::reserveTypeArray<xen::VertexAttribute>(arena, md->vertex_spec.size);
-	result->vertex_data          = xen::reserveTypeArray<xgl::VertexAttributeSource>(arena, md->vertex_spec.size);
-	result->vertex_count         = md->vertex_count;
+	result->vertex_spec.size     = vertex_spec.size;
+	result->primitive_type       = primitive_type;
+	result->vertex_spec.elements = xen::reserveTypeArray<xen::VertexAttribute>(arena, vertex_spec.size);
+	result->vertex_data          = xen::reserveTypeArray<xgl::VertexAttributeSource>(arena, vertex_spec.size);
+	result->vertex_count         = vertex_count;
 
 	if(result->vertex_spec.elements == nullptr || result->vertex_data == nullptr){
 		XenLogError("Cannot create mesh as out of memory to store CPU side meta data");
-		xen::freeType(state->pool_mesh, result);
+		xen::freeType(xgl::state->pool_mesh, result);
 		return nullptr;
 	}
 
 	u32 gpu_buffer_size =   0;
-	u08 position_index  = xen::MeshData::BAD_ATTRIB_INDEX;
 
 	///////////////////////////////////////////////
 	XenLogDebug("Creating mesh GPU buffer");
@@ -95,27 +99,62 @@ const xen::Mesh* xgl::createMesh(const xen::MeshData* md){
 
 	///////////////////////////////////////////////
 	XenLogDebug("Computing locations for mesh attribute data within GPU buffer");
-	for(u08 i = 0; i < md->vertex_spec.size; ++i){
-		result->vertex_spec[i] = md->vertex_spec[i];
+	for(u08 i = 0; i < vertex_spec.size; ++i){
+		result->vertex_spec[i] = vertex_spec[i];
 
-		if(xen::VertexAttribute::Aspect::Position == md->vertex_spec[i].aspect){
-			XenAssert(position_index     == 255, "Mesh can only have single position attribute");
-			XenAssert(md->vertex_data[i] != nullptr, "Mesh's position data cannot be inferred");
-			position_index = i;
-		}
-
-		if(md->vertex_data[i] == nullptr){
-			result->vertex_data[i] = getDefaultVertexAttributeSource(md->vertex_spec[i]);
+		if(!attrib_is_varying[i]){
+			result->vertex_data[i] = getDefaultVertexAttributeSource(vertex_spec[i]);
 			continue;
 		}
 
 		result->vertex_data[i].buffer = gpu_buffer;
 		result->vertex_data[i].offset = gpu_buffer_size;
-		result->vertex_data[i].stride = getVertexAttributeSize(md->vertex_spec[i]);
-		gpu_buffer_size += result->vertex_data[i].stride * md->vertex_count;
+		result->vertex_data[i].stride = getVertexAttributeSize(vertex_spec[i]);
+		gpu_buffer_size += result->vertex_data[i].stride * vertex_count;
 	}
 
 	///////////////////////////////////////////////
+	XenLogDebug("Reserving %u bytes of GPU memory for mesh attribute data", gpu_buffer_size);
+	XEN_CHECK_GL(glBufferData(GL_ARRAY_BUFFER, gpu_buffer_size, nullptr, buffer_usage));
+
+	transaction.commit();
+	return result;
+}
+
+const xen::Mesh* xgl::createMesh(const xen::MeshData* md){
+
+	// max of 255 attributes in a mesh
+	bool attrib_is_varying[255] = {0};
+	for(unsigned i = 0; i < md->vertex_spec.size; ++i){
+		attrib_is_varying[i] = md->vertex_data[i] != nullptr;
+	}
+
+	xgl::MeshGlData* result = doCreateMesh(md->vertex_spec, md->primitive_type,
+	                                       attrib_is_varying,
+	                                       md->vertex_count, GL_STATIC_DRAW);
+
+	///////////////////////////////////////////////
+	XenLogDebug("Uploading mesh attribute data to GPU");
+	for(u08 i = 0; i < md->vertex_spec.size; ++i){
+		if(md->vertex_data[i] == nullptr) {
+			// Then its a constant attribute, there is nothing to buffer
+			continue;
+		}
+
+		const void* data_source = md->vertex_data[i];
+
+		XGL_CHECK(glBufferSubData(
+			          GL_ARRAY_BUFFER,
+			          result->vertex_data[i].offset,
+			          getVertexAttributeSize(result->vertex_spec[i]) * md->vertex_count,
+			          data_source
+		          ));
+	}
+
+	///////////////////////////////////////////////
+	// Compute bounds
+	u08 position_index = xen::findMeshAttrib(md, xen::VertexAttribute::Aspect::Position);
+
 	if(position_index == xen::MeshData::BAD_ATTRIB_INDEX){
 		if(md->bounds != xen::Aabb3r::MaxMinBox && md->bounds != xen::Aabb3r{}){
 			XenLogDebug("No known position attribute, using supplied bounds");
@@ -134,40 +173,6 @@ const xen::Mesh* xgl::createMesh(const xen::MeshData* md){
 		}
 	}
 
-	///////////////////////////////////////////////
-	XenLogDebug("Reserving GPU memory for mesh attribute data");
-	XEN_CHECK_GL(glBufferData(GL_ARRAY_BUFFER, gpu_buffer_size, nullptr, GL_STATIC_DRAW));
-
-	XenLogDone("Reserved mesh space, gpu_buf: %i, num verts: %i\n Bounds: (%f, %f, %f) -> (%f, %f, %f)",
-	           gpu_buffer,
-	           result->vertex_count,
-	           result->bounds.min.x, result->bounds.min.y, result->bounds.min.z,
-	           result->bounds.max.x, result->bounds.max.y, result->bounds.max.z
-	);
-
-	///////////////////////////////////////////////
-	XenLogDebug("Uploading mesh attribute data to GPU");
-	for(u08 i = 0; i < md->vertex_spec.size; ++i){
-		if(md->vertex_data[i] == nullptr) {
-			// Then its a constant attribute, there is nothing to buffer
-			continue;
-		}
-
-		result->vertex_data[i].buffer = gpu_buffer;
-
-		const void* data_source = md->vertex_data[i];
-
-		XEN_CHECK_GL(glBufferSubData(GL_ARRAY_BUFFER,
-		                             result->vertex_data[i].offset,
-		                             getVertexAttributeSize(result->vertex_spec[i]) * md->vertex_count,
-		                             data_source
-		                             )
-		            );
-	}
-
-	///////////////////////////////////////////////
-  XenLogDebug("Finished mesh vertex attribute upload, returning");
-	transaction.commit();
 	return result;
 }
 
@@ -224,5 +229,31 @@ void xgl::destroyMesh(const xen::Mesh* mesh){
 	xen::freeType(xgl::state->pool_mesh, (xgl::MeshGlData*)mesh);
 }
 
+const xen::Mesh* xgl::createDynamicMesh(const xen::VertexSpec& vertex_spec,
+                                        const u16 primitive_type,
+                                        u32 max_vertex_count){
+	// We assume that all attributes have per vertex data
+	// (IE: not const for all verts)
+	bool attrib_is_varying[255];
+	for(unsigned i = 0; i < vertex_spec.size; ++i){ attrib_is_varying[i] = true; }
+
+	xgl::MeshGlData* result = doCreateMesh(vertex_spec, primitive_type,
+	                                       attrib_is_varying, max_vertex_count,
+	                                       GL_DYNAMIC_DRAW);
+
+	result->vertex_count    = 0;
+	result->vertex_capacity = max_vertex_count;
+
+	return result;
+}
+
+bool xgl::setDynamicMeshVertexCount(const xen::Mesh* handle, u32 vertex_count){
+	auto mesh = (xgl::MeshGlData*)handle;
+
+	if(mesh->vertex_capacity < vertex_count){ return false; }
+
+	mesh->vertex_count = vertex_count;
+	return true;
+}
 
 #endif

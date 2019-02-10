@@ -406,7 +406,9 @@ const void* getUniformDataSource(const xgl::Material* material,
 	// these once, then do rendering step
 	// This would remove all of the pushing to thread scratch
 
-	switch(material->uniform_sources[uniform_index]){
+	xen::MaterialParameterSource::Kind source = material->uniform_sources[uniform_index];
+
+	switch(source){
 	case xen::MaterialParameterSource::Variable: {
 		u08* data = (u08*)cmd.material_params;
 		if(data == nullptr){ return &all_zeros; };
@@ -414,19 +416,33 @@ const void* getUniformDataSource(const xgl::Material* material,
 	}
 	case xen::MaterialParameterSource::ModelMatrix:
 		return &cmd.model_matrix;
-	case xen::MaterialParameterSource::ViewMatrix: {
+	case xen::MaterialParameterSource::ModelMatrixInv: {
+		Mat4r* mmat_inv = xen::reserveType<Mat4r>(xen::getThreadScratchSpace());
+		*mmat_inv = xen::getInverse(cmd.model_matrix);
+		return mmat_inv;
+	}
+	case xen::MaterialParameterSource::ViewMatrix:
+	case xen::MaterialParameterSource::ViewMatrixInv: {
 	  Mat4r* vmat = xen::reserveType<Mat4r>(xen::getThreadScratchSpace());
 		// opengl has (0,0) at bottom left, we expect it to be at top left so flip y
 		*vmat = (getViewMatrix(params.camera) * xen::Scale3d(1, -1, 1));
+		if(source == xen::MaterialParameterSource::ViewMatrixInv){
+			*vmat = xen::getInverse(*vmat);
+		}
 		return vmat;
 	}
-	case xen::MaterialParameterSource::ProjectionMatrix: {
+	case xen::MaterialParameterSource::ProjectionMatrix:
+	case xen::MaterialParameterSource::ProjectionMatrixInv: {
 		Mat4r* pmat = xen::reserveType<Mat4r>(xen::getThreadScratchSpace());
 		*pmat = (getProjectionMatrix(params.camera,
 		                             (Vec2r)(viewport.max - viewport.min)));
+		if(source == xen::MaterialParameterSource::ProjectionMatrixInv){
+			*pmat = xen::getInverse(*pmat);
+		}
 		return pmat;
 	}
-	case xen::MaterialParameterSource::MvpMatrix: {
+	case xen::MaterialParameterSource::MvpMatrix:
+	case xen::MaterialParameterSource::MvpMatrixInv: {
 		Mat4r* mvp = xen::reserveType<Mat4r>(xen::getThreadScratchSpace());
 		*mvp = (
 			cmd.model_matrix *
@@ -434,15 +450,22 @@ const void* getUniformDataSource(const xgl::Material* material,
 			xen::Scale3d(1, -1, 1) *
 			getProjectionMatrix(params.camera, (Vec2r)(viewport.max - viewport.min))
 		);
+		if(source == xen::MaterialParameterSource::MvpMatrixInv){
+			*mvp = xen::getInverse(*mvp);
+		}
 		return mvp;
 	}
-	case xen::MaterialParameterSource::VpMatrix: {
+	case xen::MaterialParameterSource::VpMatrix:
+	case xen::MaterialParameterSource::VpMatrixInv: {
 		Mat4r* vp = xen::reserveType<Mat4r>(xen::getThreadScratchSpace());
 		*vp = (
 			getViewMatrix(params.camera) *
 			xen::Scale3d(1, -1, 1) *
 			getProjectionMatrix(params.camera, (Vec2r)(viewport.max - viewport.min))
 		);
+		if(source == xen::MaterialParameterSource::VpMatrixInv){
+			*vp = xen::getInverse(*vp);
+		}
 		return vp;
 	}
 	case xen::MaterialParameterSource::CameraWorldPosition:
