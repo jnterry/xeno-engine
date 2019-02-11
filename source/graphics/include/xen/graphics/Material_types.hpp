@@ -21,24 +21,46 @@ namespace xen {
 		  Variable,
 
 		  /// \brief The model matrix for the current object represented as a 4x4
-		  /// matrix of reals
+		  /// matrix of reals. Thus transforms from model space to world space
 		  ModelMatrix,
+
+		  /// \brief The inverse of the model matrix for the current object
+		  /// represented as a 4x4 matrix of reals. Thus transforms from world
+		  /// space to model space
+		  ModelMatrixInv,
 
 		  /// \brief The view matrix for the current object represented as a 4x4
 		  /// matrix of reals. Thus transforms from world space to camera space.
 		  ViewMatrix,
 
+		  /// \brief The inverse of the view matrix for the current object, thus
+		  /// transforms from camera space to world space
+		  ViewMatrixInv,
+
 		  /// \brief The matrix which projects from camera space to clip space,
 		  /// represented as a 4x4 matrix of reals
 		  ProjectionMatrix,
+
+
+		  /// \brief The inverse of the projection matrix, thus transforming from
+		  /// clip space to world space.
+		  ProjectionMatrixInv,
 
 		  /// \brief Combined model-view-projection matrix that transforms from
 		  /// model space to clip space
 		  MvpMatrix,
 
-		  /// \brief Combined view-projection matrix that transforms from world space
-		  /// to clip space
+		  /// \brief Inverse of the model-view-projection matrix, hence transforms
+		  /// from clip space to model space
+		  MvpMatrixInv,
+
+		  /// \brief Combined view-projection matrix that transforms from world
+		  /// space to clip space
 		  VpMatrix,
+
+		  /// \brief Inverse of combined view-projection matrix, hence transforms
+		  /// from clip space to world space
+		  VpMatrixInv,
 
 		  /// \brief 3d position of the camera in world space
 		  CameraWorldPosition,

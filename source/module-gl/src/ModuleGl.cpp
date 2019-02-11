@@ -109,9 +109,11 @@ void* load( void* data, const void* params){
 	xgl::state->api.createWindowRenderTarget = &xgl::createWindowRenderTarget;
 	xgl::state->api.destroyRenderTarget      = &xgl::destroyRenderTarget;
 
-	xgl::state->api._createMeshFromMeshData = &xgl::createMesh;
-	xgl::state->api.destroyMesh             = &xgl::destroyMesh;
-	xgl::state->api._updateMeshVertexData   = &xgl::updateMeshVertexData;
+	xgl::state->api._createMeshFromMeshData   = &xgl::createMesh;
+	xgl::state->api._updateMeshVertexData     = &xgl::updateMeshVertexData;
+	xgl::state->api.createDynamicMesh         = &xgl::createDynamicMesh;
+	xgl::state->api.setDynamicMeshVertexCount = &xgl::setDynamicMeshVertexCount;
+	xgl::state->api.destroyMesh               = &xgl::destroyMesh;
 
 	xgl::state->api.createTexture           = &xgl::createTexture;
 	xgl::state->api.destroyTexture          = &xgl::destroyTexture;

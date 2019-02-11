@@ -74,19 +74,26 @@ namespace xgl {
 	/// \brief Type representing a mesh stored in some set of GpuBuffers which
 	/// can be rendered by OpenGL
 	/////////////////////////////////////////////////////////////////////
-	typedef xen::MeshDataSource<VertexAttributeSource> MeshGlData;
+	struct MeshGlData : public xen::Mesh {
+		/// \brief Array of meta data about which GL buffer contains the mesh data
+		xgl::VertexAttributeSource* vertex_data;
+
+		/// \brief GPU buffer capacity for vertex data - will be set to 0 unless
+		/// mesh was created using createDynamicMesh method
+		u32 vertex_capacity;
+	};
 }
 
 namespace xgl {
-	xgl::MeshGlData* getMeshGlData(xen::Mesh mesh);
-	xen::Mesh createMesh (const xen::MeshData* mesh_data);
-	void      destroyMesh(xen::Mesh mesh);
-	void      updateMeshVertexData(xen::Mesh mesh,
-	                               u32 attrib_index,
-	                               void* new_data,
-	                               u32 start_vertex,
-	                               u32 end_vertex
-	                              );
+	const xen::Mesh* createMesh (const xen::MeshData* mesh_data);
+	void destroyMesh(const xen::Mesh* mesh);
+	void updateMeshVertexData(const xen::Mesh* handle,
+	                          u32 attrib_index, void* new_data,
+	                          u32 start_vertex, u32 end_vertex);
+	const xen::Mesh* createDynamicMesh(const xen::VertexSpec& vertex_spec,
+	                                   const u16 primitive_type,
+	                                   u32 max_vertex_count);
+	bool setDynamicMeshVertexCount(const xen::Mesh* handle, u32 vertex_count);
 }
 
 #endif

@@ -138,27 +138,23 @@ namespace xen{
 		// :TODO: support indexed meshes
 	};
 
-	template <typename T>
-	struct MeshDataSource : public MeshHeader {
-		/// \brief The data for each of this mesh's attributes
-		///
-		/// Array of length vertex_spec.length, where each element is of
-		/// type T which is some type representing how to source the data
-		/// for the vertex
-	  T* vertex_data;
+	/// \brief Handle to Mesh object that may be used by graphics device to
+	/// actually draw geometry
+	struct Mesh : public MeshHeader{
+		// Nothing here (yet)
+		//
+		// But we don't want MeshData to be castable to Mesh which it would if
+		// we just used MeshHeader as the handle to a drawable Mesh, hence this is
+		// its own type (and we might want to add fields at some point)
 	};
 
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Represents mesh data stored in main memory. This allows for
-	/// manipulations to be performed by the CPU, but the data IS NOT
-	/// in an appropriate format for rendering systems to draw the mesh
-	///
-	/// This is a MeshDataSource with the source type set to void*.
-	/// If an attributes source is set to nullptr then no data is stored for
-	/// that attribute, else the pointer is to the first element of an array
-	// of type specified by vertex_spec[i] storing the data
-	/////////////////////////////////////////////////////////////////////
-	typedef MeshDataSource<void*> MeshData;
+	struct MeshData : public MeshHeader {
+		/// \brief The data for each of this mesh's attributes
+		///
+		/// Array of length vertex_spec.length, where each element is a
+		/// pointer to a buffer containing the actual vertex data
+	  void** vertex_data;
+	};
 }
 
 inline bool operator==(xen::VertexAttribute a, xen::VertexAttribute b){

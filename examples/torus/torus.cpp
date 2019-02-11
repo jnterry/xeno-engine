@@ -20,11 +20,11 @@ struct State {
 	xen::Window*      window;
 	xen::RenderTarget window_target;
 
-	xen::Mesh     mesh_torus_smooth;
-	xen::Mesh     mesh_torus_flat;
-	xen::Mesh     mesh_cube;
-	xen::Mesh     mesh_axes;
-	xen::Mesh     mesh_xzplane;
+	const xen::Mesh* mesh_torus_smooth;
+	const xen::Mesh* mesh_torus_flat;
+	const xen::Mesh* mesh_cube;
+	const xen::Mesh* mesh_axes;
+	const xen::Mesh* mesh_xzplane;
 
 	const xen::Material* mat_phong;
 

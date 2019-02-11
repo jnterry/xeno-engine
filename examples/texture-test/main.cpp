@@ -20,7 +20,7 @@ struct State{
 
 	xen::FixedArray<xen::VertexAttribute, 4> vertex_spec;
 
-	xen::Mesh    mesh_xzplane;
+	const xen::Mesh* mesh_xzplane;
 
 	xen::Window*      window;
 	xen::RenderTarget window_target;

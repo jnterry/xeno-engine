@@ -58,7 +58,7 @@ namespace xen{
 		Mat4r model_matrix;
 
 		/// \brief A handle to a mesh to be drawn
-		xen::Mesh mesh;
+		const xen::Mesh* mesh;
 
 		/// \brief Array of texture channels to be used by this rendering operation
 		xen::Texture textures[4];

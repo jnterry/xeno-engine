@@ -21,6 +21,11 @@
 #include <xen/math/utilities.hpp>
 
 void renderMesh(const xgl::MeshGlData* mesh){
+	if(mesh == nullptr){
+		XenLogWarn("Request to render null mesh, skipping");
+		return;
+	}
+
 	for(u64 i = 0; i < xen::size(mesh->vertex_spec); ++i){
 		if(mesh->vertex_data[i].buffer){
 			XEN_CHECK_GL(glBindBuffer(GL_ARRAY_BUFFER, mesh->vertex_data[i].buffer));
@@ -161,7 +166,7 @@ namespace xgl {
 				break;
 			}
 
-			renderMesh(xgl::getMeshGlData(cmd->mesh));
+			renderMesh((const xgl::MeshGlData*)cmd->mesh);
 		}
 	}
 }
