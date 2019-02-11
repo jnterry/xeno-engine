@@ -30,13 +30,11 @@ namespace xen{
 	T sign(T a){ return (a < 0) ? -1 : 1; }
 
 	template<typename T>
-	inline T abs(T a){
-		if constexpr (std::is_floating_point_v<T>){
-			return ::fabs(a);
-		} else {
-			return ::abs(a);
-		}
-	}
+	inline T abs(T a){ return ::abs(a); }
+	template<>
+	inline float  abs(float       a) { return ::fabs(a); }
+	inline double abs(double      a) { return ::fabs(a); }
+	inline double abs(long double a) { return ::fabs(a); }
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Performs a linear interpolation between two values
