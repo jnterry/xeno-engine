@@ -46,6 +46,37 @@ namespace xen {
 			return { this->normal, d };
 		}
 	};
+
+	/// \brief Represents a rectangular subsection of some 2d plane
+	/// embedded in a 3d space
+	///
+	/// \note If the two edge vectors are not orthogonal to one another then
+	/// this struct can instead represent a rhombus embedded within some plane
+	template<typename T>
+	struct PlaneRhombus {
+		/// \brief One vertex of the rhombus
+		Vec3<T> position;
+
+		/// \brief Two edge vectors representing the offset from the position
+		/// field by which two other vertices of the rhombus may be found
+		///
+		/// p + e[1] x----------x p + e[0] + e[1]
+		///         /          /
+		///        /          /
+		///    p  x----------x p + e[0]
+		Vec3<T> edge[2];
+
+
+
+		inline explicit operator Plane<T>() {
+			return {
+				xen::normalized(xen::cross(this->edge[0], this->edge[1])), this->position
+			};
+		}
+
+		inline explicit operator PlaneEquation<T>() { return (Plane<T>)(*this); }
+	};
+	typedef PlaneRhombus<real> PlaneRhombus3r;
 }
 
 #endif
