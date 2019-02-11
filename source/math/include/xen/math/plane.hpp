@@ -13,6 +13,7 @@
 #include <xen/math/plane_types.hpp>
 #include <xen/math/vector.hpp>
 #include <xen/math/utilities.hpp>
+#include <xen/math/matrix.hpp>
 
 namespace xen {
 	/// \brief Determines the distance between some point and a plane
@@ -21,18 +22,18 @@ namespace xen {
 	/// point is in front of the plane -> use distanceToPlane for absolute
 	/// value
 	template<typename T>
-	T getDirectionalDistanceToPlane(PlaneEquation<T> plane, Vec3<T> point){
+	T getSignedDistanceToPlane(PlaneEquation<T> plane, Vec3<T> point){
 		return xen::dot(plane.normal, point) + plane.d;
 	}
 
 	template<typename T>
 	T distanceToPlane(PlaneEquation<T> plane, Vec3<T> point){
-		return xen::abs(xen::getDirectionalDistanceToPlane(plane, point));
+		return xen::abs(xen::getSignedDistanceToPlane(plane, point));
 	}
 
 	template<typename T>
 	Vec3r getPlaneProjection(PlaneEquation<T> plane, Vec3<T> point){
-		T dist = getDirectionalDistanceToPlane(plane, point);
+		T dist = getSignedDistanceToPlane(plane, point);
 		return point - dist * plane.normal;
 	}
 
@@ -69,6 +70,19 @@ namespace xen {
 	T getClosestPointDistance(PlaneRhombus<T> prect, Vec3<T> point){
 		Vec3<T> p = getClosestPoint(prect, point);
 		return xen::distance(p, point);
+	}
+
+	template<typename T>
+	PlaneEquation<T> getTransformed(const PlaneEquation<T>& plane, const Mat4<T> mat){
+		Vec4<T> v = xen::toHomo(plane.normal, plane.d);
+		v = v * xen::transposed(xen::getInverse(mat));
+
+		T len = xen::length(v.xyz);
+
+		return { v.xyz / len, v.w / len };
+		//Plane<T> result = plane;
+		//result = getTransformed(result, mat);
+		//return result;
 	}
 }
 

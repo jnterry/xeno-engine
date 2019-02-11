@@ -15,6 +15,9 @@
 #include <xen/math/impl/vector_operations.hpp>
 
 namespace xen {
+
+	template<typename T> struct Plane;
+
 	/// \brief Represents a plane by storing the values used by the
 	/// plane equation ax + by + cz + d = 0
 	/// where (a,b,c) is the normal to the plane
@@ -25,6 +28,14 @@ namespace xen {
 
 		/// \brief value of d in the plane equation
 		T d;
+
+		inline operator Vec4<T>&(){
+			return *((Vec4<T>*)this);
+		}
+		inline operator const Vec4<T>&() const{
+			return *((const Vec4<T>*)this);
+		}
+		operator Plane<T> () const;
 	};
 
 	/// \brief Represents a plane
@@ -46,6 +57,11 @@ namespace xen {
 			return { this->normal, d };
 		}
 	};
+
+	template<typename T>
+	PlaneEquation<T>::operator Plane<T>() const {
+		return { normal, normal * d };
+	}
 
 	/// \brief Represents a rectangular subsection of some 2d plane
 	/// embedded in a 3d space
