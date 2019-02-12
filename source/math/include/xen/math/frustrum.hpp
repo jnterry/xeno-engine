@@ -25,54 +25,46 @@ namespace xen {
 		// https://www.braynzarsoft.net/viewtutorial/q16390-34-aabb-cpu-side-frustum-culling
 		Frustrum<T> f;
 
-		//m = xen::transposed(m);
-
 		// Left Frustum Plane
-    // Add first column of the matrix to the fourth column
-    f.plane[0].normal.x = m[0][3] + m[0][0];
-    f.plane[0].normal.y = m[1][3] + m[1][0];
-    f.plane[0].normal.z = m[2][3] + m[2][0];
-    f.plane[0].d        = m[3][3] + m[3][0];
+		f.plane[Frustrum<T>::Left].normal.x = m[0][3] + m[0][0];
+		f.plane[Frustrum<T>::Left].normal.y = m[1][3] + m[1][0];
+		f.plane[Frustrum<T>::Left].normal.z = m[2][3] + m[2][0];
+		f.plane[Frustrum<T>::Left].d        = m[3][3] + m[3][0];
 
     // Right Frustum Plane
-    // Subtract first column of matrix from the fourth column
-    f.plane[1].normal.x = m[0][3] - m[0][0];
-    f.plane[1].normal.y = m[1][3] - m[1][0];
-    f.plane[1].normal.z = m[2][3] - m[2][0];
-    f.plane[1].d        = m[3][3] - m[3][0];
+		f.plane[Frustrum<T>::Right].normal.x = m[0][3] - m[0][0];
+		f.plane[Frustrum<T>::Right].normal.y = m[1][3] - m[1][0];
+		f.plane[Frustrum<T>::Right].normal.z = m[2][3] - m[2][0];
+		f.plane[Frustrum<T>::Right].d        = m[3][3] - m[3][0];
 
     // Top Frustum Plane
-    // Subtract second column of matrix from the fourth column
-    f.plane[2].normal.x = m[0][3] - m[0][1];
-    f.plane[2].normal.y = m[1][3] - m[1][1];
-    f.plane[2].normal.z = m[2][3] - m[2][1];
-    f.plane[2].d        = m[3][3] - m[3][1];
+    f.plane[Frustrum<T>::Top].normal.x = m[0][3] - m[0][1];
+    f.plane[Frustrum<T>::Top].normal.y = m[1][3] - m[1][1];
+    f.plane[Frustrum<T>::Top].normal.z = m[2][3] - m[2][1];
+    f.plane[Frustrum<T>::Top].d        = m[3][3] - m[3][1];
 
     // Bottom Frustum Plane
-    // Add second column of the matrix to the fourth column
-    f.plane[3].normal.x = m[0][3] + m[0][1];
-    f.plane[3].normal.y = m[1][3] + m[1][1];
-    f.plane[3].normal.z = m[2][3] + m[2][1];
-    f.plane[3].d        = m[3][3] + m[3][1];
+    f.plane[Frustrum<T>::Bottom].normal.x = m[0][3] + m[0][1];
+    f.plane[Frustrum<T>::Bottom].normal.y = m[1][3] + m[1][1];
+    f.plane[Frustrum<T>::Bottom].normal.z = m[2][3] + m[2][1];
+    f.plane[Frustrum<T>::Bottom].d        = m[3][3] + m[3][1];
 
     // Near Frustum Plane
-    // We could add the third column to the fourth column to get the near plane,
-    // but we don't have to do this because the third column IS the near plane
-    f.plane[4].normal.x = m[0][2];
-    f.plane[4].normal.y = m[1][2];
-    f.plane[4].normal.z = m[2][2];
-    f.plane[4].d        = m[3][2];
+    f.plane[Frustrum<T>::Near].normal.x = m[0][2];
+    f.plane[Frustrum<T>::Near].normal.y = m[1][2];
+    f.plane[Frustrum<T>::Near].normal.z = m[2][2];
+    f.plane[Frustrum<T>::Near].d        = m[3][2];
 
     // Far Frustum Plane
-    // Subtract third column of matrix from the fourth column
-    f.plane[5].normal.x = m[0][3] - m[0][2];
-    f.plane[5].normal.y = m[1][3] - m[1][2];
-    f.plane[5].normal.z = m[2][3] - m[2][2];
-    f.plane[5].d        = m[3][3] - m[3][2];
+    f.plane[Frustrum<T>::Far].normal.x = m[0][3] - m[0][2];
+    f.plane[Frustrum<T>::Far].normal.y = m[1][3] - m[1][2];
+    f.plane[Frustrum<T>::Far].normal.z = m[2][3] - m[2][2];
+    f.plane[Frustrum<T>::Far].d        = m[3][3] - m[3][2];
 
     // Normalize all
     for(int i = 0; i < 6; ++i){
-	    f.plane[i].normal = xen::normalized(f.plane[i].normal);
+	    //f.plane[i].normal = xen::normalized(f.plane[i].normal);
+	    ((Vec4r&)f.plane[i]) /= xen::length((Vec4r&)f.plane[i]);
     }
 
     return f;
