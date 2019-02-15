@@ -1,3 +1,5 @@
+use_cxx17()
+
 add_executable(unit-tests
   ${CMAKE_CURRENT_LIST_DIR}/main.cpp
 
@@ -21,6 +23,7 @@ add_executable(unit-tests
 	${CMAKE_CURRENT_LIST_DIR}/math/Aabb.cpp
 	${CMAKE_CURRENT_LIST_DIR}/math/LineSegment.cpp
 	${CMAKE_CURRENT_LIST_DIR}/math/Triangle.cpp
+	${CMAKE_CURRENT_LIST_DIR}/math/Plane.cpp
 	${CMAKE_CURRENT_LIST_DIR}/math/Ray.cpp
 	${CMAKE_CURRENT_LIST_DIR}/math/RayTracing.cpp
 

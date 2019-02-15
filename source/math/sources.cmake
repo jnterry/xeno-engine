@@ -19,6 +19,8 @@ set(XEN_HEADERS_MATH
 
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/geometry_types.hpp
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/geometry.hpp
+	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/plane_types.hpp
+	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/plane.hpp
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/vertex_group_types.hpp
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/math/vertex_group.hpp
 )

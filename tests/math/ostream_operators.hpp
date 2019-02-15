@@ -13,6 +13,7 @@
 #include <xen/math/matrix_types.hpp>
 #include <xen/math/quaternion_types.hpp>
 #include <xen/math/geometry_types.hpp>
+#include <xen/math/plane_types.hpp>
 #include <xen/math/vertex_group_types.hpp>
 
 #include <catch.hpp>
@@ -62,6 +63,12 @@ namespace xen{
 	template<u32 T_DIM, typename T>
 	inline std::ostream& operator<< (std::ostream& os, const xen::Ray<T_DIM, T>& ray){
 		os << "Ray{" << ray.origin << ", " << ray.direction << "}";
+		return os;
+	}
+
+	template<typename T>
+	inline std::ostream& operator<< (std::ostream& os, const xen::PlaneEquation<T>& p){
+		os << "PlaneEquation{ " << p.normal << ", " << p.d << "}";
 		return os;
 	}
 
