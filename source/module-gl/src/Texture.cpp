@@ -29,12 +29,7 @@ xen::Texture xgl::createTexture(const xen::RawImage* image){
 	XEN_CHECK_GL(glGenTextures(1, &timpl->id));
 	XEN_CHECK_GL(glBindTexture(GL_TEXTURE_2D, timpl->id));
 
-	// Set texture parameters
-	XEN_CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-	XEN_CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-	XEN_CHECK_GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-	XEN_CHECK_GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
-
+	XenLogDebug("Uploading texture data, size: %ix%i\n", image->width, image->height);
 	//  Upload texture data to GPU
 	XEN_CHECK_GL(glTexImage2D(GL_TEXTURE_2D,
 	                          0,                           // mipmap level 0 as this is highest res version
@@ -44,6 +39,14 @@ xen::Texture xgl::createTexture(const xen::RawImage* image){
 	                          GL_RGBA, GL_UNSIGNED_BYTE,   // format of pixel data
 	                          image->pixels                // pixel data
 	                         ));
+
+	glGenerateMipmap(GL_TEXTURE_2D);
+
+	// Set texture parameters
+	XEN_CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+	XEN_CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+	XEN_CHECK_GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR));
+	XEN_CHECK_GL(glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 
 	return result;
 }
