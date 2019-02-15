@@ -382,6 +382,12 @@ namespace {
 			e.resize.new_size = win->size;
 			break;
 		} // end of case ResizeRequest
+		case MotionNotify:{
+			e.type = xen::WindowEvent::MouseMoved;
+			e.mouse_moved.position.x = xe->xmotion.x;
+			e.mouse_moved.position.y = xe->xmotion.y;
+			break;
+		}
 		default:
 			valid_event = false;
 		}
@@ -486,6 +492,8 @@ xen::Window* xwn::createWindow(Vec2u size, const char* title){
 	             ButtonReleaseMask   |
 	             KeyPressMask        | // Keyboard
 	             KeyReleaseMask      |
+	             PointerMotionMask   |
+	             ButtonMotionMask    |
 	             0);
 
 	// Change the close button behaviour so that we can capture event,
