@@ -64,6 +64,33 @@ namespace xen {
 		return result;
 	}
 
+	Camera3d generateCamera3d(const Camera3dSphere& cam){
+		xen::Camera3d result;
+
+		*((xen::ProjectionPerspective*)&result) = *((xen::ProjectionPerspective*)&cam);
+
+		Vec3r cam_x, cam_y, cam_z;
+		Vec3r radius = { 0, 0, cam.radius };
+
+		cam_y = cam.y_axis;
+		radius = xen::rotated(radius, cam.y_axis, cam.longitude);
+
+		cam_x = xen::cross(cam_y, radius);
+		radius = xen::rotated(radius, cam_x, cam.latitude);
+
+		result.position = cam.target + radius;
+
+		cam_y = xen::rotated(cam_y, cam_x, cam.latitude);
+		cam_z = xen::normalized(cam.target - result.position);
+
+		cam_z = xen::rotated(cam_z, cam_y, cam.yaw);
+		cam_z = xen::rotated(cam_z, xen::cross(cam_z, cam_y), cam.pitch);
+
+		result.up_dir   = cam_y;
+		result.look_dir = cam_z;
+		return result;
+	}
+
 	Vec3r getCameraPosition(const Camera3dCylinder& cam){
 		// Start camera centered on the target
 		Vec3r result = cam.target;

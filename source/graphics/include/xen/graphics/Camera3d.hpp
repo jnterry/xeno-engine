@@ -88,6 +88,38 @@ namespace xen {
 		real       height;
 	};
 
+	/// \brief Represents a camera which moves on a sphere around some target point
+	struct Camera3dSphere : public xen::ProjectionPerspective{
+		/// \brief The object being rotated around
+		Vec3r      target;
+
+		/// \brief The y_axis to use for the camera, determines up_dir (although
+		/// up_dir will only equal y_axis when the camera is on the equator of
+		/// the sphere)
+		Vec3r      y_axis;
+
+		/// \brief Radius of the virtual sphere the camera is moving on
+		real       radius;
+
+		/// \brief Angle to rotate around the equator of the sphere
+		xen::Angle longitude;
+
+		/// \brief Angle to rotate towards the poles of the sphere
+		xen::Angle latitude;
+
+		/// \brief Angle to perturb the look_dir by in the x direction
+		/// If set to 0 degrees camera will look directly at target point,
+		/// if set to 90 degrees camera will be looking along the tangent
+		/// to the sphere at its current position
+		xen::Angle yaw;
+
+		/// \brief Angle to perturb the look_dir by in the z direction
+		/// If set to 0 degrees camera will look directly at target point,
+		/// if set to 90 degrees camera will be looking along the tangent
+		/// to the sphere at its current position
+		xen::Angle pitch;
+	};
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Creates a standard Camera3d from some other type
 	/// This allows the user of Xeno Engine to represent the camera however is
@@ -103,14 +135,13 @@ namespace xen {
 	/// \overload generateCamera3d
 	/////////////////////////////////////////////////////////////////////
 	Camera3d generateCamera3d(const Camera3dCylinder&);
+	Camera3d generateCamera3d(const Camera3dSphere&);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Gets matrix that transforms points in world space into
 	/// camera relative space
 	///
 	/// \public \memberof Camera3d
-	///
-	/// \todo :TODO: Better description of view space
 	/////////////////////////////////////////////////////////////////////
 	Mat4r getViewMatrix(const Camera3d& camera);
 
