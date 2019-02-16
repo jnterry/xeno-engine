@@ -13,9 +13,10 @@
 #include <xen/graphics/GraphicsHandles.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/Mesh_types.hpp>
+#include <xen/graphics/Texture_types.hpp>
 #include <xen/graphics/Material_types.hpp>
 #include <xen/math/geometry_types.hpp>
-#include <xen/core/array.hpp>
+#include <xen/core/array_types.hpp>
 
 namespace xen {
 	struct Window;
@@ -150,8 +151,9 @@ namespace xen {
 		                                   u32 start_vertex,
 		                                   u32 end_vertex);
 
-		Texture (*createTexture )(const RawImage* image);
-		void    (*destroyTexture)(Texture texture);
+		const Texture* (*_createTexture)(xen::Texture::Type type, xen::Array<const RawImage> images);
+		void           (*destroyTexture)(const Texture* texture);
+
 
 		/// \brief Creates a material which may later be used for rendering geometry
 		const Material* (*createMaterial )(const MaterialCreationParameters& params);
@@ -215,6 +217,17 @@ namespace xen {
 		                                 ){
 			this->_updateMeshVertexData(mesh, attrib_index, new_data, start_vertex, end_vertex);
 		}
+
+		/// \brief Creates a standard 2d texture
+		const Texture* createTexture(const RawImage* image);
+
+		/// \brief Creates a cubemap from the 6 face textures
+		///
+		/// The order of the faces in the array is given by the direction to travel
+		/// from the cube's center to the face as follows:
+		/// positive x, positive y, positive z, negative x, negative y, negative z
+		const Texture* createCubeMap(const RawImage images[6]);
+
 
 		void clear(xen::RenderTarget target, xen::Color color);
 		void render(xen::RenderTarget, xen::Aabb2u viewport,

@@ -536,20 +536,23 @@ void xgl::applyMaterial(const xgl::Material* mat,
 		case GL_INT_VEC4    : XGL_CHECK(glUniform4iv(loc, 1, (   GLint*)data)); break;
 		case GL_BOOL        : XGL_CHECK(glUniform1iv(loc, 1, (   GLint*)data)); break;
 		case GL_FLOAT_MAT4  :
-			XEN_CHECK_GL(glUniformMatrix4fv(loc, 1, GL_TRUE, (GLfloat*)data));
+		  XGL_CHECK(glUniformMatrix4fv(loc, 1, GL_TRUE, (GLfloat*)data));
 			break;
 		case GL_DOUBLE_MAT4 :
-			XEN_CHECK_GL(glUniformMatrix4dv(loc, 1, GL_TRUE, (GLdouble*)data));
+		  XGL_CHECK(glUniformMatrix4dv(loc, 1, GL_TRUE, (GLdouble*)data));
 			break;
 		case GL_SAMPLER_2D:
-			XEN_CHECK_GL(glUniform1i(loc, *(GLint*)data)); break;
+		  XGL_CHECK(glUniform1i(loc, *(GLint*)data)); break;
 			break;
 		}
 	}
 
 	for(u64 i = 0; i < XenArrayLength(cmd.textures); ++i){
-		XEN_CHECK_GL(glActiveTexture(GL_TEXTURE0 + i));
-		XEN_CHECK_GL(glBindTexture(GL_TEXTURE_2D, xgl::getTextureImpl(cmd.textures[i])->id));
+		const xgl::Texture* texture = (const xgl::Texture*)cmd.textures[i];
+		if(texture != nullptr){
+			XGL_CHECK(glActiveTexture(GL_TEXTURE0 + i));
+			XGL_CHECK(glBindTexture(xgl::getGlTextureType(texture->type), texture->id));
+		}
 	}
 }
 

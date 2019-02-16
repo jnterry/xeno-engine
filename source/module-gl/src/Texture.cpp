@@ -15,29 +15,32 @@
 #include "Texture.hxx"
 #include "ModuleGl.hxx"
 
-xgl::TextureImpl* xgl::getTextureImpl(const xen::Texture texture){
-	return &state->pool_texture.slots[texture._id].item;
+GLenum xgl::getGlTextureType(xen::Texture::Type type){
+	switch(type){
+	case xen::Texture::Plane   : return GL_TEXTURE_2D;
+	case xen::Texture::CubeMap : return GL_TEXTURE_CUBE_MAP;
+	}
+	return 0;
 }
 
-xen::Texture xgl::createTexture(const xen::RawImage* image){
-	// Allocate texture CPU side
-	u32 slot = xen::reserveSlot(state->pool_texture);
-	xen::Texture result = xen::makeGraphicsHandle<xen::Texture::HANDLE_ID>(slot, 0);
-	xgl::TextureImpl* timpl = xgl::getTextureImpl(result);
+xgl::Texture* doCreateTexture2d(xgl::Texture* result,
+                                xen::Array<const xen::RawImage> images){
+	if(images.size != 1){
+		XenLogWarn("Request to create 2d image however %i images were provided - ignoring all but the first",
+		           images.size);
+	}
 
-	// Allocate texture GPU side
-	XEN_CHECK_GL(glGenTextures(1, &timpl->id));
-	XEN_CHECK_GL(glBindTexture(GL_TEXTURE_2D, timpl->id));
+	XenLogDebug("Uploading 2d texture data, size: %ix%i\n", images[0].width, images[0].height);
 
-	XenLogDebug("Uploading texture data, size: %ix%i\n", image->width, image->height);
 	//  Upload texture data to GPU
 	XEN_CHECK_GL(glTexImage2D(GL_TEXTURE_2D,
-	                          0,                           // mipmap level 0 as this is highest res version
-	                          GL_RGBA,                     // Internal format for use by GL
-	                          image->width, image->height, // image size
-	                          0,                           // border - "this value must be 0"
-	                          GL_RGBA, GL_UNSIGNED_BYTE,   // format of pixel data
-	                          image->pixels                // pixel data
+	                          0,                         // mipmap level 0 as this is highest res version
+	                          GL_RGBA,                   // Internal format for use by GL
+	                          images[0].width,           // image size
+	                          images[0].height,
+	                          0,                         // border - spec says "this value must be 0"
+	                          GL_RGBA, GL_UNSIGNED_BYTE, // format of pixel data
+	                          images[0].pixels           // pixel data
 	                         ));
 
 	glGenerateMipmap(GL_TEXTURE_2D);
@@ -51,14 +54,39 @@ xen::Texture xgl::createTexture(const xen::RawImage* image){
 	return result;
 }
 
-void xgl::destroyTexture(const xen::Texture texture){
-  xgl::TextureImpl* timpl = getTextureImpl(texture);
+const xen::Texture* xgl::createTexture(xen::Texture::Type type,
+                                       xen::Array<const xen::RawImage> images){
 
-	if(timpl->id != 0){
-		XEN_CHECK_GL(glDeleteTextures(1, &timpl->id));
+	XenAssert(type == xen::Texture::Plane, "Only plane textures supported currently");
+
+	// Allocate texture CPU side
+	xgl::Texture* result = xen::reserveType(state->pool_texture);
+	result->type         = type;
+	GLenum gl_type = xgl::getGlTextureType(type);
+
+	// Allocate texture GPU side
+	XEN_CHECK_GL(glGenTextures(1, &result->id));
+	XEN_CHECK_GL(glBindTexture(gl_type, result->id));
+
+	// Do type specific init
+	switch(type){
+	case xen::Texture::Plane: return doCreateTexture2d(result, images);
+	default:
+		XenLogError("Only plane textures are currently supported");
+		return nullptr;
+	}
+}
+
+void xgl::destroyTexture(const xen::Texture* handle){
+	xgl::Texture* texture = (xgl::Texture*)handle;
+
+	if(texture->id != 0){
+		XEN_CHECK_GL(glDeleteTextures(1, &texture->id));
+		texture->id   = 0;
+		texture->size = Vec3u::Origin;
 	}
 
-	xen::freeType(state->pool_texture, timpl);
+	xen::freeType(state->pool_texture, texture);
 }
 
 #endif

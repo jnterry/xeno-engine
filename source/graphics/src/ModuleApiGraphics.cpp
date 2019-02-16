@@ -10,10 +10,11 @@
 #ifndef XEN_GRAPHICS_GRAPHICSMODULEAPI_CPP
 #define XEN_GRAPHICS_GRAPHICSMODULEAPI_CPP
 
-#include <xen/window/Window.hxx> // :TODO: remove
+//#include <xen/window/Window.hxx> // :TODO: remove
 #include <xen/graphics/ModuleApiGraphics.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/core/intrinsics.hpp>
+#include <xen/core/array.hpp>
 
 #include <cstdarg>
 
@@ -77,6 +78,17 @@ const xen::Mesh* xen::ModuleApiGraphics::createMesh(const xen::VertexSpec& verte
 	/////////////////////////////////////////////////////////////////
 
 	return this->createMesh(&md);
+}
+
+
+const xen::Texture* xen::ModuleApiGraphics::createTexture(const xen::RawImage* image){
+	xen::Array<const xen::RawImage> images = { 1, image };
+	return this->_createTexture(xen::Texture::Plane, images);
+}
+
+const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::RawImage images[6]){
+	xen::Array<const xen::RawImage> img_array = { 6, images };
+	return this->_createTexture(xen::Texture::CubeMap, img_array);
 }
 
 void xen::ModuleApiGraphics::clear(xen::RenderTarget target, xen::Color color){

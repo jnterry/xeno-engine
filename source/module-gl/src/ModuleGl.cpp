@@ -76,7 +76,7 @@ void* init( const void* params){
 	xgl::state->primary_arena.end       = xen::ptrGetAdvanced(xgl::state, BLK_SIZE);
 
 	xgl::state->pool_mesh          = xen::createArenaPool<xgl::MeshGlData>(xgl::state->primary_arena, 128);
-	xgl::state->pool_texture       = xen::createArenaPool<xgl::TextureImpl>(xgl::state->primary_arena, 128);
+	xgl::state->pool_texture       = xen::createArenaPool<xgl::Texture>(xgl::state->primary_arena, 128);
 	xgl::state->pool_shader        = xen::createArenaPool<xgl::ShaderProgram>(xgl::state->primary_arena, 128);
 	xgl::state->pool_material      = xen::createArenaPool<xgl::Material>(xgl::state->primary_arena, 128);
 	xgl::state->pool_render_target = xen::createArenaPool<xgl::RenderTargetImpl*>(xgl::state->primary_arena, 128);
@@ -115,13 +115,13 @@ void* load( void* data, const void* params){
 	xgl::state->api.setDynamicMeshVertexCount = &xgl::setDynamicMeshVertexCount;
 	xgl::state->api.destroyMesh               = &xgl::destroyMesh;
 
-	xgl::state->api.createTexture           = &xgl::createTexture;
-	xgl::state->api.destroyTexture          = &xgl::destroyTexture;
+	xgl::state->api._createTexture            = &xgl::createTexture;
+	xgl::state->api.destroyTexture            = &xgl::destroyTexture;
 
-	xgl::state->api.createMaterial          = &xgl::createMaterial;
-	xgl::state->api.destroyMaterial         = &xgl::destroyMaterial;
+	xgl::state->api.createMaterial            = &xgl::createMaterial;
+	xgl::state->api.destroyMaterial           = &xgl::destroyMaterial;
 
-	xgl::state->api.pushOp                  = &pushOp;
+	xgl::state->api.pushOp                    = &pushOp;
 
 	return &xgl::state->api;
 }

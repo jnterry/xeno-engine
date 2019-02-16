@@ -12,6 +12,7 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/memory/utilities.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/core/array.hpp>
 #include <xen/window/Window.hpp>
 #include <xen/graphics/ModuleApiGraphics.hpp>
 #include <xen/graphics/Material_types.hpp>
