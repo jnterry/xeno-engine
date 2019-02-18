@@ -22,6 +22,15 @@ namespace xen{
 		return false;
 	}
 
+	template<typename T_OUT, u32 T_SIZE, typename T_IN>
+	Vec<T_SIZE, T_OUT> cast(Vec<T_SIZE, T_IN> in){
+		Vec<T_SIZE, T_OUT> result;
+		for(unsigned i = 0; i < T_SIZE; ++i){
+			result[i] = (T_OUT)(in[i]);
+		}
+		return result;
+	}
+
 	/// \brief Computes dot product of two vectors
 	template<typename T>
 	T dot(const Vec2<T>& a, const Vec2<T>& b){

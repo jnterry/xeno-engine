@@ -1,5 +1,7 @@
 set(XEN_HEADERS_GRAPHICS
+	${CMAKE_CURRENT_LIST_DIR}/include/xen/graphics/Image_types.hpp
   ${CMAKE_CURRENT_LIST_DIR}/include/xen/graphics/Image.hpp
+	${CMAKE_CURRENT_LIST_DIR}/include/xen/graphics/Texture_types.hpp
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/graphics/Camera3d.hpp
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/graphics/Color.hpp
 	${CMAKE_CURRENT_LIST_DIR}/include/xen/graphics/RenderCommand3d.hpp

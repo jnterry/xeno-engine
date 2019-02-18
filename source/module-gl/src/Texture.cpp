@@ -67,8 +67,7 @@ xgl::Texture* doCreateCubeMap(xgl::Texture* result,
 		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
 	};
 
-	XenLogDebug("Uploading cube map data %i, size: %ix%i\n",
-		            i, images[0].width, images[0].height);
+	XenLogDebug("Uploading cube map data - size: %ix%i\n", images[0].width, images[0].height);
 
 	for(int i = 0; i < 6; ++i){
 

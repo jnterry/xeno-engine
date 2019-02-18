@@ -6,8 +6,8 @@
 /// \ingroup graphics
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef XEN_GRAPHICS_TEXTURE_CPP
-#define XEN_GRAPHICS_TEXTURE_CPP
+#ifndef XEN_GRAPHICS_IMAGE_CPP
+#define XEN_GRAPHICS_IMAGE_CPP
 
 #include <xen/graphics/Image.hpp>
 #include <xen/core/memory.hpp>
@@ -172,8 +172,95 @@ namespace xen{
 
 		return true;
 	}
+}
+
+Vec3u xen::getCubeMapPixelCoord(Vec3r direction, Vec2u face_size){
+	////////////////////////////////////////////////
+	// Compute which face is to be sampled
+	// This based on which direction has the maximum absolute component
+	// and whether that component is positive or negative
+	int  max_component = 0;
+	real max_abs_component_val = xen::RealMin;
+	for(int i = 0; i < 3; ++i){
+		real abs_val = abs(direction[i]);
+		if(abs_val > max_abs_component_val){
+			max_component         = i;
+			max_abs_component_val = abs_val;
+		}
+	}
+
+	xen::CubeMap::Face face = (xen::CubeMap::Face)(
+		xen::CubeMap::PositiveX +
+		max_component           +
+		(direction[max_component] < 0 ? 3 : 0)
+	);
+	////////////////////////////////////////////////
+	// Compute the offset within the face to be sampled
+	//
+	// We know the other 2 components of direction are less than or equal
+	// to direction[max_component], hence this operation modifies their value
+	// to varies between -1 and 1
+	direction /= max_abs_component_val;
+
+	// Extract just the two coordinates of direction we care about
+	Vec2r face_offset;
+	switch(max_component){
+	case 0:
+		face_offset = { direction[1], direction[2] };
+		break;
+	case 1:
+		face_offset = { direction[0], direction[2] };
+		break;
+	case 2:
+		face_offset = { direction[0], direction[1] };
+		break;
+	}
+
+	// Change from -1 to 1 range to...
+	face_offset += { 1.0_r, 1.0_r}; // now between 0 and 2
+	face_offset *= 0.5_r;           // now between 0 and 1
+	face_offset *= xen::cast<real>(face_size); // now between 0 and face_size
+
+	// Round to nearest pixel center (these start at 0.5 boundaries,
+	// hence the -0.5)
+	Vec2u face_offset_u = { xen::round32(face_offset.x - 0.5_r),
+	                        xen::round32(face_offset.y - 0.5_r) };
+
+	return { face_offset_u.x, face_offset_u.y, face };
+}
+
+/// \brief Computes a direction vector from the center of a cube map to some
+/// pixel on its surface
+/// \param cube_map_pixel Coordinate of a cube map pixel, x and y are the pixel
+/// within the face. z represents which face
+/// \param face_size The dimensions of each face
+Vec3r xen::getCubeMapDirection(Vec3u cube_map_pixel, Vec2u face_size){
+	// Compute 0-1 values within the face
+	Vec2r face_offset = xen::cast<real>(cube_map_pixel.xy) / xen::cast<real>(face_size);
+
+	// Offset to the center of the pixel (rather than lower left corner)
+	face_offset += Vec2r{ 0.5_r / (real)face_size.x, 0.5_r / (real)face_size.y };
 
 
+	face_offset -= Vec2r{0.5_r, 0.5_r}; // now between -0.5 and 0.5
+	face_offset *= 2.0_r; // now between -1 and 1
+
+	switch(cube_map_pixel.z){
+	case xen::CubeMap::Face::PositiveX:
+		return xen::normalized(Vec3r{  1.0_r, face_offset.x, face_offset.y });
+	case xen::CubeMap::Face::NegativeX:
+		return xen::normalized(Vec3r{ -1.0_r, face_offset.x, face_offset.y });
+	case xen::CubeMap::Face::PositiveY:
+		return xen::normalized(Vec3r{ face_offset.x,  1.0_r, face_offset.y });
+	case xen::CubeMap::Face::NegativeY:
+		return xen::normalized(Vec3r{ face_offset.x, -1.0_r, face_offset.y });
+	case xen::CubeMap::Face::PositiveZ:
+		return xen::normalized(Vec3r{ face_offset.x, face_offset.y,  1.0_r });
+	case xen::CubeMap::Face::NegativeZ:
+		return xen::normalized(Vec3r{ face_offset.x, face_offset.y, -1.0_r });
+	}
+
+	return Vec3r::Origin;
 }
 
 #endif
