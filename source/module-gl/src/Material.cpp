@@ -154,11 +154,16 @@ bool fillShaderProgramMetaData(xgl::ShaderProgram* result){
 			result->uniform_types[i] = &xen::meta_type<xen::Matrix<4,4,float>>::type;
 			break;
 		case GL_DOUBLE_MAT4:
-			XenLogInfo("  - %2i : Mat4<double> %s", i, tmp_name_buffer);
+			XenLogInfo("  - %2i : Mat4<double>: %s", i, tmp_name_buffer);
 			result->uniform_types[i] = &xen::meta_type<xen::Matrix<4,4,double>>::type;
 			break;
 		case GL_SAMPLER_2D:
-			XenLogInfo("  - %2i : Sampler2d %s", i, tmp_name_buffer);
+			XenLogInfo("  - %2i : Sampler2d   : %s", i, tmp_name_buffer);
+			result->uniform_types[i] = &xen::meta_type<xen::Texture>::type;
+			break;
+		case GL_SAMPLER_CUBE:
+			// :TODO: different meta types for different texture types???
+			XenLogInfo("  - %2i : SamplerCube : %s", i, tmp_name_buffer);
 			result->uniform_types[i] = &xen::meta_type<xen::Texture>::type;
 			break;
 		default:
@@ -520,7 +525,7 @@ void xgl::applyMaterial(const xgl::Material* mat,
 		const void* data = getUniformDataSource(mat, cmd, params, viewport, i);
 		switch(sprog->uniform_gl_types[i]){
 			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			// This switch must have same cases as that in ~applyMaterial()~
+			// This switch must have same cases as that in ~fillShaderProgramMetaData()~
 			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		case GL_FLOAT       : XGL_CHECK(glUniform1fv(loc, 1, ( GLfloat*)data)); break;
 		case GL_FLOAT_VEC2  : XGL_CHECK(glUniform2fv(loc, 1, ( GLfloat*)data)); break;
@@ -542,8 +547,11 @@ void xgl::applyMaterial(const xgl::Material* mat,
 		  XGL_CHECK(glUniformMatrix4dv(loc, 1, GL_TRUE, (GLdouble*)data));
 			break;
 		case GL_SAMPLER_2D:
+		case GL_SAMPLER_CUBE:
 		  XGL_CHECK(glUniform1i(loc, *(GLint*)data)); break;
 			break;
+		default:
+			XenBreak("applyMaterial missing a case in fillShaderProgramMetaData()");
 		}
 	}
 

@@ -67,18 +67,27 @@ xgl::Texture* doCreateCubeMap(xgl::Texture* result,
 		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
 	};
 
+	XenLogDebug("Uploading cube map data %i, size: %ix%i\n",
+		            i, images[0].width, images[0].height);
+
 	for(int i = 0; i < 6; ++i){
+
+
 		//  Upload texture data to GPU
-		XEN_CHECK_GL(glTexImage2D(TARGETS[i],
-		                          0,                         // mipmap level 0 as this is highest res version
-		                          GL_RGBA,                   // Internal format for use by GL
-		                          images[0].width,           // image size
-		                          images[0].height,
-		                          0,                         // border - spec says "this value must be 0"
-		                          GL_RGBA, GL_UNSIGNED_BYTE, // format of pixel data
-		                          images[0].pixels           // pixel data
-		             ));
+		XGL_CHECK(glTexImage2D(TARGETS[i],
+		                       0,                         // mipmap level 0 as this is highest res version
+		                       GL_RGBA,                   // Internal format for use by GL
+		                       images[i].width,           // image size
+		                       images[i].height,
+		                       0,                         // border - spec says "this value must be 0"
+		                       GL_RGBA, GL_UNSIGNED_BYTE, // format of pixel data
+		                       images[i].pixels           // pixel data
+		          ));
 	}
+
+	XGL_CHECK(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+	XGL_CHECK(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+	XGL_CHECK(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
 
 	return result;
 }

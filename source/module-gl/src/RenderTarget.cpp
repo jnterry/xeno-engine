@@ -86,12 +86,14 @@ namespace xgl {
 			XenLogWarn("Failed to initialize default material. Segfault will occur if you attempt to render geometry with nullptr for the material");
 		}
 
-		XEN_CHECK_GL(glEnable   (GL_DEPTH_TEST));
-		XEN_CHECK_GL(glDepthFunc(GL_LESS      ));
+		XGL_CHECK(glEnable   (GL_DEPTH_TEST));
+		XGL_CHECK(glDepthFunc(GL_LESS      ));
 
-		XEN_CHECK_GL(glEnable   (GL_CULL_FACE ));
-		XEN_CHECK_GL(glFrontFace(GL_CCW       ));
-		XEN_CHECK_GL(glCullFace (GL_BACK      ));
+		XGL_CHECK(glEnable   (GL_CULL_FACE ));
+		XGL_CHECK(glFrontFace(GL_CCW       ));
+		XGL_CHECK(glCullFace (GL_BACK      ));
+
+		XGL_CHECK(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
 
 		// :TODO: -> needed to use vertex array in core context, but don't know anything
 		// more about this than that fact. See:
