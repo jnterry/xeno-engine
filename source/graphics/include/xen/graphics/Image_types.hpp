@@ -72,6 +72,13 @@ namespace xen{
 			NegativeY,
 			NegativeZ,
 		};
+
+		enum Direction {
+			Down,
+			Right,
+			Up,
+			Left,
+		};
 	};
 }
 

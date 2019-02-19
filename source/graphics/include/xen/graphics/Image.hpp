@@ -109,7 +109,7 @@ namespace xen{
 	/// will range from 0 to 5 to indicate which face should be sampled
 	/// (see xen::CubeMap::Face)
 	/////////////////////////////////////////////////////////////////////
-	Vec3u getCubeMapPixelCoord(Vec3r direction, Vec2u face_size);
+	Vec3u getCubeMapPixelCoord(Vec3r direction, u32 face_size);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Computes a direction vector from the center of a cube map to some
@@ -118,7 +118,41 @@ namespace xen{
 	/// within the face. z represents which face
 	/// \param face_size The dimensions of each face
 	/////////////////////////////////////////////////////////////////////
-	Vec3r getCubeMapDirection(Vec3u cube_map_pixel, Vec2u face_size);
+	Vec3r getCubeMapDirection(Vec3u cube_map_pixel, u32 face_size);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Retrieves the coordinate of the neighbour of some cubemap pixel
+	/// in the specified direction
+	///
+	/// \note Traversing long distances across a cubemap's surface can lead to
+	/// unexpected results since the "up", "left", etc directions are different
+	/// on each face. In fact it is impossible to have a consistent direction
+	/// (Consider placing a cube on a table such that the top face is "up",
+	/// all sides now have their "up" pointing to the ceiling, however if you
+	/// the "up" direction of one of these faces, and then continue across
+	/// the top, the opposite vertical face's up will point in the opposite
+	/// direction)
+	/// This means that going LEFT and then immediately RIGHT might not get you
+	/// back to the starting position!!!
+	/// If you need to traverse long distances it is suggested that you use polar
+	/// coordinates or similar to represent  motion on the surface of the unit
+	/// sphere, and then use getCubeMapPixelCoord to map to a cubemap. The main
+	/// use of this function is to enable blending/blurring across face boundaries
+	/// but only by a single pixel!
+	///
+	/// Additionally while every pixel has an "up", "down", "left" and "right"
+	/// neighbour, not all pixels will have, for example, and "up-left" neighbour
+	/// (Consider a pixel in the very corner of some face -> there is no
+	/// corresponding diagonal neighbour in one direction, since only 3 pixels
+	/// meet at a vertex rather than 4)
+	///
+	/// \note If coord is outside the bounds of the face then this function will
+	/// clamp the particular component (x for left/right or y for up/down) to
+	/// be between 0 and face_size before computing the neighbour. This means that
+	/// the return value is guaranteed to always be either on the same face as
+	/// coord, or on the very edge of some other face.
+  /////////////////////////////////////////////////////////////////////
+	Vec3u getCubeMapPixelNeighbour(Vec3u coord, u32 face_size, xen::CubeMap::Direction dir);
 }
 
 #endif

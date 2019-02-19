@@ -11,6 +11,7 @@
 
 #include <xen/graphics/Image.hpp>
 #include <xen/core/memory.hpp>
+#include <xen/math/utilities.hpp>
 
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
@@ -174,7 +175,7 @@ namespace xen{
 	}
 }
 
-Vec3u xen::getCubeMapPixelCoord(Vec3r direction, Vec2u face_size){
+Vec3u xen::getCubeMapPixelCoord(Vec3r direction, u32 face_size){
 	////////////////////////////////////////////////
 	// Compute which face is to be sampled
 	// This based on which direction has the maximum absolute component
@@ -219,7 +220,7 @@ Vec3u xen::getCubeMapPixelCoord(Vec3r direction, Vec2u face_size){
 	// Change from -1 to 1 range to...
 	face_offset += { 1.0_r, 1.0_r}; // now between 0 and 2
 	face_offset *= 0.5_r;           // now between 0 and 1
-	face_offset *= xen::cast<real>(face_size); // now between 0 and face_size
+	face_offset *= (real)face_size; // now between 0 and face_size
 
 	// Round to nearest pixel center (these start at 0.5 boundaries,
 	// hence the -0.5)
@@ -234,12 +235,12 @@ Vec3u xen::getCubeMapPixelCoord(Vec3r direction, Vec2u face_size){
 /// \param cube_map_pixel Coordinate of a cube map pixel, x and y are the pixel
 /// within the face. z represents which face
 /// \param face_size The dimensions of each face
-Vec3r xen::getCubeMapDirection(Vec3u cube_map_pixel, Vec2u face_size){
+Vec3r xen::getCubeMapDirection(Vec3u cube_map_pixel, u32 face_size){
 	// Compute 0-1 values within the face
-	Vec2r face_offset = xen::cast<real>(cube_map_pixel.xy) / xen::cast<real>(face_size);
+	Vec2r face_offset = xen::cast<real>(cube_map_pixel.xy) / (real)face_size;
 
 	// Offset to the center of the pixel (rather than lower left corner)
-	face_offset += Vec2r{ 0.5_r / (real)face_size.x, 0.5_r / (real)face_size.y };
+	face_offset += Vec2r{ 0.5_r / (real)face_size, 0.5_r / (real)face_size };
 
 
 	face_offset -= Vec2r{0.5_r, 0.5_r}; // now between -0.5 and 0.5
@@ -261,6 +262,88 @@ Vec3r xen::getCubeMapDirection(Vec3u cube_map_pixel, Vec2u face_size){
 	}
 
 	return Vec3r::Origin;
+}
+
+Vec3u xen::getCubeMapPixelNeighbour(Vec3u coord, u32 face_size,
+                                    xen::CubeMap::Direction dir){
+	switch(dir){
+	case xen::CubeMap::Right:
+		if(coord.x < face_size-1){
+			return { coord.x + 1, coord.y, coord.z };
+		}
+		switch(coord.z){
+		case xen::CubeMap::NegativeZ:
+			return { 0, coord.y, xen::CubeMap::NegativeX };
+		case xen::CubeMap::PositiveX:
+			return { 0, coord.y, xen::CubeMap::NegativeZ };
+		case xen::CubeMap::PositiveZ:
+			return { 0, coord.y, xen::CubeMap::PositiveX };
+		case xen::CubeMap::NegativeX:
+			return { 0, coord.y, xen::CubeMap::PositiveZ };
+		case xen::CubeMap::PositiveY:
+			return { coord.y, face_size-1, xen::CubeMap::PositiveX };
+		case xen::CubeMap::NegativeY:
+			return { face_size-coord.y-1, 0, xen::CubeMap::PositiveX };
+		}
+	case xen::CubeMap::Left:
+		if(coord.x > 0){
+			return { coord.x - 1, coord.y, coord.z };
+		}
+		switch(coord.z){
+		case xen::CubeMap::NegativeZ:
+			return { face_size-1, coord.y, xen::CubeMap::PositiveX };
+		case xen::CubeMap::PositiveX:
+			return { face_size-1, coord.y, xen::CubeMap::PositiveZ };
+		case xen::CubeMap::PositiveZ:
+			return { face_size-1, coord.y, xen::CubeMap::NegativeX };
+		case xen::CubeMap::NegativeX:
+			return { face_size-1, coord.y, xen::CubeMap::NegativeZ };
+		case xen::CubeMap::PositiveY:
+			return { face_size-coord.y-1, face_size-1, xen::CubeMap::NegativeX };
+		case xen::CubeMap::NegativeY:
+			return { coord.y, 0, xen::CubeMap::NegativeX };
+		}
+	case xen::CubeMap::Up:
+		if(coord.y < face_size-1){
+			return { coord.x, coord.y + 1, coord.z };
+		}
+		switch(coord.z){
+		case xen::CubeMap::NegativeZ:
+			return { face_size-coord.x-1, coord.y, xen::CubeMap::PositiveY };
+		case xen::CubeMap::NegativeX:
+			return { 0, face_size-coord.x-1, xen::CubeMap::PositiveY };
+		case xen::CubeMap::PositiveZ:
+			return { coord.x, 0, xen::CubeMap::PositiveY };
+		case xen::CubeMap::PositiveX:
+			return { face_size-1, coord.x, xen::CubeMap::PositiveY };
+		case xen::CubeMap::PositiveY:
+			return { face_size-coord.x-1, face_size-1, xen::CubeMap::NegativeZ };
+		case xen::CubeMap::NegativeY:
+			return { coord.x, 0, xen::CubeMap::PositiveZ };
+		}
+	case xen::CubeMap::Down:
+		if(coord.y > 0){
+			return { coord.x, coord.y - 1, coord.z };
+		}
+		switch(coord.z){
+			// Rotate up and over the cube
+		case xen::CubeMap::NegativeZ:
+			return { face_size-coord.x-1, 0, xen::CubeMap::NegativeY };
+		case xen::CubeMap::NegativeX:
+			return { 0, coord.x, xen::CubeMap::NegativeY };
+		case xen::CubeMap::PositiveZ:
+			return { coord.x, face_size-1, xen::CubeMap::NegativeY };
+		case xen::CubeMap::PositiveX:
+			return { face_size-1, face_size-coord.x-1, xen::CubeMap::NegativeY };
+		case xen::CubeMap::PositiveY:
+			return { coord.x, face_size-1, xen::CubeMap::PositiveZ };
+		case xen::CubeMap::NegativeY:
+			return { face_size-coord.x-1, 0, xen::CubeMap::NegativeZ };
+		}
+	}
+
+	XenBreak("Unhandled case in cube map neighbour");
+	return Vec3u::Origin;
 }
 
 #endif
