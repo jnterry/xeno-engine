@@ -176,6 +176,77 @@ namespace xen{
 		return result;
 	}
 
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Blurs the elements of a CubeArray with proper handling of
+	/// wrapping accross faces
+	/// \brief input - The input cubearray
+	/// \brief rounds How many times to perform the blur operation
+	/// \brief center_weight The weight given the tile actually being blured
+	/// The new value after each round will be given by
+	///  self_weight * current_value + ((1-self_weight)/4.0) * each_neighbour
+	/// Defaults to 0.2, thus allowing the center tile and all neighbours to have
+	/// an equal weighting
+	/// \brief tmp_arena ArenaLinear used for temporary storage - will be rolled
+	/// back by the end of this function. Needed to double buffer the source's
+	/// contents, hence must have enough bytes free to create copy of source's
+	/// elements
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	CubeArray<T>& blurCubeMap(CubeArray<T>& input,
+	                            u32 num_rounds,
+	                            xen::ArenaLinear& tmp_arena,
+	                            float self_weight = 0.2){
+		xen::MemoryTransaction transaction(tmp_arena); // do not commit this!
+
+		CubeArray<T> double_buffer;
+		double_buffer.side_length = input.side_length;
+		double_buffer.elements    = xen::reserveTypeArray<T>(tmp_arena, xen::size(input));
+
+		CubeArray<T>* source;
+		CubeArray<T>* dest;
+		if(num_rounds % 2 == 0){
+			// If even number then start with input as will flip back, eg:
+			// input --> double_buffer --> input
+			source = &input;
+			dest   = &double_buffer;
+		} else {
+			// If odd number then start with the double buffer so we end up copying
+			// to input as final step, eg:
+			// double_buffer --> input
+			// This means we need to copy data accross to double buffer
+			xen::copyArray(input.elements, double_buffer.elements, xen::size(input));
+			source = &double_buffer;
+			dest   = &input;
+		}
+
+		float neighbour_weight = (1.0 - self_weight) / 4.0;
+
+		for(int i = 0; i < num_rounds; ++i){
+			Vec3u pos;
+
+			for(pos.z = 0; pos.z < 6; ++pos.z){
+				for(pos.y = 0; pos.y < input.side_length; ++pos.y){
+					for(pos.x = 0; pos.x < input.side_length; ++pos.x){
+
+						(*dest)[pos] = self_weight * (*source)[pos];
+						for(int dir = 0; dir < 4; ++dir){
+							(*dest)[pos] += (
+								neighbour_weight *
+								(*source)[xen::getCubeMapPixelNeighbour(pos,
+								                                        input.side_length,
+								                                        (xen::CubeMap::Direction)dir
+									)]
+							);
+						}
+					}
+				}
+			}
+
+			xen::swap(source, dest);
+
+		}
+	}
+
 
 }
 
