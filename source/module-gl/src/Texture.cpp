@@ -15,7 +15,7 @@
 #include "Texture.hxx"
 #include "ModuleGl.hxx"
 
-bool bufferGlTextureData2d(GLenum type, Vec2u size, bool is_floating, u32 channels, void* data){
+bool bufferGlTextureData2d(GLenum type, Vec2u size, bool is_floating, u32 channels, const void* data){
 	GLenum data_format;
 	switch(channels){
 	case 1: data_format = GL_LUMINANCE; break;
@@ -54,7 +54,7 @@ xgl::Texture* doCreateTexture2d(xgl::Texture* result,
                                 bool is_floating,
                                 u32 channels,
                                 Vec2u size,
-                                void* data){
+                                const void* data){
 	XenLogDebug("Uploading 2d texture data, size: %ix%i\n", size.x, size.y);
 
 	if(!bufferGlTextureData2d(GL_TEXTURE_2D, size, is_floating, channels, data)){
@@ -72,7 +72,7 @@ xgl::Texture* doCreateCubeMap(xgl::Texture* result,
                               bool is_floating,
                               u08 channels,
                               Vec3u size,
-                              void** data){
+                              const void** data){
 	if(size.z != 6){
 		XenLogError("Attempted to create cubemap texture but %i layers provided, expected 6",
 		            size.z);
@@ -114,7 +114,7 @@ const xen::Texture* xgl::createTexture(xen::Texture::Type type,
                                        bool is_floating,
                                        u08 channels,
                                        Vec3u slice_size,
-                                       void** slice_data){
+                                       const void** slice_data){
 	// Allocate texture CPU side
 	xgl::Texture* texture = xen::reserveType(state->pool_texture);
 	texture->type         = type;

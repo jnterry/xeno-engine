@@ -31,7 +31,7 @@ namespace xgl {
 		                                 bool is_floating,
 		                                 u08 channels,
 		                                 Vec3u slice_size,
-		                                 void** slice_data);
+		                                 const void** slice_data);
 
 	void destroyTexture(const xen::Texture* texture);
 }

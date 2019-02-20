@@ -15,6 +15,7 @@
 #include <xen/graphics/Mesh_types.hpp>
 #include <xen/graphics/Texture_types.hpp>
 #include <xen/graphics/Material_types.hpp>
+#include <xen/graphics/Image_types.hpp>
 #include <xen/math/geometry_types.hpp>
 #include <xen/core/array_types.hpp>
 
@@ -192,7 +193,7 @@ namespace xen {
 		                                 bool is_floating,
 		                                 u08 channels,
 		                                 Vec3u slice_size,
-		                                 void** slice_data);
+		                                 const void** slice_data);
 		void           (*destroyTexture)(const Texture* texture);
 
 
@@ -268,6 +269,10 @@ namespace xen {
 		/// from the cube's center to the face as follows:
 		/// positive x, positive y, positive z, negative x, negative y, negative z
 		const Texture* createCubeMap(const RawImage images[6]);
+		const Texture* createCubeMap(const CubeArray<float>& data);
+		const Texture* createCubeMap(const CubeArray<xen::Color>& data);
+		const Texture* createCubeMap(const CubeArray<Vec3f>& data);
+		const Texture* createCubeMap(const CubeArray<Vec4f>& data);
 
 
 		void clear(xen::RenderTarget target, xen::Color color);

@@ -82,7 +82,7 @@ const xen::Mesh* xen::ModuleApiGraphics::createMesh(const xen::VertexSpec& verte
 
 
 const xen::Texture* xen::ModuleApiGraphics::createTexture(const xen::RawImage* image){
-	void* data[1] = { image->pixels };
+	const void* data[1] = { image->pixels };
 	return this->_createTexture(xen::Texture::Plane,
 	                            false, 4, // 4 channel bytes
 	                            Vec3u{image->size.x, image->size.y, 1},
@@ -90,13 +90,54 @@ const xen::Texture* xen::ModuleApiGraphics::createTexture(const xen::RawImage* i
 }
 
 const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::RawImage images[6]){
-	void* data[6] = { images[0].pixels, images[1].pixels, images[2].pixels,
+	const void* data[6] = { images[0].pixels, images[1].pixels, images[2].pixels,
 	                  images[3].pixels, images[4].pixels, images[5].pixels };
 
 	return this->_createTexture(xen::Texture::CubeMap,
 	                            false, 4, // 4 channel bytes
 	                            Vec3u{images[0].size.x, images[0].size.y, 6},
 	                            data);
+}
+
+const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::CubeArray<float>& data){
+	const void* slices[6] = {
+		&data[{0,0,0}], &data[{0,0,1}], &data[{0,0,2}],
+		&data[{0,0,3}], &data[{0,0,4}], &data[{0,0,5}]
+	};
+	return this->_createTexture(xen::Texture::CubeMap,
+	                            true, 1, // 1 channel floats
+	                            Vec3u{data.side_length, data.side_length, 6},
+	                            slices);
+}
+const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::CubeArray<xen::Color>& data){
+	const void* slices[6] = {
+		&data[{0,0,0}], &data[{0,0,1}], &data[{0,0,2}],
+		&data[{0,0,3}], &data[{0,0,4}], &data[{0,0,5}]
+	};
+	return this->_createTexture(xen::Texture::CubeMap,
+	                            false, 4, // 4 channel bytes
+	                            Vec3u{data.side_length, data.side_length, 6},
+	                            slices);
+}
+const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::CubeArray<Vec3f>& data){
+	const void* slices[6] = {
+		&data[{0,0,0}], &data[{0,0,1}], &data[{0,0,2}],
+		&data[{0,0,3}], &data[{0,0,4}], &data[{0,0,5}]
+	};
+	return this->_createTexture(xen::Texture::CubeMap,
+	                            true, 3, // 3 channel floats
+	                            Vec3u{data.side_length, data.side_length, 6},
+	                            slices);
+}
+const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::CubeArray<Vec4f>& data){
+	const void* slices[6] = {
+		&data[{0,0,0}], &data[{0,0,1}], &data[{0,0,2}],
+		&data[{0,0,3}], &data[{0,0,4}], &data[{0,0,5}]
+	};
+	return this->_createTexture(xen::Texture::CubeMap,
+	                            true, 4, // 4 channel floats
+	                            Vec3u{data.side_length, data.side_length, 6},
+	                            slices);
 }
 
 void xen::ModuleApiGraphics::clear(xen::RenderTarget target, xen::Color color){
