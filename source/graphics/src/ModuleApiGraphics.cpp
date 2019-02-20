@@ -10,8 +10,8 @@
 #ifndef XEN_GRAPHICS_GRAPHICSMODULEAPI_CPP
 #define XEN_GRAPHICS_GRAPHICSMODULEAPI_CPP
 
-//#include <xen/window/Window.hxx> // :TODO: remove
 #include <xen/graphics/ModuleApiGraphics.hpp>
+#include <xen/graphics/Image.hpp>
 #include <xen/math/geometry.hpp>
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/array.hpp>
@@ -82,13 +82,21 @@ const xen::Mesh* xen::ModuleApiGraphics::createMesh(const xen::VertexSpec& verte
 
 
 const xen::Texture* xen::ModuleApiGraphics::createTexture(const xen::RawImage* image){
-	xen::Array<const xen::RawImage> images = { 1, image };
-	return this->_createTexture(xen::Texture::Plane, images);
+	void* data[1] = { image->pixels };
+	return this->_createTexture(xen::Texture::Plane,
+	                            false, 4, // 4 channel bytes
+	                            Vec3u{image->size.x, image->size.y, 1},
+	                            data);
 }
 
 const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::RawImage images[6]){
-	xen::Array<const xen::RawImage> img_array = { 6, images };
-	return this->_createTexture(xen::Texture::CubeMap, img_array);
+	void* data[6] = { images[0].pixels, images[1].pixels, images[2].pixels,
+	                  images[3].pixels, images[4].pixels, images[5].pixels };
+
+	return this->_createTexture(xen::Texture::CubeMap,
+	                            false, 4, // 4 channel bytes
+	                            Vec3u{images[0].size.x, images[0].size.y, 6},
+	                            data);
 }
 
 void xen::ModuleApiGraphics::clear(xen::RenderTarget target, xen::Color color){

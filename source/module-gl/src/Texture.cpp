@@ -15,6 +15,33 @@
 #include "Texture.hxx"
 #include "ModuleGl.hxx"
 
+bool bufferGlTextureData2d(GLenum type, Vec2u size, bool is_floating, u32 channels, void* data){
+	GLenum data_format;
+	switch(channels){
+	case 1: data_format = GL_LUMINANCE; break;
+	case 2: data_format = GL_RGB;       break;
+	case 4: data_format = GL_RGBA;      break;
+	default:
+		// :TODO: support 2 channel (greyscale and alpha)
+		XenLogError("Invalid texture channel count, got: %i, expected 1,2 or 4");
+		return false;
+	}
+
+	GLenum data_type = is_floating ? GL_FLOAT : GL_UNSIGNED_BYTE;
+
+	XGL_CHECK(
+		glTexImage2D(type,
+		             0,                      // mipmap level 0 as this is highest res version
+		             data_format,            // Format used by opengl internally
+		             size.x, size.y,
+		             0,                      // border - spec says "this value must be 0"
+		             data_format, data_type, // format of pixel data
+		             data                    // pixel data
+		));
+
+	return true;
+}
+
 GLenum xgl::getGlTextureType(xen::Texture::Type type){
 	switch(type){
 	case xen::Texture::Plane   : return GL_TEXTURE_2D;
@@ -24,37 +51,37 @@ GLenum xgl::getGlTextureType(xen::Texture::Type type){
 }
 
 xgl::Texture* doCreateTexture2d(xgl::Texture* result,
-                                xen::Array<const xen::RawImage> images){
-	if(images.size != 1){
-		XenLogError("Request to create 2d texture however %i images were provided",
-		            images.size);
+                                bool is_floating,
+                                u32 channels,
+                                Vec2u size,
+                                void* data){
+	XenLogDebug("Uploading 2d texture data, size: %ix%i\n", size.x, size.y);
+
+	if(!bufferGlTextureData2d(GL_TEXTURE_2D, size, is_floating, channels, data)){
 		return nullptr;
 	}
 
-	XenLogDebug("Uploading 2d texture data, size: %ix%i\n", images[0].width, images[0].height);
-
-	//  Upload texture data to GPU
-	XEN_CHECK_GL(glTexImage2D(GL_TEXTURE_2D,
-	                          0,                         // mipmap level 0 as this is highest res version
-	                          GL_RGBA,                   // Internal format for use by GL
-	                          images[0].width,           // image size
-	                          images[0].height,
-	                          0,                         // border - spec says "this value must be 0"
-	                          GL_RGBA, GL_UNSIGNED_BYTE, // format of pixel data
-	                          images[0].pixels           // pixel data
-	             ));
-
 	// Set texture parameters
-	XEN_CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
-	XEN_CHECK_GL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+	XGL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+	XGL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
 
 	return result;
 }
 
 xgl::Texture* doCreateCubeMap(xgl::Texture* result,
-                     xen::Array<const xen::RawImage> images){
-	if(images.size != 6){
-		XenLogError("Request to cube map, but provided with %i images rather than 6", images.size);
+                              bool is_floating,
+                              u08 channels,
+                              Vec3u size,
+                              void** data){
+	if(size.z != 6){
+		XenLogError("Attempted to create cubemap texture but %i layers provided, expected 6",
+		            size.z);
+		return nullptr;
+	}
+
+	if (size.x != size.y){
+		XenLogError("Attempted to create cubemap texture with non-square faces of size %ix%i",
+		            size.x, size.y);
 		return nullptr;
 	}
 
@@ -67,21 +94,13 @@ xgl::Texture* doCreateCubeMap(xgl::Texture* result,
 		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
 	};
 
-	XenLogDebug("Uploading cube map data - size: %ix%i\n", images[0].width, images[0].height);
+	XenLogDebug("Uploading cube map data - size: %ix%i\n", size.x, size.y);
 
 	for(int i = 0; i < 6; ++i){
-
-
-		//  Upload texture data to GPU
-		XGL_CHECK(glTexImage2D(TARGETS[i],
-		                       0,                         // mipmap level 0 as this is highest res version
-		                       GL_RGBA,                   // Internal format for use by GL
-		                       images[i].width,           // image size
-		                       images[i].height,
-		                       0,                         // border - spec says "this value must be 0"
-		                       GL_RGBA, GL_UNSIGNED_BYTE, // format of pixel data
-		                       images[i].pixels           // pixel data
-		          ));
+		if(!bufferGlTextureData2d(TARGETS[i], size.xy, is_floating, channels, data[i])){
+			XenLogError("Detected error upon upload of face %i of cubemap", i);
+			return nullptr;
+		}
 	}
 
 	XGL_CHECK(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
@@ -92,11 +111,14 @@ xgl::Texture* doCreateCubeMap(xgl::Texture* result,
 }
 
 const xen::Texture* xgl::createTexture(xen::Texture::Type type,
-                                       xen::Array<const xen::RawImage> images){
+                                       bool is_floating,
+                                       u08 channels,
+                                       Vec3u slice_size,
+                                       void** slice_data){
 	// Allocate texture CPU side
 	xgl::Texture* texture = xen::reserveType(state->pool_texture);
 	texture->type         = type;
-	GLenum gl_type = xgl::getGlTextureType(type);
+	GLenum gl_type        = xgl::getGlTextureType(type);
 
 	// Allocate texture GPU side
 	XEN_CHECK_GL(glGenTextures(1, &texture->id));
@@ -106,10 +128,10 @@ const xen::Texture* xgl::createTexture(xen::Texture::Type type,
 	xgl::Texture* result = nullptr;
 	switch(type){
 	case xen::Texture::Plane:
-		result = doCreateTexture2d(texture, images);
+		result = doCreateTexture2d(texture, is_floating, channels, slice_size.xy, slice_data[0]);
 		break;
 	case xen::Texture::CubeMap:
-		result = doCreateCubeMap(texture, images);
+		result = doCreateCubeMap(texture, is_floating, channels, slice_size, slice_data);
 		break;
 	}
 

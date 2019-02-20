@@ -27,9 +27,11 @@ namespace xgl {
 
 	GLenum getGlTextureType(xen::Texture::Type type);
 
-	const xen::Texture* createTexture (
-		xen::Texture::Type type, xen::Array<const xen::RawImage> images
-	);
+	const xen::Texture* createTexture(xen::Texture::Type type,
+		                                 bool is_floating,
+		                                 u08 channels,
+		                                 Vec3u slice_size,
+		                                 void** slice_data);
 
 	void destroyTexture(const xen::Texture* texture);
 }

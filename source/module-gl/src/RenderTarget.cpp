@@ -72,12 +72,9 @@ namespace xgl {
 		// with that
 
 		// Ensure texture 0 is single pixel white
-		xen::RawImage image[1];
-		image[0].size.x = 1;
-		image[0].size.y = 1;
 		xen::Color color = xen::Color::WHITE;
-		image[0].pixels = &color;
-		xgl::createTexture(xen::Texture::Plane, {1, image });
+		void* image_pixel_data = &color;
+		xgl::createTexture(xen::Texture::Plane, 4, false, Vec3u{1,1,1}, &image_pixel_data);
 
 		XenAssert(xgl::state->default_material == nullptr,
 		          "We don't want to be recreating the default material!");

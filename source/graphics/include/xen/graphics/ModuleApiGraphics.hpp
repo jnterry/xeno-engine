@@ -151,7 +151,48 @@ namespace xen {
 		                                   u32 start_vertex,
 		                                   u32 end_vertex);
 
-		const Texture* (*_createTexture)(xen::Texture::Type type, xen::Array<const RawImage> images);
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Internal interface to create a texture which can later be
+		/// used for rendering. Note that this method does not have a particular
+		/// friendly interface - you should probably use a wrapper such as
+		/// createTexture or createCubemap
+		/// \param type The type of texture resource to create - shader programs
+		/// will need to use the correct type of sampler where appropriate
+		///
+
+		///
+		/// \param is_floating If set then the data is interpreted to be arrays
+		/// of 32 bit floating values, if unset then it is interpret ted to be
+		/// arrays of unsigned bytes.
+		/// \param channels The number of channels per pixel, valid values:
+		///   - 1 (grayscale)
+		///   - 3 (rgb)
+		///   - 4 (rgba)
+		///  The data for a single pixel is expected to be laid out in a contingou
+		///  block (IE: RGBA RGBA rather than RR GG BB AA) in the order specified
+		///  above
+		///
+		/// \param slice_size The dimensions of a single slice of the texture
+		///
+		/// \param slice_data - Pointer to array of pointers, each of which point to
+		/// the arrays of pixel data for a particular "slice" of the texture.
+		/// What constitutes a slice depends on the chosen type, and slice_size
+		///  - Plane   -> Slice must be {width, height, 1}. slice_data is thus
+		///               a pointer to a single element, which is a pointer
+		///               to an array of length width * height * channels
+		///               of either unsigned bytes or floats, depending on the value
+		///               of is_floating
+		///  - CubeMap -> Slice must be {face_size, face_size, 6}, hence slice_data
+		///               points to an array of 6 elements, each of which points
+		///               to data formatted as per the "Plane" type
+		///
+		/// \todo :TODO: Array textures?
+		/////////////////////////////////////////////////////////////////////
+		const Texture* (*_createTexture)(xen::Texture::Type type,
+		                                 bool is_floating,
+		                                 u08 channels,
+		                                 Vec3u slice_size,
+		                                 void** slice_data);
 		void           (*destroyTexture)(const Texture* texture);
 
 
