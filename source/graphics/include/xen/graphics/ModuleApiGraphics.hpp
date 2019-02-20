@@ -160,15 +160,15 @@ namespace xen {
 		/// \param type The type of texture resource to create - shader programs
 		/// will need to use the correct type of sampler where appropriate
 		///
-
-		///
 		/// \param is_floating If set then the data is interpreted to be arrays
-		/// of 32 bit floating values, if unset then it is interpret ted to be
-		/// arrays of unsigned bytes.
+		/// of 32 bit floating values, if unset then it is interpreted to be
+		/// arrays of unsigned bytes. When sampled in shaders bytes will be
+		/// mapped to the range 0 to 1, where as floats will be left unaltered
 		/// \param channels The number of channels per pixel, valid values:
-		///   - 1 (grayscale)
-		///   - 3 (rgb)
-		///   - 4 (rgba)
+		///   - 1 (grayscale - r,g,b all equal, a is 1)
+		///   - 2 (grayscale with alpha, r,g,b all equal, a is specified)
+		///   - 3 (rgb - r,g,b are specified, a is 1)
+		///   - 4 (rgba - all components are specified)
 		///  The data for a single pixel is expected to be laid out in a contingou
 		///  block (IE: RGBA RGBA rather than RR GG BB AA) in the order specified
 		///  above
@@ -271,6 +271,7 @@ namespace xen {
 		const Texture* createCubeMap(const RawImage images[6]);
 		const Texture* createCubeMap(const CubeArray<float>& data);
 		const Texture* createCubeMap(const CubeArray<xen::Color>& data);
+		const Texture* createCubeMap(const CubeArray<Vec2f>& data);
 		const Texture* createCubeMap(const CubeArray<Vec3f>& data);
 		const Texture* createCubeMap(const CubeArray<Vec4f>& data);
 

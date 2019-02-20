@@ -99,6 +99,17 @@ const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::RawImage im
 	                            data);
 }
 
+const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::CubeArray<xen::Color>& data){
+	const void* slices[6] = {
+		&data[{0,0,0}], &data[{0,0,4}], &data[{0,0,2}],
+		&data[{0,0,3}], &data[{0,0,1}], &data[{0,0,5}]
+	};
+	return this->_createTexture(xen::Texture::CubeMap,
+	                            false, 4, // 4 channel bytes
+	                            Vec3u{data.side_length, data.side_length, 6},
+	                            slices);
+}
+
 const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::CubeArray<float>& data){
 	// :TODO: why is 4 and 1 swapped!!?
 	const void* slices[6] = {
@@ -110,13 +121,14 @@ const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::CubeArray<f
 	                            Vec3u{data.side_length, data.side_length, 6},
 	                            slices);
 }
-const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::CubeArray<xen::Color>& data){
+const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::CubeArray<Vec2f>& data){
+	// :TODO: why is 4 and 1 swapped!!?
 	const void* slices[6] = {
 		&data[{0,0,0}], &data[{0,0,4}], &data[{0,0,2}],
 		&data[{0,0,3}], &data[{0,0,1}], &data[{0,0,5}]
 	};
 	return this->_createTexture(xen::Texture::CubeMap,
-	                            false, 4, // 4 channel bytes
+	                            true, 2, // 1 channel floats
 	                            Vec3u{data.side_length, data.side_length, 6},
 	                            slices);
 }
