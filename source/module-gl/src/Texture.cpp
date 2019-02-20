@@ -18,9 +18,9 @@
 bool bufferGlTextureData2d(GLenum type, Vec2u size, bool is_floating, u32 channels, const void* data){
 	GLenum data_format;
 	switch(channels){
-	case 1: data_format = GL_LUMINANCE; break;
-	case 2: data_format = GL_RGB;       break;
-	case 4: data_format = GL_RGBA;      break;
+	case 1: data_format = GL_RED;  break;
+	case 2: data_format = GL_RGB;  break;
+	case 4: data_format = GL_RGBA; break;
 	default:
 		// :TODO: support 2 channel (greyscale and alpha)
 		XenLogError("Invalid texture channel count, got: %i, expected 1,2 or 4");
@@ -55,7 +55,7 @@ xgl::Texture* doCreateTexture2d(xgl::Texture* result,
                                 u32 channels,
                                 Vec2u size,
                                 const void* data){
-	XenLogDebug("Uploading 2d texture data, size: %ix%i\n", size.x, size.y);
+	XenLogDebug("Uploading 2d texture data, size: %ix%i", size.x, size.y);
 
 	if(!bufferGlTextureData2d(GL_TEXTURE_2D, size, is_floating, channels, data)){
 		return nullptr;
@@ -94,7 +94,7 @@ xgl::Texture* doCreateCubeMap(xgl::Texture* result,
 		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
 	};
 
-	XenLogDebug("Uploading cube map data - size: %ix%i\n", size.x, size.y);
+	XenLogDebug("Uploading cube map data - size: %ix%i", size.x, size.y);
 
 	for(int i = 0; i < 6; ++i){
 		if(!bufferGlTextureData2d(TARGETS[i], size.xy, is_floating, channels, data[i])){
