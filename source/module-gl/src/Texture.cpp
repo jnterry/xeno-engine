@@ -17,14 +17,38 @@
 
 bool bufferGlTextureData2d(GLenum type, Vec2u size, bool is_floating, u32 channels, const void* data){
 	GLenum data_format;
-	switch(channels){
-	case 1: data_format = GL_RED;  break;
-	case 2: data_format = GL_RGB;  break;
-	case 4: data_format = GL_RGBA; break;
-	default:
-		// :TODO: support 2 channel (greyscale and alpha)
-		XenLogError("Invalid texture channel count, got: %i, expected 1,2 or 4");
-		return false;
+	GLenum internal_format;
+
+	if(is_floating){
+		switch(channels){
+		case 1:
+			data_format = GL_RED;
+			internal_format = GL_R32F;
+			break;
+		case 3:
+			data_format = GL_RGB;
+			internal_format = GL_RGB32F;
+			break;
+		case 4:
+			data_format = GL_RGBA;
+			internal_format = GL_RGBA32F;
+			break;
+		default:
+			// :TODO: support 2 channel (greyscale and alpha)
+			XenLogError("Invalid texture channel count, got: %i, expected 1,2 or 4");
+			return false;
+		}
+	} else {
+		switch(channels){
+		case 1: data_format = GL_RED;  break;
+		case 2: data_format = GL_RGB;  break;
+		case 4: data_format = GL_RGBA; break;
+		default:
+			// :TODO: support 2 channel (greyscale and alpha)
+			XenLogError("Invalid texture channel count, got: %i, expected 1,2 or 4");
+			return false;
+		}
+		internal_format = data_format;
 	}
 
 	GLenum data_type = is_floating ? GL_FLOAT : GL_UNSIGNED_BYTE;
@@ -32,7 +56,7 @@ bool bufferGlTextureData2d(GLenum type, Vec2u size, bool is_floating, u32 channe
 	XGL_CHECK(
 		glTexImage2D(type,
 		             0,                      // mipmap level 0 as this is highest res version
-		             data_format,            // Format used by opengl internally
+		             internal_format,        // Format used by opengl internally
 		             size.x, size.y,
 		             0,                      // border - spec says "this value must be 0"
 		             data_format, data_type, // format of pixel data
