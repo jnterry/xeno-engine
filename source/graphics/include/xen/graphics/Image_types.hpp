@@ -61,6 +61,7 @@ namespace xen{
 		UNKNOWN,
 	};
 
+
 	struct CubeMap {
 		enum Face {
 			// DO NOT REARRANGE THESE
@@ -79,6 +80,28 @@ namespace xen{
 			Up,
 			Left,
 		};
+	};
+
+	/// \brief Array representing data stored upon a CubeMap surface
+	template<typename T>
+	struct CubeArray {
+		/// \brief The length of a single side of the CubeArray
+		u32 side_length;
+
+		/// \brief Pointer to first element of the data
+		/// Use operator[] to access correct offset
+		T* elements;
+
+		inline T& operator[](Vec3u coord){
+			return this->elements[side_length * side_length * coord.z +
+			                      side_length * coord.y +
+			                      coord.x];
+		}
+		const T& operator[](Vec3u coord) const {
+			return this->elements[side_length * side_length * coord.z +
+			                      side_length * coord.y +
+			                      coord.x];
+		}
 	};
 }
 

@@ -11,6 +11,7 @@
 #define XEN_GRAPHICS_IMAGE_HPP
 
 #include <xen/core/intrinsics.hpp>
+#include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/graphics/Image_types.hpp>
 
@@ -153,6 +154,29 @@ namespace xen{
 	/// coord, or on the very edge of some other face.
   /////////////////////////////////////////////////////////////////////
 	Vec3u getCubeMapPixelNeighbour(Vec3u coord, u32 face_size, xen::CubeMap::Direction dir);
+
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Computes the total length of the CubeArray's elements member
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	u32 size(const CubeArray<T>& array){
+		return array.side_length * array.side_length * 6;
+	}
+
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Allocates a CubeArray with the specified side length
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	CubeArray<T> createCubeArray(xen::ArenaLinear& arena, u32 side_length){
+		CubeArray<T> result;
+		result.side_length = side_length;
+		result.elements = xen::reserveTypeArray<T>(arena, xen::size(result));
+		return result;
+	}
+
+
 }
 
 #endif
