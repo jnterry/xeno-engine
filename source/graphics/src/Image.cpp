@@ -248,9 +248,9 @@ Vec3r xen::getCubeMapDirection(Vec3u cube_map_pixel, u32 face_size){
 
 	switch(cube_map_pixel.z){
 	case xen::CubeMap::Face::PositiveX:
-		return xen::normalized(Vec3r{  1.0_r, face_offset.x, face_offset.y });
+		return xen::normalized(Vec3r{  1.0_r, face_offset.y, face_offset.x });
 	case xen::CubeMap::Face::NegativeX:
-		return xen::normalized(Vec3r{ -1.0_r, face_offset.x, face_offset.y });
+		return xen::normalized(Vec3r{ -1.0_r, face_offset.y, face_offset.x });
 	case xen::CubeMap::Face::PositiveY:
 		return xen::normalized(Vec3r{ face_offset.x,  1.0_r, face_offset.y });
 	case xen::CubeMap::Face::NegativeY:
