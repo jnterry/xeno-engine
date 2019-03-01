@@ -57,6 +57,7 @@ namespace xen {
 			return { this->normal, d };
 		}
 	};
+	typedef Plane<real> Plane3r;
 
 	template<typename T>
 	PlaneEquation<T>::operator Plane<T>() const {
