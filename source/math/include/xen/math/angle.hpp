@@ -81,6 +81,10 @@ namespace xen{
 		real val = (real)fmod(a.radians, 2.0_r * xen::PI );
 		return { val < 0 ? val + 2.0_r * xen::PI : val  };
 	}
+
+	inline real invLerp(xen::Angle low, xen::Angle high, xen::Angle in){
+		return (in.radians - low.radians) / (high.radians - low.radians);
+	}
 }
 
 inline xen::Angle operator+=(xen::Angle& lhs,  const xen::Angle& rhs){ lhs.radians += rhs.radians; return lhs; }
