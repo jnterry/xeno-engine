@@ -108,7 +108,8 @@ xgl::Texture* doCreateTexture2d(xgl::Texture* result,
                                 u32 channels,
                                 Vec2u size,
                                 const void* data){
-	XenLogDebug("Uploading 2d texture data, size: %ix%i", size.x, size.y);
+	XenLogDebug("Uploading 2d texture data, size: %ix%i, channels %i, floating",
+	            size.x, size.y, channels, is_floating);
 
 	if(!bufferGlTextureData2d(GL_TEXTURE_2D, size, is_floating, channels, data)){
 		return nullptr;
@@ -148,7 +149,8 @@ xgl::Texture* doCreateCubeMap(xgl::Texture* result,
 		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
 	};
 
-	XenLogDebug("Uploading cube map data - size: %ix%i", size.x, size.y);
+	XenLogDebug("Uploading cube map data - size: %ix%i, channels %i, floating",
+	            size.x, size.y, channels, is_floating);
 
 	for(int i = 0; i < 6; ++i){
 		if(!bufferGlTextureData2d(TARGETS[i], size.xy, is_floating, channels, data[i])){
