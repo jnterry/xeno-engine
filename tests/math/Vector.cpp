@@ -61,6 +61,11 @@ TEST_CASE("Vec3r Angle Between", "[math][Vector]"){
 		CHECK((xen::angleBetween(Vec3r{ 1, 0, 0}, Vec3r{ 0, 1, 0})) ==  90_deg);
 		CHECK((xen::angleBetween(Vec3r{ 1, 0, 0}, Vec3r{ 0, 0, 1})) ==  90_deg);
 		CHECK((xen::angleBetween(Vec3r{ 1, 0, 0}, Vec3r{ 1, 0, 1})) ==  45_deg);
+		CHECK((xen::angleBetween(Vec3r{ 1, 0, 0}, Vec3r{ 2, 0, 0})) ==   0_deg);
+
+		// https://www.emathhelp.net/calculators/linear-algebra/angle-between-two-vectors-calculator/?ux=1&uy=2&uz=3&vx=4&vy=5&vz=6&steps=on
+		CHECK((xen::angleBetween(Vec3r{  1,  2,  3}, Vec3r{  4,  5,  6})) ==   12.933154491_deg);
+		CHECK((xen::angleBetween(Vec3r{ 10, 11, 12}, Vec3r{ 10, 11, 13})) ==   2.2581483623_deg);
 	}
 }
 
