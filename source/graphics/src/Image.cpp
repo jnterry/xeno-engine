@@ -175,59 +175,41 @@ namespace xen{
 	}
 }
 
-Vec3u xen::getCubeMapPixelCoord(Vec3r direction, u32 face_size){
-	////////////////////////////////////////////////
-	// Compute which face is to be sampled
-	// This based on which direction has the maximum absolute component
-	// and whether that component is positive or negative
-	int  max_component = 0;
-	real max_abs_component_val = xen::RealMin;
-	for(int i = 0; i < 3; ++i){
-		real abs_val = abs(direction[i]);
-		if(abs_val > max_abs_component_val){
-			max_component         = i;
-			max_abs_component_val = abs_val;
-		}
+Vec3u xen::getCubeMapPixelCoord(Vec3r v, u32 face_size){
+	// Adapted from https://www.gamedev.net/forums/topic/687535-implementing-a-cube-map-lookup-function/
+	Vec3r v_abs = {
+		xen::abs(v.x), xen::abs(v.y), xen::abs(v.z)
+	};
+  float ma;
+
+  Vec3r result;
+
+	if(v_abs.z >= v_abs.x && v_abs.z >= v_abs.y) {
+		result.x = v.z < 0.0 ? -v.x : v.x;
+		result.y = -v.y;
+		result.z = v.z < 0.0 ? xen::CubeMap::PositiveZ : xen::CubeMap::NegativeZ;
+		ma = 0.5 / v_abs.z;
+	} else if(v_abs.y >= v_abs.x) {
+		result.x = v.x;
+		result.y = v.y < 0.0 ? -v.z : v.z;
+		result.z = v.y < 0.0 ? xen::CubeMap::PositiveY : xen::CubeMap::NegativeY;
+		ma = 0.5 / v_abs.y;
+	} else {
+		result.x = v.x < 0.0 ? v.z : -v.z;
+		result.y = -v.y;
+		result.z = v.x < 0.0 ? xen::CubeMap::NegativeX : xen::CubeMap::PositiveX;
+	  ma = 0.5 / v_abs.x;
 	}
 
-	xen::CubeMap::Face face = (xen::CubeMap::Face)(
-		xen::CubeMap::PositiveX +
-		max_component           +
-		(direction[max_component] < 0 ? 3 : 0)
-	);
-	////////////////////////////////////////////////
-	// Compute the offset within the face to be sampled
-	//
-	// We know the other 2 components of direction are less than or equal
-	// to direction[max_component], hence this operation modifies their value
-	// to varies between -1 and 1
-	direction /= max_abs_component_val;
+	result.xy *= ma;
+	result.x += 0.5_r;
+	result.y += 0.5_r;
 
-	// Extract just the two coordinates of direction we care about
-	Vec2r face_offset;
-	switch(max_component){
-	case 0:
-		face_offset = { direction[1], direction[2] };
-		break;
-	case 1:
-		face_offset = { direction[0], direction[2] };
-		break;
-	case 2:
-		face_offset = { direction[0], direction[1] };
-		break;
-	}
-
-	// Change from -1 to 1 range to...
-	face_offset += { 1.0_r, 1.0_r}; // now between 0 and 2
-	face_offset *= 0.5_r;           // now between 0 and 1
-	face_offset *= (real)face_size; // now between 0 and face_size
-
-	// Round to nearest pixel center (these start at 0.5 boundaries,
-	// hence the -0.5)
-	Vec2u face_offset_u = { xen::round32(face_offset.x - 0.5_r),
-	                        xen::round32(face_offset.y - 0.5_r) };
-
-	return { face_offset_u.x, face_offset_u.y, face };
+	return Vec3u{
+		(unsigned int)(result.x * face_size),
+		(unsigned int)(result.y * face_size),
+		(unsigned int)result.z
+  };
 }
 
 /// \brief Computes a direction vector from the center of a cube map to some
@@ -248,17 +230,17 @@ Vec3r xen::getCubeMapDirection(Vec3u cube_map_pixel, u32 face_size){
 
 	switch(cube_map_pixel.z){
 	case xen::CubeMap::Face::PositiveX:
-		return xen::normalized(Vec3r{  1.0_r, face_offset.y, face_offset.x });
+		return xen::normalized(Vec3r{  1.0_r, -face_offset.y, -face_offset.x });
 	case xen::CubeMap::Face::NegativeX:
-		return xen::normalized(Vec3r{ -1.0_r, face_offset.y, face_offset.x });
-	case xen::CubeMap::Face::PositiveY:
-		return xen::normalized(Vec3r{ face_offset.x,  1.0_r, face_offset.y });
+		return xen::normalized(Vec3r{ -1.0_r, -face_offset.y, face_offset.x });
 	case xen::CubeMap::Face::NegativeY:
-		return xen::normalized(Vec3r{ face_offset.x, -1.0_r, face_offset.y });
-	case xen::CubeMap::Face::PositiveZ:
-		return xen::normalized(Vec3r{ face_offset.x, face_offset.y,  1.0_r });
+		return xen::normalized(Vec3r{ face_offset.x,  1.0_r, face_offset.y });
+	case xen::CubeMap::Face::PositiveY:
+		return xen::normalized(Vec3r{ face_offset.x, -1.0_r, -face_offset.y });
 	case xen::CubeMap::Face::NegativeZ:
-		return xen::normalized(Vec3r{ face_offset.x, face_offset.y, -1.0_r });
+		return xen::normalized(Vec3r{ face_offset.x, -face_offset.y,  1.0_r });
+	case xen::CubeMap::Face::PositiveZ:
+		return xen::normalized(Vec3r{-face_offset.x, -face_offset.y, -1.0_r });
 	}
 
 	return Vec3r::Origin;
