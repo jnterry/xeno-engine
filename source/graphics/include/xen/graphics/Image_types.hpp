@@ -38,6 +38,7 @@ namespace xen{
 
 		/////////////////////////////////////////////////////////////////////
 		/// \brief Helper struct used to access pixels of the image
+		/// \note [0][0] is defined to be the BOTTOM LEFT corner of the image
 		/////////////////////////////////////////////////////////////////////
 		struct ColRef {
 			RawImage& image;
@@ -93,14 +94,27 @@ namespace xen{
 		T* elements;
 
 		inline T& operator[](Vec3u coord){
-			return this->elements[side_length * side_length * coord.z +
-			                      side_length * coord.y +
-			                      coord.x];
+			// y is swapped since when doing GL upload
+			// we expect [0][0] of the array to be the TOP left
+			// but we want to store with [0][0] as the BOTTOM left
+			//
+			// x is swapped since cubemaps are "indexed" by direction
+			// from center of cube to the outside, hence left and
+			// right are flipped when viewing from the inside
+			return this->elements[
+				((side_length * coord.z) +
+				 (side_length - coord.y - 1)
+				) * side_length +
+				(side_length - coord.x - 1)
+			];
 		}
 		const T& operator[](Vec3u coord) const {
-			return this->elements[side_length * side_length * coord.z +
-			                      side_length * coord.y +
-			                      coord.x];
+			return this->elements[
+				((side_length * coord.z) +
+				 (side_length - coord.y - 1)
+				) * side_length +
+				(side_length - coord.x - 1)
+			];
 		}
 	};
 }

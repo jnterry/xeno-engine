@@ -41,15 +41,13 @@ namespace {
 		if(result.pixels == nullptr){
 			// :TODO: log
 			printf("Failed to allocate storage for image while loading file: '%s'\n", file_path);
+			stbi_image_free(pixel_data);
 			return {0};
 		}
 
 		//stb_image loads images upside down compared to how we want it, so flip rows
-		for(u32 y = 0; y < result.height; ++y){
-			for(u32 x = 0; x < result.width; ++x){
-				result.pixels[y * result.width + x] = pixel_data[(result.height - y - 1) * result.width + x];
-			}
-		}
+
+		stbi_image_free(pixel_data);
 
 		return result;
 	}
@@ -187,12 +185,12 @@ Vec3u xen::getCubeMapPixelCoord(Vec3r v, u32 face_size){
 	if(v_abs.z >= v_abs.x && v_abs.z >= v_abs.y) {
 		result.x = v.z < 0.0 ? -v.x : v.x;
 		result.y = -v.y;
-		result.z = v.z < 0.0 ? xen::CubeMap::PositiveZ : xen::CubeMap::NegativeZ;
+		result.z = v.z < 0.0 ? xen::CubeMap::NegativeZ : xen::CubeMap::PositiveZ;
 		ma = 0.5 / v_abs.z;
 	} else if(v_abs.y >= v_abs.x) {
 		result.x = v.x;
 		result.y = v.y < 0.0 ? -v.z : v.z;
-		result.z = v.y < 0.0 ? xen::CubeMap::PositiveY : xen::CubeMap::NegativeY;
+		result.z = v.y < 0.0 ? xen::CubeMap::NegativeY : xen::CubeMap::PositiveY;
 		ma = 0.5 / v_abs.y;
 	} else {
 		result.x = v.x < 0.0 ? v.z : -v.z;
@@ -233,13 +231,13 @@ Vec3r xen::getCubeMapDirection(Vec3u cube_map_pixel, u32 face_size){
 		return xen::normalized(Vec3r{  1.0_r, -face_offset.y, -face_offset.x });
 	case xen::CubeMap::Face::NegativeX:
 		return xen::normalized(Vec3r{ -1.0_r, -face_offset.y, face_offset.x });
-	case xen::CubeMap::Face::NegativeY:
-		return xen::normalized(Vec3r{ face_offset.x,  1.0_r, face_offset.y });
 	case xen::CubeMap::Face::PositiveY:
+		return xen::normalized(Vec3r{ face_offset.x,  1.0_r, face_offset.y });
+	case xen::CubeMap::Face::NegativeY:
 		return xen::normalized(Vec3r{ face_offset.x, -1.0_r, -face_offset.y });
-	case xen::CubeMap::Face::NegativeZ:
-		return xen::normalized(Vec3r{ face_offset.x, -face_offset.y,  1.0_r });
 	case xen::CubeMap::Face::PositiveZ:
+		return xen::normalized(Vec3r{ face_offset.x, -face_offset.y,  1.0_r });
+	case xen::CubeMap::Face::NegativeZ:
 		return xen::normalized(Vec3r{-face_offset.x, -face_offset.y, -1.0_r });
 	}
 
@@ -255,17 +253,17 @@ Vec3u xen::getCubeMapPixelNeighbour(Vec3u coord, u32 face_size,
 		}
 		switch(coord.z){
 		case xen::CubeMap::NegativeZ:
-			return { 0, coord.y, xen::CubeMap::NegativeX };
-		case xen::CubeMap::PositiveX:
-			return { 0, coord.y, xen::CubeMap::NegativeZ };
-		case xen::CubeMap::PositiveZ:
 			return { 0, coord.y, xen::CubeMap::PositiveX };
-		case xen::CubeMap::NegativeX:
+		case xen::CubeMap::PositiveX:
 			return { 0, coord.y, xen::CubeMap::PositiveZ };
+		case xen::CubeMap::PositiveZ:
+			return { 0, coord.y, xen::CubeMap::NegativeX };
+		case xen::CubeMap::NegativeX:
+			return { 0, coord.y, xen::CubeMap::NegativeZ };
 		case xen::CubeMap::PositiveY:
-			return { coord.y, face_size-1, xen::CubeMap::PositiveX };
+			return { coord.y, face_size-1, xen::CubeMap::NegativeX };
 		case xen::CubeMap::NegativeY:
-			return { face_size-coord.y-1, 0, xen::CubeMap::PositiveX };
+			return { face_size-coord.y-1, 0, xen::CubeMap::NegativeX };
 		}
 	case xen::CubeMap::Left:
 		if(coord.x > 0){
@@ -273,17 +271,17 @@ Vec3u xen::getCubeMapPixelNeighbour(Vec3u coord, u32 face_size,
 		}
 		switch(coord.z){
 		case xen::CubeMap::NegativeZ:
-			return { face_size-1, coord.y, xen::CubeMap::PositiveX };
-		case xen::CubeMap::PositiveX:
-			return { face_size-1, coord.y, xen::CubeMap::PositiveZ };
-		case xen::CubeMap::PositiveZ:
 			return { face_size-1, coord.y, xen::CubeMap::NegativeX };
-		case xen::CubeMap::NegativeX:
+		case xen::CubeMap::PositiveX:
 			return { face_size-1, coord.y, xen::CubeMap::NegativeZ };
+		case xen::CubeMap::PositiveZ:
+			return { face_size-1, coord.y, xen::CubeMap::PositiveX };
+		case xen::CubeMap::NegativeX:
+			return { face_size-1, coord.y, xen::CubeMap::PositiveZ };
 		case xen::CubeMap::PositiveY:
-			return { face_size-coord.y-1, face_size-1, xen::CubeMap::NegativeX };
+			return { face_size-coord.y-1, face_size-1, xen::CubeMap::PositiveX };
 		case xen::CubeMap::NegativeY:
-			return { coord.y, 0, xen::CubeMap::NegativeX };
+			return { coord.y, 0, xen::CubeMap::PositiveX };
 		}
 	case xen::CubeMap::Up:
 		if(coord.y < face_size-1){
@@ -293,11 +291,11 @@ Vec3u xen::getCubeMapPixelNeighbour(Vec3u coord, u32 face_size,
 		case xen::CubeMap::NegativeZ:
 			return { face_size-coord.x-1, coord.y, xen::CubeMap::PositiveY };
 		case xen::CubeMap::NegativeX:
-			return { 0, face_size-coord.x-1, xen::CubeMap::PositiveY };
+			return { face_size-1, coord.x, xen::CubeMap::PositiveY };
 		case xen::CubeMap::PositiveZ:
 			return { coord.x, 0, xen::CubeMap::PositiveY };
 		case xen::CubeMap::PositiveX:
-			return { face_size-1, coord.x, xen::CubeMap::PositiveY };
+			return { 0, face_size-coord.x-1, xen::CubeMap::PositiveY };
 		case xen::CubeMap::PositiveY:
 			return { face_size-coord.x-1, face_size-1, xen::CubeMap::NegativeZ };
 		case xen::CubeMap::NegativeY:
@@ -308,15 +306,14 @@ Vec3u xen::getCubeMapPixelNeighbour(Vec3u coord, u32 face_size,
 			return { coord.x, coord.y - 1, coord.z };
 		}
 		switch(coord.z){
-			// Rotate up and over the cube
 		case xen::CubeMap::NegativeZ:
 			return { face_size-coord.x-1, 0, xen::CubeMap::NegativeY };
 		case xen::CubeMap::NegativeX:
-			return { 0, coord.x, xen::CubeMap::NegativeY };
+			return { face_size-1, face_size-coord.x-1, xen::CubeMap::NegativeY };
 		case xen::CubeMap::PositiveZ:
 			return { coord.x, face_size-1, xen::CubeMap::NegativeY };
 		case xen::CubeMap::PositiveX:
-			return { face_size-1, face_size-coord.x-1, xen::CubeMap::NegativeY };
+			return { 0, coord.x, xen::CubeMap::NegativeY };
 		case xen::CubeMap::PositiveY:
 			return { coord.x, face_size-1, xen::CubeMap::PositiveZ };
 		case xen::CubeMap::NegativeY:
