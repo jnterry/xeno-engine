@@ -108,8 +108,8 @@ xgl::Texture* doCreateTexture2d(xgl::Texture* result,
                                 u32 channels,
                                 Vec2u size,
                                 const void* data){
-	XenLogDebug("Uploading 2d texture data, size: %ix%i, channels %i, floating",
-	            size.x, size.y, channels, is_floating);
+	XenLogDebug("Uploading 2d texture data, size: %ix%i, channels: %i (%s)",
+	            size.x, size.y, channels, is_floating ? "floating" : "bytes");
 
 	if(!bufferGlTextureData2d(GL_TEXTURE_2D, size, is_floating, channels, data)){
 		return nullptr;

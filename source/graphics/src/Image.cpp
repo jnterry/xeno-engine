@@ -45,7 +45,8 @@ namespace {
 			return {0};
 		}
 
-		//stb_image loads images upside down compared to how we want it, so flip rows
+		// Copy over the pixel values into our memory we control
+		xen::copyBytes(pixel_data, result.pixels, result.width * result.height * sizeof(xen::Color));
 
 		stbi_image_free(pixel_data);
 
@@ -199,7 +200,7 @@ Vec3u xen::getCubeMapPixelCoord(Vec3r v, u32 face_size){
 	  ma = 0.5 / v_abs.x;
 	}
 
-	result.xy *= ma;
+	result.xy *= -ma;
 	result.x += 0.5_r;
 	result.y += 0.5_r;
 
@@ -224,7 +225,7 @@ Vec3r xen::getCubeMapDirection(Vec3u cube_map_pixel, u32 face_size){
 
 
 	face_offset -= Vec2r{0.5_r, 0.5_r}; // now between -0.5 and 0.5
-	face_offset *= 2.0_r; // now between -1 and 1
+	face_offset *= -2.0_r; // now between -1 and 1
 
 	switch(cube_map_pixel.z){
 	case xen::CubeMap::Face::PositiveX:
