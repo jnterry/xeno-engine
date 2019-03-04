@@ -28,6 +28,7 @@ add_executable(unit-tests
 	${CMAKE_CURRENT_LIST_DIR}/math/RayTracing.cpp
 
 	${CMAKE_CURRENT_LIST_DIR}/graphics/Camera.cpp
+	${CMAKE_CURRENT_LIST_DIR}/graphics/Image.cpp
 )
 
 target_include_directories(unit-tests PRIVATE ${XEN_INCLUDE_DIR})

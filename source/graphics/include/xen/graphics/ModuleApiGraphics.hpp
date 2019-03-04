@@ -13,9 +13,11 @@
 #include <xen/graphics/GraphicsHandles.hpp>
 #include <xen/graphics/RenderCommand3d.hpp>
 #include <xen/graphics/Mesh_types.hpp>
+#include <xen/graphics/Texture_types.hpp>
 #include <xen/graphics/Material_types.hpp>
+#include <xen/graphics/Image_types.hpp>
 #include <xen/math/geometry_types.hpp>
-#include <xen/core/array.hpp>
+#include <xen/core/array_types.hpp>
 
 namespace xen {
 	struct Window;
@@ -150,8 +152,50 @@ namespace xen {
 		                                   u32 start_vertex,
 		                                   u32 end_vertex);
 
-		Texture (*createTexture )(const RawImage* image);
-		void    (*destroyTexture)(Texture texture);
+		/////////////////////////////////////////////////////////////////////
+		/// \brief Internal interface to create a texture which can later be
+		/// used for rendering. Note that this method does not have a particular
+		/// friendly interface - you should probably use a wrapper such as
+		/// createTexture or createCubemap
+		/// \param type The type of texture resource to create - shader programs
+		/// will need to use the correct type of sampler where appropriate
+		///
+		/// \param is_floating If set then the data is interpreted to be arrays
+		/// of 32 bit floating values, if unset then it is interpreted to be
+		/// arrays of unsigned bytes. When sampled in shaders bytes will be
+		/// mapped to the range 0 to 1, where as floats will be left unaltered
+		/// \param channels The number of channels per pixel, valid values:
+		///   - 1 (grayscale - r,g,b all equal, a is 1)
+		///   - 2 (grayscale with alpha, r,g,b all equal, a is specified)
+		///   - 3 (rgb - r,g,b are specified, a is 1)
+		///   - 4 (rgba - all components are specified)
+		///  The data for a single pixel is expected to be laid out in a contingou
+		///  block (IE: RGBA RGBA rather than RR GG BB AA) in the order specified
+		///  above
+		///
+		/// \param slice_size The dimensions of a single slice of the texture
+		///
+		/// \param slice_data - Pointer to array of pointers, each of which point to
+		/// the arrays of pixel data for a particular "slice" of the texture.
+		/// What constitutes a slice depends on the chosen type, and slice_size
+		///  - Plane   -> Slice must be {width, height, 1}. slice_data is thus
+		///               a pointer to a single element, which is a pointer
+		///               to an array of length width * height * channels
+		///               of either unsigned bytes or floats, depending on the value
+		///               of is_floating
+		///  - CubeMap -> Slice must be {face_size, face_size, 6}, hence slice_data
+		///               points to an array of 6 elements, each of which points
+		///               to data formatted as per the "Plane" type
+		///
+		/// \todo :TODO: Array textures?
+		/////////////////////////////////////////////////////////////////////
+		const Texture* (*_createTexture)(xen::Texture::Type type,
+		                                 bool is_floating,
+		                                 u08 channels,
+		                                 Vec3u slice_size,
+		                                 const void** slice_data);
+		void           (*destroyTexture)(const Texture* texture);
+
 
 		/// \brief Creates a material which may later be used for rendering geometry
 		const Material* (*createMaterial )(const MaterialCreationParameters& params);
@@ -215,6 +259,22 @@ namespace xen {
 		                                 ){
 			this->_updateMeshVertexData(mesh, attrib_index, new_data, start_vertex, end_vertex);
 		}
+
+		/// \brief Creates a standard 2d texture
+		const Texture* createTexture(const RawImage* image);
+
+		/// \brief Creates a cubemap from the 6 face textures
+		///
+		/// The order of the faces in the array is given by the direction to travel
+		/// from the cube's center to the face as follows:
+		/// positive x, positive y, positive z, negative x, negative y, negative z
+		const Texture* createCubeMap(const RawImage images[6]);
+		const Texture* createCubeMap(const CubeArray<float>& data);
+		const Texture* createCubeMap(const CubeArray<xen::Color>& data);
+		const Texture* createCubeMap(const CubeArray<Vec2f>& data);
+		const Texture* createCubeMap(const CubeArray<Vec3f>& data);
+		const Texture* createCubeMap(const CubeArray<Vec4f>& data);
+
 
 		void clear(xen::RenderTarget target, xen::Color color);
 		void render(xen::RenderTarget, xen::Aabb2u viewport,

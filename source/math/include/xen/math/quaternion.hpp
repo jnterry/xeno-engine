@@ -122,6 +122,11 @@ namespace xen{
 		Quat  q1       = getRotation(v0_proj, v1_proj);
 		return normalized(q2 * q1);
 	}
+
+	inline AxisAngle toAxisAngle(const xen::Quaternion& q){
+		real denom = xen::sqrt(1 - q.w * q.w);
+		return { q.xyz / denom, 2.0 * acos(q.w) };
+	}
 }
 
 #endif

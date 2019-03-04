@@ -8,6 +8,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <xen/math/geometry.hpp>
+#include <xen/math/plane.hpp>
 #include "ostream_operators.hpp"
 #include <catch.hpp>
 
@@ -149,4 +150,28 @@ TEST_CASE("getDistanceSqBetweenRayAndPoint", "[math][Ray][Vector]"){
 		CHECK(xen::getDistanceSqBetweenRayAndPoint(r, Vec3r{ 1.0_r,  5.0_r,  0.0_r}) == 25);
 		CHECK(xen::getDistanceSqBetweenRayAndPoint(r, Vec3r{ 1.0_r,  1.0_r,  1.0_r}) ==  2);
 	}
+}
+
+TEST_CASE("getIntersection plane and ray", "[math][Ray][Plane]"){
+  Vec3r result;
+  xen::Plane3r plane;
+  xen::Ray3r   ray;
+
+  plane = { { 1, 0, 0 }, { 1, 0, 0 } };
+  ray   = { { 0, 0, 0 }, { 1, 0, 0 } };
+	CHECK(xen::getIntersection(plane, ray, result) == true);
+	CHECK(result == Vec3r{ 1, 0, 0 });
+
+	ray   = { { 0, 5, 3 }, { 1, 0, 0 } };
+	CHECK(xen::getIntersection(plane, ray, result) == true);
+	CHECK(result == Vec3r{ 1, 5, 3 });
+
+	ray   = { { -5, 10, 0 }, { 1, 0, 0 } };
+	CHECK(xen::getIntersection(plane, ray, result) == true);
+	CHECK(result == Vec3r{ 1, 10, 0 });
+
+	result = { 1, 2, 3 };
+	ray   = { { 0, 0, 0 }, { -1, 0, 0 } };
+	CHECK(xen::getIntersection(plane, ray, result) == false);
+	CHECK(result == Vec3r{ 1, 2, 3 });
 }

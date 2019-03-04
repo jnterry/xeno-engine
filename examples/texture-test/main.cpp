@@ -25,10 +25,10 @@ struct State{
 	xen::Window*      window;
 	xen::RenderTarget window_target;
 
-	xen::Texture texture_bricks_diffuse;
-	xen::Texture texture_bricks_normal;
-	xen::Texture texture_metal_diffuse;
-	xen::Texture texture_metal_normal;
+	const xen::Texture* texture_bricks_diffuse;
+	const xen::Texture* texture_bricks_normal;
+	const xen::Texture* texture_metal_diffuse;
+	const xen::Texture* texture_metal_normal;
 
 	const xen::Material* material_phong;
 	const xen::Material* material_normal;

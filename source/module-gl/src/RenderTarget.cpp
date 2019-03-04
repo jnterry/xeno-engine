@@ -72,12 +72,9 @@ namespace xgl {
 		// with that
 
 		// Ensure texture 0 is single pixel white
-		xen::RawImage image;
-		image.size.x = 1;
-		image.size.y = 1;
 		xen::Color color = xen::Color::WHITE;
-		image.pixels = &color;
-		xgl::createTexture(&image);
+		const void* image_pixel_data = &color;
+		xgl::createTexture(xen::Texture::Plane, false, 4, Vec3u{1,1,1}, &image_pixel_data);
 
 		XenAssert(xgl::state->default_material == nullptr,
 		          "We don't want to be recreating the default material!");
@@ -86,12 +83,14 @@ namespace xgl {
 			XenLogWarn("Failed to initialize default material. Segfault will occur if you attempt to render geometry with nullptr for the material");
 		}
 
-		XEN_CHECK_GL(glEnable   (GL_DEPTH_TEST));
-		XEN_CHECK_GL(glDepthFunc(GL_LESS      ));
+		XGL_CHECK(glEnable   (GL_DEPTH_TEST));
+		XGL_CHECK(glDepthFunc(GL_LESS      ));
 
-		XEN_CHECK_GL(glEnable   (GL_CULL_FACE ));
-		XEN_CHECK_GL(glFrontFace(GL_CCW       ));
-		XEN_CHECK_GL(glCullFace (GL_BACK      ));
+		XGL_CHECK(glEnable   (GL_CULL_FACE ));
+		XGL_CHECK(glFrontFace(GL_CCW       ));
+		XGL_CHECK(glCullFace (GL_BACK      ));
+
+		XGL_CHECK(glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS));
 
 		// :TODO: -> needed to use vertex array in core context, but don't know anything
 		// more about this than that fact. See:

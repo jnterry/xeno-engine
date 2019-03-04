@@ -22,6 +22,8 @@
 #include <xen/graphics/GraphicsHandles.hpp>
 
 namespace xen{
+	struct Texture;
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Extra parameters required to render a scene. These vary per
 	/// frame rather than per object
@@ -61,7 +63,7 @@ namespace xen{
 		const xen::Mesh* mesh;
 
 		/// \brief Array of texture channels to be used by this rendering operation
-		xen::Texture textures[4];
+		const xen::Texture* textures[4];
 
 		/// \brief The material to be used to render the geometry
 		const xen::Material* material;

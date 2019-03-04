@@ -11,6 +11,7 @@
 #define XEN_MATH_PLANE_HPP
 
 #include <xen/math/plane_types.hpp>
+#include <xen/math/geometry_types.hpp>
 #include <xen/math/vector.hpp>
 #include <xen/math/utilities.hpp>
 #include <xen/math/matrix.hpp>
@@ -70,6 +71,37 @@ namespace xen {
 	T getClosestPointDistance(PlaneRhombus<T> prect, Vec3<T> point){
 		Vec3<T> p = getClosestPoint(prect, point);
 		return xen::distance(p, point);
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Finds the intersection between some direction vector and a plane
+	/// Returns true if such an intersection exists, else returns false
+	/// Result is only modified when true is set
+	/// \note If the ray's direction is orthogonal to the plane's normal
+	/// then the ray is said to be parallel with the plane. In this case this
+	/// function will return false and result will not be modified. Note that
+	/// this behaviour will occur even when the ray's origin itself lies within
+	/// the plane!
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	bool getIntersection(const Plane<T>& plane, Ray3<T> ray, Vec3<T>& result){
+		Vec3<T> diff = plane.point - ray.origin;
+		T d = xen::dot(plane.normal, diff);
+		T e = xen::dot(plane.normal, ray.direction);
+		if(e){
+			T t = d / e;
+			if(t < 0){
+				// Then intersection is behind the origin
+				return false;
+			} else {
+				result = ray.origin + ray.direction * t;
+				return true;
+			}
+		  return true;
+		} else {
+			// Either ray is in the plane or it is parallel
+			return false;
+		}
 	}
 
 	template<typename T>

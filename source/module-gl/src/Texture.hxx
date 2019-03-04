@@ -11,23 +11,29 @@
 #define XEN_GL_TEXTURE_HPP
 
 #include "gl_header.hxx"
-#include <xen/graphics/GraphicsHandles.hpp>
+#include <xen/graphics/Texture_types.hpp>
 #include <xen/core/intrinsics.hpp>
-
+#include <xen/core/array_types.hpp>
 
 namespace xen{
 	struct RawImage;
 }
 
 namespace xgl {
-	struct TextureImpl {
+	struct Texture : public xen::Texture {
 		/// \brief The GL id of the texture
 		GLuint id;
 	};
 
-	xgl::TextureImpl* getTextureImpl(const xen::Texture texture);
-	xen::Texture      createTexture (const xen::RawImage* image);
-	void              destroyTexture(const xen::Texture texture);
+	GLenum getGlTextureType(xen::Texture::Type type);
+
+	const xen::Texture* createTexture(xen::Texture::Type type,
+		                                 bool is_floating,
+		                                 u08 channels,
+		                                 Vec3u slice_size,
+		                                 const void** slice_data);
+
+	void destroyTexture(const xen::Texture* texture);
 }
 
 #endif

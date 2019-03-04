@@ -48,9 +48,9 @@ namespace xen{
 	inline constexpr Angle Radians    (real value){ return { value                           }; }
 	inline constexpr Angle Revolutions(real value){ return { value * 2.0_r * xen::PI     }; }
 
-	inline real asDegrees   (Angle a){ return (a.radians * 180.0_r) / xen::PI; }
-	inline real asRadians   (Angle a){ return a.radians;                           }
-	inline real asRevolution(Angle a){ return a.radians / 2.0_r * xen::PI;     }
+	inline real asDegrees    (Angle a){ return (a.radians * 180.0_r) / xen::PI; }
+	inline real asRadians    (Angle a){ return a.radians;                           }
+	inline real asRevolutions(Angle a){ return a.radians / (2.0_r * xen::PI);     }
 
 	#if XEN_USE_DOUBLE_PRECISION
 	inline double sin (Angle a ){ return ::sin(a.radians); }
@@ -80,6 +80,10 @@ namespace xen{
 		// clamp to between -1 and 1 revolution
 		real val = (real)fmod(a.radians, 2.0_r * xen::PI );
 		return { val < 0 ? val + 2.0_r * xen::PI : val  };
+	}
+
+	inline real invLerp(xen::Angle low, xen::Angle high, xen::Angle in){
+		return (in.radians - low.radians) / (high.radians - low.radians);
 	}
 }
 

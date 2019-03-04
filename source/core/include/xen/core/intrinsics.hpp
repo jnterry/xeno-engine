@@ -150,6 +150,9 @@ namespace xen {
 	// Determines if real type represents nan
 	inline bool isnan(float a ){ return std::isnan(a); }
 	inline bool isnan(double a){ return std::isnan(a); }
+
+	inline u32 round32(real val){ return lround(val); }
+	inline u64 round64(real val){ return lround(val); }
 }
 
 ////////////////////////////////////////////////////////////////////////////////

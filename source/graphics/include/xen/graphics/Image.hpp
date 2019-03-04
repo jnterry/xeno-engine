@@ -11,47 +11,13 @@
 #define XEN_GRAPHICS_IMAGE_HPP
 
 #include <xen/core/intrinsics.hpp>
+#include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/math/vector_types.hpp>
-#include <xen/graphics/Color.hpp>
+#include <xen/graphics/Image_types.hpp>
 
 namespace xen{
 	struct ArenaLinear;
 	class Allocator;
-
-	// gcc doesn't like the anonymous structures inside unions, disable the warning temporarily...
-	#pragma GCC diagnostic push
-	#pragma GCC diagnostic ignored "-Wpedantic"
-
-	/////////////////////////////////////////////////////////////////////
-	/// \brief Represents raw image data stored in main memory
-	///
-	/// \todo :TODO:Replace with Array2d typedefed -> we loose the .size
-	/// (although ideally we would add that to Array2d as well)
-	/////////////////////////////////////////////////////////////////////
-	struct RawImage{
-		union{
-			struct{ u32 width, height; };
-			Vec2u size;
-		};
-		/// \brief Array of length width*height holding color of each pixel
-		Color* pixels;
-
-		/////////////////////////////////////////////////////////////////////
-		/// \brief Helper struct used to access pixels of the image
-		/////////////////////////////////////////////////////////////////////
-		struct ColRef {
-			RawImage& image;
-			u32       col;
-
-			Color&       operator[](u32 row);
-			const Color& operator[](u32 row) const;
-		};
-
-		const ColRef operator[](u32 col) const;
-		ColRef       operator[](u32 col);
-	};
-
-	#pragma GCC diagnostic pop // re-enable -Wpedantic
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Creates a new image of the specified size.
@@ -110,14 +76,6 @@ namespace xen{
 	/////////////////////////////////////////////////////////////////////
 	RawImage loadImage(Allocator& alloc, const char* file_path);
 
-	enum class ImageFormat {
-		PNG,
-		BMP,
-		TGA,
-		JPG,
-		UNKNOWN,
-	};
-
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Saves a RawImage to a file
 	/// \param image The RawImage to save
@@ -144,6 +102,152 @@ namespace xen{
 	/// \public \memberof RawImage
 	/////////////////////////////////////////////////////////////////////
 	void destroyImage(Allocator& alloc, RawImage image);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Computes the pixel of a cube map to be accessed given
+	/// a direction from the center of the cube map towards one of the faces
+	/// \return x and y component will range from 0 to face_size, z component
+	/// will range from 0 to 5 to indicate which face should be sampled
+	/// (see xen::CubeMap::Face)
+	/////////////////////////////////////////////////////////////////////
+	Vec3u getCubeMapPixelCoord(Vec3r direction, u32 face_size);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Computes a direction vector from the center of a cube map to some
+	/// pixel on its surface
+	/// \param cube_map_pixel Coordinate of a cube map pixel, x and y are the pixel
+	/// within the face. z represents which face
+	/// \param face_size The dimensions of each face
+	/////////////////////////////////////////////////////////////////////
+	Vec3r getCubeMapDirection(Vec3u cube_map_pixel, u32 face_size);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Retrieves the coordinate of the neighbour of some cubemap pixel
+	/// in the specified direction
+	///
+	/// \note Traversing long distances across a cubemap's surface can lead to
+	/// unexpected results since the "up", "left", etc directions are different
+	/// on each face. In fact it is impossible to have a consistent direction
+	/// (Consider placing a cube on a table such that the top face is "up",
+	/// all sides now have their "up" pointing to the ceiling, however if you
+	/// the "up" direction of one of these faces, and then continue across
+	/// the top, the opposite vertical face's up will point in the opposite
+	/// direction)
+	/// This means that going LEFT and then immediately RIGHT might not get you
+	/// back to the starting position!!!
+	/// If you need to traverse long distances it is suggested that you use polar
+	/// coordinates or similar to represent  motion on the surface of the unit
+	/// sphere, and then use getCubeMapPixelCoord to map to a cubemap. The main
+	/// use of this function is to enable blending/blurring across face boundaries
+	/// but only by a single pixel!
+	///
+	/// Additionally while every pixel has an "up", "down", "left" and "right"
+	/// neighbour, not all pixels will have, for example, and "up-left" neighbour
+	/// (Consider a pixel in the very corner of some face -> there is no
+	/// corresponding diagonal neighbour in one direction, since only 3 pixels
+	/// meet at a vertex rather than 4)
+	///
+	/// \note If coord is outside the bounds of the face then this function will
+	/// clamp the particular component (x for left/right or y for up/down) to
+	/// be between 0 and face_size before computing the neighbour. This means that
+	/// the return value is guaranteed to always be either on the same face as
+	/// coord, or on the very edge of some other face.
+  /////////////////////////////////////////////////////////////////////
+	Vec3u getCubeMapPixelNeighbour(Vec3u coord, u32 face_size, xen::CubeMap::Direction dir);
+
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Computes the total length of the CubeArray's elements member
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	u32 size(const CubeArray<T>& array){
+		return array.side_length * array.side_length * 6;
+	}
+
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Allocates a CubeArray with the specified side length
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	CubeArray<T> createCubeArray(xen::ArenaLinear& arena, u32 side_length){
+		CubeArray<T> result;
+		result.side_length = side_length;
+		result.elements = xen::reserveTypeArray<T>(arena, xen::size(result));
+		return result;
+	}
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Blurs the elements of a CubeArray with proper handling of
+	/// wrapping accross faces
+	/// \brief input - The input cubearray
+	/// \brief rounds How many times to perform the blur operation
+	/// \brief center_weight The weight given the tile actually being blured
+	/// The new value after each round will be given by
+	///  self_weight * current_value + ((1-self_weight)/4.0) * each_neighbour
+	/// Defaults to 0.2, thus allowing the center tile and all neighbours to have
+	/// an equal weighting
+	/// \brief tmp_arena ArenaLinear used for temporary storage - will be rolled
+	/// back by the end of this function. Needed to double buffer the source's
+	/// contents, hence must have enough bytes free to create copy of source's
+	/// elements
+	/////////////////////////////////////////////////////////////////////
+	template<typename T>
+	CubeArray<T>& blurCubeMap(CubeArray<T>& input,
+	                            u32 num_rounds,
+	                            xen::ArenaLinear& tmp_arena,
+	                            float self_weight = 0.2){
+		xen::MemoryTransaction transaction(tmp_arena); // do not commit this!
+
+		CubeArray<T> double_buffer;
+		double_buffer.side_length = input.side_length;
+		double_buffer.elements    = xen::reserveTypeArray<T>(tmp_arena, xen::size(input));
+
+		CubeArray<T>* source;
+		CubeArray<T>* dest;
+		if(num_rounds % 2 == 0){
+			// If even number then start with input as will flip back, eg:
+			// input --> double_buffer --> input
+			source = &input;
+			dest   = &double_buffer;
+		} else {
+			// If odd number then start with the double buffer so we end up copying
+			// to input as final step, eg:
+			// double_buffer --> input
+			// This means we need to copy data accross to double buffer
+			xen::copyArray(input.elements, double_buffer.elements, xen::size(input));
+			source = &double_buffer;
+			dest   = &input;
+		}
+
+		float neighbour_weight = (1.0 - self_weight) / 4.0;
+
+		for(int i = 0; i < num_rounds; ++i){
+			Vec3u pos;
+
+			for(pos.z = 0; pos.z < 6; ++pos.z){
+				for(pos.y = 0; pos.y < input.side_length; ++pos.y){
+					for(pos.x = 0; pos.x < input.side_length; ++pos.x){
+
+						(*dest)[pos] = self_weight * (*source)[pos];
+						for(int dir = 0; dir < 4; ++dir){
+							(*dest)[pos] += (
+								neighbour_weight *
+								(*source)[xen::getCubeMapPixelNeighbour(pos,
+								                                        input.side_length,
+								                                        (xen::CubeMap::Direction)dir
+									)]
+							);
+						}
+					}
+				}
+			}
+
+			xen::swap(source, dest);
+
+		}
+	}
+
+
 }
 
 #endif

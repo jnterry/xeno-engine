@@ -59,3 +59,17 @@ TEST_CASE("linear interpolation"){
 		CHECK(xen::mapToRangeClamped(0.0f, 10.0f, 5.0f, 6.0f,  20.0f) == 6.00f);
 	}
 }
+
+TEST_CASE("Wrap", "[math][utilties][wrap]"){
+	CHECK(xen::wrap<s32>( 0, 4) == 0);
+	CHECK(xen::wrap<s32>( 1, 4) == 1);
+	CHECK(xen::wrap<s32>( 2, 4) == 2);
+	CHECK(xen::wrap<s32>( 3, 4) == 3);
+	CHECK(xen::wrap<s32>( 4, 4) == 0);
+	CHECK(xen::wrap<s32>( 5, 4) == 1);
+	CHECK(xen::wrap<s32>(-1, 4) == 3);
+	CHECK(xen::wrap<s32>(-2, 4) == 2);
+	CHECK(xen::wrap<s32>(-3, 4) == 1);
+	CHECK(xen::wrap<s32>(-4, 4) == 0);
+	CHECK(xen::wrap<s32>(-5, 4) == 3);
+}

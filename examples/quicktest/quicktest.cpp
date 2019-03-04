@@ -40,9 +40,9 @@ struct State {
 	xen::Color4f point_light_color = xen::Color4f(1,0,0,1);
 	xen::FixedArray<xen::VertexAttribute, 4> vertex_spec;
 
-	const xen::Mesh* mesh_cube;
-	const xen::Mesh* mesh_bunny;
-	xen::Texture  texture_debug_img;
+	const xen::Mesh*    mesh_cube;
+	const xen::Mesh*    mesh_bunny;
+	const xen::Texture* texture_debug_img;
 
 	const xen::Material* material_phong;
 	const xen::Material* material_normal_lines;

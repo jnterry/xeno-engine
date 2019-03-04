@@ -22,6 +22,26 @@ namespace xen{
 		return val;
 	}
 
+	/// \brief Wraps a value to be between 0 and high, such that stepping n units
+	/// above high wraps around to 0 + n, and stepping n units below 0 loops
+	/// around to high - n
+	/// \note For positive numbers this is therefore equal to val % high
+	template<typename T>
+	inline T wrap(T val, T high){
+		T wrapped = val % high;
+		return wrapped < 0 ? wrapped + high : wrapped;
+	}
+	template<>
+	inline float wrap(float val, float high){
+		float wrapped = fmod(val, high);
+		return wrapped < 0 ? wrapped + high : wrapped;
+	}
+	template<>
+	inline double wrap(double val, double high){
+		double wrapped = fmod(val, high);
+		return wrapped < 0 ? wrapped + high : wrapped;
+	}
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Determines the sign of an input, returning -1 if negative
 	/// and 1 otherwise

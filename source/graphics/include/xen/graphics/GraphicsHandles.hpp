@@ -53,9 +53,6 @@ namespace xen {
 	/// A RenderTarget will have a color surface representing the colors of pixels
 	/// on the surface, and may have other surfaces such as a depth buffer, etc
 	typedef _GraphicsHandle<__LINE__> RenderTarget;
-
-	/// \brief Handle to some texture which may be used by a GraphicsDevice
-	typedef _GraphicsHandle<__LINE__> Texture;
 }
 
 #endif
