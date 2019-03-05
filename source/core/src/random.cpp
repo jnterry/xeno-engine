@@ -19,6 +19,10 @@ namespace xen {
 	float randf(float low, float high){
 		return low + (((float)::rand() / (float)RAND_MAX) * (high - low));
 	}
+
+	bool randbool(float true_prob){
+		return randf(0.0, 1.0) <= true_prob;
+	}
 }
 
 #endif
