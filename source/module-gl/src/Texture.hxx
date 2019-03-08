@@ -28,10 +28,13 @@ namespace xgl {
 	GLenum getGlTextureType(xen::Texture::Type type);
 
 	const xen::Texture* createTexture(xen::Texture::Type type,
-		                                 bool is_floating,
-		                                 u08 channels,
-		                                 Vec3u slice_size,
-		                                 const void** slice_data);
+	                                  bool is_floating,
+	                                  u08 channels,
+	                                  Vec3u slice_size,
+	                                  const void** slice_data);
+
+	bool updateTextureData(const xen::Texture* texture,
+	                       const void** slice_data);
 
 	void destroyTexture(const xen::Texture* texture);
 }
