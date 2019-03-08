@@ -32,6 +32,18 @@ namespace xen{
 		/// For Plane textures only x and y is used
 		/// For cubemaps, this is the size of each face
 		Vec3u size;
+
+		/// \brief The number of channels in the texture, may be between 1 and 4
+		/// with the following semantics:
+		/// 1 -> grayscale, a assumed to be 1
+		/// 2 -> grayscale with alpha
+		/// 3 -> rgb, a assumed to be 1
+		/// 4 -> rgb with alpha
+		u08  channels;
+
+		/// \brief If true then each each channel of each pixel is represented
+		/// by a 32bit float, otherwise a 8 bit unsigned byte is used
+		bool is_floating;
 	};
 }
 

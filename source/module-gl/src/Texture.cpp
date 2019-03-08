@@ -175,6 +175,9 @@ const xen::Texture* xgl::createTexture(xen::Texture::Type type,
 	// Allocate texture CPU side
 	xgl::Texture* texture = xen::reserveType(state->pool_texture);
 	texture->type         = type;
+	texture->is_floating  = is_floating;
+	texture->channels     = channels;
+	texture->size         = slice_size;
 	GLenum gl_type        = xgl::getGlTextureType(type);
 
 	// Allocate texture GPU side
