@@ -15,10 +15,7 @@
 
 namespace xen {
 
-	struct LatLong {
-		xen::Angle x;
-		xen::Angle y;
-	};
+	typedef Vec2<xen::Angle> LatLong;
 
 	// See: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.217.7801&rep=rep1&type=pdf
 	template<typename T>
@@ -29,6 +26,7 @@ namespace xen {
 
 	Vec3r toCartesian(const LatLong& v, real radius = 1){
 		real cy = xen::cos(v.y);
+		real sy = xen::sin(v.y);
 		return radius * Vec3r{
 			cy * xen::sin(v.x),
 			xen::sin(v.y),
@@ -72,6 +70,17 @@ namespace xen {
 }
 
 template<typename T>
+xen::LatLong operator+(xen::LatLong& a, xen::LatLong& b){
+	return { a.x + b.x, a.y + b.y };
+}
+template<typename T>
+xen::LatLong operator-(const xen::LatLong& a, const xen::LatLong& b){
+	return { a.x - b.x, a.y - b.y };
+}
+
+/*
+
+template<typename T>
 xen::LatLong operator+(const xen::LatLong& l, const xen::SphericalVector<T>& v){
 }
 
@@ -79,6 +88,7 @@ template<typename T>
 xen::SphericalVector<T> operator-(const xen::SphericalVector<T>& p, const xen::SphericalVector<T>& q){
 
 }
+*/
 
 
 #endif
