@@ -54,33 +54,33 @@ namespace xen{
 	}
 
 	template<u32 T_DIM, typename T>
-	real distanceSq(const Vec<T_DIM, T>& a, const Vec<T_DIM, T>& b){
+	T distanceSq(const Vec<T_DIM, T>& a, const Vec<T_DIM, T>& b){
 		Vec<T_DIM, T> d = a - b;
 		return dot(d, d);
 	}
 
 	template<u32 T_DIM, typename T>
-	real distance(const Vec<T_DIM, T>& a, const Vec<T_DIM, T>& b){
+	T distance(const Vec<T_DIM, T>& a, const Vec<T_DIM, T>& b){
 		return xen::sqrt(distanceSq<T_DIM, T>(a,b));
 	}
 
 	template<u32 T_Dims, typename T>
-	real lengthSq(const Vec<T_Dims, T>& v){
+	T lengthSq(const Vec<T_Dims, T>& v){
 		return distanceSq<T_Dims, T>(v, Vec<T_Dims, T>::Origin);
 	}
 
 	template<u32 T_Dims, typename T>
-	real length(const Vec<T_Dims, T>& v){
+	T length(const Vec<T_Dims, T>& v){
 		return distance(v, Vec<T_Dims, T>::Origin);
 	}
 
 	/// \brief Computes magnitude of vector
 	template<u32 T_Dims, typename T>
-	real mag(const Vec<T_Dims, T>& v){ return length(v); }
+	T mag(const Vec<T_Dims, T>& v){ return length(v); }
 
 	/// \brief Computes magnitude of vector squared
 	template<u32 T_Dims, typename T>
-	real magSq(const Vec<T_Dims, T>& v){ return lengthSq(v); }
+	T magSq(const Vec<T_Dims, T>& v){ return lengthSq(v); }
 
 	template<u32 T_Dims, typename T>
 	Vec<T_Dims, T> normalized(const Vec<T_Dims, T>& v){ return v / length(v); }

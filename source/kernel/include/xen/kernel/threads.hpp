@@ -84,11 +84,13 @@ namespace xen {
 	                            void* data, u64 data_size,
 	                            TickWorkHandle group = 0
 	                           );
-	template<typename T_FUNC, typename T_DATA>
-	inline TickWorkHandle pushTickWork(T_FUNC work_func,
+	template<typename T_DATA>
+	inline TickWorkHandle pushTickWork(void (*work_func)(T_DATA*),
 	                                   T_DATA* data,
 	                                   TickWorkHandle group = 0){
-		return pushTickWork(work_func, data, sizeof(T_DATA), group);
+		return pushTickWork(reinterpret_cast<void(*)(void*)>(work_func),
+		                    (void*)data,
+		                    sizeof(T_DATA), group);
 	}
 
 	/////////////////////////////////////////////////////////////////////

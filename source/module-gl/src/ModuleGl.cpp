@@ -116,6 +116,7 @@ void* load( void* data, const void* params){
 	xgl::state->api.destroyMesh               = &xgl::destroyMesh;
 
 	xgl::state->api._createTexture            = &xgl::createTexture;
+	xgl::state->api._updateTexture            = &xgl::updateTextureData;
 	xgl::state->api.destroyTexture            = &xgl::destroyTexture;
 
 	xgl::state->api.createMaterial            = &xgl::createMaterial;
