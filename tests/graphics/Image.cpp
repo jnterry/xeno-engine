@@ -23,7 +23,7 @@ TEST_CASE("Cube Map Direction to Pixel", "[graphics][CubeMap]"){
 	CHECK(xen::getCubeMapPixelCoord({ 0.0, -0.8, 1 }, 3) ==
 	      Vec3u { 1, 0, xen::CubeMap::Face::PositiveZ });
 	CHECK(xen::getCubeMapPixelCoord({ 0.8, 0.8, 1 }, 3) ==
-	      Vec3u { 2, 2, xen::CubeMap::Face::PositiveZ });
+	      Vec3u { 0, 2, xen::CubeMap::Face::PositiveZ });
 
 	CHECK(xen::getCubeMapPixelCoord({ 0.0, 0.8, -1 }, 3) ==
 	      Vec3u { 1, 2, xen::CubeMap::Face::NegativeZ });
@@ -40,7 +40,7 @@ TEST_CASE("Cube Map Pixel to Direction", "[graphics][CubeMap]"){
 	CHECK(xen::getCubeMapDirection({1,1,xen::CubeMap::Face::NegativeZ}, 3) == -Vec3r::UnitZ);
 
 	CHECK(xen::getCubeMapDirection({2,1,xen::CubeMap::Face::PositiveZ}, 3) ==
-	      xen::normalized(Vec3r{0.666666_r, 0, 1.0_r}));
+	      xen::normalized(Vec3r{-0.666666_r, 0, 1.0_r}));
 	CHECK(xen::getCubeMapDirection({2,2,xen::CubeMap::Face::PositiveZ}, 3) ==
-	      xen::normalized(Vec3r{0.666666_r, 0.666666_r, 1.0_r}));
+	      xen::normalized(Vec3r{-0.666666_r, 0.666666_r, 1.0_r}));
 }
