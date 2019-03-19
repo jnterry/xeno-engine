@@ -11,6 +11,7 @@
 
 #include <xen/math/vector_types.hpp>
 #include <xen/math/angle.hpp>
+#include <xen/math/utilities.hpp>
 #include "swizzles.hpp"
 
 namespace xen{
@@ -217,6 +218,23 @@ namespace xen{
 		Vec<T_DIM, T> result;
 		for(u32 i = 0; i < T_DIM; ++i){
 			result[i] = xen::min(a[i], b[i]);
+		}
+		return result;
+	}
+
+	template<u32 T_DIM, typename T>
+	Vec<T_DIM, T> clamp(Vec<T_DIM, T> vec, T low, T high){
+		Vec<T_DIM, T> result;
+		for(int i = 0; i < T_DIM; ++i){
+			result.elements[i] = xen::clamp(vec.elements[i], low, high);
+		}
+		return result;
+	}
+	template<u32 T_DIM, typename T>
+	Vec<T_DIM, T> abs(Vec<T_DIM, T> vec){
+		Vec<T_DIM, T> result;
+		for(int i = 0; i < T_DIM; ++i){
+			result.elements[i] = xen::abs(vec.elements[i]);
 		}
 		return result;
 	}
