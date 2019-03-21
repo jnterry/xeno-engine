@@ -11,6 +11,7 @@
 
 #include <xen/math/vector_types.hpp>
 #include <xen/math/angle.hpp>
+#include <xen/math/utilities.hpp>
 #include "swizzles.hpp"
 
 namespace xen{
@@ -54,33 +55,33 @@ namespace xen{
 	}
 
 	template<u32 T_DIM, typename T>
-	real distanceSq(const Vec<T_DIM, T>& a, const Vec<T_DIM, T>& b){
+	T distanceSq(const Vec<T_DIM, T>& a, const Vec<T_DIM, T>& b){
 		Vec<T_DIM, T> d = a - b;
 		return dot(d, d);
 	}
 
 	template<u32 T_DIM, typename T>
-	real distance(const Vec<T_DIM, T>& a, const Vec<T_DIM, T>& b){
+	T distance(const Vec<T_DIM, T>& a, const Vec<T_DIM, T>& b){
 		return xen::sqrt(distanceSq<T_DIM, T>(a,b));
 	}
 
 	template<u32 T_Dims, typename T>
-	real lengthSq(const Vec<T_Dims, T>& v){
+	T lengthSq(const Vec<T_Dims, T>& v){
 		return distanceSq<T_Dims, T>(v, Vec<T_Dims, T>::Origin);
 	}
 
 	template<u32 T_Dims, typename T>
-	real length(const Vec<T_Dims, T>& v){
+	T length(const Vec<T_Dims, T>& v){
 		return distance(v, Vec<T_Dims, T>::Origin);
 	}
 
 	/// \brief Computes magnitude of vector
 	template<u32 T_Dims, typename T>
-	real mag(const Vec<T_Dims, T>& v){ return length(v); }
+	T mag(const Vec<T_Dims, T>& v){ return length(v); }
 
 	/// \brief Computes magnitude of vector squared
 	template<u32 T_Dims, typename T>
-	real magSq(const Vec<T_Dims, T>& v){ return lengthSq(v); }
+	T magSq(const Vec<T_Dims, T>& v){ return lengthSq(v); }
 
 	template<u32 T_Dims, typename T>
 	Vec<T_Dims, T> normalized(const Vec<T_Dims, T>& v){ return v / length(v); }
@@ -217,6 +218,23 @@ namespace xen{
 		Vec<T_DIM, T> result;
 		for(u32 i = 0; i < T_DIM; ++i){
 			result[i] = xen::min(a[i], b[i]);
+		}
+		return result;
+	}
+
+	template<u32 T_DIM, typename T>
+	Vec<T_DIM, T> clamp(Vec<T_DIM, T> vec, T low, T high){
+		Vec<T_DIM, T> result;
+		for(int i = 0; i < T_DIM; ++i){
+			result.elements[i] = xen::clamp(vec.elements[i], low, high);
+		}
+		return result;
+	}
+	template<u32 T_DIM, typename T>
+	Vec<T_DIM, T> abs(Vec<T_DIM, T> vec){
+		Vec<T_DIM, T> result;
+		for(int i = 0; i < T_DIM; ++i){
+			result.elements[i] = xen::abs(vec.elements[i]);
 		}
 		return result;
 	}

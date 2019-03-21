@@ -194,6 +194,8 @@ namespace xen {
 		                                 u08 channels,
 		                                 Vec3u slice_size,
 		                                 const void** slice_data);
+		bool (*_updateTexture)(const Texture* texture, const void** slice_data);
+
 		void           (*destroyTexture)(const Texture* texture);
 
 
@@ -262,6 +264,7 @@ namespace xen {
 
 		/// \brief Creates a standard 2d texture
 		const Texture* createTexture(const RawImage* image);
+		bool updateTexture(const Texture* texture, const RawImage* image);
 
 		/// \brief Creates a cubemap from the 6 face textures
 		///
@@ -274,6 +277,13 @@ namespace xen {
 		const Texture* createCubeMap(const CubeArray<Vec2f>& data);
 		const Texture* createCubeMap(const CubeArray<Vec3f>& data);
 		const Texture* createCubeMap(const CubeArray<Vec4f>& data);
+
+		bool updateCubeMap(const Texture* texture, const RawImage images[6]);
+		bool updateCubeMap(const Texture* texture, const CubeArray<float>& data);
+		bool updateCubeMap(const Texture* texture, const CubeArray<xen::Color>& data);
+		bool updateCubeMap(const Texture* texture, const CubeArray<Vec2f>& data);
+		bool updateCubeMap(const Texture* texture, const CubeArray<Vec3f>& data);
+		bool updateCubeMap(const Texture* texture, const CubeArray<Vec4f>& data);
 
 
 		void clear(xen::RenderTarget target, xen::Color color);

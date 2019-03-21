@@ -88,6 +88,11 @@ const xen::Texture* xen::ModuleApiGraphics::createTexture(const xen::RawImage* i
 	                            Vec3u{image->size.x, image->size.y, 1},
 	                            data);
 }
+bool xen::ModuleApiGraphics::updateTexture(const xen::Texture* texture, const xen::RawImage* image){
+	const void* data[1] = { image->pixels };
+	return this->_updateTexture(texture, data);
+}
+
 
 const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::RawImage images[6]){
 	const void* data[6] = { images[0].pixels, images[1].pixels, images[2].pixels,
@@ -98,63 +103,39 @@ const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::RawImage im
 	                            Vec3u{images[0].size.x, images[0].size.y, 6},
 	                            data);
 }
-
-const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::CubeArray<xen::Color>& data){
-	u64 step = data.side_length * data.side_length;
-	const void* slices[6] = {
-		&data.elements[step * 0], &data.elements[step * 1], &data.elements[step * 2],
-		&data.elements[step * 3], &data.elements[step * 4], &data.elements[step * 5],
-	};
-	return this->_createTexture(xen::Texture::CubeMap,
-	                            false, 4, // 4 channel bytes
-	                            Vec3u{data.side_length, data.side_length, 6},
-	                            slices);
+bool xen::ModuleApiGraphics::updateCubeMap(const xen::Texture* texture,
+                                                          const xen::RawImage images[6]){
+	const void* data[6] = { images[0].pixels, images[1].pixels, images[2].pixels,
+	                        images[3].pixels, images[4].pixels, images[5].pixels };
+	return this->_updateTexture(texture, data);
 }
 
-const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::CubeArray<float>& data){
-	u64 step = data.side_length * data.side_length;
-	const void* slices[6] = {
-		&data.elements[step * 0], &data.elements[step * 1], &data.elements[step * 2],
-		&data.elements[step * 3], &data.elements[step * 4], &data.elements[step * 5],
-	};
-	return this->_createTexture(xen::Texture::CubeMap,
-	                            true, 1, // 1 channel floats
-	                            Vec3u{data.side_length, data.side_length, 6},
-	                            slices);
-}
-const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::CubeArray<Vec2f>& data){
-	u64 step = data.side_length * data.side_length;
-	const void* slices[6] = {
-		&data.elements[step * 0], &data.elements[step * 1], &data.elements[step * 2],
-		&data.elements[step * 3], &data.elements[step * 4], &data.elements[step * 5],
-	};
-	return this->_createTexture(xen::Texture::CubeMap,
-	                            true, 2, // 1 channel floats
-	                            Vec3u{data.side_length, data.side_length, 6},
-	                            slices);
-}
-const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::CubeArray<Vec3f>& data){
-	u64 step = data.side_length * data.side_length;
-	const void* slices[6] = {
-		&data.elements[step * 0], &data.elements[step * 1], &data.elements[step * 2],
-		&data.elements[step * 3], &data.elements[step * 4], &data.elements[step * 5],
-	};
-	return this->_createTexture(xen::Texture::CubeMap,
-	                            true, 3, // 3 channel floats
-	                            Vec3u{data.side_length, data.side_length, 6},
-	                            slices);
-}
-const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::CubeArray<Vec4f>& data){
-	u64 step = data.side_length * data.side_length;
-	const void* slices[6] = {
-		&data.elements[step * 0], &data.elements[step * 1], &data.elements[step * 2],
-		&data.elements[step * 3], &data.elements[step * 4], &data.elements[step * 5],
-	};
-	return this->_createTexture(xen::Texture::CubeMap,
-	                            true, 4, // 4 channel floats
-	                            Vec3u{data.side_length, data.side_length, 6},
-	                            slices);
-}
+#define createCubeMapFuncDef(type, floating, channels) \
+	const xen::Texture* xen::ModuleApiGraphics::createCubeMap(const xen::CubeArray<type>& data){ \
+	u64 step = data.side_length * data.side_length; \
+	const void* slices[6] = { \
+		&data.elements[step * 0], &data.elements[step * 1], &data.elements[step * 2], \
+		&data.elements[step * 3], &data.elements[step * 4], &data.elements[step * 5], \
+	}; \
+	return this->_createTexture(xen::Texture::CubeMap, \
+	                            floating, channels, \
+	                            Vec3u{data.side_length, data.side_length, 6}, \
+	                            slices); \
+	} \
+  bool xen::ModuleApiGraphics::updateCubeMap( \
+		const xen::Texture* texture, const xen::CubeArray<type>& data){ \
+		u64 step = data.side_length * data.side_length; \
+		const void* slices[6] = { \
+			&data.elements[step * 0], &data.elements[step * 1], &data.elements[step * 2], \
+			&data.elements[step * 3], &data.elements[step * 4], &data.elements[step * 5], \
+		}; \
+		return this->_updateTexture(texture, slices); \
+	}
+createCubeMapFuncDef(xen::Color, false, 4)
+createCubeMapFuncDef(float,      true,  1)
+createCubeMapFuncDef(Vec2f,      true,  2)
+createCubeMapFuncDef(Vec3f,      true,  3)
+createCubeMapFuncDef(Vec4f,      true,  4)
 
 void xen::ModuleApiGraphics::clear(xen::RenderTarget target, xen::Color color){
 	this->pushOp(xen::RenderOp::Clear(target, color));

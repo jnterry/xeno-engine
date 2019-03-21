@@ -179,7 +179,7 @@ Vec3u xen::getCubeMapPixelCoord(Vec3r v, u32 face_size){
 	Vec3r v_abs = {
 		xen::abs(v.x), xen::abs(v.y), xen::abs(v.z)
 	};
-  float ma;
+  real ma;
 
   Vec3r result;
 

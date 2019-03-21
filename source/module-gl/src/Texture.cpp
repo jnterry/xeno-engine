@@ -103,57 +103,56 @@ GLenum xgl::getGlTextureType(xen::Texture::Type type){
 	return 0;
 }
 
-xgl::Texture* doCreateTexture2d(xgl::Texture* result,
-                                bool is_floating,
-                                u32 channels,
-                                Vec2u size,
-                                const void* data){
+xgl::Texture* doCreateTexture2d(xgl::Texture* result, const void* data){
 	XenLogDebug("Uploading 2d texture data, size: %ix%i, channels: %i (%s)",
-	            size.x, size.y, channels, is_floating ? "floating" : "bytes");
+	            result->size.x, result->size.y,
+	            result->channels, result->is_floating ? "floating" : "bytes");
 
-	if(!bufferGlTextureData2d(GL_TEXTURE_2D, size, is_floating, channels, data)){
+	if(!bufferGlTextureData2d(GL_TEXTURE_2D,
+	                          result->size.xy, result->is_floating, result->channels,
+	                          data)){
 		return nullptr;
 	}
 
 	// Set texture parameters
 	XGL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
 	XGL_CHECK(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
-	setTextureSwizzlePattern (GL_TEXTURE_2D, channels);
+	setTextureSwizzlePattern (GL_TEXTURE_2D, result->channels);
 
 	return result;
 }
 
-xgl::Texture* doCreateCubeMap(xgl::Texture* result,
-                              bool is_floating,
-                              u08 channels,
-                              Vec3u size,
-                              const void** data){
-	if(size.z != 6){
+// Maps from xen::CubeMap::Face to GLenum equivalent
+static const GLenum CUBEMAP_TARGET_ORDER[6] = {
+	GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+	GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+	GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+	GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+	GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+	GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
+};
+
+xgl::Texture* doCreateCubeMap(xgl::Texture* result, const void** data){
+	if(result->size.z != 6){
 		XenLogError("Attempted to create cubemap texture but %i layers provided, expected 6",
-		            size.z);
+		            result->size.z);
 		return nullptr;
 	}
 
-	if (size.x != size.y){
+	if (result->size.x != result->size.y){
 		XenLogError("Attempted to create cubemap texture with non-square faces of size %ix%i",
-		            size.x, size.y);
+		            result->size.x, result->size.y);
 		return nullptr;
 	}
-
-	static const GLenum TARGETS[6] = {
-		GL_TEXTURE_CUBE_MAP_POSITIVE_X,
-		GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
-		GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
-		GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
-		GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
-		GL_TEXTURE_CUBE_MAP_NEGATIVE_Z,
-	};
 
 	XenLogDebug("Uploading cube map data - size: %ix%i, channels %i, floating",
-	            size.x, size.y, channels, is_floating);
+	            result->size.x, result->size.y, result->channels, result->is_floating);
 
 	for(int i = 0; i < 6; ++i){
-		if(!bufferGlTextureData2d(TARGETS[i], size.xy, is_floating, channels, data[i])){
+		if(!bufferGlTextureData2d(CUBEMAP_TARGET_ORDER[i],
+		                          result->size.xy,
+		                          result->is_floating, result->channels,
+		                          data[i])){
 			XenLogError("Detected error upon upload of face %i of cubemap", i);
 			return nullptr;
 		}
@@ -162,7 +161,7 @@ xgl::Texture* doCreateCubeMap(xgl::Texture* result,
 	XGL_CHECK(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
 	XGL_CHECK(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
 	XGL_CHECK(glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE));
-	setTextureSwizzlePattern (GL_TEXTURE_CUBE_MAP, channels);
+	setTextureSwizzlePattern (GL_TEXTURE_CUBE_MAP, result->channels);
 
 	return result;
 }
@@ -175,9 +174,12 @@ const xen::Texture* xgl::createTexture(xen::Texture::Type type,
 	// Allocate texture CPU side
 	xgl::Texture* texture = xen::reserveType(state->pool_texture);
 	texture->type         = type;
-	GLenum gl_type        = xgl::getGlTextureType(type);
+	texture->is_floating  = is_floating;
+	texture->channels     = channels;
+	texture->size         = slice_size;
 
 	// Allocate texture GPU side
+	GLenum gl_type        = xgl::getGlTextureType(type);
 	XEN_CHECK_GL(glGenTextures(1, &texture->id));
 	XEN_CHECK_GL(glBindTexture(gl_type, texture->id));
 
@@ -185,10 +187,10 @@ const xen::Texture* xgl::createTexture(xen::Texture::Type type,
 	xgl::Texture* result = nullptr;
 	switch(type){
 	case xen::Texture::Plane:
-		result = doCreateTexture2d(texture, is_floating, channels, slice_size.xy, slice_data[0]);
+		result = doCreateTexture2d(texture, slice_data[0]);
 		break;
 	case xen::Texture::CubeMap:
-		result = doCreateCubeMap(texture, is_floating, channels, slice_size, slice_data);
+		result = doCreateCubeMap(texture, slice_data);
 		break;
 	}
 
@@ -215,6 +217,30 @@ void xgl::destroyTexture(const xen::Texture* handle){
 	}
 
 	xen::freeType(state->pool_texture, texture);
+}
+
+bool xgl::updateTextureData(const xen::Texture* texture, const void** slice_data){
+	GLenum gl_type = xgl::getGlTextureType(texture->type);
+	XEN_CHECK_GL(glBindTexture(gl_type, ((xgl::Texture*)texture)->id));
+
+	switch(texture->type){
+	case xen::Texture::Plane:
+		return bufferGlTextureData2d(GL_TEXTURE_2D,
+		                             texture->size.xy, texture->is_floating, texture->channels,
+		                             slice_data[0]);
+	case xen::Texture::CubeMap:
+		for(int i = 0; i < 6; ++i){
+			if(!bufferGlTextureData2d(CUBEMAP_TARGET_ORDER[i],
+			                          texture->size.xy, texture->is_floating, texture->channels,
+			                          slice_data[i])){
+				return false;
+			}
+		}
+		return true;
+	}
+
+	XenInvalidCodePath("Unhandled switch case");
+	return false;
 }
 
 #endif
