@@ -26,6 +26,7 @@ add_executable(unit-tests
 	${CMAKE_CURRENT_LIST_DIR}/math/Plane.cpp
 	${CMAKE_CURRENT_LIST_DIR}/math/Ray.cpp
 	${CMAKE_CURRENT_LIST_DIR}/math/RayTracing.cpp
+	${CMAKE_CURRENT_LIST_DIR}/math/latlong.cpp
 
 	${CMAKE_CURRENT_LIST_DIR}/graphics/Camera.cpp
 	${CMAKE_CURRENT_LIST_DIR}/graphics/Image.cpp
