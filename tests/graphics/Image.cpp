@@ -141,7 +141,7 @@ TEST_CASE("Cube Map Direction from UV", "[graphics][CubeMap]"){
 	CHECK(xen::getCubeMapDirection(xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::NegativeZ}) == Vec3r{  0,  0, -1 });
 }
 
-TEST_CASE("Cube Map Direction -> UV -> Direction"){
+TEST_CASE("Cube Map Direction -> UV -> Direction", "[graphics][CubeMap]"){
 	Vec3r dir;
 	for(dir.x = -10_r; dir.x <= 10.0; dir.x += 1.5_r){
 		for(dir.y = -10_r; dir.y <= 10.0; dir.y += 1.5_r){
@@ -149,6 +149,61 @@ TEST_CASE("Cube Map Direction -> UV -> Direction"){
 				Vec3r dir_n = xen::normalized(dir);
 				CHECK(xen::getCubeMapDirection(xen::getCubeMapUv(dir_n)) == dir_n);
 			}
+		}
+	}
+}
+
+TEST_CASE("LatLong -> CubeMap UV", "[graphics][CubeMap]"){
+	CHECK(xen::getCubeMapUv(xen::LatLong{ 0_deg,   0_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveX });
+	CHECK(xen::getCubeMapUv(xen::LatLong{ 0_deg,  90_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::NegativeZ });
+	CHECK(xen::getCubeMapUv(xen::LatLong{ 0_deg, 180_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::NegativeX });
+	CHECK(xen::getCubeMapUv(xen::LatLong{ 0_deg, 270_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveZ });
+	CHECK(xen::getCubeMapUv(xen::LatLong{ 0_deg, 360_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveX });
+
+	CHECK(xen::getCubeMapUv(xen::LatLong{ 0_deg, -  0_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveX });
+	CHECK(xen::getCubeMapUv(xen::LatLong{ 0_deg, - 90_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveZ });
+	CHECK(xen::getCubeMapUv(xen::LatLong{ 0_deg, -180_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::NegativeX });
+	CHECK(xen::getCubeMapUv(xen::LatLong{ 0_deg, -270_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::NegativeZ });
+	CHECK(xen::getCubeMapUv(xen::LatLong{ 0_deg, -360_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveX });
+
+	CHECK(xen::getCubeMapUv(xen::LatLong{   0_deg, 0_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveX });
+	CHECK(xen::getCubeMapUv(xen::LatLong{  90_deg, 0_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveY });
+	CHECK(xen::getCubeMapUv(xen::LatLong{ 180_deg, 0_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::NegativeX });
+	CHECK(xen::getCubeMapUv(xen::LatLong{ 270_deg, 0_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::NegativeY });
+	CHECK(xen::getCubeMapUv(xen::LatLong{ 360_deg, 0_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveX });
+
+	CHECK(xen::getCubeMapUv(xen::LatLong{ -  0_deg, 0_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveX });
+	CHECK(xen::getCubeMapUv(xen::LatLong{ - 90_deg, 0_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::NegativeY });
+	CHECK(xen::getCubeMapUv(xen::LatLong{ -180_deg, 0_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::NegativeX });
+	CHECK(xen::getCubeMapUv(xen::LatLong{ -270_deg, 0_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveY });
+	CHECK(xen::getCubeMapUv(xen::LatLong{ -360_deg, 0_deg }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveX });
+
+	CHECK(xen::getCubeMapUv(xen::LatLong{ 0.0000_deg,  45_deg }) == xen::CubeMapUv{ 1.0_r, 0.5_r, xen::CubeMap::NegativeZ });
+	CHECK(xen::getCubeMapUv(xen::LatLong{35.2644_deg, -45_deg }) == xen::CubeMapUv{ 0.0_r, 0.0_r, xen::CubeMap::PositiveY });
+}
+
+
+TEST_CASE("CubeMap UV -> LatLong", "[graphics][CubeMap]"){
+	CHECK(xen::getCubeMapLatLong(xen::CubeMapUv{ 1.0_r, 1.0_r, xen::CubeMap::PositiveY }) == xen::LatLong{  35.2644_deg,  135_deg });
+	CHECK(xen::getCubeMapLatLong(xen::CubeMapUv{ 0.0_r, 0.0_r, xen::CubeMap::PositiveY }) == xen::LatLong{  35.2644_deg, - 45_deg });
+	CHECK(xen::getCubeMapLatLong(xen::CubeMapUv{ 1.0_r, 0.0_r, xen::CubeMap::PositiveY }) == xen::LatLong{  35.2644_deg, -135_deg });
+	CHECK(xen::getCubeMapLatLong(xen::CubeMapUv{ 0.0_r, 1.0_r, xen::CubeMap::PositiveY }) == xen::LatLong{  35.2644_deg,   45_deg });
+
+	CHECK(xen::getCubeMapLatLong(xen::CubeMapUv{ 1.0_r, 1.0_r, xen::CubeMap::NegativeY }) == xen::LatLong{ -35.2644_deg, -135_deg });
+	CHECK(xen::getCubeMapLatLong(xen::CubeMapUv{ 0.0_r, 0.0_r, xen::CubeMap::NegativeY }) == xen::LatLong{ -35.2644_deg,   45_deg });
+	CHECK(xen::getCubeMapLatLong(xen::CubeMapUv{ 1.0_r, 0.0_r, xen::CubeMap::NegativeY }) == xen::LatLong{ -35.2644_deg,  135_deg });
+	CHECK(xen::getCubeMapLatLong(xen::CubeMapUv{ 0.0_r, 1.0_r, xen::CubeMap::NegativeY }) == xen::LatLong{ -35.2644_deg, - 45_deg });
+}
+
+TEST_CASE("Map LatLong -> CubeMap UV -> LatLong", "[graphics][CubeMap]"){
+	xen::LatLong ll;
+
+	// Avoid singularities with non-unique representations (eg, longitude
+	// irrelevant if latitude is 90) by starting and ending at just off 180
+
+	for(ll.x = -179.9_deg; ll.x <= 179.9_deg; ll.x += 10_deg){
+		for(ll.y = -179.9_deg; ll.y <= 179.9_deg; ll.y += 10_deg){
+			CHECK(xen::clamp(xen::getCubeMapLatLong(xen::getCubeMapUv(ll))) == xen::clamp(ll));
 		}
 	}
 }

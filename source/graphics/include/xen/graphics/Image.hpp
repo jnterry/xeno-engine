@@ -109,6 +109,9 @@ namespace xen{
 	/// given a direction from the center looking out towards the map
 	/////////////////////////////////////////////////////////////////////
 	CubeMapUv getCubeMapUv(Vec3r direction);
+	inline CubeMapUv getCubeMapUv(LatLong latlong){
+		return getCubeMapUv(xen::toCartesian(latlong));
+	}
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Computes the pixel of a cube map to be accessed given
@@ -145,6 +148,10 @@ namespace xen{
 	/// corresponding to a particular uv coordinate on a cubemap's surface
 	/////////////////////////////////////////////////////////////////////
 	Vec3r getCubeMapDirection(CubeMapUv uv);
+
+	inline LatLong getCubeMapLatLong(xen::CubeMapUv coord){
+		return xen::toLatLong(xen::getCubeMapDirection(coord));
+	}
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves the coordinate of the neighbour of some cubemap pixel
