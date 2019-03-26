@@ -7,7 +7,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <xen/graphics/Image.hpp>
-#include "../math/ostream_operators.hpp"
+#include "ostream_operators.hpp"
 #include <catch.hpp>
 
 TEST_CASE("Cube Map Direction to Pixel", "[graphics][CubeMap]"){
@@ -108,20 +108,6 @@ TEST_CASE("Cube Map Pixel to LatLong (size 3)", "[graphics][CubeMap][latlong]"){
 		xen::LatLong{ 0_deg, -90_deg }
 	);
 
-	// Intermediate rotations around poles
-	CHECK(
-		xen::getCubeMapLatLong( Vec3u { 0, 1, xen::CubeMap::Face::PositiveX }, 3) ==
-		xen::LatLong{ 0_deg, 30_deg }
-	);
-	CHECK(
-		xen::getCubeMapLatLong( Vec3u { 2, 1, xen::CubeMap::Face::NegativeZ }, 3) ==
-		xen::LatLong{ 0_deg, 60_deg }
-	);
-	CHECK(
-		xen::getCubeMapLatLong( Vec3u { 1, 2, xen::CubeMap::Face::PositiveX }, 3) ==
-		xen::LatLong{ 30_deg, 0_deg }
-	);
-
 	// Poles
 	CHECK(
 		xen::getCubeMapLatLong(Vec3u{ 1, 1, xen::CubeMap::Face::PositiveY }, 3) ==
@@ -131,4 +117,38 @@ TEST_CASE("Cube Map Pixel to LatLong (size 3)", "[graphics][CubeMap][latlong]"){
 		xen::getCubeMapLatLong(Vec3u{ 1, 1, xen::CubeMap::Face::NegativeY }, 3) ==
 		xen::LatLong{ -90_deg, 0_deg }
 	);
+}
+
+TEST_CASE("Cube Map UV from Direction", "[graphics][CubeMap]"){
+	CHECK(xen::getCubeMapUv(Vec3r{  1,  0,  0 }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveX});
+	CHECK(xen::getCubeMapUv(Vec3r{ -1,  0,  0 }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::NegativeX});
+
+	CHECK(xen::getCubeMapUv(Vec3r{  0,  1,  0 }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveY});
+	CHECK(xen::getCubeMapUv(Vec3r{  0, -1,  0 }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::NegativeY});
+
+	CHECK(xen::getCubeMapUv(Vec3r{  0,  0,  1 }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveZ});
+	CHECK(xen::getCubeMapUv(Vec3r{  0,  0, -1 }) == xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::NegativeZ});
+}
+
+TEST_CASE("Cube Map Direction from UV", "[graphics][CubeMap]"){
+	CHECK(xen::getCubeMapDirection(xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveX}) == Vec3r{  1,  0,  0 });
+	CHECK(xen::getCubeMapDirection(xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::NegativeX}) == Vec3r{ -1,  0,  0 });
+
+	CHECK(xen::getCubeMapDirection(xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveY}) == Vec3r{  0,  1,  0 });
+	CHECK(xen::getCubeMapDirection(xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::NegativeY}) == Vec3r{  0, -1,  0 });
+
+	CHECK(xen::getCubeMapDirection(xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::PositiveZ}) == Vec3r{  0,  0,  1 });
+	CHECK(xen::getCubeMapDirection(xen::CubeMapUv{ 0.5_r, 0.5_r, xen::CubeMap::NegativeZ}) == Vec3r{  0,  0, -1 });
+}
+
+TEST_CASE("Cube Map Direction -> UV -> Direction"){
+	Vec3r dir;
+	for(dir.x = -10_r; dir.x <= 10.0; dir.x += 1.5_r){
+		for(dir.y = -10_r; dir.y <= 10.0; dir.y += 1.5_r){
+			for(dir.z = -10_r; dir.z <= 10.0; dir.z += 1.5_r){
+				Vec3r dir_n = xen::normalized(dir);
+				CHECK(xen::getCubeMapDirection(xen::getCubeMapUv(dir_n)) == dir_n);
+			}
+		}
+	}
 }

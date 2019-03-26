@@ -105,6 +105,12 @@ namespace xen{
 	void destroyImage(Allocator& alloc, RawImage image);
 
 	/////////////////////////////////////////////////////////////////////
+	/// \brief Retrieves the UV coordinates to sample from a cubemap
+	/// given a direction from the center looking out towards the map
+	/////////////////////////////////////////////////////////////////////
+	CubeMapUv getCubeMapUv(Vec3r direction);
+
+	/////////////////////////////////////////////////////////////////////
 	/// \brief Computes the pixel of a cube map to be accessed given
 	/// a direction from the center of the cube map towards one of the faces
 	/// \return x and y component will range from 0 to face_size, z component
@@ -133,6 +139,12 @@ namespace xen{
 	/// \param face_size The dimensions of each face
 	/////////////////////////////////////////////////////////////////////
 	Vec3r getCubeMapDirection(Vec3u cube_map_pixel, u32 face_size);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Retrieves a direction vector from some center point outwards
+	/// corresponding to a particular uv coordinate on a cubemap's surface
+	/////////////////////////////////////////////////////////////////////
+	Vec3r getCubeMapDirection(CubeMapUv uv);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves the coordinate of the neighbour of some cubemap pixel

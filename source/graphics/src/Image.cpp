@@ -174,60 +174,54 @@ namespace xen{
 	}
 }
 
-Vec3u xen::getCubeMapPixelCoord(Vec3r v, u32 face_size){
+xen::CubeMapUv xen::getCubeMapUv(Vec3r v){
 	// Adapted from https://www.gamedev.net/forums/topic/687535-implementing-a-cube-map-lookup-function/
 	Vec3r v_abs = {
 		xen::abs(v.x), xen::abs(v.y), xen::abs(v.z)
 	};
   real ma;
 
-  Vec3r result;
+  xen::CubeMapUv result;
 
 	if(v_abs.z >= v_abs.x && v_abs.z >= v_abs.y) {
-		result.x = v.z < 0.0 ? -v.x : v.x;
-		result.y = -v.y;
-		result.z = v.z < 0.0 ? xen::CubeMap::NegativeZ : xen::CubeMap::PositiveZ;
+		result.uv.x = v.z < 0.0 ? -v.x : v.x;
+		result.uv.y = -v.y;
+		result.face = v.z < 0.0 ? xen::CubeMap::NegativeZ : xen::CubeMap::PositiveZ;
 		ma = 0.5 / v_abs.z;
 	} else if(v_abs.y >= v_abs.x) {
-		result.x = v.x;
-		result.y = v.y < 0.0 ? -v.z : v.z;
-		result.z = v.y < 0.0 ? xen::CubeMap::NegativeY : xen::CubeMap::PositiveY;
+		result.uv.x = v.x;
+		result.uv.y = v.y < 0.0 ? -v.z : v.z;
+		result.face = v.y < 0.0 ? xen::CubeMap::NegativeY : xen::CubeMap::PositiveY;
 		ma = 0.5 / v_abs.y;
 	} else {
-		result.x = v.x < 0.0 ? v.z : -v.z;
-		result.y = -v.y;
-		result.z = v.x < 0.0 ? xen::CubeMap::NegativeX : xen::CubeMap::PositiveX;
+		result.uv.x = v.x < 0.0 ? v.z : -v.z;
+		result.uv.y = -v.y;
+		result.face = v.x < 0.0 ? xen::CubeMap::NegativeX : xen::CubeMap::PositiveX;
 	  ma = 0.5 / v_abs.x;
 	}
 
-	result.xy *= -ma;
-	result.x += 0.5_r;
-	result.y += 0.5_r;
+	result.uv *= -ma;
+	result.uv.x += 0.5_r;
+	result.uv.y += 0.5_r;
+
+	return result;
+}
+
+Vec3u xen::getCubeMapPixelCoord(Vec3r v, u32 face_size){
+	xen::CubeMapUv val = getCubeMapUv(v);
 
 	return Vec3u{
-		(unsigned int)(result.x * face_size),
-		(unsigned int)(result.y * face_size),
-		(unsigned int)result.z
+		(unsigned int)(val.uv.x * face_size),
+		(unsigned int)(val.uv.y * face_size),
+		(unsigned int)val.face
   };
 }
 
-/// \brief Computes a direction vector from the center of a cube map to some
-/// pixel on its surface
-/// \param cube_map_pixel Coordinate of a cube map pixel, x and y are the pixel
-/// within the face. z represents which face
-/// \param face_size The dimensions of each face
-Vec3r xen::getCubeMapDirection(Vec3u cube_map_pixel, u32 face_size){
-	// Compute 0-1 values within the face
-	Vec2r face_offset = xen::cast<real>(cube_map_pixel.xy) / (real)face_size;
-
-	// Offset to the center of the pixel (rather than lower left corner)
-	face_offset += Vec2r{ 0.5_r / (real)face_size, 0.5_r / (real)face_size };
-
-
-	face_offset -= Vec2r{0.5_r, 0.5_r}; // now between -0.5 and 0.5
+Vec3r xen::getCubeMapDirection(xen::CubeMapUv coord){
+	Vec2r face_offset = coord.uv - Vec2r{0.5_r, 0.5_r}; // now between -0.5 and 0.5
 	face_offset *= -2.0_r; // now between -1 and 1
 
-	switch(cube_map_pixel.z){
+	switch(coord.face){
 	case xen::CubeMap::Face::PositiveX:
 		return xen::normalized(Vec3r{  1.0_r, -face_offset.y, -face_offset.x });
 	case xen::CubeMap::Face::NegativeX:
@@ -243,6 +237,16 @@ Vec3r xen::getCubeMapDirection(Vec3u cube_map_pixel, u32 face_size){
 	}
 
 	return Vec3r::Origin;
+}
+
+Vec3r xen::getCubeMapDirection(Vec3u cube_map_pixel, u32 face_size){
+	// Compute 0-1 values within the face
+	Vec2r face_offset = xen::cast<real>(cube_map_pixel.xy) / (real)face_size;
+
+	// Offset to the center of the pixel (rather than lower left corner)
+	face_offset += Vec2r{ 0.5_r / (real)face_size, 0.5_r / (real)face_size };
+
+	return getCubeMapDirection(xen::CubeMapUv{ face_offset, (xen::CubeMap::Face)cube_map_pixel.z});
 }
 
 Vec3u xen::getCubeMapPixelNeighbour(Vec3u coord, u32 face_size,
@@ -332,6 +336,9 @@ Vec3u xen::getCubeMapPixelCoord(xen::LatLong latlong, u32 face_size){
 }
 
 xen::LatLong xen::getCubeMapLatLong(Vec3u coord, u32 face_size){
+	Vec3r dir = xen::getCubeMapDirection(coord, face_size);
+	return xen::toLatLong(dir);
+	/*
 	xen::LatLong center;
 	bool is_side_face = true;
 
@@ -396,7 +403,7 @@ xen::LatLong xen::getCubeMapLatLong(Vec3u coord, u32 face_size){
 
 
 
-	return center;
+	return center;*/
 }
 
 #endif
