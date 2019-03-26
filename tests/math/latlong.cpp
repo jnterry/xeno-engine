@@ -90,6 +90,7 @@ TEST_CASE("latlong, Cartesian -> LatLong -> Cartesian", "[math][latlong]"){
 	}
 }
 
+/*
 TEST_CASE("Project Cube -> Sphere -> Cube", "[math][latlong]"){
 	// We construct points on the cube by enforcing that at least 1 of the
 	// three components is equal to either 1 or -1 (thus ensuring the point is on
@@ -129,3 +130,4 @@ TEST_CASE("Project Cube -> Sphere -> Cube", "[math][latlong]"){
 		}
 	}
 }
+*/

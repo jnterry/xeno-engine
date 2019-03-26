@@ -57,6 +57,7 @@ namespace xen {
 		return { lat, xen::clamp(lon + 180_deg) - 180_deg };
 	}
 
+	/*
 	/// \brief Maps points on a cube with min and max verts of { -1, -1, -1 }
 	/// and { 1, 1, 1 } respectively to a corresponding point on unit sphere
 	///
@@ -105,6 +106,7 @@ namespace xen {
 
 		return p * (1.0 / p_abs[max_comp_idx]);
 	}
+	*/
 }
 
 template<typename T>
