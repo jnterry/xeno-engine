@@ -31,6 +31,14 @@ namespace xen{
 		}
 		return os << "CubeMapUv{ "<<  v.uv << ", " << face_name << "}";
 	}
+
+	inline std::ostream& operator<< (std::ostream& os, const xen::CubeMapSamplePoints& v){
+		os << "CubeMapSamplePoints: " << std::endl;
+		for(int i = 0; i < 4; ++i){
+			os << " - " << v.coord[i] << " (" << v.weight[i] << ")" << std::endl;
+		}
+		return os;
+	}
 }
 
 #endif

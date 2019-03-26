@@ -187,6 +187,43 @@ namespace xen{
   /////////////////////////////////////////////////////////////////////
 	Vec3u getCubeMapPixelNeighbour(Vec3u coord, u32 face_size, xen::CubeMap::Direction dir);
 
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents a weighted blend of cube map texels to be sampled
+	/// in order to read the value of some CubeMapUv
+	/////////////////////////////////////////////////////////////////////
+	struct CubeMapSamplePoints {
+		/// \brief The 4 pixels whose values must be blended together
+		Vec3u coord[4];
+
+		/// \brief The weightings for each pixel, sum of these will be equal to
+		/// 1.0. Note that some of these may be 0.0 when less than 4 texels need
+		/// to be sampled - for example if reading directly from the center of some
+		/// pixel only 1 pixel needs be sampled. When reading directly from the
+		/// corner of a cube face only 3 pixels need to be sampled since the
+		/// curvature means there are only 3 pixels meeting at this vertex, not 4
+		real  weight[4];
+	};
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Computes which texels need to be sampled and the corresponding
+	/// blend weights in order to read the value of a cubemap at a location not
+	/// directly centered on some pixel
+	/// \return CubeMapSamplePoints representing the texels to be sampled. Arrays
+	/// will be ordered such that:
+	/// - [0] is the primary pixel that the uv falls within
+	/// - [1] is the neighbour to the primary pixel stepping along the uv.x direction
+	/// - [2] is the neighbour to the primary pixel stepping along the uv.y direction
+	/// - [3] is diagonally touching the primary pixel, stepping along both uv.x and uv.y
+	/////////////////////////////////////////////////////////////////////
+	CubeMapSamplePoints getCubeMapSamplePoints(CubeMapUv uv, u32 face_size);
+
+	inline CubeMapSamplePoints getCubeMapSamplePoints(Vec3r direction, u32 face_size){
+		return getCubeMapSamplePoints(getCubeMapUv(direction), face_size);
+	}
+	inline CubeMapSamplePoints getCubeMapSamplePoints(LatLong latlong, u32 face_size){
+		return getCubeMapSamplePoints(getCubeMapUv(latlong), face_size);
+	}
+
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Computes the total length of the CubeArray's elements member

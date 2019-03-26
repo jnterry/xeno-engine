@@ -204,6 +204,7 @@ xen::CubeMapUv xen::getCubeMapUv(Vec3r v){
 	result.uv.x += 0.5_r;
 	result.uv.y += 0.5_r;
 
+
 	return result;
 }
 
@@ -328,6 +329,85 @@ Vec3u xen::getCubeMapPixelNeighbour(Vec3u coord, u32 face_size,
 
 	XenBreak("Unhandled case in cube map neighbour");
 	return Vec3u::Origin;
+}
+
+xen::CubeMapSamplePoints xen::getCubeMapSamplePoints(xen::CubeMapUv coord, u32 face_size){
+	xen::CubeMapSamplePoints result;
+
+	// Compute the integer components of the primary pixel (IE: that actually
+	// contains the target uv)
+	Vec2r pixel = coord.uv * (real)face_size;
+	Vec3u primary_pixel = { (u32)pixel.x, (u32)pixel.y, (u32)coord.face };
+
+	// Compute the offset from the center of the pixel in question, thus between
+	// -0.5 and 0.5 as we go from one edge to the opposite edge
+	Vec2r fracs     = pixel - xen::cast<real>(primary_pixel.xy) - Vec2r{ 0.5_r, 0.5_r };
+	Vec2r fracs_abs = xen::abs(fracs);
+
+	// Compute the weights to use for adjacent pixels
+	result.weight[0] = (1.0 - fracs_abs.x) * (1.0 - fracs_abs.y);
+	result.weight[1] = (      fracs_abs.x) * (1.0 - fracs_abs.y);
+	result.weight[2] = (1.0 - fracs_abs.x) * (      fracs_abs.y);
+	result.weight[3] = (      fracs_abs.x) * (      fracs_abs.y);
+
+	// Work out which direction to step in for u and v relative to the face that
+	// contains the primary pixel
+	xen::CubeMap::Direction dir_u = fracs.x < 0.0 ? xen::CubeMap::Left : xen::CubeMap::Right;
+	xen::CubeMap::Direction dir_v = fracs.y < 0.0 ? xen::CubeMap::Down : xen::CubeMap::Up;
+
+	// Work out whether we will wrap to a different face when stepping along
+	// u and along v
+	bool wrap_u = (fracs.x < 0.0 && primary_pixel.x <= 0) || (fracs.x > 0.0 && primary_pixel.x >= face_size-1);
+	bool wrap_v = (fracs.y < 0.0 && primary_pixel.y <= 0) || (fracs.y > 0.0 && primary_pixel.y >= face_size-1);
+
+	if(wrap_u && wrap_v){
+		// Then we are reading from the very corner of a face and are wrapping
+		// onto the two adjacent faces
+		result.coord[0] = primary_pixel;
+		result.coord[1] = xen::getCubeMapPixelNeighbour(result.coord[0], face_size, dir_u);
+		result.coord[2] = xen::getCubeMapPixelNeighbour(result.coord[0], face_size, dir_v);
+
+		// Update weights such that coord[3] doesn't matter and has a weight of 0.0
+		//
+		// Assuming the primary pixel is bottom left and we are on a corner,
+		// then the top right diagonally connected pixel does not exist,
+		// hence we want the following transformations to the weight to occur:
+		//
+		// | 0.00 | 0.00 |        | 0.00 | 0.00 |
+		// +------+------+  ===>  +------+------+
+		// | 1.00 | 0.00 |        | 1.00 | 0.00 |
+		//
+		// | 0.25 | 0.25 |        | 0.33 | 0.00 |
+		// +------+------+  ===>  +------+------+
+		// | 0.25 | 0.25 |        | 0.33 | 0.33 |
+		//
+		// | 0.50 | 0.00 |        | 0.50 | 0.00 |
+		// +------+------+  ===>  +------+------+
+		// | 0.50 | 0.00 |        | 0.50 | 0.00 |
+		result.weight[0] += result.weight[3] / 3.0;
+		result.weight[1] += result.weight[3] / 3.0;
+		result.weight[2] += result.weight[3] / 3.0;
+		result.weight[3]  = 0.0;
+	} else if (wrap_u) {
+		// Then we are wrapping u but not v
+		// Hence we should first step along v (thus remaining in the face)
+		// then along u (which will wrap, hence invalidating dir_u and dir_v)
+		result.coord[0] = primary_pixel;
+		result.coord[2] = xen::getCubeMapPixelNeighbour(result.coord[0], face_size, dir_v);
+		result.coord[1] = xen::getCubeMapPixelNeighbour(result.coord[0], face_size, dir_u);
+		result.coord[3] = xen::getCubeMapPixelNeighbour(result.coord[2], face_size, dir_u);
+	} else {
+		// Then either neither is wrapping (in which case we can step in either
+		// order) or just v is wrapping (in which case we should step along u first)
+		result.coord[0] = primary_pixel;
+		result.coord[1] = xen::getCubeMapPixelNeighbour(result.coord[0], face_size, dir_u);
+		result.coord[2] = xen::getCubeMapPixelNeighbour(result.coord[0], face_size, dir_v);
+		result.coord[3] = xen::getCubeMapPixelNeighbour(result.coord[1], face_size, dir_v);
+	}
+
+	return result;
+
+
 }
 
 Vec3u xen::getCubeMapPixelCoord(xen::LatLong latlong, u32 face_size){
