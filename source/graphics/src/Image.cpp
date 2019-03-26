@@ -326,4 +326,77 @@ Vec3u xen::getCubeMapPixelNeighbour(Vec3u coord, u32 face_size,
 	return Vec3u::Origin;
 }
 
+Vec3u xen::getCubeMapPixelCoord(xen::LatLong latlong, u32 face_size){
+	Vec3r dir = xen::toCartesian(latlong);
+	return getCubeMapPixelCoord(dir, face_size);
+}
+
+xen::LatLong xen::getCubeMapLatLong(Vec3u coord, u32 face_size){
+	xen::LatLong center;
+	bool is_side_face = true;
+
+	switch(coord.z) {
+	case xen::CubeMap::PositiveX:
+		center = xen::LatLong{   0_deg,   0_deg }; break;
+	case xen::CubeMap::NegativeZ:
+		center = xen::LatLong{   0_deg,  90_deg }; break;
+	case xen::CubeMap::NegativeX:
+		center = xen::LatLong{   0_deg, 180_deg }; break;
+	case xen::CubeMap::PositiveZ:
+		center = xen::LatLong{   0_deg, -90_deg }; break;
+
+	case xen::CubeMap::PositiveY:
+		center       = xen::LatLong{  90_deg,   0_deg };
+		is_side_face = false;
+		break;
+	case xen::CubeMap::NegativeY:
+		center       = xen::LatLong{ -90_deg,   0_deg };
+		is_side_face = false;
+		break;
+	}
+
+	real num_divisions = (real)face_size * 4.0;
+	xen::Angle delta_per_pixel = 360_deg / num_divisions;
+
+	if(is_side_face){
+		xen::LatLong offset = { 0_deg, 0_deg };
+
+		// If even number of pixels per face then the "center" of a face does
+		// not line up with the center of a pixel, but a boundary, hence offset
+		// everything by half a pixel
+		if(face_size % 2 == 0){
+			offset.x = 0.5 * delta_per_pixel;
+			offset.y = 0.5 * delta_per_pixel;
+		}
+
+		offset.x += (real)((s64)coord.y - (s64)floor((real)face_size / 2.0)) *  delta_per_pixel;
+		offset.y += (real)((s64)coord.x - (s64)floor((real)face_size / 2.0)) * -delta_per_pixel;
+
+		return center + offset;
+	}
+
+	// Then this is the top or bottom face...
+	// The radius from the central pixel gives the latitude
+	// while which pixel gives the longitude
+	//
+	// Note that the radius is really flood fill distance, eg:
+	// This is because of the projection used to map a cube to
+	// a sphere, which more distant rings have more pixels covering
+	// them as the effective sphere radius is greater
+	//
+	// 2 2 2 2 2
+	// 2 1 1 1 2
+	// 2 1 0 1 2
+	// 2 1 1 1 2
+	// 2 2 2 2 2
+	real ring_idx = (real)xen::max(
+		xen::abs((s64)coord.x - (s64)face_size),
+		xen::abs((s64)coord.y - (s64)face_size)
+	);
+
+
+
+	return center;
+}
+
 #endif

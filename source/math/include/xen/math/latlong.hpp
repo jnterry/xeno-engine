@@ -56,6 +56,55 @@ namespace xen {
 
 		return { lat, xen::clamp(lon + 180_deg) - 180_deg };
 	}
+
+	/// \brief Maps points on a cube with min and max verts of { -1, -1, -1 }
+	/// and { 1, 1, 1 } respectively to a corresponding point on unit sphere
+	///
+	/// A naive but conceptually easy method would be to simply normalise the
+	/// point on the unit cube such that it is at unit length from the sphere,
+	/// however this function uses a slightly more expensive projection in order
+	/// to try and reduce the stretching at the corners of the cube's faces
+	inline Vec3r projectCubeToSphere(Vec3r p){
+		// http://mathproofs.blogspot.com/2005/07/mapping-cube-to-sphere.html
+
+		real x2 = p.x * p.x;
+		real y2 = p.y * p.y;
+		real z2 = p.z * p.z;
+
+		p.x *= xen::sqrt(1 - (y2/2.0) - (z2/2.0) + ((y2*z2)/3.0));
+		p.y *= xen::sqrt(1 - (z2/2.0) - (x2/2.0) + ((z2*x2)/3.0));
+		p.z *= xen::sqrt(1 - (x2/2.0) - (y2/2.0) + ((x2*y2)/3.0));
+
+		return p;
+	}
+
+	/// \brief Maps a point on the surface of a unit sphere to a point
+	/// on a face of a cube with min and max verts of { -1, -1, -1 } and { 1, 1, 1 }
+	/// respectively
+	inline Vec3r projectSphereToCube(Vec3r p){
+		// The important observation here is that p is a direction vector which
+		// we want to extend in length such that it lies on the surface of the
+		// cube. In order for a point to lie on the cube it must satisfy:
+		// - One or more components must have the value of +1 or -1
+		// - All other components must be in the range -1 -> 1 inclusive
+		//
+		// Hence we can force the point onto the cube by finding the component
+		// with the current maximum value, and multiplying the entire direction
+		// vector by some factor to make that component equal -1 or +1 such
+		// that we satisfy the conditions above
+		u32 max_comp_idx;
+		Vec3r p_abs = xen::abs(p);
+
+		if(p_abs.x > p_abs.y && p_abs.x > p_abs.z){
+			max_comp_idx = 0;
+		} else if (p_abs.y > p_abs.z){
+			max_comp_idx = 1;
+		} else {
+			max_comp_idx = 2;
+		}
+
+		return p * (1.0 / p_abs[max_comp_idx]);
+	}
 }
 
 template<typename T>

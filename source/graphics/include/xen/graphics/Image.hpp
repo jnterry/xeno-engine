@@ -13,6 +13,7 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/math/vector_types.hpp>
+#include <xen/math/latlong.hpp>
 #include <xen/graphics/Image_types.hpp>
 
 namespace xen{
@@ -111,6 +112,18 @@ namespace xen{
 	/// (see xen::CubeMap::Face)
 	/////////////////////////////////////////////////////////////////////
 	Vec3u getCubeMapPixelCoord(Vec3r direction, u32 face_size);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Computes the pixel of a cubemap to sample given a latitude and
+	/// longitude
+	/////////////////////////////////////////////////////////////////////
+	Vec3u getCubeMapPixelCoord(LatLong latlong, u32 face_size);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Computes the latitude and longitude for the center of some
+	/// pixel in a cube map
+	/////////////////////////////////////////////////////////////////////
+	LatLong getCubeMapLatLong(Vec3u cube_map_pixel, u32 face_size);
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Computes a direction vector from the center of a cube map to some
