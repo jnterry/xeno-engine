@@ -222,11 +222,21 @@ TEST_CASE("getCubeMapSamplePoints", "[graphics][CubeMap]"){
 		CHECK(sp.weight[3] == 0.0_r);
 	}
 
+	SECTION("Size 9, LatLong 90, 0"){
+		xen::LatLong ll = { 90_deg, 0_deg };
+		xen::CubeMapSamplePoints sp = xen::getCubeMapSamplePoints(ll, 9);
+
+		CHECK(sp.coord [0] == Vec3u{ 4, 4, xen::CubeMap::PositiveY });
+		CHECK(sp.weight[0] == 1.0_r);
+
+		CHECK(sp.weight[1] == 0.0_r);
+		CHECK(sp.weight[2] == 0.0_r);
+		CHECK(sp.weight[3] == 0.0_r);
+	}
+
 	SECTION("Size 2, LatLong 0, 0"){
 		xen::LatLong ll = { 0_deg, 0_deg };
 		xen::CubeMapSamplePoints sp = xen::getCubeMapSamplePoints(ll, 2);
-
-		std::cout << sp << std::endl;
 
 		CHECK(sp.coord [0] == Vec3u{ 0, 0, xen::CubeMap::PositiveX });
 		CHECK(sp.weight[0] == 0.25_r);
@@ -245,8 +255,6 @@ TEST_CASE("getCubeMapSamplePoints", "[graphics][CubeMap]"){
 		xen::LatLong ll = { 0_deg, 45_deg };
 		xen::CubeMapSamplePoints sp = xen::getCubeMapSamplePoints(ll, 3);
 
-		std::cout << sp << std::endl;
-
 		CHECK(sp.weight[0] == 0.5_r);
 		CHECK(sp.weight[1] == 0.5_r);
 		CHECK(sp.weight[2] == 0.0_r);
@@ -258,8 +266,6 @@ TEST_CASE("getCubeMapSamplePoints", "[graphics][CubeMap]"){
 
 	SECTION("Size 1, Dir 1,1,1"){
 		xen::CubeMapSamplePoints sp = xen::getCubeMapSamplePoints(xen::normalized(Vec3r{1,1,1}), 1);
-
-		std::cout << sp << std::endl;
 
 		CHECK(sp.weight[0] == 0.3333333333333_r);
 		CHECK(sp.weight[1] == 0.3333333333333_r);
