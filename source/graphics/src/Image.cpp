@@ -335,12 +335,12 @@ xen::CubeMapSamplePoints xen::getCubeMapSamplePoints(xen::CubeMapUv coord, u32 f
 
 	// Compute the integer components of the primary pixel (IE: that actually
 	// contains the target uv)
-	Vec2r pixel = coord.uv * (real)face_size - Vec2r{ 0.5_r, 0.5_r };
-	Vec3u primary_pixel = { (u32)pixel.x, (u32)pixel.y, (u32)coord.face };
+	Vec2r pixel = coord.uv * (real)face_size;// - Vec2r{ 0.5_r, 0.5_r };
+	Vec3u primary_pixel = { (u32)floor(pixel.x), (u32)floor(pixel.y), (u32)coord.face };
 
 	// Compute the offset from the center of the pixel in question, thus between
 	// -0.5 and 0.5 as we go from one edge to the opposite edge
-	Vec2r fracs     = pixel - xen::cast<real>(primary_pixel.xy);
+	Vec2r fracs     = pixel - xen::cast<real>(primary_pixel.xy) - Vec2r{ 0.5_r, 0.5_r };
 	Vec2r fracs_abs = xen::abs(fracs);
 
 	// Compute the weights to use for adjacent pixels
@@ -365,6 +365,11 @@ xen::CubeMapSamplePoints xen::getCubeMapSamplePoints(xen::CubeMapUv coord, u32 f
 		result.coord[0] = primary_pixel;
 		result.coord[1] = xen::getCubeMapPixelNeighbour(result.coord[0], face_size, dir_u);
 		result.coord[2] = xen::getCubeMapPixelNeighbour(result.coord[0], face_size, dir_v);
+
+		// dummy value -> weight is 0 so doesnt matter, but we want to ensure it is
+		// valid coord as the user code may try to access the cell and multiply by
+		// zero, so we still need to ensure the initial read works
+		result.coord[3] = result.coord[0];
 
 		// Update weights such that coord[3] doesn't matter and has a weight of 0.0
 		//
@@ -417,72 +422,6 @@ Vec3u xen::getCubeMapPixelCoord(xen::LatLong latlong, u32 face_size){
 xen::LatLong xen::getCubeMapLatLong(Vec3u coord, u32 face_size){
 	Vec3r dir = xen::getCubeMapDirection(coord, face_size);
 	return xen::toLatLong(dir);
-	/*
-	xen::LatLong center;
-	bool is_side_face = true;
-
-	switch(coord.z) {
-	case xen::CubeMap::PositiveX:
-		center = xen::LatLong{   0_deg,   0_deg }; break;
-	case xen::CubeMap::NegativeZ:
-		center = xen::LatLong{   0_deg,  90_deg }; break;
-	case xen::CubeMap::NegativeX:
-		center = xen::LatLong{   0_deg, 180_deg }; break;
-	case xen::CubeMap::PositiveZ:
-		center = xen::LatLong{   0_deg, -90_deg }; break;
-
-	case xen::CubeMap::PositiveY:
-		center       = xen::LatLong{  90_deg,   0_deg };
-		is_side_face = false;
-		break;
-	case xen::CubeMap::NegativeY:
-		center       = xen::LatLong{ -90_deg,   0_deg };
-		is_side_face = false;
-		break;
-	}
-
-	real num_divisions = (real)face_size * 4.0;
-	xen::Angle delta_per_pixel = 360_deg / num_divisions;
-
-	if(is_side_face){
-		xen::LatLong offset = { 0_deg, 0_deg };
-
-		// If even number of pixels per face then the "center" of a face does
-		// not line up with the center of a pixel, but a boundary, hence offset
-		// everything by half a pixel
-		if(face_size % 2 == 0){
-			offset.x = 0.5 * delta_per_pixel;
-			offset.y = 0.5 * delta_per_pixel;
-		}
-
-		offset.x += (real)((s64)coord.y - (s64)floor((real)face_size / 2.0)) *  delta_per_pixel;
-		offset.y += (real)((s64)coord.x - (s64)floor((real)face_size / 2.0)) * -delta_per_pixel;
-
-		return center + offset;
-	}
-
-	// Then this is the top or bottom face...
-	// The radius from the central pixel gives the latitude
-	// while which pixel gives the longitude
-	//
-	// Note that the radius is really flood fill distance, eg:
-	// This is because of the projection used to map a cube to
-	// a sphere, which more distant rings have more pixels covering
-	// them as the effective sphere radius is greater
-	//
-	// 2 2 2 2 2
-	// 2 1 1 1 2
-	// 2 1 0 1 2
-	// 2 1 1 1 2
-	// 2 2 2 2 2
-	real ring_idx = (real)xen::max(
-		xen::abs((s64)coord.x - (s64)face_size),
-		xen::abs((s64)coord.y - (s64)face_size)
-	);
-
-
-
-	return center;*/
 }
 
 #endif

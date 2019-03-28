@@ -238,38 +238,66 @@ TEST_CASE("getCubeMapSamplePoints", "[graphics][CubeMap]"){
 		xen::LatLong ll = { 0_deg, 0_deg };
 		xen::CubeMapSamplePoints sp = xen::getCubeMapSamplePoints(ll, 2);
 
-		CHECK(sp.coord [0] == Vec3u{ 0, 0, xen::CubeMap::PositiveX });
-		CHECK(sp.weight[0] == 0.25_r);
+		CHECK(sp.coord [3] == Vec3u{ 0, 0, xen::CubeMap::PositiveX });
+		CHECK(sp.weight[3] == 0.25_r);
 
-		CHECK(sp.coord [1] == Vec3u{ 1, 0, xen::CubeMap::PositiveX });
-		CHECK(sp.weight[1] == 0.25_r);
-
-		CHECK(sp.coord [2] == Vec3u{ 0, 1, xen::CubeMap::PositiveX });
+		CHECK(sp.coord [2] == Vec3u{ 1, 0, xen::CubeMap::PositiveX });
 		CHECK(sp.weight[2] == 0.25_r);
 
-		CHECK(sp.coord [3] == Vec3u{ 1, 1, xen::CubeMap::PositiveX });
-		CHECK(sp.weight[3] == 0.25_r);
+		CHECK(sp.coord [1] == Vec3u{ 0, 1, xen::CubeMap::PositiveX });
+		CHECK(sp.weight[1] == 0.25_r);
+
+		CHECK(sp.coord [0] == Vec3u{ 1, 1, xen::CubeMap::PositiveX });
+		CHECK(sp.weight[0] == 0.25_r);
 	}
 
 	SECTION("Size 3, LatLong 0, 45"){
-		xen::LatLong ll = { 0_deg, 45_deg };
+		xen::LatLong ll = { 0_deg, 44.99999_deg };
 		xen::CubeMapSamplePoints sp = xen::getCubeMapSamplePoints(ll, 3);
 
-		CHECK(sp.weight[0] == 0.5_r);
-		CHECK(sp.weight[1] == 0.5_r);
-		CHECK(sp.weight[2] == 0.0_r);
-		CHECK(sp.weight[3] == 0.0_r);
+		CHECK(sp.weight[0] == Approx(0.5_r));
+		CHECK(sp.weight[1] == Approx(0.5_r));
+		CHECK(sp.weight[2] == Approx(0.0_r));
+		CHECK(sp.weight[3] == Approx(0.0_r));
 
-		CHECK(sp.coord[1] == Vec3u{ 0, 1, xen::CubeMap::PositiveX });
-		CHECK(sp.coord[0] == Vec3u{ 2, 1, xen::CubeMap::NegativeZ });
+		CHECK(sp.coord[0] == Vec3u{ 0, 1, xen::CubeMap::PositiveX });
+		CHECK(sp.coord[1] == Vec3u{ 2, 1, xen::CubeMap::NegativeZ });
 	}
 
 	SECTION("Size 1, Dir 1,1,1"){
-		xen::CubeMapSamplePoints sp = xen::getCubeMapSamplePoints(xen::normalized(Vec3r{1,1,1}), 1);
+		xen::CubeMapSamplePoints sp = xen::getCubeMapSamplePoints(xen::normalized(Vec3r{1,0.999999,0.999999}), 1);
 
-		CHECK(sp.weight[0] == 0.3333333333333_r);
-		CHECK(sp.weight[1] == 0.3333333333333_r);
-		CHECK(sp.weight[2] == 0.3333333333333_r);
-		CHECK(sp.weight[3] == 0.0_r);
+		CHECK(sp.weight[0] == Approx(0.3333333333333_r));
+		CHECK(sp.weight[1] == Approx(0.3333333333333_r));
+		CHECK(sp.weight[2] == Approx(0.3333333333333_r));
+		CHECK(sp.weight[3] == Approx(0.0_r));
 	}
 }
+
+/*
+TEST_CASE("getCubeMapLatLong -> SamplePoints", "[graphics][CubeMap]"){
+	Vec3u pos;
+	for(pos.z = 0; pos.z < 6; ++pos.z){
+		for(pos.x = 0; pos.x < 5; ++pos.x){
+			for(pos.y = 0; pos.y < 5; ++pos.y){
+
+
+				xen::LatLong ll = xen::getCubeMapLatLong(pos, 5);
+				xen::CubeMapSamplePoints sp = xen::getCubeMapSamplePoints(ll, 5);
+
+				std::cout << "-------------------------" << std::endl;
+				printf("%u, %u, %u\n", pos.x, pos.y, pos.z);
+				std::cout << sp << std::endl;
+
+				//CHECK(sp.weight[0] == Approx(1.0_r));
+				//CHECK(sp.weight[1] == Approx(0.0_r));
+				//CHECK(sp.weight[2] == Approx(0.0_r));
+				//CHECK(sp.weight[3] == Approx(0.0_r));
+
+				CHECK(sp.coord[0] == pos);
+			}
+		}
+	}
+
+}
+*/

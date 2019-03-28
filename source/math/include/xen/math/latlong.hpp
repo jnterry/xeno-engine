@@ -118,4 +118,45 @@ inline xen::LatLong operator-(const xen::LatLong& a, const xen::LatLong& b){
 	return { a.x - b.x, a.y - b.y };
 }
 
+template<typename T>
+inline xen::LatLong& operator*=(xen::LatLong& lhs, const T rhs){
+	lhs.x *= rhs;
+	lhs.y *= rhs;
+	return lhs;
+}
+template<typename T>
+inline xen::LatLong& operator/=(xen::LatLong& lhs, const T rhs){
+	lhs.x /= rhs;
+	lhs.y /= rhs;
+	return lhs;
+}
+
+template<typename T>
+inline xen::LatLong operator*(const xen::LatLong& lhs, const T rhs){
+	xen::LatLong result = lhs;
+	result *= rhs;
+	return result;
+}
+
+template<typename T>
+inline xen::LatLong operator*(const T lhs, const xen::LatLong& rhs){
+	xen::LatLong result = rhs;
+	result *= lhs;
+	return result;
+}
+
+template<typename T>
+inline xen::LatLong operator/(const xen::LatLong& lhs, const T rhs){
+	xen::LatLong result = lhs;
+	result /= rhs;
+	return result;
+}
+
+inline Vec2r operator/(const xen::LatLong& lhs, const xen::Angle rhs){
+	Vec2r result;
+	result.x = lhs.x / rhs;
+	result.y = lhs.y / rhs;
+	return result;
+}
+
 #endif
