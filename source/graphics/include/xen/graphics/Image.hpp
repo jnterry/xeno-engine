@@ -224,6 +224,15 @@ namespace xen{
 		return getCubeMapSamplePoints(getCubeMapUv(latlong), face_size);
 	}
 
+	template<typename T>
+	T sampleCubeArray(const CubeArray<T>& arr, LatLong ll){
+		CubeMapSamplePoints pts = getCubeMapSamplePoints(ll, arr.side_length);
+		return (arr[pts.coord[0]] * pts.weight[0] +
+		        arr[pts.coord[1]] * pts.weight[1] +
+		        arr[pts.coord[2]] * pts.weight[2] +
+		        arr[pts.coord[3]] * pts.weight[3]);
+	}
+
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Computes the total length of the CubeArray's elements member
