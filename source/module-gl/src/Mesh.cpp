@@ -156,7 +156,7 @@ const xen::Mesh* xgl::createMesh(const xen::MeshData* md){
 	u08 position_index = xen::findMeshAttrib(md, xen::VertexAttribute::Aspect::Position);
 
 	if(position_index == xen::MeshData::BAD_ATTRIB_INDEX){
-		if(md->bounds != xen::Aabb3r::MaxMinBox && md->bounds != xen::Aabb3r{}){
+		if(md->bounds != xen::Aabb3r::MaxMinBox && md->bounds != xen::Aabb3r{Vec3r::Origin, Vec3r::Origin}){
 			XenLogDebug("No known position attribute, using supplied bounds");
 		} else {
 			XenLogWarn("Mesh has no known position attribute and bounds were not supplied, using MaxMin box as bounds - this may effect culling efficiency");

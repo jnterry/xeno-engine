@@ -62,7 +62,7 @@ bool bufferGlTextureData2d(GLenum type, Vec2u size, bool is_floating, u32 channe
 		return false;
 	}
 
-	GLenum internal_format;
+	GLenum internal_format = data_format;
 	if(is_floating){
 		// :TODO: can we use lower precision float types (16 or 8)
 		// Ideally we want the user to be able to hint to us
@@ -76,8 +76,6 @@ bool bufferGlTextureData2d(GLenum type, Vec2u size, bool is_floating, u32 channe
 		case 3: internal_format = GL_RGB32F;  break;
 		case 4: internal_format = GL_RGBA32F; break;
 		}
-	} else {
-		internal_format = data_format;
 	}
 
 	GLenum data_type = is_floating ? GL_FLOAT : GL_UNSIGNED_BYTE;
