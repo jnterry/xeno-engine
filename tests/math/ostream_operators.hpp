@@ -6,6 +6,9 @@
 /// \ingroup unit_tests
 ////////////////////////////////////////////////////////////////////////////////
 
+#ifndef XEN_TESTS_MATH_OSTREAMOPERATORS_HPP
+#define XEN_TESTS_MATH_OSTREAMOPERATORS_HPP
+
 #include <iostream>
 #include <sstream>
 
@@ -122,3 +125,5 @@ template<u32 T_Row, u32 T_Col, typename T>
 inline MatrixMatcher<T_Row, T_Col, T> IsMat(const xen::Matrix<T_Row, T_Col, T>& expected){
 	return MatrixMatcher<T_Row, T_Col, T>(expected);
 }
+
+#endif

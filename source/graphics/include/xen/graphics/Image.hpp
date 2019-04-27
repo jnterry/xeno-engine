@@ -13,6 +13,7 @@
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
 #include <xen/math/vector_types.hpp>
+#include <xen/math/latlong.hpp>
 #include <xen/graphics/Image_types.hpp>
 
 namespace xen{
@@ -104,6 +105,15 @@ namespace xen{
 	void destroyImage(Allocator& alloc, RawImage image);
 
 	/////////////////////////////////////////////////////////////////////
+	/// \brief Retrieves the UV coordinates to sample from a cubemap
+	/// given a direction from the center looking out towards the map
+	/////////////////////////////////////////////////////////////////////
+	CubeMapUv getCubeMapUv(Vec3r direction);
+	inline CubeMapUv getCubeMapUv(LatLong latlong){
+		return getCubeMapUv(xen::toCartesian(latlong));
+	}
+
+	/////////////////////////////////////////////////////////////////////
 	/// \brief Computes the pixel of a cube map to be accessed given
 	/// a direction from the center of the cube map towards one of the faces
 	/// \return x and y component will range from 0 to face_size, z component
@@ -113,6 +123,18 @@ namespace xen{
 	Vec3u getCubeMapPixelCoord(Vec3r direction, u32 face_size);
 
 	/////////////////////////////////////////////////////////////////////
+	/// \brief Computes the pixel of a cubemap to sample given a latitude and
+	/// longitude
+	/////////////////////////////////////////////////////////////////////
+	Vec3u getCubeMapPixelCoord(LatLong latlong, u32 face_size);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Computes the latitude and longitude for the center of some
+	/// pixel in a cube map
+	/////////////////////////////////////////////////////////////////////
+	LatLong getCubeMapLatLong(Vec3u cube_map_pixel, u32 face_size);
+
+	/////////////////////////////////////////////////////////////////////
 	/// \brief Computes a direction vector from the center of a cube map to some
 	/// pixel on its surface
 	/// \param cube_map_pixel Coordinate of a cube map pixel, x and y are the pixel
@@ -120,6 +142,16 @@ namespace xen{
 	/// \param face_size The dimensions of each face
 	/////////////////////////////////////////////////////////////////////
 	Vec3r getCubeMapDirection(Vec3u cube_map_pixel, u32 face_size);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Retrieves a direction vector from some center point outwards
+	/// corresponding to a particular uv coordinate on a cubemap's surface
+	/////////////////////////////////////////////////////////////////////
+	Vec3r getCubeMapDirection(CubeMapUv uv);
+
+	inline LatLong getCubeMapLatLong(xen::CubeMapUv coord){
+		return xen::toLatLong(xen::getCubeMapDirection(coord));
+	}
 
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Retrieves the coordinate of the neighbour of some cubemap pixel
@@ -154,6 +186,52 @@ namespace xen{
 	/// coord, or on the very edge of some other face.
   /////////////////////////////////////////////////////////////////////
 	Vec3u getCubeMapPixelNeighbour(Vec3u coord, u32 face_size, xen::CubeMap::Direction dir);
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Represents a weighted blend of cube map texels to be sampled
+	/// in order to read the value of some CubeMapUv
+	/////////////////////////////////////////////////////////////////////
+	struct CubeMapSamplePoints {
+		/// \brief The 4 pixels whose values must be blended together
+		Vec3u coord[4];
+
+		/// \brief The weightings for each pixel, sum of these will be equal to
+		/// 1.0. Note that some of these may be 0.0 when less than 4 texels need
+		/// to be sampled - for example if reading directly from the center of some
+		/// pixel only 1 pixel needs be sampled. When reading directly from the
+		/// corner of a cube face only 3 pixels need to be sampled since the
+		/// curvature means there are only 3 pixels meeting at this vertex, not 4
+		real  weight[4];
+	};
+
+	/////////////////////////////////////////////////////////////////////
+	/// \brief Computes which texels need to be sampled and the corresponding
+	/// blend weights in order to read the value of a cubemap at a location not
+	/// directly centered on some pixel
+	/// \return CubeMapSamplePoints representing the texels to be sampled. Arrays
+	/// will be ordered such that:
+	/// - [0] is the primary pixel that the uv falls within
+	/// - [1] is the neighbour to the primary pixel stepping along the uv.x direction
+	/// - [2] is the neighbour to the primary pixel stepping along the uv.y direction
+	/// - [3] is diagonally touching the primary pixel, stepping along both uv.x and uv.y
+	/////////////////////////////////////////////////////////////////////
+	CubeMapSamplePoints getCubeMapSamplePoints(CubeMapUv uv, u32 face_size);
+
+	inline CubeMapSamplePoints getCubeMapSamplePoints(Vec3r direction, u32 face_size){
+		return getCubeMapSamplePoints(getCubeMapUv(direction), face_size);
+	}
+	inline CubeMapSamplePoints getCubeMapSamplePoints(LatLong latlong, u32 face_size){
+		return getCubeMapSamplePoints(getCubeMapUv(latlong), face_size);
+	}
+
+	template<typename T>
+	T sampleCubeArray(const CubeArray<T>& arr, LatLong ll){
+		CubeMapSamplePoints pts = getCubeMapSamplePoints(ll, arr.side_length);
+		return (arr[pts.coord[0]] * pts.weight[0] +
+		        arr[pts.coord[1]] * pts.weight[1] +
+		        arr[pts.coord[2]] * pts.weight[2] +
+		        arr[pts.coord[3]] * pts.weight[3]);
+	}
 
 
 	/////////////////////////////////////////////////////////////////////

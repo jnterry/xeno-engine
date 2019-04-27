@@ -225,7 +225,7 @@ namespace xen{
 	template<u32 T_DIM, typename T>
 	Vec<T_DIM, T> clamp(Vec<T_DIM, T> vec, T low, T high){
 		Vec<T_DIM, T> result;
-		for(int i = 0; i < T_DIM; ++i){
+		for(u32 i = 0; i < T_DIM; ++i){
 			result.elements[i] = xen::clamp(vec.elements[i], low, high);
 		}
 		return result;
@@ -233,7 +233,7 @@ namespace xen{
 	template<u32 T_DIM, typename T>
 	Vec<T_DIM, T> abs(Vec<T_DIM, T> vec){
 		Vec<T_DIM, T> result;
-		for(int i = 0; i < T_DIM; ++i){
+		for(u32 i = 0; i < T_DIM; ++i){
 			result.elements[i] = xen::abs(vec.elements[i]);
 		}
 		return result;

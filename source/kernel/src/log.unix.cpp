@@ -69,8 +69,8 @@ void xke::printLogMsgToStdio(const xen::LogMessage& lm){
 	static const char* str_setaf = tigetstr("setaf");
 	static const char* str_setab = tigetstr("setab");
 
-	u32 level_foreground; // rgba colors
-  u32 level_background;
+	u32 level_foreground = 0xFFFFFFFF; // rgba colors
+	u32 level_background = 0x000000FF;
 	const char* level_name;
 
 	switch(lm.level){

@@ -62,7 +62,6 @@ namespace xen{
 		UNKNOWN,
 	};
 
-
 	struct CubeMap {
 		enum Face {
 			// DO NOT REARRANGE THESE
@@ -81,6 +80,14 @@ namespace xen{
 			Up,
 			Left,
 		};
+	};
+
+	struct CubeMapUv {
+		// \brief The UV offset within the face in question
+		Vec2r uv;
+
+		/// \brief Which face the pixel is on
+		CubeMap::Face face;
 	};
 
 	/// \brief Array representing data stored upon a CubeMap surface
@@ -117,6 +124,14 @@ namespace xen{
 			];
 		}
 	};
+}
+
+inline bool operator==(const xen::CubeMapUv& a, const xen::CubeMapUv& b){
+	return a.uv == b.uv && a.face == b.face;
+}
+
+inline bool operator!=(const xen::CubeMapUv& a, const xen::CubeMapUv& b){
+	return a.uv != b.uv || a.face != b.face;
 }
 
 #endif
