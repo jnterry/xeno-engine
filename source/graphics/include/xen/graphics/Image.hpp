@@ -192,16 +192,46 @@ namespace xen{
 	/// in order to read the value of some CubeMapUv
 	/////////////////////////////////////////////////////////////////////
 	struct CubeMapSamplePoints {
+			// Disable gcc's warning about anonymous structs in unions temporarily...
+	#pragma GCC diagnostic push
+	#pragma GCC diagnostic ignored "-Wpedantic"
 		/// \brief The 4 pixels whose values must be blended together
-		Vec3u coord[4];
+		union {
+			struct {
+				Vec3u coord[4];
 
-		/// \brief The weightings for each pixel, sum of these will be equal to
-		/// 1.0. Note that some of these may be 0.0 when less than 4 texels need
-		/// to be sampled - for example if reading directly from the center of some
-		/// pixel only 1 pixel needs be sampled. When reading directly from the
-		/// corner of a cube face only 3 pixels need to be sampled since the
-		/// curvature means there are only 3 pixels meeting at this vertex, not 4
-		real  weight[4];
+				/// \brief The weightings for each pixel, sum of these will be equal to
+				/// 1.0. Note that some of these may be 0.0 when less than 4 texels need
+				/// to be sampled - for example if reading directly from the center of some
+				/// pixel only 1 pixel needs be sampled. When reading directly from the
+				/// corner of a cube face only 3 pixels need to be sampled since the
+				/// curvature means there are only 3 pixels meeting at this vertex, not 4
+				real  weight[4];
+			};
+			struct {
+				u32  _dummy_0;
+				u32  _dummy_1;
+				u32  _dummy_2;
+
+				u32  _dummy_3;
+				u32  _dummy_4;
+				u32  _dummy_5;
+
+				u32  _dummy_6;
+				u32  _dummy_7;
+				u32  _dummy_8;
+
+				u32  _dummy_9;
+				u32  _dummy_10;
+				u32  _dummy_11;
+
+				real  _dummy_12;
+				real  _dummy_13;
+				real  _dummy_14;
+				real  _dummy_15;
+			};
+		};
+		#pragma GCC diagnostic pop // re-enable -Wpedantic
 	};
 
 	/////////////////////////////////////////////////////////////////////
@@ -227,6 +257,28 @@ namespace xen{
 	template<typename T>
 	T sampleCubeArray(const CubeArray<T>& arr, LatLong ll){
 		CubeMapSamplePoints pts = getCubeMapSamplePoints(ll, arr.side_length);
+
+		bool bad = false;
+		for(int i = 0; i < 4; ++i){
+			bad |= pts.coord[i].x < 0;
+			bad |= pts.coord[i].y < 0;
+			bad |= pts.coord[i].z < 0;
+			bad |= pts.coord[i].x >= arr.side_length  ;
+			bad |= pts.coord[i].y >= arr.side_length  ;
+			bad |= pts.coord[i].z >= 6;
+		}
+		if(bad){
+			printf("BAD sample coord!\n");
+			printf("%f, %f\n", xen::asDegrees(ll.x), xen::asDegrees(ll.y));
+			for(int i = 0; i < 4; ++i){
+				printf("[%i]: %u, %u, %u\n",
+				       i,
+				       pts.coord[i].x,
+				       pts.coord[i].y,
+				       pts.coord[i].z);
+			}
+		}
+
 		return (arr[pts.coord[0]] * pts.weight[0] +
 		        arr[pts.coord[1]] * pts.weight[1] +
 		        arr[pts.coord[2]] * pts.weight[2] +
