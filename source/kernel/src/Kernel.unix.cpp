@@ -26,6 +26,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <cxxabi.h>
 
 namespace {
 	char* resolveDynamicLibrary(xen::ArenaLinear& arena, const char* name){
@@ -153,7 +154,47 @@ namespace {
 
 		// print out all the frames to stderr
 		fprintf(stderr, "Error: signal SIGSEGV\n");
-		backtrace_symbols_fd(array, size, STDERR_FILENO);
+		if(size == 0){
+			fprintf(stderr, "Stack empty, corrupted?\n");
+		}
+
+		char** symbollist = backtrace_symbols(array, size);
+		size_t func_name_size = 512;
+		char* func_name = (char*)malloc(func_name_size);
+
+		// Iterate over list of stack entries and print, skip this function
+		// and the sigsegv handler code
+		for(u32 i = 2; i < size; ++i){
+			// Find paranthses and +address offset surrounding the mangled name
+			// Eg: ./module(function+0xff) [0x12345678]
+			char* begin_name   = nullptr;
+			char* begin_offset = nullptr;
+			char* end_offset   = nullptr;
+			for(char* p = symbollist[i]; *p != '\0'; ++p){
+				switch(*p){
+				case '(': begin_name   = p; break;
+				case '+': begin_offset = p; break;
+				case ')': end_offset   = p; break;
+				default: break;
+				}
+			}
+			if(begin_name && begin_offset && end_offset && begin_name < begin_offset){
+				*begin_name++   = '\0';
+				*begin_offset++ = '\0';
+				*end_offset     = '\0';
+
+				int status;
+				char* ret = abi::__cxa_demangle(begin_name, func_name, &func_name_size, &status);
+				if(status == 0){
+					func_name = ret;
+				}
+				fprintf(stderr, "%2i : %s+%s\n", i-2, func_name, begin_offset);
+			} else {
+				fprintf(stderr, "%2i : %s\n", i-2, symbollist[i]);
+			}
+		}
+
+		//backtrace_symbols_fd(array, size, STDERR_FILENO);
 		exit(1);
 	}
 
