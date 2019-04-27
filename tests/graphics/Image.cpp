@@ -293,3 +293,24 @@ TEST_CASE("getCubeMapLatLong -> SamplePoints", "[graphics][CubeMap]"){
 		}
 	}
 }
+
+TEST_CASE("getCubeMapLatLong -> SamplePoints Regression", "[graphics][CubeMap]"){
+	// This is a regression test for a bug found in real use case
+	// Function was returning a position just out of bounds (IE: y = 64
+	// on a cubemap of 64x64)
+	// Original output:
+	// 8, 64, 0 @@ 0.272599
+	// 9, 64, 0 @@ 0.227401
+	// 8, 63, 0 @@ 0.272599
+	// 9, 63, 0 @@ 0.227401
+	xen::LatLong ll = { xen::Degrees(39.058353), xen::Degrees(35.760014) };
+	xen::CubeMapSamplePoints sp = xen::getCubeMapSamplePoints(ll, 64);
+
+	for(int i = 0; i < 4; ++i){
+		printf("%u, %u, %u @@ %f\n",
+		       sp.coord[i].x,
+		       sp.coord[i].y,
+		       sp.coord[i].z,
+		       sp.weight[i]);
+	}
+}

@@ -335,8 +335,10 @@ xen::CubeMapSamplePoints xen::getCubeMapSamplePoints(xen::CubeMapUv coord, u32 f
 
 	// Compute the integer components of the primary pixel (IE: that actually
 	// contains the target uv)
-	Vec2r pixel = coord.uv * (real)face_size;// - Vec2r{ 0.5_r, 0.5_r };
+	Vec2r pixel = coord.uv * (real)face_size;
 	Vec3u primary_pixel = { (u32)floor(pixel.x), (u32)floor(pixel.y), (u32)coord.face };
+
+	//printf("%f, %f, %u\n", coord.uv.x, coord.uv.y, coord.face);
 
 	// Compute the offset from the center of the pixel in question, thus between
 	// -0.5 and 0.5 as we go from one edge to the opposite edge
