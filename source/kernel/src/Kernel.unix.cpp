@@ -20,6 +20,11 @@
 #include <cstring>
 #include <cstdio>
 
+// realpath() helper
+#include <cstdlib>
+#include <climits>
+#include <cerrno>
+
 // sigsegv handler includes
 #include <stdio.h>
 #include <execinfo.h>
@@ -56,16 +61,29 @@ namespace {
 	xen::Module* doLoad(xke::ModuleSource* msrc){
 		msrc->lib_modification_time = xen::getPathModificationTime(msrc->lib_path);
 
+		// Generate new path with timestamp appended so the original .so file isn't open
+		// and can be re-written by compiler for hot-reloading
 		XenTempStringBuffer(path_strbuf, 4096, msrc->lib_path);
 		xen::appendStringf(path_strbuf, "-%lu", xen::asNanoseconds<u64>(xen::getTimestamp()));
-
 		const char* path = path_strbuf;
+
 		if(!xen::copyFile(msrc->lib_path, path_strbuf)){
 			XenLogWarn("Failed to copy library before opening: %s", msrc->lib_path);
 			path = msrc->lib_path;
 		}
 
-		msrc->lib_handle = dlopen(path, RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
+		// We have to pass the absolute path to dlopen or we get a no such file on
+		// some systems. Careful if trying to change this! Loading the assimp lib
+		// (a dependency of xen-graphics) somehows allows loading by relative path
+		// (mayble it adds cwd to the LD_LIBRARY_PATH env var of this process?)
+		// so test on an example app that does NOT link against xen-graphics!
+		char absPath[PATH_MAX];
+		if(realpath(path, absPath) != NULL) {
+			XenLogDebug("Loading dynamic link library from %s", absPath);
+			msrc->lib_handle = dlopen(absPath, RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
+		} else {
+			XenLogError("Failed to resolve absolute path of module to load: %s", strerror(errno));
+		}
 
 		// Do delete before error check of dlopen - since we want to clean up the
 		// temp file either way!
@@ -84,9 +102,10 @@ namespace {
 
 		xen::Module* result = (xen::Module*)dlsym(msrc->lib_handle, "exported_xen_module");
 		if(result == nullptr){
-			XenLogError("Failed to load symbol 'exported_xen_module' from dynamic library %s, error: %s",
-			            msrc->lib_path, dlerror()
-			            );
+			XenLogError(
+				"Failed to load symbol 'exported_xen_module' from dynamic library %s, error: %s",
+				msrc->lib_path, dlerror()
+			);
 			return nullptr;
 		}
 
