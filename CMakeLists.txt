@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.1)
+cmake_minimum_required(VERSION 3.3)
 project("Xeno Engine")
 
 # Enable grouping projects into folders in generated IDE solution files (eg, visual studio)
@@ -10,9 +10,9 @@ include("${CMAKE_CURRENT_LIST_DIR}/cmake/options/double_precision.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/options/simd.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/cmake/options/build_type.cmake")
 
-set(XEN_LIB_DIR "${CMAKE_CURRENT_LIST_DIR}/lib" CACHE "string"
+set(XEN_LIB_DIR "${CMAKE_CURRENT_LIST_DIR}/lib" CACHE "STRING"
 	"Where to output built static libraries")
-set(XEN_BIN_DIR "${CMAKE_CURRENT_LIST_DIR}/bin" CACHE "string"
+set(XEN_BIN_DIR "${CMAKE_CURRENT_LIST_DIR}/bin" CACHE "STRING"
 	"Where to output built binaries and dynamic link libraries")
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -75,6 +75,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set (CMAKE_CXX_FLAGS "-g -rdynamic ${CMAKE_CXX_FLAGS}")
 endif()
 
+set(XEN_BUILD_MODULES "core;math;kernel;graphics;window;gl" CACHE LIST "List of xeno engine modules which should be built")
+
 add_subdirectory(extlibs)
 add_subdirectory(source)
 
@@ -82,7 +84,5 @@ set(XEN_BUILD_UNIT_TESTS TRUE CACHE BOOL "If set then unit test application will
 if(${XEN_BUILD_UNIT_TESTS})
 	add_subdirectory(tests)
 endif()
-
-
 
 add_subdirectory(examples)

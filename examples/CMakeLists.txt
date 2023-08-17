@@ -8,7 +8,7 @@ function(xen_add_example TARGET_NAME)
 
 	add_executable(${TARGET_NAME} ${ARGN})
 
-	target_include_directories(${TARGET_NAME} PRIVATE ${XEN_INCLUDE_DIR})
+	target_include_directories(${TARGET_NAME} PRIVATE ${XEN_INCLUDE_DIRS})
 
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 		 # The modules we load expect to find the symbols decarled in these
