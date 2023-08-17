@@ -12,6 +12,7 @@
 #include <xen/math/vector_types.hpp>
 #include <xen/math/angle.hpp>
 #include <xen/math/utilities.hpp>
+#include "vector_arithmetic.hpp"
 #include "swizzles.hpp"
 
 namespace xen{

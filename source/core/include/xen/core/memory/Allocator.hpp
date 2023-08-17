@@ -17,7 +17,7 @@ namespace xen{
 	/// be obtained
 	/// \note Allocation is slow, Allocator instances are intended to be used
 	/// infrequently in order to obtain large blocks of memory from the OS, which
-	/// are then managed manually by some top level system in Xenogin
+	/// are then managed manually by some top level system in Xeno Engine
 	//////////////////////////////////////////////////////////////////////////
 	class Allocator{
 	public:

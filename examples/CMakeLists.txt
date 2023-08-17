@@ -31,9 +31,7 @@ function(xen_add_example TARGET_NAME)
 
 	# Ensure that we can run the target from visual studio debugger and find
 	# resources in the bin directory
-	set_target_properties(${TARGET_NAME} PROPERTIES
-		VS_DEBUGGER_WORKING_DIRECTORY ${XEN_BIN_DIR}
-	)
+	set_target_properties(${TARGET_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${XEN_BIN_DIR})
 endfunction()
 
 set(_THIS_DIR ${CMAKE_CURRENT_LIST_DIR})

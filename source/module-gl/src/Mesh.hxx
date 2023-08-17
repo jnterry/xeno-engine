@@ -25,6 +25,12 @@ namespace xgl {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 
+	// More over we have to explicty define constuctor and copy operator
+	// due to anon struct in union, which we implement using memcpy, which
+	// gcc also doesn't like as it thinks this is a non-trivially copyable
+	// class...
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+
 	/////////////////////////////////////////////////////////////////////
 	/// \brief Stores meta data about where to find the vertex data for some
 	/// attribute of a mesh

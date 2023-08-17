@@ -12,6 +12,7 @@
 
 #include <xen/core/intrinsics.hpp>
 #include <xen/core/memory/ArenaLinear.hpp>
+#include <xen/math/angle.hpp>
 #include <xen/math/vector_types.hpp>
 #include <xen/math/latlong.hpp>
 #include <xen/graphics/Image_types.hpp>
