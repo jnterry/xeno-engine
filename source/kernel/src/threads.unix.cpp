@@ -222,7 +222,7 @@ void* kernelThreadFunction(void* thread_index){
 
 	xke::THIS_THREAD_INDEX = (xen::ThreadIndex)thread_index;
 
-	XenLogDone("Worker thread ready");
+	XenLogDone("Worker thread %02i ready", xke::THIS_THREAD_INDEX);
 
 	while(!xke::kernel.stop_requested){
 

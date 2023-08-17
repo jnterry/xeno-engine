@@ -67,17 +67,19 @@ namespace {
 
 		msrc->lib_handle = dlopen(path, RTLD_NOW | RTLD_LOCAL | RTLD_DEEPBIND);
 
-		if(msrc->lib_handle == nullptr){
-			XenLogError("Error loading dynamic library %s, error: %s", msrc->lib_path, dlerror());
-			return nullptr;
-		}
-
+		// Do delete before error check of dlopen - since we want to clean up the
+		// temp file either way!
 		if(msrc->lib_path != path){
 			// we can delete the file even though our process has it open, the number of
 			// references to the inode will be decremented by 1, but since our process
 			// has it open the file will not be deleted, space on disk will be freed
 			// when process exits or unload is called
 			xen::deleteFile(path);
+		}
+
+		if(msrc->lib_handle == nullptr){
+			XenLogError("Error loading dynamic library %s, error: %s", msrc->lib_path, dlerror());
+			return nullptr;
 		}
 
 		xen::Module* result = (xen::Module*)dlsym(msrc->lib_handle, "exported_xen_module");
@@ -98,6 +100,7 @@ xen::Module* xke::platformLoadModule(const char* name, xke::ModuleSource* msrc){
 		XenLogError("Failed to find library file for module: %s", name);
 		return nullptr;
 	}
+	XenLogInfo("Found requested module '%s' at relative path '%s'", name, lib_path);
 
 	msrc->lib_path = lib_path;
 

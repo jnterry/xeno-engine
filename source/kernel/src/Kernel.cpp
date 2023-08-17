@@ -85,9 +85,10 @@ bool xen::initKernel(const xen::KernelSettings& settings){
 
 	xke::kernel.root_allocator = new xen::AllocatorMalloc();
 
-	xke::kernel.system_arena = xen::ArenaLinear(xke::kernel.root_allocator->allocate(SYSTEM_ARENA_SIZE),
-	                                        SYSTEM_ARENA_SIZE
-	                                       );
+	xke::kernel.system_arena = xen::ArenaLinear(
+		xke::kernel.root_allocator->allocate(SYSTEM_ARENA_SIZE),
+		SYSTEM_ARENA_SIZE
+	);
 
 	xen::copyBytes(&settings, &xke::kernel.settings, sizeof(xen::KernelSettings));
 
@@ -117,9 +118,9 @@ bool xen::initKernel(const xen::KernelSettings& settings){
 	return true;
 }
 
-xen::StringHash xen::loadModule(const char* name,
-                                const void* params
-                               ){
+xen::StringHash xen::loadModule(
+	const char* name, const void* params
+){
 	XenAssert(xke::kernel.state >= xke::Kernel::INITIALIZED,
 		      "Expected initKernel to be called before loadModule");
 
@@ -151,7 +152,9 @@ xen::StringHash xen::loadModule(const char* name,
 		XenLogWarn("Cleaning up from failed module load: %s", name);
 		if(lmod == nullptr){ return 0; }
 
-		xke::platformUnloadModule(lmod);
+		if(lmod->module) {
+			xke::platformUnloadModule(lmod);
+		}
 		xen::freeType<xke::LoadedModule>(xke::kernel.modules, lmod);
 
 		return 0;
